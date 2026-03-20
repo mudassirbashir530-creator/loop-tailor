@@ -45,7 +45,7 @@ export default function SignUp() {
         </div>
 
         <div className="relative z-10">
-          <Link to="/login" className="flex items-center gap-2 mb-16 group">
+          <Link to="/" className="flex items-center gap-2 mb-16 group">
             <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md group-hover:bg-white/30 transition-all">
               <Scissors className="h-6 w-6 text-white" />
             </div>
@@ -98,12 +98,12 @@ export default function SignUp() {
       {/* Right Side: Form */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 bg-[#FDFCF9]">
         <div className="max-w-md w-full mx-auto">
-          <div className="lg:hidden flex items-center gap-2 mb-12">
+          <Link to="/" className="lg:hidden flex items-center gap-2 mb-12">
             <div className="bg-brand-primary p-2 rounded-xl">
               <Scissors className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold tracking-tight">Loop Tailor</span>
-          </div>
+          </Link>
 
           <div className="mb-10">
             <h2 className="text-3xl sm:text-4xl font-display font-black text-slate-900 mb-3">Create Account</h2>
