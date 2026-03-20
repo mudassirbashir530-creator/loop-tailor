@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loop Tailor</title>
+    <script>
+      // Protect window.fetch from being overwritten by libraries that try to polyfill it
+      // This fixes the "Cannot set property fetch of #<Window> which has only a getter" error
+      (function() {
+        if (typeof window !== 'undefined' && window.fetch) {
+          try {
+            const originalFetch = window.fetch;
+            Object.defineProperty(window, 'fetch', {
+              get: function() { return originalFetch; },
+              set: function() { /* ignore attempt to overwrite */ },
+              configurable: false
+            });
+          } catch (e) {
+            // If it's already a getter and non-configurable, this might fail, 
+            // but the error we're trying to fix is an assignment error.
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

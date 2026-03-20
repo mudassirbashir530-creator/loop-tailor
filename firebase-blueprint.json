@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "Shop": {
+      "title": "Shop",
+      "description": "Represents a tailor shop (one per user).",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Shop name" },
+        "phone": { "type": "string", "description": "Shop phone number" },
+        "address": { "type": "string", "description": "Shop address" },
+        "logoUrl": { "type": "string", "description": "URL to shop logo" },
+        "invoiceFooter": { "type": "string", "description": "Custom message for invoice footer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "createdAt"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "A customer of a specific shop.",
+      "type": "object",
+      "properties": {
+        "shopId": { "type": "string", "description": "ID of the shop this customer belongs to" },
+        "name": { "type": "string", "description": "Customer name" },
+        "phone": { "type": "string", "description": "Customer phone number (primary search key)" },
+        "address": { "type": "string", "description": "Customer address" },
+        "notes": { "type": "string", "description": "Additional notes" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["shopId", "name", "phone", "createdAt"]
+    },
+    "Measurement": {
+      "title": "Measurement",
+      "description": "Shalwar Kameez measurements for a customer.",
+      "type": "object",
+      "properties": {
+        "shopId": { "type": "string" },
+        "customerId": { "type": "string" },
+        "kameezShoulder": { "type": "number" },
+        "kameezChest": { "type": "number" },
+        "kameezWaist": { "type": "number" },
+        "kameezHip": { "type": "number" },
+        "kameezLength": { "type": "number" },
+        "kameezArmLength": { "type": "number" },
+        "kameezArmWidth": { "type": "number" },
+        "kameezCollarSize": { "type": "number" },
+        "kameezFrontLength": { "type": "number" },
+        "kameezBackLength": { "type": "number" },
+        "kameezCuffSize": { "type": "number" },
+        "shalwarWaist": { "type": "number" },
+        "shalwarHip": { "type": "number" },
+        "shalwarLength": { "type": "number" },
+        "shalwarBottomWidth": { "type": "number" },
+        "shalwarThighWidth": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["shopId", "customerId", "updatedAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A tailoring order.",
+      "type": "object",
+      "properties": {
+        "shopId": { "type": "string" },
+        "tokenId": { "type": "string", "description": "Unique incremental or short code for tracking" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "phone": { "type": "string", "description": "Customer phone number" },
+        "dressType": { "type": "string" },
+        "measurements": { 
+          "type": "object", 
+          "description": "Detailed measurements for this specific order",
+          "properties": {
+            "length": { "type": "number" },
+            "chest": { "type": "number" },
+            "waist": { "type": "number" },
+            "hip": { "type": "number" },
+            "shoulder": { "type": "number" },
+            "sleeve": { "type": "number" },
+            "neck": { "type": "number" }
+          }
+        },
+        "quantity": { "type": "number", "default": 1 },
+        "rackLocation": { "type": "string", "description": "Physical location in the shop" },
+        "notes": { "type": "string" },
+        "deliveryDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Pending", "Stitching", "Ready", "Delivered"] },
+        "price": { "type": "number" },
+        "advancePayment": { "type": "number" },
+        "referencePhotoUrl": { "type": "string" },
+        "sampleDesignUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["shopId", "tokenId", "customerName", "dressType", "status", "price", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/shops/{shopId}": {
+      "schema": { "$ref": "#/entities/Shop" },
+      "description": "Stores shop profiles. Document ID is the user's UID."
+    },
+    "/customers/{customerId}": {
+      "schema": { "$ref": "#/entities/Customer" },
+      "description": "Stores customers."
+    },
+    "/measurements/{measurementId}": {
+      "schema": { "$ref": "#/entities/Measurement" },
+      "description": "Stores customer measurements. Document ID is usually the customerId."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Stores tailoring orders."
+    }
+  }
+}
