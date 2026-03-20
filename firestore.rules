@@ -16,29 +16,26 @@ service cloud.firestore {
     //   - invoiceFooter: string (optional, < 500 chars)
     //   - createdAt: string (required, ISO 8601)
     //
-    // Collection: customers
+    // Subcollection: shops/{shopId}/customers
     // Document ID: {customerId}
     // Fields:
-    //   - shopId: string (required, must match creator UID)
     //   - name: string (required, 1-100 chars)
     //   - phone: string (required, 1-50 chars)
     //   - address: string (optional, < 200 chars)
     //   - notes: string (optional, < 1000 chars)
     //   - createdAt: string (required, ISO 8601)
     //
-    // Collection: measurements
-    // Document ID: {measurementId}
+    // Subcollection: shops/{shopId}/measurements
+    // Document ID: {measurementId} (usually same as customerId)
     // Fields:
-    //   - shopId: string (required)
     //   - customerId: string (required)
     //   - kameezShoulder: number (optional)
     //   ... other measurement fields (optional numbers)
     //   - updatedAt: string (required, ISO 8601)
     //
-    // Collection: orders
+    // Subcollection: shops/{shopId}/orders
     // Document ID: {orderId}
     // Fields:
-    //   - shopId: string (required)
     //   - customerId: string (required)
     //   - customerName: string (required)
     //   - dressType: string (required)
@@ -64,25 +61,6 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == shopId;
     }
 
-    function isDocOwner() {
-      return isAuthenticated() && request.auth.uid == resource.data.shopId;
-    }
-
-    function hasOnlyAllowedFields(fields) {
-      return request.resource.data.keys().hasOnly(fields);
-    }
-
-    function isValidString(field, min, max) {
-      return request.resource.data[field] is string && 
-             request.resource.data[field].size() >= min && 
-             request.resource.data[field].size() <= max;
-    }
-
-    function isValidOptionalString(field, max) {
-      return !(field in request.resource.data) || 
-             (request.resource.data[field] is string && request.resource.data[field].size() <= max);
-    }
-
     // ===============================================================
     // Domain Validators
     // ===============================================================
@@ -93,26 +71,26 @@ service cloud.firestore {
              (!('address' in data) || (data.address is string && data.address.size() <= 200)) &&
              (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 1000)) &&
              (!('invoiceFooter' in data) || (data.invoiceFooter is string && data.invoiceFooter.size() <= 500)) &&
-             data.createdAt is string;
+             (data.createdAt is string || data.createdAt is timestamp);
     }
 
-    function isValidCustomer(data) {
-      return data.shopId == request.auth.uid &&
+    function isValidCustomer(data, shopId) {
+      return data.shopId == shopId &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
              data.phone is string && data.phone.size() > 0 && data.phone.size() <= 50 &&
              (!('address' in data) || (data.address is string && data.address.size() <= 200)) &&
              (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000)) &&
-             data.createdAt is string;
+             (data.createdAt is string || data.createdAt is timestamp);
     }
 
-    function isValidMeasurement(data) {
-      return data.shopId == request.auth.uid &&
+    function isValidMeasurement(data, shopId) {
+      return data.shopId == shopId &&
              data.customerId is string &&
-             data.updatedAt is string;
+             (data.updatedAt is string || data.updatedAt is timestamp);
     }
 
-    function isValidOrder(data) {
-      return data.shopId == request.auth.uid &&
+    function isValidOrder(data, shopId) {
+      return data.shopId == shopId &&
              data.tokenId is string &&
              data.customerName is string &&
              data.dressType is string &&
@@ -122,8 +100,8 @@ service cloud.firestore {
              (!('quantity' in data) || data.quantity is number) &&
              (!('rackLocation' in data) || data.rackLocation is string) &&
              (!('measurements' in data) || data.measurements is map) &&
-             data.createdAt is string &&
-             data.updatedAt is string;
+             (data.createdAt is string || data.createdAt is timestamp) &&
+             (data.updatedAt is string || data.updatedAt is timestamp);
     }
 
     // ===============================================================
@@ -139,27 +117,27 @@ service cloud.firestore {
       allow create: if isOwner(shopId) && isValidShop(request.resource.data);
       allow update: if isOwner(shopId) && isValidShop(request.resource.data);
       allow delete: if false;
-    }
 
-    match /customers/{customerId} {
-      allow read: if isAuthenticated() && (resource == null || resource.data.shopId == request.auth.uid);
-      allow create: if isAuthenticated() && isValidCustomer(request.resource.data);
-      allow update: if isAuthenticated() && resource.data.shopId == request.auth.uid && isValidCustomer(request.resource.data);
-      allow delete: if isAuthenticated() && resource.data.shopId == request.auth.uid;
-    }
+      match /customers/{customerId} {
+        allow read: if isOwner(shopId);
+        allow create: if isOwner(shopId) && isValidCustomer(request.resource.data, shopId);
+        allow update: if isOwner(shopId) && isValidCustomer(request.resource.data, shopId);
+        allow delete: if isOwner(shopId);
+      }
 
-    match /measurements/{measurementId} {
-      allow read: if isAuthenticated() && (resource == null || resource.data.shopId == request.auth.uid);
-      allow create: if isAuthenticated() && isValidMeasurement(request.resource.data);
-      allow update: if isAuthenticated() && resource.data.shopId == request.auth.uid && isValidMeasurement(request.resource.data);
-      allow delete: if isAuthenticated() && resource.data.shopId == request.auth.uid;
-    }
+      match /measurements/{measurementId} {
+        allow read: if isOwner(shopId);
+        allow create: if isOwner(shopId) && isValidMeasurement(request.resource.data, shopId);
+        allow update: if isOwner(shopId) && isValidMeasurement(request.resource.data, shopId);
+        allow delete: if isOwner(shopId);
+      }
 
-    match /orders/{orderId} {
-      allow read: if isAuthenticated() && (resource == null || resource.data.shopId == request.auth.uid);
-      allow create: if isAuthenticated() && isValidOrder(request.resource.data);
-      allow update: if isAuthenticated() && resource.data.shopId == request.auth.uid && isValidOrder(request.resource.data);
-      allow delete: if isAuthenticated() && resource.data.shopId == request.auth.uid;
+      match /orders/{orderId} {
+        allow read: if isOwner(shopId);
+        allow create: if isOwner(shopId) && isValidOrder(request.resource.data, shopId);
+        allow update: if isOwner(shopId) && isValidOrder(request.resource.data, shopId);
+        allow delete: if isOwner(shopId);
+      }
     }
   }
 }

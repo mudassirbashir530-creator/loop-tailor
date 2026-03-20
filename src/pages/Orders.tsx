@@ -27,7 +27,7 @@ export default function Orders() {
     if (!user) return;
     setLoading(true);
     try {
-      const q = query(collection(db, 'orders'), where('shopId', '==', user.uid));
+      const q = query(collection(db, 'shops', user.uid, 'orders'));
       const snap = await getDocs(q);
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setOrders(data.sort((a: any, b: any) => {
@@ -44,7 +44,7 @@ export default function Orders() {
 
   const updateStatus = async (orderId: string, newStatus: string) => {
     try {
-      await updateDoc(doc(db, 'orders', orderId), { 
+      await updateDoc(doc(db, 'shops', user!.uid, 'orders', orderId), { 
         status: newStatus, 
         updatedAt: serverTimestamp() 
       });

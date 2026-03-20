@@ -28,7 +28,7 @@ export default function OrderDetails() {
 
   const fetchOrder = async () => {
     try {
-      const docRef = doc(db, 'orders', id!);
+      const docRef = doc(db, 'shops', user.uid, 'orders', id!);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -52,7 +52,7 @@ export default function OrderDetails() {
 
   const handleUpdateStatus = async (newStatus: string) => {
     try {
-      await updateDoc(doc(db, 'orders', id!), { 
+      await updateDoc(doc(db, 'shops', user.uid, 'orders', id!), { 
         status: newStatus, 
         updatedAt: serverTimestamp() 
       });
@@ -64,7 +64,7 @@ export default function OrderDetails() {
 
   const handleSaveEdit = async () => {
     try {
-      await updateDoc(doc(db, 'orders', id!), {
+      await updateDoc(doc(db, 'shops', user.uid, 'orders', id!), {
         ...editData,
         updatedAt: serverTimestamp()
       });

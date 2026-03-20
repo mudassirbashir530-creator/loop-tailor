@@ -28,7 +28,7 @@ export default function Customers() {
     if (!user) return;
     setLoading(true);
     try {
-      const q = query(collection(db, 'customers'), where('shopId', '==', user.uid));
+      const q = query(collection(db, 'shops', user.uid, 'customers'));
       const snap = await getDocs(q);
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
       setCustomers(data.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
@@ -44,7 +44,7 @@ export default function Customers() {
     if (!user || !newCustomer.name || !newCustomer.phone) return;
 
     try {
-      await addDoc(collection(db, 'customers'), {
+      await addDoc(collection(db, 'shops', user.uid, 'customers'), {
         shopId: user.uid,
         ...newCustomer,
         createdAt: serverTimestamp()

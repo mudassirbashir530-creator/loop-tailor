@@ -71,8 +71,7 @@ export default function Dashboard() {
     setSearchError('');
     try {
       const q = query(
-        collection(db, 'orders'), 
-        where('shopId', '==', user.uid),
+        collection(db, 'shops', user.uid, 'orders'), 
         where('tokenId', '==', searchToken.trim())
       );
       const snap = await getDocs(q);
@@ -94,8 +93,8 @@ export default function Dashboard() {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const customersSnap = await getDocs(query(collection(db, 'customers'), where('shopId', '==', user.uid)));
-        const ordersSnap = await getDocs(query(collection(db, 'orders'), where('shopId', '==', user.uid)));
+        const customersSnap = await getDocs(collection(db, 'shops', user.uid, 'customers'));
+        const ordersSnap = await getDocs(collection(db, 'shops', user.uid, 'orders'));
         
         let active = 0;
         let completed = 0;

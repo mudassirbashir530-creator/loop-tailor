@@ -58,8 +58,7 @@ export default function QuickOrder() {
       let customerId = '';
       if (customerData.phone) {
         const q = query(
-          collection(db, 'customers'), 
-          where('shopId', '==', user.uid), 
+          collection(db, 'shops', user.uid, 'customers'), 
           where('phone', '==', customerData.phone),
           limit(1)
         );
@@ -67,7 +66,7 @@ export default function QuickOrder() {
         if (!snap.empty) {
           customerId = snap.docs[0].id;
           // Update existing customer name/address if changed
-          await updateDoc(doc(db, 'customers', customerId), {
+          await updateDoc(doc(db, 'shops', user.uid, 'customers', customerId), {
             name: customerData.name,
             address: customerData.address,
             updatedAt: serverTimestamp()
@@ -77,7 +76,7 @@ export default function QuickOrder() {
 
       if (!customerId) {
         // Create new customer
-        const customerRef = await addDoc(collection(db, 'customers'), {
+        const customerRef = await addDoc(collection(db, 'shops', user.uid, 'customers'), {
           ...customerData,
           shopId: user.uid,
           createdAt: serverTimestamp(),
@@ -87,7 +86,7 @@ export default function QuickOrder() {
       }
 
       // 3. Create Order
-      await addDoc(collection(db, 'orders'), {
+      await addDoc(collection(db, 'shops', user.uid, 'orders'), {
         shopId: user.uid,
         tokenId,
         customerId,

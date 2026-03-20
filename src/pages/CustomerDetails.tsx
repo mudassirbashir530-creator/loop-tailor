@@ -42,7 +42,7 @@ export default function CustomerDetails() {
     if (!user || !id) return;
     setLoading(true);
     try {
-      const custSnap = await getDoc(doc(db, 'customers', id));
+      const custSnap = await getDoc(doc(db, 'shops', user.uid, 'customers', id));
       if (custSnap.exists() && custSnap.data().shopId === user.uid) {
         setCustomer({ id: custSnap.id, ...custSnap.data() });
         setEditCustomerData({
@@ -56,12 +56,12 @@ export default function CustomerDetails() {
         return;
       }
 
-      const measSnap = await getDoc(doc(db, 'measurements', id));
+      const measSnap = await getDoc(doc(db, 'shops', user.uid, 'measurements', id));
       if (measSnap.exists()) {
         setMeasurements(measSnap.data());
       }
 
-      const q = query(collection(db, 'orders'), where('customerId', '==', id), where('shopId', '==', user.uid));
+      const q = query(collection(db, 'shops', user.uid, 'orders'), where('customerId', '==', id));
       const ordSnap = await getDocs(q);
       const data = ordSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setOrders(data.sort((a: any, b: any) => {
@@ -82,7 +82,7 @@ export default function CustomerDetails() {
     setSavingMeasurements(true);
     setSaveSuccess(false);
     try {
-      await setDoc(doc(db, 'measurements', id), {
+      await setDoc(doc(db, 'shops', user.uid, 'measurements', id), {
         ...measurements,
         shopId: user.uid,
         customerId: id,
@@ -101,7 +101,7 @@ export default function CustomerDetails() {
     e.preventDefault();
     if (!user || !id) return;
     try {
-      await updateDoc(doc(db, 'customers', id), {
+      await updateDoc(doc(db, 'shops', user.uid, 'customers', id), {
         ...editCustomerData,
         updatedAt: serverTimestamp()
       });
@@ -123,7 +123,7 @@ export default function CustomerDetails() {
       // Get next token ID
       const tokenId = await generateTokenId(user.uid);
 
-      const orderRef = await addDoc(collection(db, 'orders'), {
+      const orderRef = await addDoc(collection(db, 'shops', user.uid, 'orders'), {
         shopId: user.uid,
         customerId: id,
         customerName: customer.name,

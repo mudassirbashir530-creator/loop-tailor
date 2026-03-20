@@ -25,7 +25,7 @@ export default function Invoice() {
     if (!user || !id) return;
     const fetchInvoiceData = async () => {
       try {
-        const orderSnap = await getDoc(doc(db, 'orders', id));
+        const orderSnap = await getDoc(doc(db, 'shops', user.uid, 'orders', id));
         if (!orderSnap.exists() || orderSnap.data().shopId !== user.uid) {
           navigate('/dashboard/orders');
           return;
@@ -36,7 +36,7 @@ export default function Invoice() {
         const shopSnap = await getDoc(doc(db, 'shops', user.uid));
         if (shopSnap.exists()) setShop(shopSnap.data());
 
-        const custSnap = await getDoc(doc(db, 'customers', orderData.customerId));
+        const custSnap = await getDoc(doc(db, 'shops', user.uid, 'customers', orderData.customerId));
         if (custSnap.exists()) setCustomer(custSnap.data());
 
       } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Scissors, Mail, Lock, ArrowRight, Loader2, CheckCircle, Smartphone, Shield, Zap } from 'lucide-react';
+import { Scissors, Mail, Lock, ArrowRight, ArrowLeft, Loader2, CheckCircle, Smartphone, Shield, Zap } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useAuth } from '../contexts/AuthContext';
@@ -105,11 +105,9 @@ export default function Login() {
       {/* Right Side: Form */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 bg-[#FDFCF9]">
         <div className="max-w-md w-full mx-auto">
-          <Link to="/" className="lg:hidden flex items-center gap-2 mb-12">
-            <div className="bg-brand-primary p-2 rounded-xl">
-              <Scissors className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">Loop Tailor</span>
+          <Link to="/" className="flex items-center gap-2 mb-8 text-slate-500 hover:text-slate-900 transition-colors w-fit">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-sm font-bold">Back to website</span>
           </Link>
 
           <div className="mb-10">

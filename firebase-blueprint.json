@@ -99,17 +99,17 @@
       "schema": { "$ref": "#/entities/Shop" },
       "description": "Stores shop profiles. Document ID is the user's UID."
     },
-    "/customers/{customerId}": {
+    "/shops/{shopId}/customers/{customerId}": {
       "schema": { "$ref": "#/entities/Customer" },
-      "description": "Stores customers."
+      "description": "Stores customers for a specific shop."
     },
-    "/measurements/{measurementId}": {
+    "/shops/{shopId}/measurements/{measurementId}": {
       "schema": { "$ref": "#/entities/Measurement" },
-      "description": "Stores customer measurements. Document ID is usually the customerId."
+      "description": "Stores customer measurements for a specific shop. Document ID is usually the customerId."
     },
-    "/orders/{orderId}": {
+    "/shops/{shopId}/orders/{orderId}": {
       "schema": { "$ref": "#/entities/Order" },
-      "description": "Stores tailoring orders."
+      "description": "Stores tailoring orders for a specific shop."
     }
   }
 }
