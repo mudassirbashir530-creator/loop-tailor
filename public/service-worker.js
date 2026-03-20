@@ -1,5 +1,5 @@
-const CACHE_NAME = 'loop-tailor-cache-v1';
-const urlsToCache = [
+const CACHE_NAME = 'loop-tailor-cache-v2';
+const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
@@ -9,72 +9,87 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Force the waiting service worker to become the active service worker.
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
-  );
-});
-
-self.addEventListener('fetch', event => {
-  // Skip cross-origin requests (like Firebase, Google Fonts, etc.)
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return;
-  }
-
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-
-        return fetch(event.request).then(
-          function(response) {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // Clone the response because it's a stream
-            var responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(function(cache) {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          }
-        ).catch(() => {
-          // If network fails and we don't have it in cache, we could return an offline page here
-          // For SPA routing, returning the index.html for navigation requests is a good fallback
-          if (event.request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
-        });
-      })
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(STATIC_ASSETS);
+    })
   );
 });
 
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
+  self.clients.claim(); // Claim any clients immediately.
+});
+
+self.addEventListener('fetch', event => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // 1. Bypass Firebase/Firestore API requests
+  // Firebase handles its own offline IndexedDB persistence. Intercepting these breaks Firestore.
+  if (
+    url.hostname.includes('firestore.googleapis.com') ||
+    url.hostname.includes('firebaseio.com') ||
+    url.hostname.includes('identitytoolkit.googleapis.com') ||
+    url.hostname.includes('securetoken.googleapis.com') ||
+    url.hostname.includes('firebasestorage.googleapis.com')
+  ) {
+    return; // Let the browser/Firebase SDK handle it natively
+  }
+
+  // 2. Network-First strategy for HTML/Navigation requests
+  // Ensures the user gets the latest index.html when online, falls back to cache when offline.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // 3. Cache-First strategy for static assets (JS, CSS, Images, Fonts)
+  if (
+    request.destination === 'style' ||
+    request.destination === 'script' ||
+    request.destination === 'image' ||
+    request.destination === 'font'
+  ) {
+    event.respondWith(
+      caches.match(request).then(cachedResponse => {
+        // Return cached asset if found
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        // Otherwise fetch from network, cache it, and return
+        return fetch(request).then(networkResponse => {
+          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+            return networkResponse;
+          }
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+          return networkResponse;
+        }).catch(() => {
+          // Ignore fetch errors for static assets when offline
+        });
+      })
+    );
+    return;
+  }
 });
