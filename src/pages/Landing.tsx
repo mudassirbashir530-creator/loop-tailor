@@ -520,27 +520,27 @@ export default function Landing() {
             <div>
               <h4 className="font-bold mb-6">Product</h4>
               <ul className="space-y-4 text-slate-500 text-sm">
-                <li><a href="#" className="hover:text-brand-primary">Features</a></li>
-                <li><a href="#" className="hover:text-brand-primary">Pricing</a></li>
-                <li><a href="#" className="hover:text-brand-primary">Mobile App</a></li>
-                <li><a href="#" className="hover:text-brand-primary">Updates</a></li>
+                <li><a href="#features" className="hover:text-brand-primary">Features</a></li>
+                <li><a href="#pricing" className="hover:text-brand-primary">Pricing</a></li>
+                <li><Link to="/mobile-app" className="hover:text-brand-primary">Mobile App</Link></li>
+                <li><Link to="/updates" className="hover:text-brand-primary">Updates</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold mb-6">Company</h4>
               <ul className="space-y-4 text-slate-500 text-sm">
-                <li><a href="#" className="hover:text-brand-primary">About Us</a></li>
-                <li><a href="#" className="hover:text-brand-primary">Careers</a></li>
-                <li><a href="#" className="hover:text-brand-primary">Contact</a></li>
-                <li><a href="#" className="hover:text-brand-primary">Blog</a></li>
+                <li><Link to="/about" className="hover:text-brand-primary">About Us</Link></li>
+                <li><Link to="/careers" className="hover:text-brand-primary">Careers</Link></li>
+                <li><Link to="/contact" className="hover:text-brand-primary">Contact</Link></li>
+                <li><Link to="/blog" className="hover:text-brand-primary">Blog</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold mb-6">Legal</h4>
               <ul className="space-y-4 text-slate-500 text-sm">
-                <li><a href="#" className="hover:text-brand-primary">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-brand-primary">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-brand-primary">Cookie Policy</a></li>
+                <li><Link to="/privacy" className="hover:text-brand-primary">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-brand-primary">Terms of Service</Link></li>
+                <li><Link to="/cookies" className="hover:text-brand-primary">Cookie Policy</Link></li>
               </ul>
             </div>
           </div>
