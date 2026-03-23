@@ -24,7 +24,7 @@ export default function Layout() {
     <div className="flex h-screen bg-brand-secondary text-slate-900 font-sans overflow-hidden">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 border-r border-slate-200 bg-white/80 backdrop-blur-xl flex-col z-20">
-        <div className="h-20 flex items-center px-6 border-b border-slate-100">
+        <Link to="/dashboard" className="h-20 flex items-center px-6 border-b border-slate-100 cursor-pointer">
           <motion.div 
             whileHover={{ rotate: 180 }}
             transition={{ duration: 0.5 }}
@@ -35,7 +35,7 @@ export default function Layout() {
           <span className="text-xl font-display font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-emerald-800">
             Loop Tailor
           </span>
-        </div>
+        </Link>
         
         <nav className="flex-1 px-4 py-8 space-y-2">
           {navItems.map((item) => {
@@ -80,14 +80,14 @@ export default function Layout() {
 
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 z-30 flex items-center justify-between px-4">
-        <div className="flex items-center">
+        <Link to="/dashboard" className="flex items-center cursor-pointer">
           <div className="bg-brand-primary p-1.5 rounded-lg mr-2">
             <Scissors className="h-4 w-4 text-white" />
           </div>
           <span className="text-lg font-display font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-emerald-800">
             Loop Tailor
           </span>
-        </div>
+        </Link>
         <button 
           onClick={toggleMobileMenu}
           className="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
@@ -114,14 +114,14 @@ export default function Layout() {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="fixed top-0 left-0 bottom-0 w-72 bg-white z-50 lg:hidden flex flex-col shadow-2xl"
             >
-              <div className="h-20 flex items-center px-6 border-b border-slate-100">
+              <Link to="/dashboard" onClick={closeMobileMenu} className="h-20 flex items-center px-6 border-b border-slate-100 cursor-pointer">
                 <div className="bg-brand-primary p-2 rounded-xl mr-3">
                   <Scissors className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-xl font-display font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-emerald-800">
                   Loop Tailor
                 </span>
-              </div>
+              </Link>
               
               <nav className="flex-1 px-4 py-8 space-y-2">
                 {navItems.map((item) => {

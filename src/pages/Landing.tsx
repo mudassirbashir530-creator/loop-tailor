@@ -61,7 +61,7 @@ export default function Landing() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-2 group cursor-pointer">
+            <Link to="/" className="flex items-center gap-2 group cursor-pointer">
               <motion.div 
                 whileHover={{ rotate: 180 }}
                 transition={{ duration: 0.5 }}
@@ -72,7 +72,7 @@ export default function Landing() {
               <span className="text-xl font-display font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-emerald-800">
                 Loop Tailor
               </span>
-            </div>
+            </Link>
             
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">

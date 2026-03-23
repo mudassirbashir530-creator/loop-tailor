@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db, storage, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
-import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebook, Scissors, Calendar, CreditCard, Hash, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebook, Scissors, Calendar, CreditCard, Hash, Loader2, CheckCircle2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -31,6 +31,7 @@ export default function CustomerDetails() {
   const [isUploading, setIsUploading] = useState(false);
   
   const [isEditingCustomer, setIsEditingCustomer] = useState(false);
+  const [isDeletingCustomer, setIsDeletingCustomer] = useState(false);
   const [editCustomerData, setEditCustomerData] = useState({ name: '', phone: '', address: '', notes: '' });
   const [loading, setLoading] = useState(true);
 
@@ -74,6 +75,19 @@ export default function CustomerDetails() {
       handleFirestoreError(error, OperationType.GET, `customers/${id}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteCustomer = async () => {
+    if (!window.confirm('Are you sure you want to delete this customer? This will not delete their orders or measurements, but they will be removed from the customer list.')) return;
+    
+    setIsDeletingCustomer(true);
+    try {
+      await deleteDoc(doc(db, 'shops', user!.uid, 'customers', id!));
+      navigate('/dashboard/customers');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `customers/${id}`);
+      setIsDeletingCustomer(false);
     }
   };
 
@@ -213,6 +227,15 @@ export default function CustomerDetails() {
                 className="h-8 w-8 rounded-lg text-slate-400 hover:text-brand-primary hover:bg-brand-primary/5"
               >
                 {isEditingCustomer ? <X className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleDeleteCustomer}
+                disabled={isDeletingCustomer}
+                className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"
+              >
+                {isDeletingCustomer ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
               </Button>
             </div>
             <div className="flex flex-wrap items-center gap-4 mt-2 text-slate-500 font-bold text-sm">

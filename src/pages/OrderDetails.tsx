@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -20,6 +20,7 @@ export default function OrderDetails() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -47,6 +48,19 @@ export default function OrderDetails() {
       handleFirestoreError(error, OperationType.GET, `orders/${id}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!window.confirm('Are you sure you want to delete this order? This action cannot be undone.')) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'shops', user!.uid, 'orders', id!));
+      navigate('/dashboard/orders');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `orders/${id}`);
+      setIsDeleting(false);
     }
   };
 
@@ -138,6 +152,17 @@ export default function OrderDetails() {
             {isEditing ? <Save className="h-5 w-5 mr-2" /> : <Edit2 className="h-5 w-5 mr-2" />}
             {isEditing ? 'Save' : 'Edit'}
           </Button>
+          {!isEditing && (
+            <Button 
+              variant="outline"
+              onClick={handleDeleteOrder}
+              disabled={isDeleting}
+              className="rounded-2xl font-black h-12 px-6 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all hover:scale-105 active:scale-95"
+            >
+              {isDeleting ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Trash2 className="h-5 w-5 mr-2" />}
+              Delete
+            </Button>
+          )}
           {isEditing && (
             <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="rounded-2xl h-12 w-12">
               <X className="h-6 w-6" />

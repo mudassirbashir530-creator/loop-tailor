@@ -6,6 +6,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
 import { ArrowLeft, Printer, Download, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export default function Invoice() {
   const { id } = useParams<{ id: string }>();
@@ -54,45 +56,66 @@ export default function Invoice() {
     if (!invoiceRef.current) return;
     setIsSharing(true);
     try {
-      const html2canvas = (await import('html2canvas')).default;
       const element = invoiceRef.current;
+      
+      // Save original styles
+      const originalWidth = element.style.width;
+      const originalMaxWidth = element.style.maxWidth;
+      const originalPadding = element.style.padding;
+      
+      // Force desktop layout for capture
+      element.style.width = '800px';
+      element.style.maxWidth = '800px';
+      element.style.padding = '40px';
 
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        windowWidth: 800,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.getElementById('invoice-capture-area');
-          if (clonedElement) {
-            clonedElement.style.width = '800px';
-            clonedElement.style.maxWidth = '800px';
-            // Force desktop padding to ensure it doesn't look squished
-            clonedElement.style.padding = '40px';
-          }
-        }
       });
       
+      // Restore original styles immediately
+      element.style.width = originalWidth;
+      element.style.maxWidth = originalMaxWidth;
+      element.style.padding = originalPadding;
+      
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-      if (!blob) return;
+      if (!blob) throw new Error('Failed to generate image blob');
 
       const file = new File([blob], `Invoice_${order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
 
-      if (navigator.share && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: `Invoice - ${shop.name}`,
-          text: `Invoice for ${customer.name} from ${shop.name}`
-        });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `Invoice - ${shop.name}`,
+            text: `Invoice for ${customer.name} from ${shop.name}`
+          });
+        } catch (shareError: any) {
+          if (shareError.name !== 'AbortError') {
+            console.error('Share failed:', shareError);
+            // Fallback to clipboard if share fails
+            try {
+              await navigator.clipboard.writeText(window.location.href);
+              alert('Invoice link copied to clipboard!');
+            } catch (clipboardError) {
+              alert('Sharing failed. You can download the PDF instead.');
+            }
+          }
+        }
       } else {
-        // Fallback: Copy link or just alert
-        const url = window.location.href;
-        await navigator.clipboard.writeText(url);
-        alert('Invoice link copied to clipboard! (Sharing files not supported in this browser)');
+        // Fallback
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          alert('Invoice link copied to clipboard! (File sharing is not supported on this browser)');
+        } catch (clipboardError) {
+          alert('File sharing is not supported on this browser/device. Please use the Download PDF button instead.');
+        }
       }
     } catch (error) {
       console.error('Error sharing invoice:', error);
+      alert('An error occurred while preparing the invoice for sharing.');
     } finally {
       setIsSharing(false);
     }
@@ -102,26 +125,34 @@ export default function Invoice() {
     if (!invoiceRef.current) return;
     setIsGenerating(true);
     try {
-      const html2canvas = (await import('html2canvas')).default;
-      const { jsPDF } = await import('jspdf');
       const element = invoiceRef.current;
+
+      // Save original styles
+      const originalWidth = element.style.width;
+      const originalMaxWidth = element.style.maxWidth;
+      const originalPadding = element.style.padding;
+      
+      // Force desktop layout for capture
+      element.style.width = '800px';
+      element.style.maxWidth = '800px';
+      element.style.padding = '40px';
 
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        windowWidth: 800,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.getElementById('invoice-capture-area');
-          if (clonedElement) {
-            clonedElement.style.width = '800px';
-            clonedElement.style.maxWidth = '800px';
-            clonedElement.style.padding = '40px';
-          }
-        }
       });
       
+      // Restore original styles immediately
+      element.style.width = originalWidth;
+      element.style.maxWidth = originalMaxWidth;
+      element.style.padding = originalPadding;
+      
+      if (canvas.width === 0 || canvas.height === 0) {
+        throw new Error('Canvas rendering failed (zero width/height)');
+      }
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -133,6 +164,7 @@ export default function Invoice() {
       pdf.save(`Invoice_${order.id.slice(-6).toUpperCase()}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsGenerating(false);
     }

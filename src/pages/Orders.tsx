@@ -212,7 +212,29 @@ export default function Orders() {
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          {order.status !== 'Delivered' ? (
+                          {order.status === 'Pending' && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => updateStatus(order.id, 'Stitching')}
+                              className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 font-black text-xs rounded-xl h-10 px-4"
+                            >
+                              <Scissors className="h-4 w-4 mr-1.5" />
+                              Start
+                            </Button>
+                          )}
+                          {order.status === 'Stitching' && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => updateStatus(order.id, 'Ready')}
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-black text-xs rounded-xl h-10 px-4"
+                            >
+                              <Package className="h-4 w-4 mr-1.5" />
+                              Ready
+                            </Button>
+                          )}
+                          {order.status === 'Ready' && (
                             <Button 
                               size="sm" 
                               variant="ghost"
@@ -222,7 +244,8 @@ export default function Orders() {
                               <CheckCircle2 className="h-4 w-4 mr-1.5" />
                               Deliver
                             </Button>
-                          ) : (
+                          )}
+                          {order.status === 'Delivered' && (
                             <div className="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5">
                               <CheckCircle2 className="h-4 w-4" />
                               Done
