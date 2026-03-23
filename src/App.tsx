@@ -3,39 +3,52 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { lazy, Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import OfflineIndicator from './components/OfflineIndicator';
 
-const Landing = lazy(() => import('./pages/Landing'));
-const Login = lazy(() => import('./pages/Login'));
-const SignUp = lazy(() => import('./pages/SignUp'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Customers = lazy(() => import('./pages/Customers'));
-const CustomerDetails = lazy(() => import('./pages/CustomerDetails'));
-const Orders = lazy(() => import('./pages/Orders'));
-const QuickOrder = lazy(() => import('./pages/QuickOrder'));
-const OrderDetails = lazy(() => import('./pages/OrderDetails'));
-const Invoice = lazy(() => import('./pages/Invoice'));
-const Settings = lazy(() => import('./pages/Settings'));
-const About = lazy(() => import('./pages/About'));
-const Contact = lazy(() => import('./pages/Contact'));
-const Blog = lazy(() => import('./pages/Blog'));
-const Careers = lazy(() => import('./pages/Careers'));
-const MobileApp = lazy(() => import('./pages/MobileApp'));
-const Updates = lazy(() => import('./pages/Updates'));
-const Legal = lazy(() => import('./pages/Legal'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+// Eager load critical components
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+import SignUp from './pages/SignUp';
 
-const legalUpdatedAt = 'March 23, 2026';
+// Lazy load other pages
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Customers = React.lazy(() => import('./pages/Customers'));
+const CustomerDetails = React.lazy(() => import('./pages/CustomerDetails'));
+const Orders = React.lazy(() => import('./pages/Orders'));
+const QuickOrder = React.lazy(() => import('./pages/QuickOrder'));
+const OrderDetails = React.lazy(() => import('./pages/OrderDetails'));
+const Invoice = React.lazy(() => import('./pages/Invoice'));
+const Settings = React.lazy(() => import('./pages/Settings'));
+
+// Public Pages
+const About = React.lazy(() => import('./pages/About'));
+const Contact = React.lazy(() => import('./pages/Contact'));
+const Blog = React.lazy(() => import('./pages/Blog'));
+const Careers = React.lazy(() => import('./pages/Careers'));
+const MobileApp = React.lazy(() => import('./pages/MobileApp'));
+const Updates = React.lazy(() => import('./pages/Updates'));
+const Legal = React.lazy(() => import('./pages/Legal'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
+
+const LEGAL_LAST_UPDATED = new Date('2026-03-23').toLocaleDateString();
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-primary"></div>
+    </div>
+  );
+}
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50">Loading...</div>;
+    return <LoadingFallback />;
   }
   
   return user ? <>{children}</> : <Navigate to="/login" />;
@@ -46,7 +59,7 @@ export default function App() {
     <AuthProvider>
       <OfflineIndicator />
       <Router>
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-600">Loading page...</div>}>
+        <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
@@ -62,7 +75,7 @@ export default function App() {
             
             {/* Legal Pages */}
             <Route path="/privacy" element={
-              <Legal title="Privacy Policy" lastUpdated={legalUpdatedAt}>
+              <Legal title="Privacy Policy" lastUpdated={LEGAL_LAST_UPDATED}>
                 <p>At Loop Tailor, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our application.</p>
                 <h2>Information We Collect</h2>
                 <p>We collect information that you provide directly to us when you register for an account, create a profile, use our services, or communicate with us. This includes your name, email address, phone number, and any customer data you input into our system.</p>
@@ -73,18 +86,18 @@ export default function App() {
               </Legal>
             } />
             <Route path="/terms" element={
-              <Legal title="Terms of Service" lastUpdated={legalUpdatedAt}>
+              <Legal title="Terms of Service" lastUpdated={LEGAL_LAST_UPDATED}>
                 <p>Please read these Terms of Service carefully before using the Loop Tailor application.</p>
                 <h2>Acceptance of Terms</h2>
                 <p>By accessing or using our Service, you agree to be bound by these Terms. If you disagree with any part of the terms, then you may not access the Service.</p>
                 <h2>Use License</h2>
-                <p>Permission is granted to temporarily download one copy of the materials (information or software) on Loop Tailor&apos;s website for personal, non-commercial transitory viewing only.</p>
+                <p>Permission is granted to temporarily download one copy of the materials (information or software) on Loop Tailor's website for personal, non-commercial transitory viewing only.</p>
                 <h2>Disclaimer</h2>
-                <p>The materials on Loop Tailor&apos;s website are provided on an &apos;as is&apos; basis. Loop Tailor makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.</p>
+                <p>The materials on Loop Tailor's website are provided on an 'as is' basis. Loop Tailor makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.</p>
               </Legal>
             } />
             <Route path="/cookies" element={
-              <Legal title="Cookie Policy" lastUpdated={legalUpdatedAt}>
+              <Legal title="Cookie Policy" lastUpdated={LEGAL_LAST_UPDATED}>
                 <p>This Cookie Policy explains how Loop Tailor uses cookies and similar technologies to recognize you when you visit our website and use our application.</p>
                 <h2>What are cookies?</h2>
                 <p>Cookies are small data files that are placed on your computer or mobile device when you visit a website. Cookies are widely used by website owners in order to make their websites work, or to work more efficiently, as well as to provide reporting information.</p>

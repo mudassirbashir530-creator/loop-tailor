@@ -1,26 +1,34 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Sparkles } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Home } from 'lucide-react';
+import PublicLayout from '../components/PublicLayout';
 import { Button } from '../components/ui/button';
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-6">
-      <section className="w-full max-w-2xl text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-semibold mb-6">
-          <Sparkles className="h-4 w-4 text-emerald-300" />
-          <span>Oops! Page not found</span>
-        </div>
-        <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-4">404</h1>
-        <p className="text-slate-300 text-lg mb-8">
-          We couldn&apos;t find the page you were looking for. Let&apos;s get you back to your tailoring dashboard.
-        </p>
-        <Link to="/">
-          <Button className="bg-emerald-500 hover:bg-emerald-600 text-white h-11 px-6">
-            <Home className="h-4 w-4 mr-2" />
-            Go to home
-          </Button>
-        </Link>
-      </section>
-    </main>
+    <PublicLayout>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md space-y-6"
+        >
+          <h1 className="text-8xl font-display font-black text-slate-200">404</h1>
+          <h2 className="text-3xl font-bold text-slate-900">Page not found</h2>
+          <p className="text-slate-500 text-lg">
+            Sorry, we couldn't find the page you're looking for. It might have been moved or doesn't exist.
+          </p>
+          <div className="pt-4">
+            <Button asChild className="rounded-2xl h-14 px-8 bg-brand-primary hover:bg-brand-primary/90 font-bold text-base shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
+              <Link to="/">
+                <Home className="mr-2 h-5 w-5" />
+                Back to Home
+              </Link>
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    </PublicLayout>
   );
 }

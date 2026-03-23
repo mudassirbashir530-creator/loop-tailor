@@ -10,13 +10,6 @@ import { format, addDays, isAfter, isBefore } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
-type DashboardTab = 'recent-orders' | 'upcoming-deliveries';
-
-const dashboardTabs: Array<{ key: DashboardTab; label: string }> = [
-  { key: 'recent-orders', label: 'Recent Orders' },
-  { key: 'upcoming-deliveries', label: 'Upcoming Deliveries' }
-];
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -36,6 +29,9 @@ const itemVariants = {
   }
 };
 
+type DashboardTab = 'Recent Orders' | 'Upcoming Deliveries';
+const dashboardTabs: DashboardTab[] = ['Recent Orders', 'Upcoming Deliveries'];
+
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -49,30 +45,27 @@ export default function Dashboard() {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [upcomingDeliveries, setUpcomingDeliveries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<DashboardTab>('recent-orders');
+  const [activeTab, setActiveTab] = useState<DashboardTab>('Recent Orders');
   const [searchToken, setSearchToken] = useState('');
   const [searchError, setSearchError] = useState('');
 
-  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
-    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) {
+  const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let newIndex = index;
+    if (e.key === 'ArrowRight') {
+      newIndex = (index + 1) % dashboardTabs.length;
+    } else if (e.key === 'ArrowLeft') {
+      newIndex = (index - 1 + dashboardTabs.length) % dashboardTabs.length;
+    } else if (e.key === 'Home') {
+      newIndex = 0;
+    } else if (e.key === 'End') {
+      newIndex = dashboardTabs.length - 1;
+    } else {
       return;
     }
-
-    event.preventDefault();
-
-    if (event.key === 'Home') {
-      setActiveTab(dashboardTabs[0].key);
-      return;
-    }
-
-    if (event.key === 'End') {
-      setActiveTab(dashboardTabs[dashboardTabs.length - 1].key);
-      return;
-    }
-
-    const direction = event.key === 'ArrowRight' ? 1 : -1;
-    const nextIndex = (index + direction + dashboardTabs.length) % dashboardTabs.length;
-    setActiveTab(dashboardTabs[nextIndex].key);
+    e.preventDefault();
+    setActiveTab(dashboardTabs[newIndex]);
+    const tabElement = document.getElementById(`dashboard-tab-${newIndex}`);
+    if (tabElement) tabElement.focus();
   };
 
   const formatDate = (timestamp: any) => {
@@ -289,36 +282,40 @@ export default function Dashboard() {
           <Card className="border-none shadow-sm bg-white overflow-hidden rounded-[2.5rem]">
             <CardHeader className="p-8 pb-0">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex p-1 bg-slate-100 rounded-2xl w-fit" role="tablist" aria-label="Dashboard order sections">
+                <div 
+                  className="flex p-1 bg-slate-100 rounded-2xl w-fit"
+                  role="tablist"
+                  aria-label="Dashboard views"
+                >
                   {dashboardTabs.map((tab, index) => (
                     <button
-                      key={tab.key}
+                      key={tab}
+                      id={`dashboard-tab-${index}`}
                       role="tab"
-                      id={`dashboard-tab-${tab.key}`}
-                      aria-controls={`dashboard-panel-${tab.key}`}
-                      aria-selected={activeTab === tab.key}
-                      tabIndex={activeTab === tab.key ? 0 : -1}
-                      onClick={() => setActiveTab(tab.key)}
-                      onKeyDown={(event) => handleTabKeyDown(event, index)}
+                      aria-selected={activeTab === tab}
+                      aria-controls={`dashboard-tabpanel-${index}`}
+                      tabIndex={activeTab === tab ? 0 : -1}
+                      onClick={() => setActiveTab(tab)}
+                      onKeyDown={(e) => handleTabKeyDown(e, index)}
                       className={cn(
-                        "px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 relative",
-                        activeTab === tab.key 
+                        "px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary",
+                        activeTab === tab 
                           ? "text-brand-primary" 
                           : "text-slate-500 hover:text-slate-700"
                       )}
                     >
-                      {activeTab === tab.key && (
+                      {activeTab === tab && (
                         <motion.div 
                           layoutId="activeTab"
                           className="absolute inset-0 bg-white rounded-xl shadow-sm -z-10"
                           transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                         />
                       )}
-                      {tab.label}
+                      {tab}
                     </button>
                   ))}
                 </div>
-                {activeTab === 'recent-orders' ? (
+                {activeTab === 'Recent Orders' ? (
                   <Button variant="ghost" size="sm" asChild className="rounded-xl hover:bg-brand-primary/5 text-brand-primary">
                     <Link to="/dashboard/orders" className="flex items-center font-bold">
                       View All <ArrowRight className="ml-2 h-4 w-4" />
@@ -335,16 +332,16 @@ export default function Dashboard() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
+                  id={`dashboard-tabpanel-${dashboardTabs.indexOf(activeTab)}`}
                   role="tabpanel"
-                  id={`dashboard-panel-${activeTab}`}
-                  aria-labelledby={`dashboard-tab-${activeTab}`}
+                  aria-labelledby={`dashboard-tab-${dashboardTabs.indexOf(activeTab)}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                   className="divide-y divide-slate-50"
                 >
-                  {activeTab === 'recent-orders' ? (
+                  {activeTab === 'Recent Orders' ? (
                     recentOrders.length === 0 ? (
                       <div className="p-12 text-center text-slate-400 font-medium">No recent orders.</div>
                     ) : (

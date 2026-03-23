@@ -54,8 +54,8 @@ export default function Invoice() {
     if (!invoiceRef.current) return;
     setIsSharing(true);
     try {
+      const html2canvas = (await import('html2canvas')).default;
       const element = invoiceRef.current;
-      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -91,11 +91,9 @@ export default function Invoice() {
     if (!invoiceRef.current) return;
     setIsGenerating(true);
     try {
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
       const element = invoiceRef.current;
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf')
-      ]);
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
