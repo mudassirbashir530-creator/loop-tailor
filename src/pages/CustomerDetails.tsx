@@ -11,6 +11,7 @@ import { ArrowLeft, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebo
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { KAMEEZ_MEASUREMENTS, SHALWAR_MEASUREMENTS } from '../lib/measurements';
 
 export default function CustomerDetails() {
   const { id } = useParams<{ id: string }>();
@@ -407,25 +408,29 @@ export default function CustomerDetails() {
                     <div className="flex-1 h-px bg-slate-100"></div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                    {['Shoulder', 'Chest', 'Waist', 'Hip', 'Length', 'Arm Length', 'Arm Width', 'Collar Size', 'Front Length', 'Back Length', 'Cuff Size'].map(field => {
-                      const key = `kameez${field.replace(/\s+/g, '')}`;
+                    {KAMEEZ_MEASUREMENTS.map((item) => {
+                      const Icon = item.icon;
                       return (
-                        <div key={key} className="space-y-2 group">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-primary transition-colors">{field}</label>
+                        <div key={item.id} className="space-y-2 group">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
+                            <Icon className="h-3 w-3" />
+                            {item.label}
+                          </label>
                           <div className="relative">
                             <Input 
                               type="number" 
                               step="0.25"
                               placeholder="0.00"
-                              value={measurements[key] || ''} 
+                              value={measurements[item.id] || ''} 
                               onChange={e => {
                                 const val = e.target.value === '' ? '' : Number(e.target.value);
-                                setMeasurements({...measurements, [key]: val});
+                                setMeasurements({...measurements, [item.id]: val});
                               }} 
-                              className="h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all"
+                              className="h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all pl-3 pr-8"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">IN</span>
                           </div>
+                          <p className="text-[9px] text-slate-400 font-medium ml-1">{item.desc}</p>
                         </div>
                       );
                     })}
@@ -439,25 +444,29 @@ export default function CustomerDetails() {
                     <div className="flex-1 h-px bg-slate-100"></div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                    {['Waist', 'Hip', 'Length', 'Bottom Width', 'Thigh Width'].map(field => {
-                      const key = `shalwar${field.replace(/\s+/g, '')}`;
+                    {SHALWAR_MEASUREMENTS.map((item) => {
+                      const Icon = item.icon;
                       return (
-                        <div key={key} className="space-y-2 group">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 group-focus-within:text-brand-primary transition-colors">{field}</label>
+                        <div key={item.id} className="space-y-2 group">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
+                            <Icon className="h-3 w-3" />
+                            {item.label}
+                          </label>
                           <div className="relative">
                             <Input 
                               type="number" 
                               step="0.25"
                               placeholder="0.00"
-                              value={measurements[key] || ''} 
+                              value={measurements[item.id] || ''} 
                               onChange={e => {
                                 const val = e.target.value === '' ? '' : Number(e.target.value);
-                                setMeasurements({...measurements, [key]: val});
+                                setMeasurements({...measurements, [item.id]: val});
                               }} 
-                              className="h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all"
+                              className="h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all pl-3 pr-8"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">IN</span>
                           </div>
+                          <p className="text-[9px] text-slate-400 font-medium ml-1">{item.desc}</p>
                         </div>
                       );
                     })}

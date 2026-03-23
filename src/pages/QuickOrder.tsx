@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { db, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
-import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, getDocs, limit } from 'firebase/firestore';
+import { db, storage, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
+import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, getDocs, limit, getDoc, setDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, Save, Hash, MapPin, Ruler, Loader2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ArrowLeft, Save, Hash, MapPin, Ruler, Loader2, Search, User, Phone, Check, Upload, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { KAMEEZ_MEASUREMENTS, SHALWAR_MEASUREMENTS } from '../lib/measurements';
 
 export default function QuickOrder() {
   const { user } = useAuth();
@@ -15,6 +17,67 @@ export default function QuickOrder() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Customer Search State
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchCustomers = async () => {
+      try {
+        const q = query(collection(db, 'shops', user.uid, 'customers'));
+        const snap = await getDocs(q);
+        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setCustomers(data);
+      } catch (error) {
+        console.error("Error fetching customers", error);
+      }
+    };
+    fetchCustomers();
+  }, [user]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectCustomer = async (customer: any) => {
+    setCustomerData({
+      name: customer.name,
+      phone: customer.phone,
+      address: customer.address || '',
+      notes: customer.notes || ''
+    });
+    setSelectedCustomerId(customer.id);
+    setSearchQuery(customer.name);
+    setShowDropdown(false);
+
+    // Fetch measurements
+    try {
+      const measSnap = await getDoc(doc(db, 'shops', user.uid, 'measurements', customer.id));
+      if (measSnap.exists()) {
+        setMeasurements(measSnap.data());
+      } else {
+        setMeasurements({});
+      }
+    } catch (error) {
+      console.error("Error fetching measurements", error);
+    }
+  };
+
+  const filteredCustomers = customers.filter(c => 
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    c.phone.includes(searchQuery)
+  );
+
   // Customer Data
   const [customerData, setCustomerData] = useState({
     name: '',
@@ -34,16 +97,12 @@ export default function QuickOrder() {
     notes: ''
   });
 
+  // File Uploads
+  const [referencePhoto, setReferencePhoto] = useState<File | null>(null);
+  const [sampleDesign, setSampleDesign] = useState<File | null>(null);
+
   // Measurements
-  const [measurements, setMeasurements] = useState({
-    length: '',
-    chest: '',
-    waist: '',
-    hip: '',
-    shoulder: '',
-    sleeve: '',
-    neck: ''
-  });
+  const [measurements, setMeasurements] = useState<any>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,9 +113,10 @@ export default function QuickOrder() {
       // 1. Generate Token ID
       const tokenId = await generateTokenId(user.uid);
 
-      // 2. Check for existing customer by phone
-      let customerId = '';
-      if (customerData.phone) {
+      // 2. Check for existing customer by phone or selected ID
+      let customerId = selectedCustomerId;
+      
+      if (!customerId && customerData.phone) {
         const q = query(
           collection(db, 'shops', user.uid, 'customers'), 
           where('phone', '==', customerData.phone),
@@ -65,16 +125,17 @@ export default function QuickOrder() {
         const snap = await getDocs(q);
         if (!snap.empty) {
           customerId = snap.docs[0].id;
-          // Update existing customer name/address if changed
-          await updateDoc(doc(db, 'shops', user.uid, 'customers', customerId), {
-            name: customerData.name,
-            address: customerData.address,
-            updatedAt: serverTimestamp()
-          });
         }
       }
 
-      if (!customerId) {
+      if (customerId) {
+        // Update existing customer name/address if changed
+        await updateDoc(doc(db, 'shops', user.uid, 'customers', customerId), {
+          name: customerData.name,
+          address: customerData.address,
+          updatedAt: serverTimestamp()
+        });
+      } else {
         // Create new customer
         const customerRef = await addDoc(collection(db, 'shops', user.uid, 'customers'), {
           ...customerData,
@@ -85,8 +146,18 @@ export default function QuickOrder() {
         customerId = customerRef.id;
       }
 
+      // Save/Update Measurements
+      if (Object.keys(measurements).length > 0) {
+        await setDoc(doc(db, 'shops', user.uid, 'measurements', customerId), {
+          ...measurements,
+          shopId: user.uid,
+          customerId: customerId,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
+
       // 3. Create Order
-      await addDoc(collection(db, 'shops', user.uid, 'orders'), {
+      const orderRef = await addDoc(collection(db, 'shops', user.uid, 'orders'), {
         shopId: user.uid,
         tokenId,
         customerId,
@@ -107,7 +178,27 @@ export default function QuickOrder() {
         updatedAt: serverTimestamp()
       });
 
-      // 4. Navigate to orders list
+      // 4. Upload Files
+      let referencePhotoUrl = '';
+      let sampleDesignUrl = '';
+
+      if (referencePhoto) {
+        const photoRef = ref(storage, `orders/${orderRef.id}/reference_${referencePhoto.name}`);
+        await uploadBytes(photoRef, referencePhoto);
+        referencePhotoUrl = await getDownloadURL(photoRef);
+      }
+
+      if (sampleDesign) {
+        const designRef = ref(storage, `orders/${orderRef.id}/sample_${sampleDesign.name}`);
+        await uploadBytes(designRef, sampleDesign);
+        sampleDesignUrl = await getDownloadURL(designRef);
+      }
+
+      if (referencePhotoUrl || sampleDesignUrl) {
+        await updateDoc(orderRef, { referencePhotoUrl, sampleDesignUrl });
+      }
+
+      // 5. Navigate to orders list
       navigate(`/dashboard/orders`);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'quick_order');
@@ -143,12 +234,74 @@ export default function QuickOrder() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 grid sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2 space-y-1.5 relative" ref={dropdownRef}>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Search Existing Customer</label>
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                    <Input 
+                      value={searchQuery} 
+                      onChange={e => {
+                        setSearchQuery(e.target.value);
+                        setShowDropdown(true);
+                        if (e.target.value === '') {
+                          setSelectedCustomerId('');
+                          setCustomerData({ name: '', phone: '', address: '', notes: '' });
+                          setMeasurements({});
+                        } else {
+                          // Keep name synced if typing a new customer
+                          setCustomerData({...customerData, name: e.target.value});
+                        }
+                      }}
+                      onFocus={() => setShowDropdown(true)}
+                      placeholder="Search by name or phone..."
+                      className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                    />
+                  </div>
+                  
+                  <AnimatePresence>
+                    {showDropdown && searchQuery && filteredCustomers.length > 0 && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden max-h-60 overflow-y-auto"
+                      >
+                        {filteredCustomers.map(customer => (
+                          <div 
+                            key={customer.id}
+                            onClick={() => handleSelectCustomer(customer)}
+                            className="p-4 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 flex items-center justify-between group transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary font-bold">
+                                {customer.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-bold text-slate-900 group-hover:text-brand-primary transition-colors">{customer.name}</div>
+                                <div className="text-xs text-slate-500 flex items-center mt-0.5">
+                                  <Phone className="h-3 w-3 mr-1" /> {customer.phone}
+                                </div>
+                              </div>
+                            </div>
+                            {selectedCustomerId === customer.id && (
+                              <Check className="h-5 w-5 text-brand-primary" />
+                            )}
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Customer Name *</label>
                   <Input 
                     required 
                     value={customerData.name} 
-                    onChange={e => setCustomerData({...customerData, name: e.target.value})}
+                    onChange={e => {
+                      setCustomerData({...customerData, name: e.target.value});
+                      setSearchQuery(e.target.value);
+                    }}
                     placeholder="Enter customer name"
                     className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
                   />
@@ -251,7 +404,7 @@ export default function QuickOrder() {
                       className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
                     />
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="sm:col-span-2 space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Notes</label>
                     <Input 
                       value={orderData.notes} 
@@ -259,6 +412,58 @@ export default function QuickOrder() {
                       placeholder="Any special instructions?"
                       className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
                     />
+                  </div>
+                </div>
+
+                <div className="mt-8 pt-8 border-t border-slate-100 grid sm:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                      <Upload className="h-4 w-4" />
+                      Reference Photo
+                    </label>
+                    <div className="relative">
+                      {referencePhoto ? (
+                        <div className="relative h-32 w-full rounded-xl border-2 border-slate-200 overflow-hidden group">
+                          <img src={URL.createObjectURL(referencePhoto)} alt="Reference" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Button type="button" variant="destructive" size="sm" onClick={() => setReferencePhoto(null)} className="rounded-full">
+                              <X className="h-4 w-4 mr-2" /> Remove
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-brand-primary/50 transition-colors cursor-pointer">
+                          <Upload className="h-6 w-6 text-slate-400 mb-2" />
+                          <span className="text-sm font-medium text-slate-500">Click to upload</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={e => setReferencePhoto(e.target.files?.[0] || null)} />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                      <Upload className="h-4 w-4" />
+                      Sample Design
+                    </label>
+                    <div className="relative">
+                      {sampleDesign ? (
+                        <div className="relative h-32 w-full rounded-xl border-2 border-slate-200 overflow-hidden group">
+                          <img src={URL.createObjectURL(sampleDesign)} alt="Sample" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Button type="button" variant="destructive" size="sm" onClick={() => setSampleDesign(null)} className="rounded-full">
+                              <X className="h-4 w-4 mr-2" /> Remove
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-brand-primary/50 transition-colors cursor-pointer">
+                          <Upload className="h-6 w-6 text-slate-400 mb-2" />
+                          <span className="text-sm font-medium text-slate-500">Click to upload</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={e => setSampleDesign(e.target.files?.[0] || null)} />
+                        </label>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -273,23 +478,86 @@ export default function QuickOrder() {
                   <Ruler className="h-5 w-5 text-brand-primary" />
                   Measurements (Inches)
                 </CardTitle>
+                <p className="text-sm text-slate-500 mt-2">
+                  {selectedCustomerId ? "Loaded from customer profile. You can update them here." : "Enter new measurements for this customer."}
+                </p>
               </CardHeader>
-              <CardContent className="p-6 grid grid-cols-2 gap-4">
-                {Object.keys(measurements).map((key) => (
-                  <div key={key} className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
-                    </label>
-                    <Input 
-                      type="number" 
-                      step="0.1"
-                      value={(measurements as any)[key]} 
-                      onChange={e => setMeasurements({...measurements, [key]: e.target.value})}
-                      placeholder="0.0"
-                      className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-10 text-sm font-medium"
-                    />
+              <CardContent className="p-6 space-y-8">
+                
+                {/* Kameez Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs">01</div>
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Kameez (Shirt)</h3>
+                    <div className="flex-1 h-px bg-slate-100"></div>
                   </div>
-                ))}
+                  <div className="grid grid-cols-2 gap-4">
+                    {KAMEEZ_MEASUREMENTS.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div key={item.id} className="space-y-1.5 group">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
+                            <Icon className="h-3 w-3" />
+                            {item.label}
+                          </label>
+                          <div className="relative">
+                            <Input 
+                              type="number" 
+                              step="0.25"
+                              value={measurements[item.id] || ''} 
+                              onChange={e => {
+                                const val = e.target.value === '' ? '' : Number(e.target.value);
+                                setMeasurements({...measurements, [item.id]: val});
+                              }}
+                              placeholder="0.00"
+                              className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-sm font-bold pl-3 pr-8"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">IN</span>
+                          </div>
+                          <p className="text-[9px] text-slate-400 font-medium">{item.desc}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Shalwar Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs">02</div>
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Shalwar (Trouser)</h3>
+                    <div className="flex-1 h-px bg-slate-100"></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {SHALWAR_MEASUREMENTS.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div key={item.id} className="space-y-1.5 group">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
+                            <Icon className="h-3 w-3" />
+                            {item.label}
+                          </label>
+                          <div className="relative">
+                            <Input 
+                              type="number" 
+                              step="0.25"
+                              value={measurements[item.id] || ''} 
+                              onChange={e => {
+                                const val = e.target.value === '' ? '' : Number(e.target.value);
+                                setMeasurements({...measurements, [item.id]: val});
+                              }}
+                              placeholder="0.00"
+                              className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-sm font-bold pl-3 pr-8"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">IN</span>
+                          </div>
+                          <p className="text-[9px] text-slate-400 font-medium">{item.desc}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
               </CardContent>
             </Card>
 
