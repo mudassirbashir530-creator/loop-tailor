@@ -6,8 +6,6 @@ import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
 import { ArrowLeft, Printer, Download, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 export default function Invoice() {
   const { id } = useParams<{ id: string }>();
@@ -44,7 +42,7 @@ export default function Invoice() {
       }
     };
     fetchInvoiceData();
-  }, [user, id]);
+  }, [user, id, navigate]);
 
   if (!order || !shop || !customer) return <div className="p-8">Loading invoice...</div>;
 
@@ -57,6 +55,7 @@ export default function Invoice() {
     setIsSharing(true);
     try {
       const element = invoiceRef.current;
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -93,6 +92,10 @@ export default function Invoice() {
     setIsGenerating(true);
     try {
       const element = invoiceRef.current;
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf')
+      ]);
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
