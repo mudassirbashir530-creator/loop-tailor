@@ -20,6 +20,21 @@ export default function Login() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setSuccess(null);
+    setIsLoading(true);
+    try {
+      await signIn();
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error("Google Sign-In Error:", err);
+      setError(err.message || 'Google authentication failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -126,7 +141,7 @@ export default function Login() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => signIn()}
+                onClick={handleGoogleSignIn}
                 disabled={isLoading}
                 className="w-full h-14 rounded-2xl border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center gap-3 transition-all active:scale-95"
               >

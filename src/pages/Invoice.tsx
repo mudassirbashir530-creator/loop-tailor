@@ -56,11 +56,22 @@ export default function Invoice() {
     try {
       const html2canvas = (await import('html2canvas')).default;
       const element = invoiceRef.current;
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        windowWidth: 800,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById('invoice-capture-area');
+          if (clonedElement) {
+            clonedElement.style.width = '800px';
+            clonedElement.style.maxWidth = '800px';
+            // Force desktop padding to ensure it doesn't look squished
+            clonedElement.style.padding = '40px';
+          }
+        }
       });
       
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
@@ -94,11 +105,21 @@ export default function Invoice() {
       const html2canvas = (await import('html2canvas')).default;
       const { jsPDF } = await import('jspdf');
       const element = invoiceRef.current;
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        windowWidth: 800,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById('invoice-capture-area');
+          if (clonedElement) {
+            clonedElement.style.width = '800px';
+            clonedElement.style.maxWidth = '800px';
+            clonedElement.style.padding = '40px';
+          }
+        }
       });
       
       const imgData = canvas.toDataURL('image/png');
@@ -136,7 +157,7 @@ export default function Invoice() {
         </div>
       </div>
 
-      <div ref={invoiceRef} className="bg-white p-5 sm:p-10 rounded-3xl shadow-sm border border-slate-100 print:shadow-none print:border-none print:p-0 overflow-hidden">
+      <div id="invoice-capture-area" ref={invoiceRef} className="bg-white p-5 sm:p-10 rounded-3xl shadow-sm border border-slate-100 print:shadow-none print:border-none print:p-0 overflow-hidden">
         {/* Header Section */}
         <div className="flex flex-row justify-between items-start border-b border-slate-100 pb-5 mb-5 gap-4">
           <div className="flex items-center gap-3">
