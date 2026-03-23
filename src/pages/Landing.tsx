@@ -16,7 +16,12 @@ import {
   Camera,
   ArrowRight,
   Menu,
-  X
+  X,
+  UserPlus,
+  Activity,
+  FileCheck,
+  ListTodo,
+  Plus
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
@@ -304,9 +309,15 @@ export default function Landing() {
       </section>
 
       {/* How it Works */}
-      <section id="how-it-works" className="py-24 bg-brand-secondary/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <section id="how-it-works" className="py-24 bg-slate-50 relative overflow-hidden">
+        {/* Background Decorative Elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-brand-primary/5 blur-3xl"></div>
+          <div className="absolute -bottom-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-emerald-400/5 blur-3xl"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <motion.div 
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -314,20 +325,26 @@ export default function Landing() {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             >
               <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">The Workflow</h2>
-              <h3 className="text-4xl md:text-5xl font-display font-bold tracking-tight mb-8">From first measurement <br /> to final delivery.</h3>
+              <h3 className="text-4xl md:text-5xl font-display font-black tracking-tight text-slate-900 mb-6">From first measurement <br className="hidden md:block" /> to final delivery.</h3>
+              <p className="text-lg text-slate-500 mb-10">We've simplified the entire tailoring process into four easy steps, so you can focus on what you do best: crafting beautiful clothes.</p>
               
-              <div className="space-y-8">
+              <div className="space-y-4">
                 {[
-                  { step: "01", title: "Create Profile", desc: "Add a new customer and save their measurements once. They're stored forever." },
-                  { step: "02", title: "Take Order", desc: "Select dress type, set delivery date, and upload reference photos for the design." },
-                  { step: "03", title: "Track Progress", desc: "Update status as you stitch. The dashboard shows you exactly what's due today." },
-                  { step: "04", title: "Deliver & Invoice", desc: "Mark as delivered and generate a professional invoice instantly. Get paid faster." }
+                  { icon: UserPlus, title: "Create Profile", desc: "Add a new customer and save their measurements once. They're stored forever securely." },
+                  { icon: Scissors, title: "Take Order", desc: "Select dress type, set delivery date, and upload reference photos for the design." },
+                  { icon: Activity, title: "Track Progress", desc: "Update status as you stitch. The dashboard shows you exactly what's due today." },
+                  { icon: FileCheck, title: "Deliver & Invoice", desc: "Mark as delivered and generate a professional invoice instantly. Get paid faster." }
                 ].map((item, idx) => (
-                  <div key={idx} className="flex gap-6">
-                    <div className="text-3xl font-black text-brand-primary/20">{item.step}</div>
+                  <div key={idx} className="flex gap-5 p-5 rounded-2xl bg-white shadow-sm border border-slate-100 hover:border-brand-primary/30 hover:shadow-md transition-all group cursor-default">
+                    <div className="w-14 h-14 rounded-xl bg-brand-primary/10 flex items-center justify-center shrink-0 group-hover:bg-brand-primary group-hover:text-white transition-colors text-brand-primary">
+                      <item.icon className="w-6 h-6" />
+                    </div>
                     <div>
-                      <h4 className="text-xl font-bold mb-1">{item.title}</h4>
-                      <p className="text-slate-500">{item.desc}</p>
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Step 0{idx + 1}</span>
+                        <h4 className="text-lg font-bold text-slate-900">{item.title}</h4>
+                      </div>
+                      <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -338,69 +355,139 @@ export default function Landing() {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="relative"
+              className="relative lg:h-[650px] flex items-center justify-center mt-10 lg:mt-0"
             >
-              <div className="aspect-square rounded-[3rem] bg-brand-primary/10 flex items-center justify-center p-8">
-                <div className="w-full h-full bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-100 flex flex-col">
-                  {/* Mock Dashboard UI */}
-                  <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                    <div className="flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                      <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-                      <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
+              {/* Glow Effect */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/20 to-emerald-400/20 rounded-[3rem] transform rotate-3 scale-105 blur-2xl opacity-60"></div>
+              
+              {/* Phone Mockup */}
+              <motion.div 
+                animate={{ y: [0, -15, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="relative w-full max-w-[360px] aspect-[9/19] bg-slate-950 rounded-[3rem] shadow-2xl overflow-hidden border-[8px] border-slate-900 flex flex-col z-10"
+              >
+                {/* Notch */}
+                <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-20">
+                  <div className="w-32 h-6 bg-slate-900 rounded-b-3xl"></div>
+                </div>
+
+                {/* Mock App Header */}
+                <div className="px-6 pt-10 pb-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80 backdrop-blur z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center shadow-lg shadow-brand-primary/20">
+                      <Scissors className="w-4 h-4 text-white" />
                     </div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Loop Tailor Dashboard</div>
+                    <div className="font-bold text-white tracking-wide">Loop Tailor</div>
                   </div>
-                  <div className="p-6 flex-1 space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="h-20 bg-slate-50 rounded-xl p-3">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase">Active Orders</div>
-                        <div className="text-2xl font-black text-brand-primary">24</div>
-                      </div>
-                      <div className="h-20 bg-slate-50 rounded-xl p-3">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase">Revenue</div>
-                        <div className="text-2xl font-black text-emerald-600">PKR 85k</div>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="h-12 bg-slate-50 rounded-xl flex items-center px-4 justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 rounded-full bg-brand-primary/20"></div>
-                          <div className="w-24 h-2 bg-slate-200 rounded"></div>
-                        </div>
-                        <div className="w-12 h-4 bg-emerald-100 rounded-full"></div>
-                      </div>
-                      <div className="h-12 bg-slate-50 rounded-xl flex items-center px-4 justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 rounded-full bg-brand-primary/20"></div>
-                          <div className="w-32 h-2 bg-slate-200 rounded"></div>
-                        </div>
-                        <div className="w-12 h-4 bg-amber-100 rounded-full"></div>
-                      </div>
-                      <div className="h-12 bg-slate-50 rounded-xl flex items-center px-4 justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 rounded-full bg-brand-primary/20"></div>
-                          <div className="w-20 h-2 bg-slate-200 rounded"></div>
-                        </div>
-                        <div className="w-12 h-4 bg-slate-200 rounded-full"></div>
-                      </div>
-                    </div>
+                  <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
+                    <UserPlus className="w-4 h-4 text-slate-400" />
                   </div>
                 </div>
-              </div>
+                
+                {/* Mock App Content */}
+                <div className="p-5 flex-1 space-y-6 overflow-hidden relative">
+                  {/* Stats Row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-inner">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Active Orders</div>
+                      <div className="text-2xl font-black text-white">24</div>
+                    </div>
+                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-inner">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Today</div>
+                      <div className="text-2xl font-black text-brand-primary">5</div>
+                    </div>
+                  </div>
+                  
+                  {/* Recent Orders List */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Recent Orders</div>
+                      <div className="text-[10px] font-bold text-brand-primary uppercase tracking-wider">View All</div>
+                    </div>
+                    {[
+                      { name: "Ahmed Khan", item: "Shalwar Kameez", status: "Cutting", color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+                      { name: "Ali Raza", item: "Kurta Pajama", status: "Stitching", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+                      { name: "Usman Tariq", item: "Waistcoat", status: "Ready", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+                      { name: "Zain Ali", item: "Shalwar Kameez", status: "Pending", color: "bg-slate-800 text-slate-400 border-slate-700" },
+                    ].map((order, i) => (
+                      <div key={i} className="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between group hover:border-slate-700 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 font-bold border border-slate-700">
+                            {order.name.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="font-bold text-white text-sm">{order.name}</div>
+                            <div className="text-xs text-slate-500">{order.item}</div>
+                          </div>
+                        </div>
+                        <div className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${order.color}`}>
+                          {order.status}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Gradient Fade at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent pointer-events-none"></div>
+                </div>
+
+                {/* Mock Bottom Nav */}
+                <div className="h-16 bg-slate-900 border-t border-slate-800 flex items-center justify-around px-2 pb-2 z-20">
+                  <div className="flex flex-col items-center gap-1 text-brand-primary">
+                    <LayoutDashboard className="w-5 h-5" />
+                    <span className="text-[8px] font-bold uppercase tracking-wider">Home</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 text-slate-500">
+                    <Users className="w-5 h-5" />
+                    <span className="text-[8px] font-bold uppercase tracking-wider">Clients</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 text-slate-500">
+                    <div className="w-10 h-10 rounded-full bg-brand-primary flex items-center justify-center text-white -mt-6 shadow-lg shadow-brand-primary/30 border-4 border-slate-950">
+                      <Plus className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 text-slate-500">
+                    <Scissors className="w-5 h-5" />
+                    <span className="text-[8px] font-bold uppercase tracking-wider">Orders</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 text-slate-500">
+                    <FileText className="w-5 h-5" />
+                    <span className="text-[8px] font-bold uppercase tracking-wider">Invoices</span>
+                  </div>
+                </div>
+              </motion.div>
+              
               {/* Floating Accents */}
               <motion.div 
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity }}
-                className="absolute -top-6 -right-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-100"
+                animate={{ y: [0, -15, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-10 -right-4 lg:-right-12 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 z-20 max-w-[220px]"
               >
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <CheckCircle className="h-6 w-6 text-emerald-600" />
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                    <CheckCircle className="h-5 w-5 text-emerald-600" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase">Order Ready</div>
-                    <div className="text-sm font-bold">Ahmed Khan</div>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Notification</div>
+                    <div className="text-sm font-bold text-slate-900 leading-tight">Order Delivered</div>
+                    <div className="text-xs text-emerald-600 font-bold mt-0.5">+ PKR 4,500</div>
+                  </div>
+                </div>
+              </motion.div>
+              
+              <motion.div 
+                animate={{ y: [0, 15, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute bottom-20 -left-4 lg:-left-12 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 z-20 max-w-[220px]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 bg-brand-primary/10 rounded-full flex items-center justify-center shrink-0">
+                    <ListTodo className="h-5 w-5 text-brand-primary" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Task Due</div>
+                    <div className="text-sm font-bold text-slate-900 leading-tight">Measure Ali Raza</div>
+                    <div className="text-xs text-slate-500 font-medium mt-0.5">Today, 4:00 PM</div>
                   </div>
                 </div>
               </motion.div>

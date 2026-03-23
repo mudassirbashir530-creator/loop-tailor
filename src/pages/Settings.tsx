@@ -6,7 +6,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2, Store, Phone, MapPin, MessageSquare } from 'lucide-react';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -131,19 +131,31 @@ export default function Settings() {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium mb-1 block">Shop Name</label>
-                  <Input required value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="My Tailor Shop" />
+                  <div className="relative">
+                    <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                    <Input required value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="My Tailor Shop" className="pl-9" />
+                  </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">Phone Number</label>
-                  <Input value={editData.phone || ''} onChange={e => setEditData({...editData, phone: e.target.value})} placeholder="+1 234 567 8900" />
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                    <Input value={editData.phone || ''} onChange={e => setEditData({...editData, phone: e.target.value})} placeholder="+1 234 567 8900" className="pl-9" />
+                  </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">Address</label>
-                  <Input value={editData.address || ''} onChange={e => setEditData({...editData, address: e.target.value})} placeholder="123 Tailor Street" />
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                    <Input value={editData.address || ''} onChange={e => setEditData({...editData, address: e.target.value})} placeholder="123 Tailor Street" className="pl-9" />
+                  </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">Invoice Footer Message</label>
-                  <Input value={editData.invoiceFooter || ''} onChange={e => setEditData({...editData, invoiceFooter: e.target.value})} placeholder="Thank you for your business!" />
+                  <div className="relative">
+                    <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                    <Input value={editData.invoiceFooter || ''} onChange={e => setEditData({...editData, invoiceFooter: e.target.value})} placeholder="Thank you for your business!" className="pl-9" />
+                  </div>
                 </div>
               </div>
 

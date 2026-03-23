@@ -166,7 +166,7 @@ export default function SignUp() {
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 ml-1">Shop Name</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
                 <Input
                   required
                   placeholder="e.g. Royal Stitch"
@@ -180,7 +180,7 @@ export default function SignUp() {
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
                 <Input
                   required
                   type="email"
@@ -195,7 +195,7 @@ export default function SignUp() {
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
                 <Input
                   required
                   type="password"

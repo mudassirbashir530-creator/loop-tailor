@@ -7,7 +7,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebook, Scissors, Calendar, CreditCard, Hash, Loader2, CheckCircle2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebook, Scissors, Calendar, CreditCard, Hash, Loader2, CheckCircle2, Trash2, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -282,37 +282,49 @@ export default function CustomerDetails() {
                 <form onSubmit={handleUpdateCustomer} className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Full Name *</label>
-                    <Input 
-                      required 
-                      value={editCustomerData.name} 
-                      onChange={e => setEditCustomerData({...editCustomerData, name: e.target.value})} 
-                      className="h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
-                    />
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Input 
+                        required 
+                        value={editCustomerData.name} 
+                        onChange={e => setEditCustomerData({...editCustomerData, name: e.target.value})} 
+                        className="pl-12 h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number *</label>
-                    <Input 
-                      required 
-                      value={editCustomerData.phone} 
-                      onChange={e => setEditCustomerData({...editCustomerData, phone: e.target.value})} 
-                      className="h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
-                    />
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Input 
+                        required 
+                        value={editCustomerData.phone} 
+                        onChange={e => setEditCustomerData({...editCustomerData, phone: e.target.value})} 
+                        className="pl-12 h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
+                      />
+                    </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Address</label>
-                    <Input 
-                      value={editCustomerData.address} 
-                      onChange={e => setEditCustomerData({...editCustomerData, address: e.target.value})} 
-                      className="h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
-                    />
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Input 
+                        value={editCustomerData.address} 
+                        onChange={e => setEditCustomerData({...editCustomerData, address: e.target.value})} 
+                        className="pl-12 h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
+                      />
+                    </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Notes</label>
-                    <textarea 
-                      value={editCustomerData.notes} 
-                      onChange={e => setEditCustomerData({...editCustomerData, notes: e.target.value})} 
-                      className="w-full min-h-[100px] px-4 py-4 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all focus:outline-none"
-                    />
+                    <div className="relative">
+                      <Notebook className="absolute left-4 top-4 h-5 w-5 text-slate-400 z-10" />
+                      <textarea 
+                        value={editCustomerData.notes} 
+                        onChange={e => setEditCustomerData({...editCustomerData, notes: e.target.value})} 
+                        className="pl-12 w-full min-h-[100px] px-4 py-4 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all focus:outline-none"
+                      />
+                    </div>
                   </div>
                   <div className="md:col-span-2 flex justify-end gap-4">
                     <Button type="button" variant="ghost" onClick={() => setIsEditingCustomer(false)} className="h-12 px-6 rounded-xl font-bold">Cancel</Button>
@@ -343,41 +355,53 @@ export default function CustomerDetails() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Dress Type *</label>
-                          <Input 
-                            required 
-                            value={newOrder.dressType} 
-                            onChange={e => setNewOrder({...newOrder, dressType: e.target.value})} 
-                            className="h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30"
-                          />
+                          <div className="relative">
+                            <Scissors className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                            <Input 
+                              required 
+                              value={newOrder.dressType} 
+                              onChange={e => setNewOrder({...newOrder, dressType: e.target.value})} 
+                              className="pl-12 h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30"
+                            />
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Delivery Date *</label>
-                          <Input 
-                            type="date" 
-                            required 
-                            value={newOrder.deliveryDate} 
-                            onChange={e => setNewOrder({...newOrder, deliveryDate: e.target.value})} 
-                            className="h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all"
-                          />
+                          <div className="relative">
+                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                            <Input 
+                              type="date" 
+                              required 
+                              value={newOrder.deliveryDate} 
+                              onChange={e => setNewOrder({...newOrder, deliveryDate: e.target.value})} 
+                              className="pl-12 h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all"
+                            />
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Total Price (PKR) *</label>
-                          <Input 
-                            type="number" 
-                            required 
-                            value={newOrder.price} 
-                            onChange={e => setNewOrder({...newOrder, price: e.target.value})} 
-                            className="h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30"
-                          />
+                          <div className="relative">
+                            <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                            <Input 
+                              type="number" 
+                              required 
+                              value={newOrder.price} 
+                              onChange={e => setNewOrder({...newOrder, price: e.target.value})} 
+                              className="pl-12 h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30"
+                            />
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Advance Payment (PKR)</label>
-                          <Input 
-                            type="number" 
-                            value={newOrder.advancePayment} 
-                            onChange={e => setNewOrder({...newOrder, advancePayment: e.target.value})} 
-                            className="h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30"
-                          />
+                          <div className="relative">
+                            <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                            <Input 
+                              type="number" 
+                              value={newOrder.advancePayment} 
+                              onChange={e => setNewOrder({...newOrder, advancePayment: e.target.value})} 
+                              className="pl-12 h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30"
+                            />
+                          </div>
                         </div>
                       </div>
                       <div className="flex justify-end gap-4 pt-4 border-t border-white/10">

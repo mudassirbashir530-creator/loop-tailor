@@ -1,7 +1,7 @@
 import React from 'react';
 import PublicLayout from '../components/PublicLayout';
 import { motion } from 'motion/react';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, User, MessageSquare } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -51,20 +51,32 @@ export default function Contact() {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">First Name</label>
-                <Input placeholder="John" className="h-12" />
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                  <Input placeholder="John" className="h-12 pl-9" />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">Last Name</label>
-                <Input placeholder="Doe" className="h-12" />
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                  <Input placeholder="Doe" className="h-12 pl-9" />
+                </div>
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Email</label>
-              <Input type="email" placeholder="john@example.com" className="h-12" />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                <Input type="email" placeholder="john@example.com" className="h-12 pl-9" />
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Message</label>
-              <textarea className="w-full min-h-[150px] rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary resize-none" placeholder="How can we help you?"></textarea>
+              <div className="relative">
+                <MessageSquare className="absolute left-3 top-4 h-4 w-4 text-slate-400 z-10" />
+                <textarea className="w-full min-h-[150px] rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-3 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary resize-none" placeholder="How can we help you?"></textarea>
+              </div>
             </div>
             <Button className="w-full h-12 text-lg font-bold bg-brand-primary hover:bg-brand-primary/90 text-white rounded-xl">Send Message</Button>
           </form>

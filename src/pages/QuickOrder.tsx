@@ -7,7 +7,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, Save, Hash, MapPin, Ruler, Loader2, Search, User, Phone, Check, Upload, X } from 'lucide-react';
+import { ArrowLeft, Save, Hash, MapPin, Ruler, Loader2, Search, User, Phone, Check, Upload, X, Scissors, Calendar, CreditCard, Notebook } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { KAMEEZ_MEASUREMENTS, SHALWAR_MEASUREMENTS } from '../lib/measurements';
 
@@ -295,34 +295,43 @@ export default function QuickOrder() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Customer Name *</label>
-                  <Input 
-                    required 
-                    value={customerData.name} 
-                    onChange={e => {
-                      setCustomerData({...customerData, name: e.target.value});
-                      setSearchQuery(e.target.value);
-                    }}
-                    placeholder="Enter customer name"
-                    className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
-                  />
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                    <Input 
+                      required 
+                      value={customerData.name} 
+                      onChange={e => {
+                        setCustomerData({...customerData, name: e.target.value});
+                        setSearchQuery(e.target.value);
+                      }}
+                      placeholder="Enter customer name"
+                      className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Phone Number</label>
-                  <Input 
-                    value={customerData.phone} 
-                    onChange={e => setCustomerData({...customerData, phone: e.target.value})}
-                    placeholder="Enter phone number"
-                    className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
-                  />
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                    <Input 
+                      value={customerData.phone} 
+                      onChange={e => setCustomerData({...customerData, phone: e.target.value})}
+                      placeholder="Enter phone number"
+                      className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                    />
+                  </div>
                 </div>
                 <div className="sm:col-span-2 space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Address</label>
-                  <Input 
-                    value={customerData.address} 
-                    onChange={e => setCustomerData({...customerData, address: e.target.value})}
-                    placeholder="Enter address"
-                    className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
-                  />
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                    <Input 
+                      value={customerData.address} 
+                      onChange={e => setCustomerData({...customerData, address: e.target.value})}
+                      placeholder="Enter address"
+                      className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -338,57 +347,72 @@ export default function QuickOrder() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dress Type *</label>
-                    <Input 
-                      required 
-                      value={orderData.dressType} 
-                      onChange={e => setOrderData({...orderData, dressType: e.target.value})}
-                      placeholder="e.g. Shalwar Kameez"
-                      className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
-                    />
+                    <div className="relative">
+                      <Scissors className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Input 
+                        required 
+                        value={orderData.dressType} 
+                        onChange={e => setOrderData({...orderData, dressType: e.target.value})}
+                        placeholder="e.g. Shalwar Kameez"
+                        className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                      />
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Delivery Date *</label>
-                    <Input 
-                      type="date" 
-                      required 
-                      value={orderData.deliveryDate} 
-                      onChange={e => setOrderData({...orderData, deliveryDate: e.target.value})}
-                      className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
-                    />
+                    <div className="relative">
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Input 
+                        type="date" 
+                        required 
+                        value={orderData.deliveryDate} 
+                        onChange={e => setOrderData({...orderData, deliveryDate: e.target.value})}
+                        className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Quantity *</label>
-                    <Input 
-                      type="number" 
-                      required 
-                      value={orderData.quantity} 
-                      onChange={e => setOrderData({...orderData, quantity: e.target.value})}
-                      className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
-                    />
+                    <div className="relative">
+                      <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Input 
+                        type="number" 
+                        required 
+                        value={orderData.quantity} 
+                        onChange={e => setOrderData({...orderData, quantity: e.target.value})}
+                        className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                      />
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Price *</label>
-                    <Input 
-                      type="number" 
-                      required 
-                      value={orderData.price} 
-                      onChange={e => setOrderData({...orderData, price: e.target.value})}
-                      placeholder="0.00"
-                      className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
-                    />
+                    <div className="relative">
+                      <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Input 
+                        type="number" 
+                        required 
+                        value={orderData.price} 
+                        onChange={e => setOrderData({...orderData, price: e.target.value})}
+                        placeholder="0.00"
+                        className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                      />
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Advance</label>
-                    <Input 
-                      type="number" 
-                      value={orderData.advancePayment} 
-                      onChange={e => setOrderData({...orderData, advancePayment: e.target.value})}
-                      placeholder="0.00"
-                      className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
-                    />
+                    <div className="relative">
+                      <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Input 
+                        type="number" 
+                        value={orderData.advancePayment} 
+                        onChange={e => setOrderData({...orderData, advancePayment: e.target.value})}
+                        placeholder="0.00"
+                        className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -397,21 +421,27 @@ export default function QuickOrder() {
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                       <MapPin className="h-3 w-3" /> Rack Location
                     </label>
-                    <Input 
-                      value={orderData.rackLocation} 
-                      onChange={e => setOrderData({...orderData, rackLocation: e.target.value})}
-                      placeholder="e.g. A1, Shelf 3"
-                      className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
-                    />
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Input 
+                        value={orderData.rackLocation} 
+                        onChange={e => setOrderData({...orderData, rackLocation: e.target.value})}
+                        placeholder="e.g. A1, Shelf 3"
+                        className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                      />
+                    </div>
                   </div>
                   <div className="sm:col-span-2 space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Notes</label>
-                    <Input 
-                      value={orderData.notes} 
-                      onChange={e => setOrderData({...orderData, notes: e.target.value})}
-                      placeholder="Any special instructions?"
-                      className="rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
-                    />
+                    <div className="relative">
+                      <Notebook className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Input 
+                        value={orderData.notes} 
+                        onChange={e => setOrderData({...orderData, notes: e.target.value})}
+                        placeholder="Any special instructions?"
+                        className="pl-12 rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium"
+                      />
+                    </div>
                   </div>
                 </div>
 
