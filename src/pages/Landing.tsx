@@ -169,9 +169,6 @@ export default function Landing() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto text-base sm:text-lg h-14 sm:h-16 px-8 sm:px-10 rounded-2xl border-slate-200 hover:bg-slate-50 transition-all">
-                Watch Demo
-              </Button>
             </motion.div>
 
             {/* Social Proof */}
@@ -517,7 +514,7 @@ export default function Landing() {
                     <h4 className="text-2xl font-bold mb-1">Professional Plan</h4>
                     <p className="text-slate-500">Everything you need to manage one shop.</p>
                   </div>
-                  <div className="bg-brand-primary/10 text-brand-primary text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                  <div className="bg-brand-primary/10 text-brand-primary text-xs font-bold tracking-wide px-3 py-1 rounded-full">
                     Most Popular
                   </div>
                 </div>
@@ -580,9 +577,6 @@ export default function Landing() {
                     Join Loop Tailor Today
                   </Button>
                 </Link>
-                <Button variant="ghost" size="lg" className="w-full sm:w-auto h-16 px-12 rounded-2xl text-white hover:bg-white/10 text-lg font-bold">
-                  Contact Sales
-                </Button>
               </div>
             </div>
           </motion.div>
