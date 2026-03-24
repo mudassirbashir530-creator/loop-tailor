@@ -84,6 +84,7 @@ export default function Landing() {
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">Features</a>
               <a href="#how-it-works" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">How it Works</a>
+              <Link to="/about" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">About</Link>
               <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">Pricing</a>
               <Link to="/login">
                 <Button variant="ghost" className="text-sm font-semibold">
@@ -118,6 +119,7 @@ export default function Landing() {
               <div className="px-4 py-6 space-y-4">
                 <a href="#features" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">Features</a>
                 <a href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">How it Works</a>
+                <Link to="/about" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">About</Link>
                 <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">Pricing</a>
                 <div className="pt-4 flex flex-col gap-3">
                   <Link to="/login" className="w-full">
@@ -135,62 +137,6 @@ export default function Landing() {
 
       {/* Hero Section */}
       <Hero />
-
-      {/* About Section */}
-      <section id="about" className="py-24 bg-white relative overflow-hidden border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 mb-6"
-            >
-              <span className="text-xs font-black text-emerald-600 uppercase tracking-[0.2em]">Our Mission</span>
-            </motion.div>
-            
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-3xl md:text-5xl font-display font-black tracking-tight text-slate-900 mb-8"
-            >
-              About Loop Tailor
-            </motion.h2>
-            
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="text-lg md:text-xl text-slate-600 leading-relaxed mb-6"
-            >
-              Loop Tailor is a smart, cloud-based management software designed to digitize and streamline the tailoring industry. We replace messy paper records and scattered WhatsApp messages with a single, organized platform.
-            </motion.p>
-            
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-              className="text-lg md:text-xl text-slate-600 leading-relaxed mb-6"
-            >
-              Built specifically for <strong className="text-slate-900 font-bold">tailors, boutiques, and stitching shops</strong> of all sizes, our system empowers business owners to focus on their craft rather than administrative tasks.
-            </motion.p>
-            
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4 }}
-              className="text-lg md:text-xl text-slate-600 leading-relaxed"
-            >
-              With powerful features like <strong className="text-slate-900 font-bold">real-time order tracking, digital measurement profiles, and automated customer management</strong>, Loop Tailor ensures that every garment is delivered perfectly and on time.
-            </motion.p>
-          </div>
-        </div>
-      </section>
 
       {/* Features Section */}
       <section id="features" className="py-32 bg-[#FDFCF9] relative overflow-hidden">
