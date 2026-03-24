@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Link, Navigate } from 'react-router-dom';
+import Hero from '../components/Hero';
 import { 
   Scissors, 
   CheckCircle, 
@@ -133,57 +134,8 @@ export default function Landing() {
       </motion.nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-        {/* Background Accents */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/5 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        </div>
+      <Hero />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 rounded-full border border-brand-primary/20 bg-brand-primary/5 px-4 py-1.5 text-sm font-semibold text-brand-primary mb-8">
-              <Star className="h-4 w-4 fill-brand-primary" />
-              <span>Trusted by 500+ Tailors in Pakistan</span>
-            </motion.div>
-            
-            <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-display font-black tracking-tight text-slate-900 mb-6 sm:mb-8 leading-[0.95]">
-              Digitize Your <br />
-              <span className="text-brand-primary italic">Tailoring Craft.</span>
-            </motion.h1>
-            
-            <motion.p variants={itemVariants} className="text-base sm:text-lg md:text-xl text-slate-600 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed">
-              The all-in-one management platform for modern tailors. From measurement tracking to automated invoices, we handle the business so you can focus on the stitch.
-            </motion.p>
-            
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/signup" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg h-14 sm:h-16 px-8 sm:px-10 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 shadow-2xl shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </motion.div>
-
-            {/* Social Proof */}
-            <motion.div variants={itemVariants} className="mt-20 pt-10 border-t border-slate-100">
-              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Seamlessly Integrated With</p>
-              <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-40 grayscale">
-                <div className="text-2xl font-black italic">Google Cloud</div>
-                <div className="text-2xl font-black italic">Firebase</div>
-                <div className="text-2xl font-black italic">Stripe</div>
-                <div className="text-2xl font-black italic">WhatsApp</div>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Features Section */}
       <section id="features" className="py-32 bg-[#FDFCF9] relative overflow-hidden">
