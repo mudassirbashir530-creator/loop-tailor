@@ -14,17 +14,16 @@ export default function Hero() {
         initial={{ clipPath: 'inset(0 100% 0 0)' }}
         animate={{ clipPath: 'inset(0 0% 0 0)' }}
         transition={{ duration: 1.2, ease: "easeInOut" }}
-        className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-black tracking-tight text-slate-900 mb-6 leading-[1.1] drop-shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+        className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-bold tracking-tight text-slate-900 mb-6 leading-[1.1]"
       >
-        Welcome to Loop Tailor — <br className="hidden md:block" />
-        <span className="text-brand-primary">The Smart Tailor Management Software</span>
+        Welcome to Tailor Loop Tailor
       </motion.h1>
 
       <motion.div 
         initial={{ width: 0 }}
         animate={{ width: '100%' }}
         transition={{ duration: 1.5, delay: 0.5, ease: "easeInOut" }}
-        className="h-1 w-full max-w-2xl bg-gradient-to-r from-blue-500 via-brand-primary to-purple-500 rounded-full mb-8"
+        className="h-1 w-full max-w-2xl bg-emerald-400 rounded-full mb-8"
       />
 
       <motion.p 
