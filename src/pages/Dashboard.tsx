@@ -4,7 +4,7 @@ import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Users, Scissors, CheckCircle, Clock, Plus, ArrowRight, Calendar, TrendingUp, Search, Hash } from 'lucide-react';
+import { Users, Scissors, CheckCircle, Clock, Plus, ArrowRight, Calendar, TrendingUp, Search, Hash, FileText } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, addDays, isAfter, isBefore } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
@@ -210,45 +210,32 @@ export default function Dashboard() {
         
         <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
           {/* Token Search Bar */}
-          <form onSubmit={handleTokenSearch} className="relative group w-full sm:w-80">
+          <motion.form 
+            onSubmit={handleTokenSearch} 
+            className="relative group w-full sm:w-96"
+            whileHover={{ scale: 1.02 }}
+            whileFocus={{ scale: 1.02 }}
+          >
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors">
               <Hash className="h-5 w-5" />
             </div>
             <input 
               type="text"
-              placeholder="Enter Token ID (e.g. 101)"
+              placeholder="Search by Token ID (e.g. 101)"
               value={searchToken}
               onChange={(e) => setSearchToken(e.target.value)}
-              className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-slate-100 bg-white text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm"
+              className="w-full h-16 pl-14 pr-4 rounded-3xl border-2 border-slate-100 bg-white text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm"
             />
             <button 
               type="submit"
-              className="absolute right-3 top-2.5 h-9 w-9 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-brand-primary transition-colors"
+              className="absolute right-3 top-3 h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center hover:bg-brand-primary transition-colors"
             >
-              <Search className="h-4 w-4" />
+              <Search className="h-5 w-5" />
             </button>
             {searchError && (
               <p className="absolute -bottom-6 left-2 text-[10px] font-bold text-red-500 uppercase tracking-wider">{searchError}</p>
             )}
-          </form>
-
-          <div className="flex gap-3 sm:gap-4">
-            <Button 
-              onClick={() => navigate('/dashboard/customers')} 
-              variant="outline" 
-              className="rounded-2xl h-14 px-6 border-slate-200 hover:bg-slate-50 transition-all hover:scale-105 active:scale-95 text-base font-bold"
-            >
-              <Users className="h-5 w-5 mr-2" />
-              Customers
-            </Button>
-            <Button 
-              onClick={() => navigate('/dashboard/orders/new')} 
-              className="rounded-2xl h-14 px-6 bg-brand-primary hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95 text-base font-bold"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              New Order
-            </Button>
-          </div>
+          </motion.form>
         </div>
       </motion.div>
 
@@ -419,13 +406,13 @@ export default function Dashboard() {
             <CardHeader className="p-8 pb-4 relative z-10">
               <CardTitle className="text-xl font-black">Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent className="p-8 pt-0 space-y-4 relative z-10">
+            <CardContent className="p-8 pt-0 space-y-3 relative z-10">
               <Button 
                 onClick={() => navigate('/dashboard/orders/new')}
                 className="w-full h-14 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 font-black text-base shadow-lg shadow-brand-primary/20 transition-all hover:scale-[1.02] active:scale-95"
               >
                 <Plus className="h-5 w-5 mr-2" />
-                Create New Order
+                New Order
               </Button>
               <Button 
                 onClick={() => navigate('/dashboard/customers')}
@@ -433,7 +420,15 @@ export default function Dashboard() {
                 className="w-full h-14 rounded-2xl bg-white/10 border-white/10 text-white hover:bg-white/20 font-black text-base transition-all hover:scale-[1.02] active:scale-95"
               >
                 <Users className="h-5 w-5 mr-2" />
-                Manage Customers
+                Customers
+              </Button>
+              <Button 
+                onClick={() => navigate('/dashboard/invoices')}
+                variant="outline"
+                className="w-full h-14 rounded-2xl bg-white/10 border-white/10 text-white hover:bg-white/20 font-black text-base transition-all hover:scale-[1.02] active:scale-95"
+              >
+                <FileText className="h-5 w-5 mr-2" />
+                Invoices
               </Button>
               <Button 
                 onClick={() => navigate('/dashboard/settings')}
@@ -441,7 +436,7 @@ export default function Dashboard() {
                 className="w-full h-14 rounded-2xl bg-white/10 border-white/10 text-white hover:bg-white/20 font-black text-base transition-all hover:scale-[1.02] active:scale-95"
               >
                 <TrendingUp className="h-5 w-5 mr-2" />
-                Shop Settings
+                Settings
               </Button>
             </CardContent>
           </Card>
