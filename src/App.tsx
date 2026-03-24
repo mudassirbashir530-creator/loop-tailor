@@ -22,6 +22,7 @@ const Orders = React.lazy(() => import('./pages/Orders'));
 const QuickOrder = React.lazy(() => import('./pages/QuickOrder'));
 const OrderDetails = React.lazy(() => import('./pages/OrderDetails'));
 const Invoice = React.lazy(() => import('./pages/Invoice'));
+const Invoices = React.lazy(() => import('./pages/Invoices'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 
 // Public Pages
@@ -114,6 +115,7 @@ export default function App() {
               <Route path="orders/new" element={<QuickOrder />} />
               <Route path="orders/:id" element={<OrderDetails />} />
               <Route path="orders/:id/invoice" element={<Invoice />} />
+              <Route path="invoices" element={<Invoices />} />
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
