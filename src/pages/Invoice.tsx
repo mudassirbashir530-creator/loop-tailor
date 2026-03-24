@@ -67,6 +67,8 @@ export default function Invoice() {
       element.style.width = '800px';
       element.style.maxWidth = '800px';
       element.style.padding = '40px';
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const canvas = await html2canvas(element, {
         scale: 2,
@@ -115,7 +117,7 @@ export default function Invoice() {
       }
     } catch (error) {
       console.error('Error sharing invoice:', error);
-      alert('An error occurred while preparing the invoice for sharing.');
+      alert(`An error occurred while preparing the invoice for sharing: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setIsSharing(false);
     }
@@ -136,6 +138,8 @@ export default function Invoice() {
       element.style.width = '800px';
       element.style.maxWidth = '800px';
       element.style.padding = '40px';
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const canvas = await html2canvas(element, {
         scale: 2,
