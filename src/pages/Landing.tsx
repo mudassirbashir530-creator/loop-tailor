@@ -136,50 +136,111 @@ export default function Landing() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 rounded-full border border-brand-primary/20 bg-brand-primary/5 px-4 py-1.5 text-sm font-semibold text-brand-primary mb-8">
-              <Star className="h-4 w-4 fill-brand-primary" />
-              <span>Trusted by 500+ Tailors in Pakistan</span>
-            </motion.div>
-            
-            <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-display font-black tracking-tight text-slate-900 mb-6 sm:mb-8 leading-[0.95]">
-              Digitize Your <br />
-              <span className="text-brand-primary italic">Tailoring Craft.</span>
-            </motion.h1>
-            
-            <motion.p variants={itemVariants} className="text-base sm:text-lg md:text-xl text-slate-600 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed">
-              The all-in-one management platform for modern tailors. From measurement tracking to automated invoices, we handle the business so you can focus on the stitch.
-            </motion.p>
-            
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/signup" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg h-14 sm:h-16 px-8 sm:px-10 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 shadow-2xl shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-5 w-5" />
+          <div className="grid lg:grid-cols-2 gap-14 items-center">
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              variants={containerVariants}
+              className="text-center lg:text-left"
+            >
+              <motion.div variants={itemVariants} className="inline-flex items-center gap-2 rounded-full border border-brand-primary/20 bg-brand-primary/5 px-4 py-1.5 text-sm font-semibold text-brand-primary mb-8">
+                <Star className="h-4 w-4 fill-brand-primary" />
+                <span>Trusted by 500+ Tailors in Pakistan</span>
+              </motion.div>
+              
+              <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl font-display font-black tracking-tight text-slate-900 mb-6 sm:mb-8 leading-[0.95]">
+                Digitize Your <br />
+                <span className="text-brand-primary italic">Tailoring Craft.</span>
+              </motion.h1>
+              
+              <motion.p variants={itemVariants} className="text-base sm:text-lg md:text-xl text-slate-600 mb-8 sm:mb-12 max-w-2xl lg:max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                The all-in-one management platform for modern tailors. From measurement tracking to automated invoices, we handle the business so you can focus on the stitch.
+              </motion.p>
+              
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4">
+                <Link to="/signup" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg h-14 sm:h-16 px-8 sm:px-10 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 shadow-2xl shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
+                    Start Free Trial
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Button variant="outline" size="lg" className="w-full sm:w-auto text-base sm:text-lg h-14 sm:h-16 px-8 sm:px-10 rounded-2xl border-slate-200 hover:bg-slate-50 transition-all">
+                  Watch Demo
                 </Button>
-              </Link>
-              <Button variant="outline" size="lg" className="w-full sm:w-auto text-base sm:text-lg h-14 sm:h-16 px-8 sm:px-10 rounded-2xl border-slate-200 hover:bg-slate-50 transition-all">
-                Watch Demo
-              </Button>
+              </motion.div>
             </motion.div>
 
-            {/* Social Proof */}
-            <motion.div variants={itemVariants} className="mt-20 pt-10 border-t border-slate-100">
-              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Seamlessly Integrated With</p>
-              <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-40 grayscale">
-                <div className="text-2xl font-black italic">Google Cloud</div>
-                <div className="text-2xl font-black italic">Firebase</div>
-                <div className="text-2xl font-black italic">Stripe</div>
-                <div className="text-2xl font-black italic">WhatsApp</div>
-              </div>
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="relative"
+            >
+              <motion.div
+                whileHover={{ y: -6 }}
+                className="rounded-[2rem] border border-slate-100 bg-white p-6 sm:p-8 shadow-2xl shadow-slate-200/60"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: 'Orders This Week', value: '42+' },
+                    { label: 'On-Time Delivery', value: '98%' },
+                    { label: 'Saved Hours', value: '15h' },
+                    { label: 'Happy Clients', value: '500+' }
+                  ].map((stat, idx) => (
+                    <motion.div
+                      key={stat.label}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.08 }}
+                      className="rounded-2xl border border-slate-100 bg-[#FDFCF9] p-4"
+                    >
+                      <p className="text-xl font-black text-slate-900">{stat.value}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mt-1">{stat.label}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -bottom-6 -left-4 rounded-2xl bg-white border border-slate-100 px-4 py-3 shadow-lg"
+              >
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Live Updates</p>
+                <p className="text-sm font-bold text-brand-primary mt-1">3 New Orders Added</p>
+              </motion.div>
             </motion.div>
+          </div>
+
+          {/* Social Proof */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-20 pt-10 border-t border-slate-100 text-center"
+          >
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Seamlessly Integrated With</p>
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-40 grayscale">
+              <div className="text-2xl font-black italic">Google Cloud</div>
+              <div className="text-2xl font-black italic">Firebase</div>
+              <div className="text-2xl font-black italic">Stripe</div>
+              <div className="text-2xl font-black italic">WhatsApp</div>
+            </div>
           </motion.div>
+
+          <motion.a
+            href="#features"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, y: [0, 8, 0] }}
+            transition={{ duration: 2.2, repeat: Infinity }}
+            className="mt-12 mx-auto flex w-fit items-center gap-2 text-slate-500 hover:text-brand-primary transition-colors font-semibold"
+          >
+            Scroll to explore
+            <ChevronRight className="h-4 w-4 rotate-90" />
+          </motion.a>
         </div>
       </section>
 
