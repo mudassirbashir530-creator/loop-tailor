@@ -16,7 +16,7 @@ export default function Hero() {
         transition={{ duration: 1.2, ease: "easeInOut" }}
         className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-bold tracking-tight text-slate-900 mb-6 leading-[1.1]"
       >
-        Welcome to Tailor Loop Tailor
+        Welcome to Loop Tailor
       </motion.h1>
 
       <motion.div 
@@ -25,15 +25,6 @@ export default function Hero() {
         transition={{ duration: 1.5, delay: 0.5, ease: "easeInOut" }}
         className="h-1 w-full max-w-2xl bg-emerald-400 rounded-full mb-8"
       />
-
-      <motion.p 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
-        className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed"
-      >
-        Manage orders, measurements, and customers effortlessly in one powerful system.
-      </motion.p>
     </section>
   );
 }
