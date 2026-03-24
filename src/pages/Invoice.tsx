@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
-import { ArrowLeft, Printer, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, Printer, Download, Share2, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -181,6 +181,9 @@ export default function Invoice() {
           <ArrowLeft className="h-4 w-4 mr-1.5" /> Back
         </Button>
         <div className="flex gap-2 w-full sm:w-auto">
+          <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/orders/${id}`)} className="flex-1 sm:flex-none rounded-xl h-9">
+            <Edit2 className="h-3.5 w-3.5 mr-1.5" /> Edit
+          </Button>
           <Button variant="outline" size="sm" onClick={handleShare} disabled={isSharing} className="flex-1 sm:flex-none rounded-xl h-9">
             <Share2 className="h-3.5 w-3.5 mr-1.5" /> {isSharing ? '...' : 'Share'}
           </Button>

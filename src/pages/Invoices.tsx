@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { FileText, Loader2, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 export default function Invoices() {
   const { user } = useAuth();
@@ -64,7 +65,9 @@ export default function Invoices() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-black text-brand-primary">PKR {invoice.price}</div>
+                      <Link to={`/dashboard/orders/${invoice.id}/invoice`} className="text-sm font-black text-brand-primary hover:underline">
+                        View Invoice
+                      </Link>
                     </div>
                   </div>
                 ))}

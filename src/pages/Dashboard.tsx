@@ -252,26 +252,21 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          { label: "Total Customers", value: stats.customers, icon: Users, color: "text-blue-600", bg: "bg-blue-50", gradient: "from-blue-50/50 to-transparent" },
-          { label: "Active Orders", value: stats.activeOrders, icon: Scissors, color: "text-brand-primary", bg: "bg-brand-primary/10", gradient: "from-brand-primary/5 to-transparent" },
-          { label: "Completed Orders", value: stats.completedOrders, icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50", gradient: "from-emerald-50/50 to-transparent" },
-          { label: "Pending Payments", value: formatCurrency(stats.pendingPayments), icon: Clock, color: "text-amber-600", bg: "bg-amber-50", gradient: "from-amber-50/50 to-transparent" },
-          { label: "Total Revenue", value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-emerald-700", bg: "bg-emerald-100", gradient: "from-emerald-100/50 to-transparent" },
+          { label: "Active Orders", value: stats.activeOrders, icon: Scissors, color: "text-brand-primary", bg: "bg-brand-primary/10" },
+          { label: "Completed Orders", value: stats.completedOrders, icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: "Total Revenue", value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-emerald-700", bg: "bg-emerald-100" },
         ].map((stat, idx) => (
           <motion.div key={idx} variants={itemVariants}>
-            <Card className="border-none shadow-sm bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500 group rounded-[2rem] overflow-hidden relative">
-              <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-              <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-                <CardTitle className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">{stat.label}</CardTitle>
-                <div className={`${stat.bg} p-2 rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{stat.value}</div>
-              </CardContent>
+            <Card className="border-none shadow-sm bg-white rounded-[2rem] p-6 flex items-center gap-4">
+              <div className={`${stat.bg} p-4 rounded-2xl`}>
+                <stat.icon className={`h-6 w-6 ${stat.color}`} />
+              </div>
+              <div>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">{stat.label}</div>
+                <div className="text-2xl font-black text-slate-900 tracking-tight">{stat.value}</div>
+              </div>
             </Card>
           </motion.div>
         ))}
