@@ -1,16 +1,34 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Scissors, Users, LayoutDashboard, Settings, LogOut, FileText, UserCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import MobileBottomNav from './MobileBottomNav';
-import { useState } from 'react';
+import { db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function Layout() {
   const { logOut, user } = useAuth();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [shop, setShop] = useState({ name: '', phone: '', address: '' });
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchShop = async () => {
+      try {
+        const docSnap = await getDoc(doc(db, 'shops', user.uid));
+        if (docSnap.exists()) {
+          const data = docSnap.data() as any;
+          setShop({ name: data.name || '', phone: data.phone || '', address: data.address || '' });
+        }
+      } catch (error) {
+        console.error('Error fetching shop:', error);
+      }
+    };
+    fetchShop();
+  }, [user]);
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -19,20 +37,26 @@ export default function Layout() {
     { name: 'Settings', path: '/dashboard/settings', icon: Settings },
   ];
 
+  const userInitial = user?.email ? user.email[0].toUpperCase() : '?';
+
   return (
     <div className="flex h-screen bg-brand-secondary text-slate-900 font-sans overflow-hidden">
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 z-30">
         <span className="text-lg font-display font-bold">Loop Tailor</span>
         <div className="relative">
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-2 p-2 rounded-full hover:bg-slate-100">
-            <UserCircle className="h-8 w-8 text-slate-600" />
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center justify-center h-10 w-10 rounded-full bg-brand-primary text-white font-bold text-lg hover:bg-brand-primary/90">
+            {userInitial}
           </button>
           {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50">
-              <div className="px-4 py-2 text-xs text-slate-500 truncate">{user?.email}</div>
-              <Link to="/dashboard/settings" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onClick={() => setIsMenuOpen(false)}>Settings</Link>
-              <button onClick={() => { logOut(); setIsMenuOpen(false); }} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Sign Out</button>
+            <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-100 py-4 z-50">
+              <div className="px-6 pb-4 border-b border-slate-100 mb-2">
+                <div className="font-bold text-lg truncate">{shop.name || 'My Shop'}</div>
+                <div className="text-sm text-slate-500 truncate">{shop.address || 'No address set'}</div>
+                <div className="text-sm text-slate-500 truncate">{shop.phone || 'No phone set'}</div>
+              </div>
+              <Link to="/dashboard/settings" className="block px-6 py-2 text-sm text-slate-700 hover:bg-slate-50" onClick={() => setIsMenuOpen(false)}>Settings</Link>
+              <button onClick={() => { logOut(); setIsMenuOpen(false); }} className="block w-full text-left px-6 py-2 text-sm text-red-600 hover:bg-red-50">Sign Out</button>
             </div>
           )}
         </div>

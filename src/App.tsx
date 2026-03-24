@@ -8,6 +8,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import OfflineIndicator from './components/OfflineIndicator';
+import { motion } from 'motion/react';
+import { Scissors } from 'lucide-react';
 
 // Eager load critical components
 import Landing from './pages/Landing';
@@ -40,7 +42,12 @@ const LEGAL_LAST_UPDATED = new Date('2026-03-23').toLocaleDateString();
 function LoadingFallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-primary"></div>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      >
+        <Scissors className="h-12 w-12 text-brand-primary" />
+      </motion.div>
     </div>
   );
 }
