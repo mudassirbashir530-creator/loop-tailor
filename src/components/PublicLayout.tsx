@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, Scissors } from 'lucide-react';
+import Footer from './Footer';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
@@ -30,11 +31,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         {children}
       </main>
       
-      <footer className="bg-white border-t border-slate-100 py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm text-slate-400 font-medium">© {new Date().getFullYear()} Loop Tailor. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

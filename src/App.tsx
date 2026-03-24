@@ -8,6 +8,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import OfflineIndicator from './components/OfflineIndicator';
+import InstallPrompt from './components/InstallPrompt';
 import { motion } from 'motion/react';
 import { Scissors } from 'lucide-react';
 
@@ -34,6 +35,8 @@ const Blog = React.lazy(() => import('./pages/Blog'));
 const Careers = React.lazy(() => import('./pages/Careers'));
 const MobileApp = React.lazy(() => import('./pages/MobileApp'));
 const Updates = React.lazy(() => import('./pages/Updates'));
+const TailorManagementSoftware = React.lazy(() => import('./pages/TailorManagementSoftware'));
+const InstallApp = React.lazy(() => import('./pages/InstallApp'));
 const Legal = React.lazy(() => import('./pages/Legal'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
@@ -66,6 +69,7 @@ export default function App() {
   return (
     <AuthProvider>
       <OfflineIndicator />
+      <InstallPrompt />
       <Router>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
@@ -80,6 +84,8 @@ export default function App() {
             <Route path="/careers" element={<Careers />} />
             <Route path="/mobile-app" element={<MobileApp />} />
             <Route path="/updates" element={<Updates />} />
+            <Route path="/tailor-management-software" element={<TailorManagementSoftware />} />
+            <Route path="/install" element={<InstallApp />} />
             
             {/* Legal Pages */}
             <Route path="/privacy" element={

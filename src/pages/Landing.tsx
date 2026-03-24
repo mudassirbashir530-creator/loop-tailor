@@ -22,7 +22,14 @@ import {
   Activity,
   FileCheck,
   ListTodo,
-  Plus
+  Plus,
+  Facebook,
+  Linkedin,
+  Youtube,
+  ClipboardList,
+  Ruler,
+  Truck,
+  Workflow
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
@@ -252,6 +259,36 @@ export default function Landing() {
                   <span>Explore Feature</span>
                   <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                 </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Tailors Choose Loop Tailor */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl md:text-5xl font-display font-black text-center text-slate-900 mb-16">Why Tailors Choose Loop Tailor</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { icon: <ClipboardList className="h-8 w-8 text-brand-primary" />, title: "Easy Order Tracking", desc: "Keep all your orders organized and never miss a delivery deadline again." },
+              { icon: <Ruler className="h-8 w-8 text-brand-primary" />, title: "Customer Measurement Storage", desc: "Securely store and access customer measurements from any device." },
+              { icon: <Truck className="h-8 w-8 text-brand-primary" />, title: "Fast Delivery Management", desc: "Optimize your delivery process and keep customers informed with status updates." },
+              { icon: <Workflow className="h-8 w-8 text-brand-primary" />, title: "Simple Digital Workflow", desc: "Streamline your entire business process with our intuitive digital platform." }
+            ].map((item, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="p-8 rounded-3xl bg-slate-50 border border-slate-100 shadow-sm hover:shadow-md transition-all"
+              >
+                <div className="bg-white w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+                  {item.icon}
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
+                <p className="text-slate-500 leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -537,58 +574,33 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-100 pt-20 pb-10">
+      <footer className="py-20 bg-slate-50 border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-20">
-            <div className="col-span-2 lg:col-span-2">
-              <div className="flex items-center gap-2 mb-6">
+          <div className="grid md:grid-cols-3 gap-12 items-center">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
                 <div className="bg-brand-primary p-2 rounded-xl">
                   <Scissors className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-xl font-bold tracking-tight">Loop Tailor</span>
+                <span className="text-xl font-display font-bold text-slate-900">Loop Tailor</span>
               </div>
-              <p className="text-slate-500 max-w-xs leading-relaxed">
-                The modern operating system for the tailoring industry. Built with love for craftsmen who value precision.
-              </p>
+              <p className="text-slate-500 mb-4">Smart Tailor Management Software</p>
+              <p className="text-sm text-slate-500">© 2026 Loop Tailor</p>
             </div>
-            <div>
-              <h4 className="font-bold mb-6">Product</h4>
-              <ul className="space-y-4 text-slate-500 text-sm">
-                <li><a href="#features" className="hover:text-brand-primary">Features</a></li>
-                <li><a href="#pricing" className="hover:text-brand-primary">Pricing</a></li>
-                <li><Link to="/mobile-app" className="hover:text-brand-primary">Mobile App</Link></li>
-                <li><Link to="/updates" className="hover:text-brand-primary">Updates</Link></li>
-              </ul>
+            
+            <div className="flex flex-col md:items-center gap-4">
+              <Link to="/" className="text-slate-600 hover:text-brand-primary transition-colors">Home</Link>
+              <a href="#features" className="text-slate-600 hover:text-brand-primary transition-colors">Features</a>
+              <Link to="/about" className="text-slate-600 hover:text-brand-primary transition-colors">About</Link>
+              <Link to="/contact" className="text-slate-600 hover:text-brand-primary transition-colors">Contact</Link>
             </div>
-            <div>
-              <h4 className="font-bold mb-6">Company</h4>
-              <ul className="space-y-4 text-slate-500 text-sm">
-                <li><Link to="/about" className="hover:text-brand-primary">About Us</Link></li>
-                <li><Link to="/careers" className="hover:text-brand-primary">Careers</Link></li>
-                <li><Link to="/contact" className="hover:text-brand-primary">Contact</Link></li>
-                <li><Link to="/blog" className="hover:text-brand-primary">Blog</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-6">Legal</h4>
-              <ul className="space-y-4 text-slate-500 text-sm">
-                <li><Link to="/privacy" className="hover:text-brand-primary">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="hover:text-brand-primary">Terms of Service</Link></li>
-                <li><Link to="/cookies" className="hover:text-brand-primary">Cookie Policy</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="flex flex-col md:flex-row items-center justify-between pt-10 border-t border-slate-100 gap-6">
-            <p className="text-sm text-slate-400 font-medium">© 2026 Loop Tailor. All rights reserved.</p>
-            <div className="flex gap-6">
-              <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-brand-primary cursor-pointer transition-colors">
-                <Smartphone className="h-5 w-5" />
-              </div>
-              <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-brand-primary cursor-pointer transition-colors">
-                <Shield className="h-5 w-5" />
-              </div>
-              <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-brand-primary cursor-pointer transition-colors">
-                <Star className="h-5 w-5" />
+
+            <div className="flex flex-col md:items-end gap-4">
+              <h4 className="font-bold text-slate-900">Follow Loop Tailor</h4>
+              <div className="flex gap-4">
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-brand-primary transition-colors"><Facebook className="h-6 w-6" /></a>
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-brand-primary transition-colors"><Linkedin className="h-6 w-6" /></a>
+                <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-brand-primary transition-colors"><Youtube className="h-6 w-6" /></a>
               </div>
             </div>
           </div>
