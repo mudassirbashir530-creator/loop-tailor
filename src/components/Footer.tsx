@@ -27,10 +27,10 @@ export default function Footer() {
 
           <div className="flex flex-col md:items-end gap-4">
             <h4 className="font-bold text-white">Follow Loop Tailor</h4>
-            <div className="flex gap-4">
-              <a href="https://www.facebook.com/profile.php?id=61575736701852" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Facebook className="h-6 w-6" /></a>
-              <a href="https://www.linkedin.com/in/loop-tailor-1b50543ba/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Linkedin className="h-6 w-6" /></a>
-              <a href="https://www.instagram.com/looptailor/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Instagram className="h-6 w-6" /></a>
+            <div className="flex gap-2">
+              <a href="https://www.facebook.com/profile.php?id=61575736701852" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook profile" className="p-2 hover:text-white transition-colors"><Facebook className="h-6 w-6" /></a>
+              <a href="https://www.linkedin.com/in/loop-tailor-1b50543ba/" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn profile" className="p-2 hover:text-white transition-colors"><Linkedin className="h-6 w-6" /></a>
+              <a href="https://www.instagram.com/looptailor/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram profile" className="p-2 hover:text-white transition-colors"><Instagram className="h-6 w-6" /></a>
             </div>
           </div>
         </div>
