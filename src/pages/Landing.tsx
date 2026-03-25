@@ -29,7 +29,8 @@ import {
   ClipboardList,
   Ruler,
   Truck,
-  Workflow
+  Workflow,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
@@ -54,9 +55,34 @@ const itemVariants = {
   }
 };
 
+const faqs = [
+  { q: "What is LoopTailor?", a: "LoopTailor is a smart tailoring management software designed for tailors and boutique owners to manage customer measurements, orders, token IDs, delivery tracking, and shop operations digitally without paper registers." },
+  { q: "Who can use LoopTailor?", a: "LoopTailor is built for tailors, tailoring shops, fashion boutiques, and stitching businesses that want to manage customers and orders efficiently using a digital system." },
+  { q: "How does LoopTailor help tailors?", a: "LoopTailor helps tailors organize measurements, track orders, assign token numbers, manage deliveries, and avoid manual record mistakes by keeping everything securely stored in one system." },
+  { q: "Does LoopTailor store customer measurements?", a: "Yes. LoopTailor securely saves customer measurements and order history so tailors can quickly access past records anytime." },
+  { q: "Can multiple shops use LoopTailor?", a: "Yes. LoopTailor supports multiple tailoring shops where each shop’s data stays separate and organized." },
+  { q: "Is LoopTailor easy to use?", a: "Yes. LoopTailor is designed for simplicity so even non-technical users can manage tailoring work easily." },
+  { q: "Does LoopTailor work on mobile and web?", a: "Yes. LoopTailor works on both mobile devices and web browsers, allowing shop owners to manage their business anywhere." },
+  { q: "Why choose LoopTailor instead of paper registers?", a: "LoopTailor saves time, reduces mistakes, improves customer management, and keeps records safe compared to traditional manual registers." }
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map(faq => ({
+    "@type": "Question",
+    "name": faq.q,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": faq.a
+    }
+  }))
+};
+
 export default function Landing() {
   const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
@@ -64,6 +90,9 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-[#FDFCF9] font-sans text-slate-900 overflow-x-hidden selection:bg-brand-primary/10 selection:text-brand-primary">
+      <script type="application/ld+json">
+        {JSON.stringify(faqSchema)}
+      </script>
 
       {/* Navbar */}
       <motion.nav 
@@ -540,6 +569,58 @@ export default function Landing() {
                 <p className="text-center text-xs text-slate-400 mt-6 font-medium">No credit card required. Cancel anytime.</p>
               </div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-24 bg-slate-50 relative overflow-hidden">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-4xl font-display font-black text-slate-900 mb-4">Frequently Asked Questions</h2>
+            <p className="text-lg text-slate-500">Everything you need to know about LoopTailor and how it works.</p>
+          </motion.div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+              >
+                <button 
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)} 
+                  className="w-full px-6 py-5 text-left flex justify-between items-center focus:outline-none"
+                >
+                  <span className="font-bold text-slate-900 pr-8">{faq.q}</span>
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center transition-transform duration-300 ${openFaq === idx ? 'rotate-180 bg-brand-primary/10 text-brand-primary' : 'text-slate-400'}`}>
+                    <ChevronDown className="h-5 w-5" />
+                  </div>
+                </button>
+                <AnimatePresence>
+                  {openFaq === idx && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }} 
+                      animate={{ height: 'auto', opacity: 1 }} 
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <div className="px-6 pb-5 pt-1 border-t border-slate-100">
+                        <p className="text-slate-600 leading-relaxed">{faq.a}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
