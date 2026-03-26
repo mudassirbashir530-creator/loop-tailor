@@ -23,15 +23,15 @@ export default function Hero() {
       </motion.h1>
 
       <motion.div 
-        initial={{ width: 0 }}
-        animate={{ width: '40%' }}
-        transition={{ duration: 1.5, delay: 0.5, ease: "easeInOut" }}
-        className="relative h-1 w-full max-w-lg mb-8 overflow-hidden rounded-full"
+        initial={{ width: 0, opacity: 0 }}
+        animate={{ width: '100%', opacity: 1 }}
+        transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+        className="relative h-[2px] w-full max-w-md mb-10 mx-auto overflow-hidden rounded-full bg-gradient-to-r from-transparent via-slate-200 to-transparent"
       >
         <motion.div 
-          animate={{ x: ['-100%', '100%'] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 bg-emerald-800 rounded-full"
+          animate={{ x: ['-100%', '200%'] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.5 }}
+          className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-brand-primary to-transparent"
         />
       </motion.div>
 
