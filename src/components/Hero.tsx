@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Play } from 'lucide-react';
+import DemoModal from './DemoModal';
 
 export default function Hero() {
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+
   return (
     <section className="relative pt-20 pb-16 lg:pt-28 lg:pb-20 overflow-hidden flex flex-col items-center justify-center text-center px-4">
       {/* Background Glow */}
@@ -39,6 +42,7 @@ export default function Hero() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
+        className="flex flex-col sm:flex-row items-center justify-center gap-4"
       >
         <Link to="/signup">
           <Button size="lg" className="rounded-full px-8 bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
@@ -46,7 +50,20 @@ export default function Hero() {
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </Link>
+        <Button 
+          size="lg" 
+          variant="outline"
+          onClick={() => setIsDemoModalOpen(true)}
+          className="rounded-full px-8 bg-white border-2 border-slate-200 hover:border-brand-primary/30 hover:bg-slate-50 text-slate-900 shadow-sm transition-all hover:scale-105 active:scale-95 group"
+        >
+          <div className="w-6 h-6 rounded-full bg-brand-primary/10 flex items-center justify-center mr-2 group-hover:bg-brand-primary transition-colors">
+            <Play className="h-3 w-3 text-brand-primary group-hover:text-white ml-0.5 transition-colors" />
+          </div>
+          Watch Demo
+        </Button>
       </motion.div>
+
+      <DemoModal isOpen={isDemoModalOpen} onClose={() => setIsDemoModalOpen(false)} />
     </section>
   );
 }
