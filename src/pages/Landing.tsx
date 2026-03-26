@@ -605,13 +605,15 @@ export default function Landing() {
                     <ChevronDown className="h-5 w-5" />
                   </div>
                 </button>
-                <AnimatePresence>
+                <AnimatePresence initial={false}>
                   {openFaq === idx && (
                     <motion.div 
+                      key="content"
                       initial={{ height: 0, opacity: 0 }} 
                       animate={{ height: 'auto', opacity: 1 }} 
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="overflow-hidden"
                     >
                       <div className="px-6 pb-5 pt-1 border-t border-slate-100">
                         <p className="text-slate-600 leading-relaxed">{faq.a}</p>
