@@ -26,6 +26,7 @@ import {
   Facebook,
   Linkedin,
   Instagram,
+  Youtube,
   ClipboardList,
   Ruler,
   Truck,
@@ -684,6 +685,7 @@ export default function Landing() {
                 <a href="https://www.facebook.com/profile.php?id=61575736701852" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook profile" className="p-2 text-slate-500 hover:text-brand-primary transition-colors"><Facebook className="h-6 w-6" /></a>
                 <a href="https://www.linkedin.com/in/loop-tailor-1b50543ba/" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn profile" className="p-2 text-slate-500 hover:text-brand-primary transition-colors"><Linkedin className="h-6 w-6" /></a>
                 <a href="https://www.instagram.com/looptailor/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram profile" className="p-2 text-slate-500 hover:text-brand-primary transition-colors"><Instagram className="h-6 w-6" /></a>
+                <a href="https://youtube.com/@looptailor?si=yWxjWbNEXox2WBTd" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube channel" className="p-2 text-slate-500 hover:text-brand-primary transition-colors"><Youtube className="h-6 w-6" /></a>
               </div>
             </div>
           </div>

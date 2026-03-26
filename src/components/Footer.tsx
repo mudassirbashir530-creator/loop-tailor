@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Scissors, Facebook, Linkedin, Instagram } from 'lucide-react';
+import { Scissors, Facebook, Linkedin, Instagram, Youtube } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -31,6 +31,7 @@ export default function Footer() {
               <a href="https://www.facebook.com/profile.php?id=61575736701852" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook profile" className="p-2 hover:text-white transition-colors"><Facebook className="h-6 w-6" /></a>
               <a href="https://www.linkedin.com/in/loop-tailor-1b50543ba/" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn profile" className="p-2 hover:text-white transition-colors"><Linkedin className="h-6 w-6" /></a>
               <a href="https://www.instagram.com/looptailor/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram profile" className="p-2 hover:text-white transition-colors"><Instagram className="h-6 w-6" /></a>
+              <a href="https://youtube.com/@looptailor?si=yWxjWbNEXox2WBTd" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube channel" className="p-2 hover:text-white transition-colors"><Youtube className="h-6 w-6" /></a>
             </div>
           </div>
         </div>
