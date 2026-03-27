@@ -78,7 +78,7 @@ export default function Hero() {
         >
           <div className="relative rounded-xl md:rounded-3xl overflow-hidden border border-slate-200/50 shadow-inner bg-slate-800 min-h-[200px] sm:min-h-[300px] md:min-h-[400px] lg:min-h-[500px] flex items-center justify-center">
             <img 
-              src="https://storage.googleapis.com/manta-zmt/tmp/2026-03-27/chat-01997327-047b-70c8-9710-d3e9114f0490/image_1.jpg" 
+              src="https://drive.google.com/uc?export=view&id=1KhUN-FpCM7DcNhqVTAal-Q6RpDjo4bUi" 
               alt="LoopTailor Dashboard Preview" 
               className="w-full h-full object-cover absolute inset-0"
               referrerPolicy="no-referrer"
