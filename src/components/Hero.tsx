@@ -19,7 +19,7 @@ export default function Hero() {
       <motion.h1 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
         className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-bold tracking-tight text-slate-900 mb-4 leading-[1.1]"
       >
         Welcome to Loop Tailor
@@ -28,7 +28,7 @@ export default function Hero() {
       <motion.div 
         initial={{ width: 0, opacity: 0 }}
         animate={{ width: '100%', opacity: 1 }}
-        transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+        transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
         className="relative h-[2px] w-full max-w-md mb-10 mx-auto overflow-hidden rounded-full bg-gradient-to-r from-transparent via-slate-200 to-transparent"
       >
         <motion.div 
@@ -41,7 +41,7 @@ export default function Hero() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
         className="flex flex-col sm:flex-row items-center justify-center gap-4"
       >
         <Link to="/signup">
@@ -66,13 +66,13 @@ export default function Hero() {
       <motion.div
         initial={{ opacity: 0, y: 40, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
         className="mt-16 md:mt-24 w-full max-w-6xl mx-auto relative z-10"
         style={{ perspective: 2000 }}
       >
         <motion.div 
           animate={{ y: [0, -15, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           whileHover={{ rotateX: 2, rotateY: -2, scale: 1.02 }}
           className="relative rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-brand-primary/30 border border-white/60 bg-white/40 backdrop-blur-md p-2 md:p-4 transition-transform duration-500"
         >

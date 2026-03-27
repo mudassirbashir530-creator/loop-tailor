@@ -99,7 +99,7 @@ export default function Landing() {
       <motion.nav 
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -107,7 +107,7 @@ export default function Landing() {
             <Link to="/" className="flex items-center gap-2 group cursor-pointer">
               <motion.div 
                 whileHover={{ rotate: 180 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.3 }}
                 className="bg-brand-primary p-2 rounded-xl"
               >
                 <Scissors className="h-6 w-6 text-white" />
