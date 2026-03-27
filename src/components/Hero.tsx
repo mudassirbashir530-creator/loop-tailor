@@ -9,7 +9,7 @@ export default function Hero() {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
 
   return (
-    <section className="relative pt-20 pb-16 lg:pt-28 lg:pb-20 overflow-hidden flex flex-col items-center justify-center text-center px-4">
+    <section className="relative pt-20 pb-16 lg:pt-28 lg:pb-20 overflow-x-hidden flex flex-col items-center justify-center text-center px-4">
       {/* Background Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/5 rounded-full blur-3xl animate-pulse"></div>
@@ -64,9 +64,9 @@ export default function Hero() {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: 60, scale: 0.95 }}
+        initial={{ opacity: 0, y: 40, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 1.2, delay: 1, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         className="mt-16 md:mt-24 w-full max-w-6xl mx-auto relative z-10"
         style={{ perspective: 2000 }}
       >
@@ -76,15 +76,19 @@ export default function Hero() {
           whileHover={{ rotateX: 2, rotateY: -2, scale: 1.02 }}
           className="relative rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-brand-primary/30 border border-white/60 bg-white/40 backdrop-blur-md p-2 md:p-4 transition-transform duration-500"
         >
-          <div className="relative rounded-xl md:rounded-3xl overflow-hidden border border-slate-200/50 shadow-inner bg-slate-100">
+          <div className="relative rounded-xl md:rounded-3xl overflow-hidden border border-slate-200/50 shadow-inner bg-slate-800 min-h-[200px] sm:min-h-[300px] md:min-h-[400px] lg:min-h-[500px] flex items-center justify-center">
             <img 
               src="https://storage.googleapis.com/manta-zmt/tmp/2026-03-27/chat-01997327-047b-70c8-9710-d3e9114f0490/image_0.jpg" 
               alt="LoopTailor Dashboard Preview" 
-              className="w-full h-auto object-cover"
+              className="w-full h-full object-cover absolute inset-0"
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                // Fallback if the temporary image URL expires or fails to load
+                e.currentTarget.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop";
+              }}
             />
             {/* Overlay gradient for premium feel */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent pointer-events-none"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none z-10"></div>
           </div>
         </motion.div>
         
