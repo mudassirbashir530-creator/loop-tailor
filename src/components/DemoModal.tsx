@@ -63,31 +63,55 @@ export default function DemoModal({ isOpen, onClose }: DemoModalProps) {
                   {/* Urdu Card */}
                   <div 
                     onClick={() => playVideo('urdu')}
-                    className="group relative bg-white hover:bg-slate-50 border-2 border-slate-100 hover:border-brand-primary/30 rounded-2xl p-6 transition-all duration-300 cursor-pointer text-center shadow-sm hover:shadow-md"
+                    className="group relative bg-white hover:bg-slate-50 border-2 border-slate-100 hover:border-brand-primary/30 rounded-2xl p-4 transition-all duration-300 cursor-pointer text-center shadow-sm hover:shadow-md flex flex-col h-full"
                   >
-                    <div className="w-14 h-14 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
-                      <Play className="w-6 h-6 text-brand-primary ml-1" />
+                    <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 relative">
+                      <img 
+                        src="https://storage.googleapis.com/a1aa/image/1e1e1e1e-1e1e-1e1e-1e1e-1e1e1e1e1e1e.jpg" 
+                        alt="Urdu Demo Thumbnail" 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
+                        <div className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                          <Play className="w-5 h-5 text-brand-primary ml-1" />
+                        </div>
+                      </div>
                     </div>
-                    <h4 className="text-xl font-bold text-slate-900 mb-2">Urdu Demo</h4>
-                    <p className="text-sm text-slate-500 mb-6 font-medium" dir="rtl">مکمل اردو میں سافٹویئر ڈیمو دیکھیں</p>
-                    <button className="w-full py-2.5 px-4 bg-white border border-slate-200 group-hover:border-brand-primary group-hover:bg-brand-primary group-hover:text-white rounded-xl font-bold transition-colors">
-                      Watch in Urdu
-                    </button>
+                    <div className="flex-grow flex flex-col justify-end">
+                      <h4 className="text-lg font-bold text-slate-900 mb-1">Urdu Demo</h4>
+                      <p className="text-sm text-slate-500 mb-4 font-medium" dir="rtl">مکمل اردو میں سافٹویئر ڈیمو دیکھیں</p>
+                      <button className="w-full py-2.5 px-4 bg-white border border-slate-200 group-hover:border-brand-primary group-hover:bg-brand-primary group-hover:text-white rounded-xl font-bold transition-colors mt-auto">
+                        Watch in Urdu
+                      </button>
+                    </div>
                   </div>
 
                   {/* English Card */}
                   <div 
                     onClick={() => playVideo('english')}
-                    className="group relative bg-white hover:bg-slate-50 border-2 border-slate-100 hover:border-brand-primary/30 rounded-2xl p-6 transition-all duration-300 cursor-pointer text-center shadow-sm hover:shadow-md"
+                    className="group relative bg-white hover:bg-slate-50 border-2 border-slate-100 hover:border-brand-primary/30 rounded-2xl p-4 transition-all duration-300 cursor-pointer text-center shadow-sm hover:shadow-md flex flex-col h-full"
                   >
-                    <div className="w-14 h-14 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
-                      <Globe className="w-6 h-6 text-brand-primary" />
+                    <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 relative">
+                      <img 
+                        src="https://storage.googleapis.com/a1aa/image/2e2e2e2e-2e2e-2e2e-2e2e-2e2e2e2e2e2e.jpg" 
+                        alt="English Demo Thumbnail" 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
+                        <div className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                          <Play className="w-5 h-5 text-brand-primary ml-1" />
+                        </div>
+                      </div>
                     </div>
-                    <h4 className="text-xl font-bold text-slate-900 mb-2">English Demo</h4>
-                    <p className="text-sm text-slate-500 mb-6 font-medium">Watch full software demo in English</p>
-                    <button className="w-full py-2.5 px-4 bg-white border border-slate-200 group-hover:border-brand-primary group-hover:bg-brand-primary group-hover:text-white rounded-xl font-bold transition-colors">
-                      Watch in English
-                    </button>
+                    <div className="flex-grow flex flex-col justify-end">
+                      <h4 className="text-lg font-bold text-slate-900 mb-1">English Demo</h4>
+                      <p className="text-sm text-slate-500 mb-4 font-medium">Watch full software demo in English</p>
+                      <button className="w-full py-2.5 px-4 bg-white border border-slate-200 group-hover:border-brand-primary group-hover:bg-brand-primary group-hover:text-white rounded-xl font-bold transition-colors mt-auto">
+                        Watch in English
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
