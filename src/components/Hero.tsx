@@ -76,11 +76,11 @@ export default function Hero() {
           whileHover={{ rotateX: 2, rotateY: -2, scale: 1.02 }}
           className="relative rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-brand-primary/30 border border-white/60 bg-white/40 backdrop-blur-md p-2 md:p-4 transition-transform duration-500"
         >
-          <div className="relative rounded-xl md:rounded-3xl overflow-hidden border border-slate-200/50 shadow-inner bg-slate-800 min-h-[200px] sm:min-h-[300px] md:min-h-[400px] lg:min-h-[500px] flex items-center justify-center">
+          <div className="relative rounded-xl md:rounded-3xl overflow-hidden border border-slate-200/50 shadow-inner bg-slate-800 w-full aspect-video flex items-center justify-center">
             <img 
               src="https://lh3.googleusercontent.com/d/1KhUN-FpCM7DcNhqVTAal-Q6RpDjo4bUi" 
               alt="LoopTailor Dashboard Preview" 
-              className="w-full h-full object-cover absolute inset-0"
+              className="w-full h-full object-contain"
               referrerPolicy="no-referrer"
               onError={(e) => {
                 if (!e.currentTarget.src.includes('thumbnail')) {
