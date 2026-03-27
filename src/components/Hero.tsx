@@ -78,13 +78,14 @@ export default function Hero() {
         >
           <div className="relative rounded-xl md:rounded-3xl overflow-hidden border border-slate-200/50 shadow-inner bg-slate-800 min-h-[200px] sm:min-h-[300px] md:min-h-[400px] lg:min-h-[500px] flex items-center justify-center">
             <img 
-              src="https://drive.google.com/uc?export=view&id=1KhUN-FpCM7DcNhqVTAal-Q6RpDjo4bUi" 
+              src="https://lh3.googleusercontent.com/d/1KhUN-FpCM7DcNhqVTAal-Q6RpDjo4bUi" 
               alt="LoopTailor Dashboard Preview" 
               className="w-full h-full object-cover absolute inset-0"
               referrerPolicy="no-referrer"
               onError={(e) => {
-                // Fallback if the temporary image URL expires or fails to load
-                e.currentTarget.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop";
+                if (!e.currentTarget.src.includes('thumbnail')) {
+                  e.currentTarget.src = "https://drive.google.com/thumbnail?id=1KhUN-FpCM7DcNhqVTAal-Q6RpDjo4bUi&sz=w1920";
+                }
               }}
             />
             {/* Overlay gradient for premium feel */}
