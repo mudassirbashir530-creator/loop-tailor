@@ -63,6 +63,35 @@ export default function Hero() {
         </Button>
       </motion.div>
 
+      <motion.div
+        initial={{ opacity: 0, y: 60, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 1.2, delay: 1, ease: [0.16, 1, 0.3, 1] }}
+        className="mt-16 md:mt-24 w-full max-w-6xl mx-auto relative z-10"
+        style={{ perspective: 2000 }}
+      >
+        <motion.div 
+          animate={{ y: [0, -15, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          whileHover={{ rotateX: 2, rotateY: -2, scale: 1.02 }}
+          className="relative rounded-2xl md:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-brand-primary/30 border border-white/60 bg-white/40 backdrop-blur-md p-2 md:p-4 transition-transform duration-500"
+        >
+          <div className="relative rounded-xl md:rounded-3xl overflow-hidden border border-slate-200/50 shadow-inner bg-slate-100">
+            <img 
+              src="https://storage.googleapis.com/manta-zmt/tmp/2026-03-27/chat-01997327-047b-70c8-9710-d3e9114f0490/image_0.jpg" 
+              alt="LoopTailor Dashboard Preview" 
+              className="w-full h-auto object-cover"
+              referrerPolicy="no-referrer"
+            />
+            {/* Overlay gradient for premium feel */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent pointer-events-none"></div>
+          </div>
+        </motion.div>
+        
+        {/* Glow behind the image */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-brand-primary/20 blur-[120px] -z-10 rounded-full pointer-events-none"></div>
+      </motion.div>
+
       <DemoModal isOpen={isDemoModalOpen} onClose={() => setIsDemoModalOpen(false)} />
     </section>
   );
