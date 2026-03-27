@@ -67,7 +67,7 @@ export default function DemoModal({ isOpen, onClose }: DemoModalProps) {
                   >
                     <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 relative">
                       <img 
-                        src="https://storage.googleapis.com/a1aa/image/1e1e1e1e-1e1e-1e1e-1e1e-1e1e1e1e1e1e.jpg" 
+                        src="https://img.youtube.com/vi/JC-RLn_TAaQ/hqdefault.jpg" 
                         alt="Urdu Demo Thumbnail" 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         referrerPolicy="no-referrer"
@@ -94,7 +94,7 @@ export default function DemoModal({ isOpen, onClose }: DemoModalProps) {
                   >
                     <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 relative">
                       <img 
-                        src="https://storage.googleapis.com/a1aa/image/2e2e2e2e-2e2e-2e2e-2e2e-2e2e2e2e2e2e.jpg" 
+                        src="https://img.youtube.com/vi/PZwl9VoyjIk/hqdefault.jpg" 
                         alt="English Demo Thumbnail" 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         referrerPolicy="no-referrer"
