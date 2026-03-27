@@ -64,7 +64,10 @@ const faqs = [
   { q: "Can multiple shops use LoopTailor?", a: "Yes. LoopTailor supports multiple tailoring shops where each shop’s data stays separate and organized." },
   { q: "Is LoopTailor easy to use?", a: "Yes. LoopTailor is designed for simplicity so even non-technical users can manage tailoring work easily." },
   { q: "Does LoopTailor work on mobile and web?", a: "Yes. LoopTailor works on both mobile devices and web browsers, allowing shop owners to manage their business anywhere." },
-  { q: "Why choose LoopTailor instead of paper registers?", a: "LoopTailor saves time, reduces mistakes, improves customer management, and keeps records safe compared to traditional manual registers." }
+  { q: "Why choose LoopTailor instead of paper registers?", a: "LoopTailor saves time, reduces mistakes, improves customer management, and keeps records safe compared to traditional manual registers." },
+  { q: "Looking for loop tailor, loptailor, or loop teler?", a: "You've found the right place! LoopTailor (often searched as loop tailor or loptailor) is the leading digital management system for modern tailoring shops." },
+  { q: "Is LoopTailor the best darzi software?", a: "Yes, LoopTailor is widely considered the best darzi software for managing stitching orders, measurements, and customer records in a digital format." },
+  { q: "Can I use LoopTailor as a boutique software?", a: "Absolutely! LoopTailor is perfect boutique software, offering features for order tracking, measurement management, and customer relationship management." }
 ];
 
 const faqSchema = {
@@ -130,7 +133,7 @@ export default function Landing() {
               </Link>
               <Link to="/signup">
                 <Button className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full px-6">
-                  Get Started
+                  Start Free Trial
                 </Button>
               </Link>
             </div>

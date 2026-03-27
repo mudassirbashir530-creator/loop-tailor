@@ -46,7 +46,7 @@ export default function Hero() {
       >
         <Link to="/signup">
           <Button size="lg" className="rounded-full px-8 bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
-            Get Started
+            Start Free Trial
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </Link>

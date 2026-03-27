@@ -44,6 +44,24 @@ export default function About() {
             </motion.div>
           ))}
         </div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.4 }}
+          className="mt-24 text-center bg-brand-primary/5 rounded-[3rem] p-12 md:p-20 border border-brand-primary/10"
+        >
+          <h2 className="text-3xl md:text-4xl font-display font-black mb-6 text-slate-900">Ready to digitize your tailoring business?</h2>
+          <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">Join thousands of tailors and boutiques who have streamlined their operations with LoopTailor.</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="/signup" className="w-full sm:w-auto px-10 py-4 bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full font-bold text-lg shadow-xl shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
+              Start Free Trial
+            </a>
+            <a href="/contact" className="w-full sm:w-auto px-10 py-4 bg-white border-2 border-slate-200 hover:border-brand-primary/30 text-slate-900 rounded-full font-bold text-lg transition-all hover:scale-105 active:scale-95">
+              Contact Sales
+            </a>
+          </div>
+        </motion.div>
       </div>
     </PublicLayout>
   );

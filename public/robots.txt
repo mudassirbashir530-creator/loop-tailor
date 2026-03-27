@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /api
 
 Sitemap: https://ais-dev-7d5cjclnafvvrndmvupsnw-50083361271.asia-east1.run.app/sitemap.xml
