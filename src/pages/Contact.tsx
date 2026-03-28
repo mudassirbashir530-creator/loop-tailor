@@ -30,7 +30,7 @@ export default function Contact() {
     try {
       // IMPORTANT: Replace this URL with your deployed Google Apps Script Web App URL
       // See instructions in the chat on how to generate this URL.
-      const scriptUrl = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE'; 
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbxeXgU7jsDbL1CD3OsYY7Ua8L9W8ru0DyequnRa9zBuR-jv-7uCvlT4aAzjcVtLJ6Bowg/exec'; 
       
       // We use no-cors mode because Google Apps Script doesn't return standard CORS headers 
       // for simple POST requests in some configurations, but the data still gets saved.
@@ -43,17 +43,6 @@ export default function Contact() {
       data.append('email', formData.email);
       data.append('message', formData.message);
       data.append('timestamp', new Date().toISOString());
-
-      if (scriptUrl === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
-        // Simulate success for now since we don't have the real URL
-        setTimeout(() => {
-          setIsSubmitting(false);
-          setIsSuccess(true);
-          setFormData({ firstName: '', lastName: '', email: '', message: '' });
-        }, 1500);
-        console.warn("Please replace 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE' with your actual Google Apps Script Web App URL.");
-        return;
-      }
 
       await fetch(scriptUrl, {
         method: 'POST',
