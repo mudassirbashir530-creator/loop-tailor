@@ -108,6 +108,13 @@ service cloud.firestore {
     // Rules
     // ===============================================================
 
+    match /users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
     match /counters/{shopId} {
       allow read, write: if isOwner(shopId);
     }

@@ -30,50 +30,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      
-      if (currentUser) {
-        // Ensure shop document exists
-        try {
-          const shopRef = doc(db, 'shops', currentUser.uid);
-          const shopSnap = await getDoc(shopRef);
-          if (!shopSnap.exists()) {
-            await setDoc(shopRef, {
-              name: currentUser.displayName || 'My Tailor Shop',
-              createdAt: new Date().toISOString(),
-            });
-          }
-        } catch (error) {
-          handleFirestoreError(error, OperationType.GET, `shops/${currentUser.uid}`);
-        }
-      }
-      
       setLoading(false);
     });
 
     return unsubscribe;
   }, []);
 
+  const saveUserData = async (user: User, provider: string, name?: string) => {
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          name: name || user.displayName || 'New User',
+          email: user.email,
+          photoURL: user.photoURL || '',
+          provider: provider,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      // Also ensure shop document exists for backward compatibility with existing app logic
+      const shopRef = doc(db, 'shops', user.uid);
+      const shopSnap = await getDoc(shopRef);
+      if (!shopSnap.exists()) {
+        await setDoc(shopRef, {
+          name: name || user.displayName || 'My Tailor Shop',
+          createdAt: new Date().toISOString(),
+        });
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}`);
+    }
+  };
+
   const signIn = async (email?: string, password?: string) => {
     if (email && password) {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // We don't necessarily need to save data on every email login, but it's safe if it checks exists()
+      await saveUserData(userCredential.user, 'password');
     } else {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
         prompt: 'select_account'
       });
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      await saveUserData(userCredential.user, 'google');
     }
   };
 
   const signUp = async (email: string, password: string, name: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(userCredential.user, { displayName: name });
-    
-    // Create shop document immediately on signup
-    await setDoc(doc(db, 'shops', userCredential.user.uid), {
-      name: name,
-      createdAt: new Date().toISOString(),
-    });
+    await saveUserData(userCredential.user, 'password', name);
   };
 
   const logOut = async () => {
@@ -86,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ user, loading, signIn, signUp, resetPassword, logOut }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
