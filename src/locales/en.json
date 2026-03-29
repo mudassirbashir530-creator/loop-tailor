@@ -265,6 +265,14 @@
     "shopName": "Shop Name",
     "interfaceLanguage": "Interface Language",
     "selectLanguage": "Select your preferred language",
+    "urduFont": "Urdu Font",
+    "selectUrduFont": "Select your preferred Urdu font",
+    "fonts": {
+      "noto-nastaliq": "Noto Nastaliq (Classic)",
+      "gulzar": "Gulzar (Modern)",
+      "lateef": "Lateef (Sindhi Style)",
+      "noto-sans": "Noto Sans (Clean)"
+    },
     "createMyAccount": "Create My Account",
     "bySigningUp": "By signing up, you agree to our",
     "termsOfService": "Terms of Service",
@@ -324,7 +332,7 @@
       }
     },
     "whyChoose": {
-      "title": "Why Tailors Choose Loop Tailor",
+      "title": "Taylor Choose",
       "items": {
         "tracking": {
           "title": "Easy Order Tracking",

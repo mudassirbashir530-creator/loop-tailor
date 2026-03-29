@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Gulzar&family=Lateef:wght@200;300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@100;200;300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
@@ -9,7 +9,10 @@
   
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", sans-serif;
-  --font-urdu: "Noto Nastaliq Urdu", serif;
+  --font-urdu-noto-nastaliq: "Noto Nastaliq Urdu", serif;
+  --font-urdu-gulzar: "Gulzar", serif;
+  --font-urdu-lateef: "Lateef", serif;
+  --font-urdu-noto-sans: "Noto Sans Arabic", sans-serif;
 }
 
 @layer base {
@@ -17,12 +20,27 @@
     scroll-behavior: smooth;
   }
   html.lang-ur {
-    font-family: var(--font-urdu);
     line-height: 2;
-    font-size: 18px;
+    font-size: 20px;
   }
-  html.lang-ur * {
-    font-family: var(--font-urdu);
+  
+  /* Urdu Font Classes */
+  html.font-urdu-noto-nastaliq, html.font-urdu-noto-nastaliq * {
+    font-family: var(--font-urdu-noto-nastaliq);
+  }
+  html.font-urdu-gulzar, html.font-urdu-gulzar * {
+    font-family: var(--font-urdu-gulzar);
+  }
+  html.font-urdu-lateef, html.font-urdu-lateef * {
+    font-family: var(--font-urdu-lateef);
+  }
+  html.font-urdu-noto-sans, html.font-urdu-noto-sans * {
+    font-family: var(--font-urdu-noto-sans);
+  }
+
+  /* Default Urdu font if none specified */
+  html.lang-ur:not([class*="font-urdu-"]) * {
+    font-family: var(--font-urdu-noto-nastaliq);
   }
   /* Specific overrides for Urdu to fix alignment and size */
   html.lang-ur h1, 

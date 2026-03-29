@@ -16,7 +16,7 @@ export default function SignUp() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp, signIn, user } = useAuth();
-  const { t, isRTL, setLanguage } = useLanguage();
+  const { t, isRTL, setLanguage, urduFont, setUrduFont } = useLanguage();
   const navigate = useNavigate();
 
   if (user) {
@@ -255,6 +255,37 @@ export default function SignUp() {
                 {t('auth.selectLanguage')}
               </p>
             </div>
+
+            {selectedLanguage === 'ur' && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="space-y-2"
+              >
+                <label className="text-sm font-bold text-slate-700 block mr-1">{t('auth.urduFont')}</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['noto-nastaliq', 'gulzar', 'lateef', 'noto-sans'] as const).map((font) => (
+                    <button
+                      key={font}
+                      type="button"
+                      onClick={() => setUrduFont(font)}
+                      className={cn(
+                        "h-12 rounded-xl border-2 font-bold transition-all flex items-center justify-center text-sm",
+                        urduFont === font 
+                          ? "border-brand-primary bg-brand-primary/5 text-brand-primary shadow-sm" 
+                          : "border-slate-100 bg-white text-slate-400 hover:border-slate-200",
+                        `font-urdu-${font}`
+                      )}
+                    >
+                      {t(`auth.fonts.${font}`)}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-400 font-medium px-1">
+                  {t('auth.selectUrduFont')}
+                </p>
+              </motion.div>
+            )}
 
             {error && (
               <motion.div

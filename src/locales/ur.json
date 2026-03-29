@@ -265,6 +265,14 @@
     "shopName": "دکان کا نام",
     "interfaceLanguage": "انٹرفیس کی زبان",
     "selectLanguage": "اپنی پسندیدہ زبان منتخب کریں",
+    "urduFont": "اردو فونٹ",
+    "selectUrduFont": "اپنا پسندیدہ اردو فونٹ منتخب کریں",
+    "fonts": {
+      "noto-nastaliq": "نوری نستعلیق (کلاسک)",
+      "gulzar": "گلزار (جدید)",
+      "lateef": "لطیف (سندھی انداز)",
+      "noto-sans": "نوری سنز (صاف)"
+    },
     "createMyAccount": "میرا اکاؤنٹ بنائیں",
     "bySigningUp": "سائن اپ کر کے، آپ ہماری",
     "termsOfService": "سروس کی شرائط",
@@ -324,7 +332,7 @@
       }
     },
     "whyChoose": {
-      "title": "درزی لوپ ٹیلر کا انتخاب کیوں کرتے ہیں",
+      "title": "ٹیلر کا انتخاب",
       "items": {
         "tracking": {
           "title": "آسان آرڈر ٹریکنگ",

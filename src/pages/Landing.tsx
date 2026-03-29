@@ -291,7 +291,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Why Tailors Choose Loop Tailor */}
+      {/* Taylor Choose */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl md:text-5xl font-display font-black text-center text-slate-900 mb-16">{t('landing.whyChoose.title')}</h2>
@@ -308,13 +308,13 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-8 rounded-3xl bg-slate-50 border border-slate-100 shadow-sm hover:shadow-md transition-all"
+                className="p-8 rounded-3xl bg-slate-50 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full overflow-hidden"
               >
-                <div className="bg-white w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+                <div className="bg-white w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-sm shrink-0">
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
-                <p className="text-slate-500 leading-relaxed">{item.desc}</p>
+                <h3 className="text-xl font-bold text-slate-900 mb-3 break-words">{item.title}</h3>
+                <p className="text-slate-500 leading-relaxed break-words">{item.desc}</p>
               </motion.div>
             ))}
           </div>
