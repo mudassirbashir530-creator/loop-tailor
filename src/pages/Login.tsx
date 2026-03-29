@@ -4,7 +4,9 @@ import { Scissors, Mail, Lock, ArrowRight, ArrowLeft, Loader2, CheckCircle, Smar
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { cn } from '../lib/utils';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -14,6 +16,7 @@ export default function Login() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, resetPassword, user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
 
   if (user) {
@@ -57,7 +60,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col lg:flex-row overflow-hidden">
+    <div className={cn("min-h-screen bg-white flex flex-col lg:flex-row overflow-hidden", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Left Side: Branding & Features (Hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-primary relative overflow-hidden flex-col justify-between p-12 text-white">
         {/* Background Accents */}
@@ -80,18 +83,17 @@ export default function Login() {
             transition={{ delay: 0.2 }}
           >
             <h1 className="text-5xl xl:text-7xl font-display font-black leading-[0.95] mb-8">
-              Welcome <br />
-              <span className="text-white/60 italic">Back.</span>
+              {t('auth.welcomeBack')}
             </h1>
             <p className="text-xl text-white/80 max-w-md leading-relaxed mb-12">
-              Log in to access your dashboard and manage your tailoring business with ease.
+              {t('auth.welcomeBackDesc')}
             </p>
 
             <div className="space-y-6">
               {[
-                { icon: <CheckCircle className="h-5 w-5" />, text: "Real-time Order Tracking" },
-                { icon: <Smartphone className="h-5 w-5" />, text: "Mobile-First Experience" },
-                { icon: <Shield className="h-5 w-5" />, text: "Encrypted Data Protection" }
+                { icon: <CheckCircle className="h-5 w-5" />, text: t('auth.realTimeTracking') },
+                { icon: <Smartphone className="h-5 w-5" />, text: t('auth.mobileFirst') },
+                { icon: <Shield className="h-5 w-5" />, text: t('auth.encryptedData') }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-4">
                   <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
@@ -110,8 +112,8 @@ export default function Login() {
               <Zap className="h-6 w-6 text-brand-primary" />
             </div>
             <div className="text-sm">
-              <div className="font-bold">Lightning fast sync</div>
-              <div className="text-white/60">Across all your devices</div>
+              <div className="font-bold">{t('auth.fastSync')}</div>
+              <div className="text-white/60">{t('auth.acrossDevices')}</div>
             </div>
           </div>
         </div>
@@ -121,18 +123,18 @@ export default function Login() {
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 bg-[#FDFCF9]">
         <div className="max-w-md w-full mx-auto">
           <Link to="/" className="flex items-center gap-2 mb-8 text-slate-500 hover:text-slate-900 transition-colors w-fit">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm font-bold">Back to website</span>
+            {isRTL ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
+            <span className="text-sm font-bold">{t('auth.backToWebsite')}</span>
           </Link>
 
           <div className="mb-10">
             <h2 className="text-3xl sm:text-4xl font-display font-black text-slate-900 mb-3">
-              {mode === 'login' ? 'Sign In' : 'Reset Password'}
+              {mode === 'login' ? t('auth.signIn') : t('auth.resetPassword')}
             </h2>
             <p className="text-slate-500 font-medium">
               {mode === 'login' 
-                ? 'Welcome back to your tailoring command center.' 
-                : 'Enter your email to receive a password reset link.'}
+                ? t('auth.signInDesc') 
+                : t('auth.resetPasswordDesc')}
             </p>
           </div>
 
@@ -164,7 +166,7 @@ export default function Login() {
                   />
                   <path d="M1 1h22v22H1z" fill="none" />
                 </svg>
-                Continue with Google
+                {t('auth.continueWithGoogle')}
               </Button>
 
               <div className="relative mt-8">
@@ -172,7 +174,7 @@ export default function Login() {
                   <div className="w-full border-t border-slate-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 text-slate-400 bg-[#FDFCF9] font-bold uppercase tracking-widest">or email</span>
+                  <span className="px-4 text-slate-400 bg-[#FDFCF9] font-bold uppercase tracking-widest">{t('auth.orEmail')}</span>
                 </div>
               </div>
             </div>
@@ -180,41 +182,43 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
+              <label className={cn("text-sm font-bold text-slate-700 block", isRTL ? "mr-1" : "ml-1")}>{t('auth.emailAddress')}</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                <Mail className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                 <Input
                   required
                   type="email"
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-12 h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg"
+                  className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                  dir="ltr"
                 />
               </div>
             </div>
 
             {mode === 'login' && (
               <div className="space-y-2">
-                <div className="flex justify-between items-center ml-1">
-                  <label className="text-sm font-bold text-slate-700">Password</label>
+                <div className={cn("flex justify-between items-center", isRTL ? "mr-1" : "ml-1")}>
+                  <label className="text-sm font-bold text-slate-700">{t('auth.password')}</label>
                   <button
                     type="button"
                     onClick={() => setMode('reset')}
                     className="text-xs font-bold text-brand-primary hover:underline"
                   >
-                    Forgot Password?
+                    {t('auth.forgotPassword')}
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                  <Lock className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                   <Input
                     required
                     type="password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-12 h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg"
+                    className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                    dir="ltr"
                   />
                 </div>
               </div>
@@ -242,14 +246,14 @@ export default function Login() {
 
             <Button
               disabled={isLoading}
-              className="w-full h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-white font-bold text-lg shadow-2xl shadow-brand-primary/20 transition-all active:scale-95 mt-4"
+              className={cn("w-full h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-white font-bold text-lg shadow-2xl shadow-brand-primary/20 transition-all active:scale-95 mt-4", isRTL && "flex-row-reverse")}
             >
               {isLoading ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
               ) : (
                 <>
-                  {mode === 'login' ? 'Sign In' : 'Send Reset Link'}
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  {mode === 'login' ? t('auth.signIn') : t('auth.sendResetLink')}
+                  {isRTL ? <ArrowLeft className="mr-2 h-5 w-5" /> : <ArrowRight className="ml-2 h-5 w-5" />}
                 </>
               )}
             </Button>
@@ -257,20 +261,20 @@ export default function Login() {
 
           <div className="mt-10 pt-10 border-t border-slate-100 text-center">
             <p className="text-slate-500 font-medium">
-              {mode === 'login' ? "Don't have an account?" : "Remembered your password?"}
+              {mode === 'login' ? t('auth.dontHaveAccount') : t('auth.rememberedPassword')}
               {mode === 'login' ? (
                 <Link
                   to="/signup"
-                  className="ml-2 text-brand-primary font-bold hover:underline"
+                  className={cn("text-brand-primary font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
                 >
-                  Sign Up
+                  {t('auth.signUp')}
                 </Link>
               ) : (
                 <button
                   onClick={() => setMode('login')}
-                  className="ml-2 text-brand-primary font-bold hover:underline"
+                  className={cn("text-brand-primary font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
                 >
-                  Log In
+                  {t('auth.logIn')}
                 </button>
               )}
             </p>

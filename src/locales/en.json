@@ -1,0 +1,407 @@
+{
+  "layout": {
+    "dashboard": "Dashboard",
+    "customers": "Customers",
+    "orders": "Orders",
+    "settings": "Settings",
+    "signOut": "Sign Out",
+    "myShop": "My Shop",
+    "noAddress": "No address set",
+    "noPhone": "No phone set"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "totalCustomers": "Total Customers",
+    "activeOrders": "Active Orders",
+    "completedOrders": "Completed Orders",
+    "revenue": "Revenue",
+    "recentOrders": "Recent Orders",
+    "upcomingDeliveries": "Upcoming Deliveries",
+    "viewAll": "View All",
+    "newOrder": "New Order",
+    "quickActions": "Quick Actions",
+    "addCustomer": "Add Customer",
+    "viewReports": "View Reports",
+    "searchPlaceholder": "Search by Token ID (e.g. 101)",
+    "noRecentOrders": "No recent orders.",
+    "noUpcomingDeliveries": "No deliveries due in the next 7 days.",
+    "details": "Details",
+    "due": "Due"
+  },
+  "customers": {
+    "title": "Customer Directory",
+    "subtitle": "Manage your client profiles and measurement history.",
+    "searchPlaceholder": "Search by name or phone...",
+    "addCustomer": "Add Customer",
+    "cancel": "Cancel",
+    "newProfile": "New Client Profile",
+    "fullName": "Full Name *",
+    "phone": "Phone Number *",
+    "address": "Residential Address",
+    "notes": "Additional Notes",
+    "discard": "Discard",
+    "save": "Save Profile",
+    "noCustomers": "No customers found",
+    "trySearching": "Try searching with a different name or phone number."
+  },
+  "orders": {
+    "title": "Order Tracking",
+    "subtitle": "Manage and track your customer orders in real-time.",
+    "searchPlaceholder": "Search Token ID, Name...",
+    "newOrder": "New Order",
+    "all": "All",
+    "pending": "Pending",
+    "stitching": "Stitching",
+    "ready": "Ready",
+    "delivered": "Delivered",
+    "loading": "Loading orders...",
+    "noOrders": "No orders found",
+    "startFirstOrder": "Start by creating your first order.",
+    "noOrdersFound": "No {{status}} orders found.",
+    "createOrder": "Create New Order",
+    "dressType": "Dress Type",
+    "rack": "Rack",
+    "delivery": "Delivery",
+    "start": "Start",
+    "deliver": "Deliver",
+    "done": "Done"
+  },
+  "settings": {
+    "title": "Shop Settings",
+    "subtitle": "Manage your tailor shop details and invoice preferences.",
+    "shopProfile": "Shop Profile",
+    "editProfile": "Edit Profile",
+    "shopLogo": "Shop Logo",
+    "changeLogo": "Change Logo",
+    "uploadLogo": "Upload Logo",
+    "recommendedLogo": "Recommended: Square PNG or JPG",
+    "shopName": "Shop Name",
+    "phoneNumber": "Phone Number",
+    "address": "Address",
+    "invoiceFooter": "Invoice Footer Message",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "notSet": "Not set"
+  },
+  "invoices": {
+    "title": "Invoices",
+    "noInvoices": "No invoices found.",
+    "viewInvoice": "View Invoice",
+    "na": "N/A"
+  },
+  "customerDetails": {
+    "loading": "Loading profile...",
+    "deleteConfirm": "Are you sure you want to delete this customer? This will not delete their orders or measurements, but they will be removed from the customer list.",
+    "newOrder": "New Order",
+    "cancel": "Cancel",
+    "editProfile": "Edit Profile",
+    "fullName": "Full Name *",
+    "phoneNumber": "Phone Number *",
+    "address": "Address",
+    "notes": "Notes",
+    "saveChanges": "Save Changes",
+    "newOrderFor": "New Order for",
+    "dressType": "Dress Type *",
+    "deliveryDate": "Delivery Date *",
+    "totalPrice": "Total Price (PKR) *",
+    "advancePayment": "Advance Payment (PKR)",
+    "createOrder": "Create Order",
+    "measurements": "Measurements",
+    "savedSuccessfully": "Saved Successfully",
+    "save": "Save",
+    "saving": "Saving...",
+    "kameez": "Kameez (Shirt)",
+    "shalwar": "Shalwar (Trouser)",
+    "orderHistory": "Order History",
+    "noOrders": "No orders found for this client.",
+    "token": "Token",
+    "delivery": "Delivery",
+    "amount": "Amount",
+    "clientNotes": "Client Notes",
+    "invalidDate": "Invalid Date",
+    "na": "N/A"
+  },
+  "orderDetails": {
+    "loading": "Loading order details...",
+    "deleteConfirm": "Are you sure you want to delete this order? This action cannot be undone.",
+    "token": "Token",
+    "deliver": "Deliver",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "orderInformation": "Order Information",
+    "customerDetails": "Customer Details",
+    "dressType": "Dress Type",
+    "status": "Status",
+    "pending": "Pending",
+    "stitching": "Stitching",
+    "ready": "Ready",
+    "delivered": "Delivered",
+    "rackLocation": "Rack Location",
+    "notAssigned": "Not Assigned",
+    "deliveryDate": "Delivery Date",
+    "notes": "Notes",
+    "noNotes": "No special instructions.",
+    "measurements": "Measurements",
+    "totalPrice": "Total Price",
+    "advancePaid": "Advance Paid",
+    "balanceDue": "Balance Due",
+    "createdOn": "Created On",
+    "systemId": "System ID",
+    "invoicePreview": "Invoice Preview",
+    "yourShop": "Your Shop",
+    "customer": "Customer",
+    "totalAmount": "Total Amount",
+    "viewFullInvoice": "View Full Invoice",
+    "na": "---"
+  },
+  "invoice": {
+    "loading": "Loading invoice...",
+    "back": "Back",
+    "edit": "Edit",
+    "share": "Share",
+    "print": "Print",
+    "pdf": "PDF",
+    "invoice": "Invoice",
+    "billTo": "Bill To",
+    "delivery": "Delivery",
+    "issued": "Issued",
+    "description": "Description",
+    "amount": "Amount",
+    "customTailoring": "Custom Tailoring Service",
+    "subtotal": "Subtotal",
+    "advancePaid": "Advance Paid",
+    "balanceDue": "Balance Due",
+    "thankYou": "Thank You",
+    "defaultFooter": "We appreciate your trust in our craftsmanship.",
+    "shareSuccess": "Invoice link copied to clipboard!",
+    "shareFallback": "Sharing failed. You can download the PDF instead.",
+    "shareNotSupported": "Invoice link copied to clipboard! (File sharing is not supported on this browser)",
+    "shareError": "File sharing is not supported on this browser/device. Please use the Download PDF button instead.",
+    "pdfError": "Failed to generate PDF. Please try again."
+  },
+  "quickOrder": {
+    "newOrder": "New Order",
+    "customerInformation": "Customer Information",
+    "searchCustomer": "Search Existing Customer",
+    "searchPlaceholder": "Search by name or phone...",
+    "customerName": "Customer Name *",
+    "customerNamePlaceholder": "Enter customer name",
+    "phoneNumber": "Phone Number",
+    "phonePlaceholder": "Enter phone number",
+    "address": "Address",
+    "addressPlaceholder": "Enter address",
+    "orderDetails": "Order Details",
+    "dressType": "Dress Type *",
+    "dressTypePlaceholder": "e.g. Shalwar Kameez",
+    "deliveryDate": "Delivery Date *",
+    "quantity": "Quantity *",
+    "totalPrice": "Total Price *",
+    "advance": "Advance",
+    "rackLocation": "Rack Location",
+    "rackPlaceholder": "e.g. A1, Shelf 3",
+    "notes": "Notes",
+    "notesPlaceholder": "Any special instructions?",
+    "referencePhoto": "Reference Photo",
+    "sampleDesign": "Sample Design",
+    "clickToUpload": "Click to upload",
+    "remove": "Remove",
+    "measurements": "Measurements (Inches)",
+    "measurementsLoaded": "Loaded from customer profile. You can update them here.",
+    "measurementsNew": "Enter new measurements for this customer.",
+    "kameez": "Kameez (Shirt)",
+    "shalwar": "Shalwar (Trouser)",
+    "in": "IN",
+    "processing": "Processing...",
+    "saveOrder": "Save Order",
+    "cancel": "Cancel"
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back.",
+    "welcomeBackDesc": "Log in to access your dashboard and manage your tailoring business with ease.",
+    "realTimeTracking": "Real-time Order Tracking",
+    "mobileFirst": "Mobile-First Experience",
+    "encryptedData": "Encrypted Data Protection",
+    "fastSync": "Lightning fast sync",
+    "acrossDevices": "Across all your devices",
+    "backToWebsite": "Back to website",
+    "signIn": "Sign In",
+    "resetPassword": "Reset Password",
+    "signInDesc": "Welcome back to your tailoring command center.",
+    "resetPasswordDesc": "Enter your email to receive a password reset link.",
+    "continueWithGoogle": "Continue with Google",
+    "orEmail": "or email",
+    "emailAddress": "Email Address",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "sendResetLink": "Send Reset Link",
+    "dontHaveAccount": "Don't have an account?",
+    "rememberedPassword": "Remembered your password?",
+    "signUp": "Sign Up",
+    "logIn": "Log In",
+    "joinUs": "Join Us.",
+    "joinUsDesc": "Create your account and take your tailoring business to the next level.",
+    "signUpDesc": "Create your account to get started.",
+    "fullName": "Full Name",
+    "alreadyHaveAccount": "Already have an account?",
+    "futureOfTailoring": "The Future of",
+    "tailoring": "Tailoring.",
+    "join500": "Join 500+ professional tailors who have already digitized their craft with Loop Tailor.",
+    "instantMeasurement": "Instant Measurement Access",
+    "secureCloud": "Secure Cloud Backups",
+    "professionalInvoicing": "Professional Invoicing",
+    "trustedByExperts": "Trusted by experts",
+    "rating": "5.0 rating on Google",
+    "createAccount": "Create Account",
+    "startFreeTrial": "Start your 14-day free trial. No credit card required.",
+    "signUpWithGoogle": "Sign up with Google",
+    "shopName": "Shop Name",
+    "createMyAccount": "Create My Account",
+    "bySigningUp": "By signing up, you agree to our",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "howItWorks": "How it Works",
+      "about": "About",
+      "pricing": "Pricing",
+      "signIn": "Sign In",
+      "startFreeTrial": "Start Free Trial",
+      "getStarted": "Get Started"
+    },
+    "hero": {
+      "title": "Welcome to Loop Tailor",
+      "watchDemo": "Watch Demo"
+    },
+    "features": {
+      "badge": "Core Capabilities",
+      "title": "Everything you need to <span class='text-brand-primary'>scale</span> your shop.",
+      "subtitle": "Designed by tailors, for tailors. We've built the most intuitive platform to manage your craftsmanship and customer relationships.",
+      "explore": "Explore Feature",
+      "items": {
+        "crm": {
+          "title": "Smart Customer CRM",
+          "desc": "Store unlimited customer profiles with detailed measurement history, style preferences, and contact info."
+        },
+        "tracking": {
+          "title": "Live Order Tracking",
+          "desc": "Real-time status updates from 'Pending' to 'Delivered'. Automatic delivery date reminders keep you on schedule."
+        },
+        "invoices": {
+          "title": "Digital Invoices",
+          "desc": "Generate professional PDF invoices with one click. Send them directly to customers via WhatsApp or Email."
+        },
+        "visuals": {
+          "title": "Visual References",
+          "desc": "Attach reference photos and sample designs to every order. Never mix up a customer's vision again."
+        },
+        "storage": {
+          "title": "Secure Cloud Storage",
+          "desc": "Your data is encrypted and backed up daily. Access your shop records from any device, anywhere in the world."
+        },
+        "analytics": {
+          "title": "Instant Analytics",
+          "desc": "Track your revenue, pending payments, and order volume with a beautiful, real-time dashboard."
+        }
+      }
+    },
+    "whyChoose": {
+      "title": "Why Tailors Choose Loop Tailor",
+      "items": {
+        "tracking": {
+          "title": "Easy Order Tracking",
+          "desc": "Keep all your orders organized and never miss a delivery deadline again."
+        },
+        "storage": {
+          "title": "Customer Measurement Storage",
+          "desc": "Securely store and access customer measurements from any device."
+        },
+        "delivery": {
+          "title": "Fast Delivery Management",
+          "desc": "Optimize your delivery process and keep customers informed with status updates."
+        },
+        "workflow": {
+          "title": "Simple Digital Workflow",
+          "desc": "Streamline your entire business process with our intuitive digital platform."
+        }
+      }
+    },
+    "workflow": {
+      "badge": "The Workflow",
+      "title": "From first measurement <br class='hidden md:block' /> to final delivery.",
+      "subtitle": "We've simplified the entire tailoring process into four easy steps, so you can focus on what you do best: crafting beautiful clothes.",
+      "stepPrefix": "Step",
+      "items": {
+        "profile": {
+          "title": "Create Profile",
+          "desc": "Add a new customer and save their measurements once. They're stored forever securely."
+        },
+        "order": {
+          "title": "Take Order",
+          "desc": "Select dress type, set delivery date, and upload reference photos for the design."
+        },
+        "progress": {
+          "title": "Track Progress",
+          "desc": "Update status as you stitch. The dashboard shows you exactly what's due today."
+        },
+        "deliver": {
+          "title": "Deliver & Invoice",
+          "desc": "Mark as delivered and generate a professional invoice instantly. Get paid faster."
+        }
+      }
+    },
+    "pricing": {
+      "badge": "Simple Pricing",
+      "title": "Grow your business <br /> without the overhead.",
+      "planName": "Professional Plan",
+      "planDesc": "Everything you need to manage one shop.",
+      "mostPopular": "Most Popular",
+      "price": "PKR 0",
+      "perMonth": "/ month",
+      "freeBeta": "Free Beta",
+      "features": [
+        "Unlimited Customer Profiles",
+        "Unlimited Orders & Tracking",
+        "Digital PDF Invoices",
+        "Image Uploads (Reference Photos)",
+        "Real-time Dashboard Analytics",
+        "Mobile & Desktop Access",
+        "24/7 Cloud Support"
+      ],
+      "cta": "Get Started Now",
+      "noCreditCard": "No credit card required. Cancel anytime."
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Everything you need to know about LoopTailor and how it works.",
+      "items": [
+        { "q": "What is LoopTailor?", "a": "LoopTailor is a smart tailoring management software designed for tailors and boutique owners to manage customer measurements, orders, token IDs, delivery tracking, and shop operations digitally without paper registers." },
+        { "q": "Who can use LoopTailor?", "a": "LoopTailor is built for tailors, tailoring shops, fashion boutiques, and stitching businesses that want to manage customers and orders efficiently using a digital system." },
+        { "q": "How does LoopTailor help tailors?", "a": "LoopTailor helps tailors organize measurements, track orders, assign token numbers, manage deliveries, and avoid manual record mistakes by keeping everything securely stored in one system." },
+        { "q": "Does LoopTailor store customer measurements?", "a": "Yes. LoopTailor securely saves customer measurements and order history so tailors can quickly access past records anytime." },
+        { "q": "Can multiple shops use LoopTailor?", "a": "Yes. LoopTailor supports multiple tailoring shops where each shop’s data stays separate and organized." },
+        { "q": "Is LoopTailor easy to use?", "a": "Yes. LoopTailor is designed for simplicity so even non-technical users can manage tailoring work easily." },
+        { "q": "Does LoopTailor work on mobile and web?", "a": "Yes. LoopTailor works on both mobile devices and web browsers, allowing shop owners to manage their business anywhere." },
+        { "q": "Why choose LoopTailor instead of paper registers?", "a": "LoopTailor saves time, reduces mistakes, improves customer management, and keeps records safe compared to traditional manual registers." },
+        { "q": "Looking for loop tailor, loptailor, or loop teler?", "a": "You've found the right place! LoopTailor (often searched as loop tailor or loptailor) is the leading digital management system for modern tailoring shops." },
+        { "q": "Is LoopTailor the best darzi software?", "a": "Yes, LoopTailor is widely considered the best darzi software for managing stitching orders, measurements, and customer records in a digital format." },
+        { "q": "Can I use LoopTailor as a boutique software?", "a": "Absolutely! LoopTailor is perfect boutique software, offering features for order tracking, measurement management, and customer relationship management." }
+      ]
+    },
+    "cta": {
+      "title": "Ready to transform your <br /> tailoring business?",
+      "subtitle": "Join hundreds of tailors who have already switched to digital management. It's time to stitch smarter.",
+      "button": "Join Loop Tailor Today"
+    },
+    "footer": {
+      "tagline": "Smart Tailor Management Software",
+      "home": "Home",
+      "follow": "Follow Loop Tailor",
+      "rights": "© 2026 Loop Tailor"
+    }
+  }
+}

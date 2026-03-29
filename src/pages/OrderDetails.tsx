@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -14,6 +15,7 @@ import { cn } from '../lib/utils';
 export default function OrderDetails() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
   const [order, setOrder] = useState<any>(null);
   const [shop, setShop] = useState<any>(null);
@@ -52,7 +54,7 @@ export default function OrderDetails() {
   };
 
   const handleDeleteOrder = async () => {
-    if (!window.confirm('Are you sure you want to delete this order? This action cannot be undone.')) return;
+    if (!window.confirm(t('orderDetails.deleteConfirm'))) return;
     
     setIsDeleting(true);
     try {
@@ -90,13 +92,13 @@ export default function OrderDetails() {
   };
 
   const formatDate = (date: any) => {
-    if (!date) return '---';
+    if (!date) return t('orderDetails.na');
     const d = date.seconds ? new Date(date.seconds * 1000) : new Date(date);
     return format(d, 'MMMM dd, yyyy');
   };
 
   const formatDateTime = (date: any) => {
-    if (!date) return '---';
+    if (!date) return t('orderDetails.na');
     const d = date.seconds ? new Date(date.seconds * 1000) : new Date(date);
     return format(d, 'MMM dd, yyyy HH:mm');
   };
@@ -105,7 +107,7 @@ export default function OrderDetails() {
     return (
       <div className="flex flex-col items-center justify-center h-96 space-y-4">
         <Loader2 className="h-12 w-12 text-brand-primary animate-spin" />
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading order details...</p>
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{t('orderDetails.loading')}</p>
       </div>
     );
   }
@@ -121,11 +123,11 @@ export default function OrderDetails() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/orders')}>
-            <ArrowLeft className="h-5 w-5" />
+            {isRTL ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-widest text-slate-400">Token</span>
+              <span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('orderDetails.token')}</span>
               <span className="text-2xl font-black text-brand-primary">#{order.tokenId}</span>
             </div>
             <h1 className="text-xl font-bold text-slate-900">{order.customerName}</h1>
@@ -137,8 +139,8 @@ export default function OrderDetails() {
               onClick={() => handleUpdateStatus('Delivered')}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl px-8 h-12 shadow-lg shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95"
             >
-              <CheckCircle className="h-5 w-5 mr-2" />
-              Deliver
+              <CheckCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
+              {t('orderDetails.deliver')}
             </Button>
           )}
           <Button 
@@ -149,8 +151,8 @@ export default function OrderDetails() {
               isEditing ? "bg-slate-900 text-white" : "border-slate-200"
             )}
           >
-            {isEditing ? <Save className="h-5 w-5 mr-2" /> : <Edit2 className="h-5 w-5 mr-2" />}
-            {isEditing ? 'Save' : 'Edit'}
+            {isEditing ? <Save className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <Edit2 className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
+            {isEditing ? t('orderDetails.save') : t('orderDetails.edit')}
           </Button>
           {!isEditing && (
             <Button 
@@ -159,8 +161,8 @@ export default function OrderDetails() {
               disabled={isDeleting}
               className="rounded-2xl font-black h-12 px-6 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all hover:scale-105 active:scale-95"
             >
-              {isDeleting ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Trash2 className="h-5 w-5 mr-2" />}
-              Delete
+              {isDeleting ? <Loader2 className={cn("h-5 w-5 animate-spin", isRTL ? "ml-2" : "mr-2")} /> : <Trash2 className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
+              {t('orderDetails.delete')}
             </Button>
           )}
           {isEditing && (
@@ -178,13 +180,13 @@ export default function OrderDetails() {
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
               <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <User className="h-5 w-5 text-blue-500" />
-                Order Information
+                {t('orderDetails.orderInformation')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 grid sm:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Customer Details</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.customerDetails')}</span>
                   <div className="flex items-center gap-3 text-slate-700">
                     <User className="h-4 w-4 text-slate-400" />
                     <span className="font-semibold">{order.customerName}</span>
@@ -198,12 +200,12 @@ export default function OrderDetails() {
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Dress Type</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.dressType')}</span>
                   <div className="text-lg font-bold text-slate-900">{order.dressType}</div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Status</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.status')}</span>
                   <div className="mt-1">
                     <select 
                       disabled={!isEditing}
@@ -211,10 +213,10 @@ export default function OrderDetails() {
                       onChange={(e) => setEditData({...editData, status: e.target.value})}
                       className="h-10 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:opacity-100 disabled:bg-slate-50"
                     >
-                      <option value="Pending">Pending</option>
-                      <option value="Stitching">Stitching</option>
-                      <option value="Ready">Ready</option>
-                      <option value="Delivered">Delivered</option>
+                      <option value="Pending">{t('orderDetails.pending')}</option>
+                      <option value="Stitching">{t('orderDetails.stitching')}</option>
+                      <option value="Ready">{t('orderDetails.ready')}</option>
+                      <option value="Delivered">{t('orderDetails.delivered')}</option>
                     </select>
                   </div>
                 </div>
@@ -222,7 +224,7 @@ export default function OrderDetails() {
 
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Rack Location</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.rackLocation')}</span>
                   <div className="flex items-center gap-3 text-slate-700">
                     <MapPin className="h-4 w-4 text-slate-400" />
                     {isEditing ? (
@@ -232,13 +234,13 @@ export default function OrderDetails() {
                         className="h-9 rounded-lg"
                       />
                     ) : (
-                      <span className="font-bold text-brand-primary">{order.rackLocation || 'Not Assigned'}</span>
+                      <span className="font-bold text-brand-primary">{order.rackLocation || t('orderDetails.notAssigned')}</span>
                     )}
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Delivery Date</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.deliveryDate')}</span>
                   <div className="flex items-center gap-3 text-slate-700">
                     <Calendar className="h-4 w-4 text-slate-400" />
                     <span className="font-bold text-slate-900">{formatDate(order.deliveryDate)}</span>
@@ -246,9 +248,9 @@ export default function OrderDetails() {
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Notes</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.notes')}</span>
                   <p className="text-sm text-slate-600 italic">
-                    {order.notes || 'No special instructions.'}
+                    {order.notes || t('orderDetails.noNotes')}
                   </p>
                 </div>
               </div>
@@ -260,7 +262,7 @@ export default function OrderDetails() {
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
               <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Ruler className="h-5 w-5 text-brand-primary" />
-                Measurements
+                {t('orderDetails.measurements')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -296,15 +298,15 @@ export default function OrderDetails() {
           <Card className="border-none shadow-sm bg-slate-900 text-white rounded-[2rem] overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Price</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.totalPrice')}</span>
                 <div className="text-3xl font-black">PKR {order.price}</div>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Advance Paid</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.advancePaid')}</span>
                 <div className="text-xl font-bold text-emerald-400">PKR {order.advancePayment || 0}</div>
               </div>
               <div className="pt-6 border-t border-white/10 space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Balance Due</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.balanceDue')}</span>
                 <div className="text-2xl font-black text-brand-secondary">
                   PKR {order.price - (order.advancePayment || 0)}
                 </div>
@@ -320,7 +322,7 @@ export default function OrderDetails() {
                   <Clock className="h-5 w-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Created On</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">{t('orderDetails.createdOn')}</span>
                   <span className="text-sm font-black text-slate-900">
                     {formatDateTime(order.createdAt)}
                   </span>
@@ -331,7 +333,7 @@ export default function OrderDetails() {
                   <Hash className="h-5 w-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">System ID</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">{t('orderDetails.systemId')}</span>
                   <span className="text-xs font-mono font-bold text-slate-400 break-all">{order.id}</span>
                 </div>
               </div>
@@ -343,35 +345,38 @@ export default function OrderDetails() {
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
               <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-brand-primary" />
-                Invoice Preview
+                {t('orderDetails.invoicePreview')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="text-sm font-black text-slate-900">{shop?.name || 'Your Shop'}</h4>
-                    <p className="text-[10px] text-slate-500">Invoice Preview</p>
+                    <h4 className="text-sm font-black text-slate-900">{shop?.name || t('orderDetails.yourShop')}</h4>
+                    <p className="text-[10px] text-slate-500">{t('orderDetails.invoicePreview')}</p>
                   </div>
-                  <div className="text-right">
+                  <div className={cn(isRTL ? "text-left" : "text-right")}>
                     <span className={cn(
                       "text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest",
                       order.status === 'Delivered' ? "bg-emerald-100 text-emerald-700" :
                       order.status === 'Ready' ? "bg-blue-100 text-blue-700" :
                       "bg-amber-100 text-amber-700"
                     )}>
-                      {order.status}
+                      {order.status === 'Pending' ? t('orderDetails.pending') :
+                       order.status === 'Stitching' ? t('orderDetails.stitching') :
+                       order.status === 'Ready' ? t('orderDetails.ready') :
+                       order.status === 'Delivered' ? t('orderDetails.delivered') : order.status}
                     </span>
                   </div>
                 </div>
                 
                 <div className="pt-3 border-t border-slate-200 space-y-2">
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Customer</span>
+                    <span className="text-slate-500">{t('orderDetails.customer')}</span>
                     <span className="font-bold text-slate-900">{order.customerName}</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Total Amount</span>
+                    <span className="text-slate-500">{t('orderDetails.totalAmount')}</span>
                     <span className="font-bold text-slate-900">PKR {order.price}</span>
                   </div>
                 </div>
@@ -381,7 +386,7 @@ export default function OrderDetails() {
                   className="w-full rounded-xl h-10 text-xs font-bold border-slate-200 hover:bg-slate-100"
                   onClick={() => navigate(`/dashboard/orders/${order.id}/invoice`)}
                 >
-                  View Full Invoice
+                  {t('orderDetails.viewFullInvoice')}
                 </Button>
               </div>
             </CardContent>

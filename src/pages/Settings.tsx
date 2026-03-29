@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { db, storage, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -7,9 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2, Store, Phone, MapPin, MessageSquare } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 export default function Settings() {
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [shop, setShop] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '' });
   const [editData, setEditData] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '' });
   const [isEditing, setIsEditing] = useState(false);
@@ -75,16 +78,16 @@ export default function Settings() {
   return (
     <div className="space-y-8 max-w-2xl px-4 sm:px-0">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Shop Settings</h1>
-        <p className="text-slate-500 mt-2">Manage your tailor shop details and invoice preferences.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
+        <p className="text-slate-500 mt-2">{t('settings.subtitle')}</p>
       </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-xl">Shop Profile</CardTitle>
+          <CardTitle className="text-xl">{t('settings.shopProfile')}</CardTitle>
           {!isEditing && (
             <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-              <Edit2 className="h-4 w-4 mr-2" /> Edit Profile
+              <Edit2 className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('settings.editProfile')}
             </Button>
           )}
         </CardHeader>
@@ -92,7 +95,7 @@ export default function Settings() {
           {isEditing ? (
             <form onSubmit={handleSave} className="space-y-6">
               <div className="flex flex-col items-center sm:items-start gap-4">
-                <label className="text-sm font-medium block">Shop Logo</label>
+                <label className="text-sm font-medium block">{t('settings.shopLogo')}</label>
                 <div className="flex items-center gap-4">
                   <div className="h-20 w-20 rounded-xl bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group">
                     {editData.logoUrl ? (
@@ -121,57 +124,57 @@ export default function Settings() {
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploading}
                     >
-                      <Upload className="h-4 w-4 mr-2" /> {editData.logoUrl ? 'Change Logo' : 'Upload Logo'}
+                      <Upload className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {editData.logoUrl ? t('settings.changeLogo') : t('settings.uploadLogo')}
                     </Button>
-                    <p className="text-xs text-slate-500">Recommended: Square PNG or JPG</p>
+                    <p className="text-xs text-slate-500">{t('settings.recommendedLogo')}</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Shop Name</label>
+                  <label className="text-sm font-medium mb-1 block">{t('settings.shopName')}</label>
                   <div className="relative">
-                    <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
-                    <Input required value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="My Tailor Shop" className="pl-9" />
+                    <Store className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10", isRTL ? "right-3" : "left-3")} />
+                    <Input required value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="My Tailor Shop" className={cn(isRTL ? "pr-9" : "pl-9")} />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Phone Number</label>
+                  <label className="text-sm font-medium mb-1 block">{t('settings.phoneNumber')}</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
-                    <Input value={editData.phone || ''} onChange={e => setEditData({...editData, phone: e.target.value})} placeholder="+1 234 567 8900" className="pl-9" />
+                    <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10", isRTL ? "right-3" : "left-3")} />
+                    <Input value={editData.phone || ''} onChange={e => setEditData({...editData, phone: e.target.value})} placeholder="+1 234 567 8900" className={cn(isRTL ? "pr-9" : "pl-9")} />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Address</label>
+                  <label className="text-sm font-medium mb-1 block">{t('settings.address')}</label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
-                    <Input value={editData.address || ''} onChange={e => setEditData({...editData, address: e.target.value})} placeholder="123 Tailor Street" className="pl-9" />
+                    <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10", isRTL ? "right-3" : "left-3")} />
+                    <Input value={editData.address || ''} onChange={e => setEditData({...editData, address: e.target.value})} placeholder="123 Tailor Street" className={cn(isRTL ? "pr-9" : "pl-9")} />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Invoice Footer Message</label>
+                  <label className="text-sm font-medium mb-1 block">{t('settings.invoiceFooter')}</label>
                   <div className="relative">
-                    <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
-                    <Input value={editData.invoiceFooter || ''} onChange={e => setEditData({...editData, invoiceFooter: e.target.value})} placeholder="Thank you for your business!" className="pl-9" />
+                    <MessageSquare className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10", isRTL ? "right-3" : "left-3")} />
+                    <Input value={editData.invoiceFooter || ''} onChange={e => setEditData({...editData, invoiceFooter: e.target.value})} placeholder="Thank you for your business!" className={cn(isRTL ? "pr-9" : "pl-9")} />
                   </div>
                 </div>
               </div>
 
               <div className="pt-4 flex flex-col sm:flex-row gap-2">
                 <Button type="submit" className="w-full sm:w-auto" disabled={saving || uploading}>
-                  <Save className="h-4 w-4 mr-2" /> {saving ? 'Saving...' : 'Save Changes'}
+                  <Save className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {saving ? t('settings.saving') : t('settings.saveChanges')}
                 </Button>
                 <Button type="button" variant="ghost" className="w-full sm:w-auto" onClick={handleCancel} disabled={saving || uploading}>
-                  <X className="h-4 w-4 mr-2" /> Cancel
+                  <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('settings.cancel')}
                 </Button>
               </div>
             </form>
           ) : (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 border-b border-slate-100 pb-6">
-                <div className="text-sm font-medium text-slate-500 w-32">Shop Logo</div>
+                <div className="text-sm font-medium text-slate-500 w-32">{t('settings.shopLogo')}</div>
                 <div className="h-16 w-16 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
                   {shop.logoUrl ? (
                     <img src={shop.logoUrl} alt="Shop Logo" className="h-full w-full object-contain" />
@@ -181,20 +184,20 @@ export default function Settings() {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 border-b border-slate-100 pb-4">
-                <div className="text-sm font-medium text-slate-500">Shop Name</div>
-                <div className="sm:col-span-2 text-sm font-medium text-slate-900">{shop.name || 'Not set'}</div>
+                <div className="text-sm font-medium text-slate-500">{t('settings.shopName')}</div>
+                <div className="sm:col-span-2 text-sm font-medium text-slate-900">{shop.name || t('settings.notSet')}</div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 border-b border-slate-100 pb-4">
-                <div className="text-sm font-medium text-slate-500">Phone Number</div>
-                <div className="sm:col-span-2 text-sm text-slate-900">{shop.phone || 'Not set'}</div>
+                <div className="text-sm font-medium text-slate-500">{t('settings.phoneNumber')}</div>
+                <div className="sm:col-span-2 text-sm text-slate-900">{shop.phone || t('settings.notSet')}</div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 border-b border-slate-100 pb-4">
-                <div className="text-sm font-medium text-slate-500">Address</div>
-                <div className="sm:col-span-2 text-sm text-slate-900">{shop.address || 'Not set'}</div>
+                <div className="text-sm font-medium text-slate-500">{t('settings.address')}</div>
+                <div className="sm:col-span-2 text-sm text-slate-900">{shop.address || t('settings.notSet')}</div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
-                <div className="text-sm font-medium text-slate-500">Invoice Footer</div>
-                <div className="sm:col-span-2 text-sm text-slate-900">{shop.invoiceFooter || 'Not set'}</div>
+                <div className="text-sm font-medium text-slate-500">{t('settings.invoiceFooter')}</div>
+                <div className="sm:col-span-2 text-sm text-slate-900">{shop.invoiceFooter || t('settings.notSet')}</div>
               </div>
             </div>
           )}

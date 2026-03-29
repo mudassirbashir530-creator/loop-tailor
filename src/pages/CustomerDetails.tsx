@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { db, storage, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
 import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebook, Scissors, Calendar, CreditCard, Hash, Loader2, CheckCircle2, Trash2, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebook, Scissors, Calendar, CreditCard, Hash, Loader2, CheckCircle2, Trash2, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -16,6 +17,7 @@ import { KAMEEZ_MEASUREMENTS, SHALWAR_MEASUREMENTS } from '../lib/measurements';
 export default function CustomerDetails() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
   
   const [customer, setCustomer] = useState<any>(null);
@@ -79,7 +81,7 @@ export default function CustomerDetails() {
   };
 
   const handleDeleteCustomer = async () => {
-    if (!window.confirm('Are you sure you want to delete this customer? This will not delete their orders or measurements, but they will be removed from the customer list.')) return;
+    if (!window.confirm(t('customerDetails.deleteConfirm'))) return;
     
     setIsDeletingCustomer(true);
     try {
@@ -181,12 +183,12 @@ export default function CustomerDetails() {
   };
 
   const formatDate = (timestamp: any) => {
-    if (!timestamp) return 'N/A';
+    if (!timestamp) return t('customerDetails.na');
     try {
       const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
       return format(date, 'MMM dd, yyyy');
     } catch (e) {
-      return 'Invalid Date';
+      return t('customerDetails.invalidDate');
     }
   };
 
@@ -194,7 +196,7 @@ export default function CustomerDetails() {
     return (
       <div className="flex flex-col items-center justify-center py-24 space-y-4">
         <Loader2 className="h-12 w-12 text-brand-primary animate-spin" />
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading profile...</p>
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{t('customerDetails.loading')}</p>
       </div>
     );
   }
@@ -215,7 +217,7 @@ export default function CustomerDetails() {
             onClick={() => navigate('/dashboard/customers')} 
             className="h-12 w-12 rounded-2xl bg-white shadow-sm border border-slate-100 hover:bg-slate-50"
           >
-            <ArrowLeft className="h-6 w-6" />
+            {isRTL ? <ArrowRight className="h-6 w-6" /> : <ArrowLeft className="h-6 w-6" />}
           </Button>
           <div>
             <div className="flex items-center gap-3">
@@ -240,12 +242,12 @@ export default function CustomerDetails() {
             </div>
             <div className="flex flex-wrap items-center gap-4 mt-2 text-slate-500 font-bold text-sm">
               <div className="flex items-center">
-                <Phone className="h-4 w-4 mr-2 text-slate-400" />
+                <Phone className={cn("h-4 w-4 text-slate-400", isRTL ? "ml-2" : "mr-2")} />
                 {customer.phone}
               </div>
               {customer.address && (
                 <div className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 text-slate-400" />
+                  <MapPin className={cn("h-4 w-4 text-slate-400", isRTL ? "ml-2" : "mr-2")} />
                   {customer.address}
                 </div>
               )}
@@ -260,8 +262,8 @@ export default function CustomerDetails() {
               isAddingOrder ? "bg-slate-100 text-slate-600 hover:bg-slate-200" : "bg-brand-primary text-white hover:bg-brand-primary/90 shadow-brand-primary/20"
             )}
           >
-            {isAddingOrder ? <X className="h-5 w-5 mr-2" /> : <Plus className="h-5 w-5 mr-2" />}
-            {isAddingOrder ? 'Cancel' : 'New Order'}
+            {isAddingOrder ? <X className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <Plus className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
+            {isAddingOrder ? t('customerDetails.cancel') : t('customerDetails.newOrder')}
           </Button>
         </div>
       </motion.div>
@@ -276,59 +278,59 @@ export default function CustomerDetails() {
           >
             <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden border-2 border-brand-primary/10">
               <CardHeader className="p-8 pb-4">
-                <CardTitle className="text-2xl font-black text-slate-900">Edit Profile</CardTitle>
+                <CardTitle className="text-2xl font-black text-slate-900">{t('customerDetails.editProfile')}</CardTitle>
               </CardHeader>
               <CardContent className="p-8 pt-0">
                 <form onSubmit={handleUpdateCustomer} className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Full Name *</label>
+                    <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.fullName')}</label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={editCustomerData.name} 
                         onChange={e => setEditCustomerData({...editCustomerData, name: e.target.value})} 
-                        className="pl-12 h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
+                        className={cn("h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number *</label>
+                    <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.phoneNumber')}</label>
                     <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={editCustomerData.phone} 
                         onChange={e => setEditCustomerData({...editCustomerData, phone: e.target.value})} 
-                        className="pl-12 h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
+                        className={cn("h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Address</label>
+                    <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.address')}</label>
                     <div className="relative">
-                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         value={editCustomerData.address} 
                         onChange={e => setEditCustomerData({...editCustomerData, address: e.target.value})} 
-                        className="pl-12 h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
+                        className={cn("h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Notes</label>
+                    <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.notes')}</label>
                     <div className="relative">
-                      <Notebook className="absolute left-4 top-4 h-5 w-5 text-slate-400 z-10" />
+                      <Notebook className={cn("absolute top-4 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                       <textarea 
                         value={editCustomerData.notes} 
                         onChange={e => setEditCustomerData({...editCustomerData, notes: e.target.value})} 
-                        className="pl-12 w-full min-h-[100px] px-4 py-4 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all focus:outline-none"
+                        className={cn("w-full min-h-[100px] px-4 py-4 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all focus:outline-none", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="md:col-span-2 flex justify-end gap-4">
-                    <Button type="button" variant="ghost" onClick={() => setIsEditingCustomer(false)} className="h-12 px-6 rounded-xl font-bold">Cancel</Button>
-                    <Button type="submit" className="h-12 px-8 rounded-xl bg-slate-900 text-white font-black">Save Changes</Button>
+                    <Button type="button" variant="ghost" onClick={() => setIsEditingCustomer(false)} className="h-12 px-6 rounded-xl font-bold">{t('customerDetails.cancel')}</Button>
+                    <Button type="submit" className="h-12 px-8 rounded-xl bg-slate-900 text-white font-black">{t('customerDetails.saveChanges')}</Button>
                   </div>
                 </form>
               </CardContent>
@@ -348,66 +350,66 @@ export default function CustomerDetails() {
               >
                 <Card className="border-none shadow-xl bg-slate-900 text-white rounded-[2.5rem] overflow-hidden">
                   <CardHeader className="p-8 pb-4">
-                    <CardTitle className="text-2xl font-black">New Order for {customer.name}</CardTitle>
+                    <CardTitle className="text-2xl font-black">{t('customerDetails.newOrderFor')} {customer.name}</CardTitle>
                   </CardHeader>
                   <CardContent className="p-8 pt-0">
                     <form onSubmit={handleCreateOrder} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Dress Type *</label>
+                          <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.dressType')}</label>
                           <div className="relative">
-                            <Scissors className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                            <Scissors className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                             <Input 
                               required 
                               value={newOrder.dressType} 
                               onChange={e => setNewOrder({...newOrder, dressType: e.target.value})} 
-                              className="pl-12 h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30"
+                              className={cn("h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30", isRTL ? "pr-12" : "pl-12")}
                             />
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Delivery Date *</label>
+                          <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.deliveryDate')}</label>
                           <div className="relative">
-                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                            <Calendar className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                             <Input 
                               type="date" 
                               required 
                               value={newOrder.deliveryDate} 
                               onChange={e => setNewOrder({...newOrder, deliveryDate: e.target.value})} 
-                              className="pl-12 h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all"
+                              className={cn("h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
                             />
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Total Price (PKR) *</label>
+                          <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.totalPrice')}</label>
                           <div className="relative">
-                            <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                            <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                             <Input 
                               type="number" 
                               required 
                               value={newOrder.price} 
                               onChange={e => setNewOrder({...newOrder, price: e.target.value})} 
-                              className="pl-12 h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30"
+                              className={cn("h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30", isRTL ? "pr-12" : "pl-12")}
                             />
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Advance Payment (PKR)</label>
+                          <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.advancePayment')}</label>
                           <div className="relative">
-                            <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                            <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                             <Input 
                               type="number" 
                               value={newOrder.advancePayment} 
                               onChange={e => setNewOrder({...newOrder, advancePayment: e.target.value})} 
-                              className="pl-12 h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30"
+                              className={cn("h-14 rounded-2xl bg-white/10 border-white/10 text-white focus:ring-4 focus:ring-brand-primary/20 focus:border-brand-primary text-base font-bold transition-all placeholder:text-white/30", isRTL ? "pr-12" : "pl-12")}
                             />
                           </div>
                         </div>
                       </div>
                       <div className="flex justify-end gap-4 pt-4 border-t border-white/10">
-                        <Button type="button" variant="ghost" onClick={() => setIsAddingOrder(false)} className="text-white hover:bg-white/10 h-12 px-6 rounded-xl font-bold">Cancel</Button>
+                        <Button type="button" variant="ghost" onClick={() => setIsAddingOrder(false)} className="text-white hover:bg-white/10 h-12 px-6 rounded-xl font-bold">{t('customerDetails.cancel')}</Button>
                         <Button type="submit" disabled={isUploading} className="bg-brand-primary text-white hover:bg-brand-primary/90 h-12 px-10 rounded-xl font-black text-base shadow-lg shadow-brand-primary/20">
-                          {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Create Order'}
+                          {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : t('customerDetails.createOrder')}
                         </Button>
                       </div>
                     </form>
@@ -421,7 +423,7 @@ export default function CustomerDetails() {
             <CardHeader className="p-8 pb-4 flex flex-row items-center justify-between">
               <CardTitle className="text-2xl font-black text-slate-900 flex items-center gap-3">
                 <Scissors className="h-6 w-6 text-brand-primary" />
-                Measurements
+                {t('customerDetails.measurements')}
               </CardTitle>
               <div className="flex items-center gap-4">
                 <AnimatePresence>
@@ -432,7 +434,7 @@ export default function CustomerDetails() {
                       exit={{ opacity: 0 }}
                       className="text-xs font-black text-emerald-500 uppercase tracking-widest"
                     >
-                      Saved Successfully
+                      {t('customerDetails.savedSuccessfully')}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -441,8 +443,8 @@ export default function CustomerDetails() {
                   disabled={savingMeasurements}
                   className="h-12 px-8 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 font-black transition-all hover:scale-105 active:scale-95"
                 >
-                  {savingMeasurements ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 mr-2" />}
-                  {savingMeasurements ? 'Saving...' : 'Save'}
+                  {savingMeasurements ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
+                  {savingMeasurements ? t('customerDetails.saving') : t('customerDetails.save')}
                 </Button>
               </div>
             </CardHeader>
@@ -451,7 +453,7 @@ export default function CustomerDetails() {
                 <div className="space-y-8">
                   <div className="flex items-center gap-4">
                     <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs">01</div>
-                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Kameez (Shirt)</h3>
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">{t('customerDetails.kameez')}</h3>
                     <div className="flex-1 h-px bg-slate-100"></div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
@@ -459,9 +461,9 @@ export default function CustomerDetails() {
                       const Icon = item.icon;
                       return (
                         <div key={item.id} className="space-y-2 group">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
+                          <label className={cn("text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
                             <Icon className="h-3 w-3" />
-                            {item.label}
+                            {isRTL ? item.ur : item.en}
                           </label>
                           <div className="relative">
                             <Input 
@@ -473,11 +475,11 @@ export default function CustomerDetails() {
                                 const val = e.target.value === '' ? '' : Number(e.target.value);
                                 setMeasurements({...measurements, [item.id]: val});
                               }} 
-                              className="h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all pl-3 pr-8"
+                              className={cn("h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all", isRTL ? "pr-3 pl-8" : "pl-3 pr-8")}
                             />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">IN</span>
+                            <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300", isRTL ? "left-4" : "right-4")}>IN</span>
                           </div>
-                          <p className="text-[9px] text-slate-400 font-medium ml-1">{item.desc}</p>
+                          <p className={cn("text-[9px] text-slate-400 font-medium", isRTL ? "mr-1" : "ml-1")}>{item.desc}</p>
                         </div>
                       );
                     })}
@@ -487,7 +489,7 @@ export default function CustomerDetails() {
                 <div className="space-y-8">
                   <div className="flex items-center gap-4">
                     <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs">02</div>
-                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Shalwar (Trouser)</h3>
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">{t('customerDetails.shalwar')}</h3>
                     <div className="flex-1 h-px bg-slate-100"></div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
@@ -495,9 +497,9 @@ export default function CustomerDetails() {
                       const Icon = item.icon;
                       return (
                         <div key={item.id} className="space-y-2 group">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
+                          <label className={cn("text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
                             <Icon className="h-3 w-3" />
-                            {item.label}
+                            {isRTL ? item.ur : item.en}
                           </label>
                           <div className="relative">
                             <Input 
@@ -509,11 +511,11 @@ export default function CustomerDetails() {
                                 const val = e.target.value === '' ? '' : Number(e.target.value);
                                 setMeasurements({...measurements, [item.id]: val});
                               }} 
-                              className="h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all pl-3 pr-8"
+                              className={cn("h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all", isRTL ? "pr-3 pl-8" : "pl-3 pr-8")}
                             />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">IN</span>
+                            <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300", isRTL ? "left-4" : "right-4")}>IN</span>
                           </div>
-                          <p className="text-[9px] text-slate-400 font-medium ml-1">{item.desc}</p>
+                          <p className={cn("text-[9px] text-slate-400 font-medium", isRTL ? "mr-1" : "ml-1")}>{item.desc}</p>
                         </div>
                       );
                     })}
@@ -529,7 +531,7 @@ export default function CustomerDetails() {
             <CardHeader className="p-8 pb-4">
               <CardTitle className="text-2xl font-black text-slate-900 flex items-center gap-3">
                 <Hash className="h-6 w-6 text-blue-500" />
-                Order History
+                {t('customerDetails.orderHistory')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 pt-0">
@@ -539,7 +541,7 @@ export default function CustomerDetails() {
                     <div className="h-16 w-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mx-auto mb-4">
                       <CreditCard className="h-8 w-8" />
                     </div>
-                    <p className="text-slate-400 font-bold">No orders found for this client.</p>
+                    <p className="text-slate-400 font-bold">{t('customerDetails.noOrders')}</p>
                   </div>
                 ) : (
                   orders.map((order, idx) => (
@@ -554,7 +556,7 @@ export default function CustomerDetails() {
                       <div className="flex justify-between items-start mb-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Token</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('customerDetails.token')}</span>
                             <span className="text-sm font-black text-brand-primary">#{order.tokenId}</span>
                           </div>
                           <div className="font-black text-slate-900 group-hover:text-brand-primary transition-colors">{order.dressType}</div>
@@ -568,11 +570,11 @@ export default function CustomerDetails() {
                       </div>
                       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
                         <div>
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Delivery</span>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('customerDetails.delivery')}</span>
                           <span className="text-xs font-bold text-slate-700">{formatDate(order.deliveryDate)}</span>
                         </div>
-                        <div className="text-right">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Amount</span>
+                        <div className={cn(isRTL ? "text-left" : "text-right")}>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('customerDetails.amount')}</span>
                           <span className="text-xs font-black text-slate-900">PKR {order.price}</span>
                         </div>
                       </div>
@@ -588,7 +590,7 @@ export default function CustomerDetails() {
               <CardHeader className="p-8 pb-4">
                 <CardTitle className="text-lg font-black text-amber-900 flex items-center gap-2">
                   <Notebook className="h-5 w-5" />
-                  Client Notes
+                  {t('customerDetails.clientNotes')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 pt-0">

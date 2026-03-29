@@ -4,9 +4,12 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { ArrowRight, Play } from 'lucide-react';
 import DemoModal from './DemoModal';
+import { useLanguage } from '../contexts/LanguageContext';
+import { cn } from '../lib/utils';
 
 export default function Hero() {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const { t, isRTL } = useLanguage();
 
   return (
     <section className="relative pt-20 pb-16 lg:pt-28 lg:pb-20 overflow-x-hidden flex flex-col items-center justify-center text-center px-4">
@@ -22,7 +25,7 @@ export default function Hero() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-bold tracking-tight text-slate-900 mb-4 leading-[1.1]"
       >
-        Welcome to Loop Tailor
+        {t('landing.hero.title')}
       </motion.h1>
 
       <motion.div 
@@ -46,8 +49,8 @@ export default function Hero() {
       >
         <Link to="/signup">
           <Button size="lg" className="rounded-full px-8 bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
-            Start Free Trial
-            <ArrowRight className="ml-2 h-5 w-5" />
+            {t('landing.nav.startFreeTrial')}
+            <ArrowRight className={cn("h-5 w-5", isRTL ? "mr-2 rotate-180" : "ml-2")} />
           </Button>
         </Link>
         <Button 
@@ -56,10 +59,10 @@ export default function Hero() {
           onClick={() => setIsDemoModalOpen(true)}
           className="rounded-full px-8 bg-white border-2 border-slate-200 hover:border-brand-primary/30 hover:bg-slate-50 text-slate-900 shadow-sm transition-all hover:scale-105 active:scale-95 group"
         >
-          <div className="w-6 h-6 rounded-full bg-brand-primary/10 flex items-center justify-center mr-2 group-hover:bg-brand-primary transition-colors">
-            <Play className="h-3 w-3 text-brand-primary group-hover:text-white ml-0.5 transition-colors" />
+          <div className={cn("w-6 h-6 rounded-full bg-brand-primary/10 flex items-center justify-center group-hover:bg-brand-primary transition-colors", isRTL ? "ml-2" : "mr-2")}>
+            <Play className={cn("h-3 w-3 text-brand-primary group-hover:text-white transition-colors", isRTL ? "mr-0.5 rotate-180" : "ml-0.5")} />
           </div>
-          Watch Demo
+          {t('landing.hero.watchDemo')}
         </Button>
       </motion.div>
 

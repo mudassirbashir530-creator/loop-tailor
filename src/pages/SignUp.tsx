@@ -4,7 +4,9 @@ import { Scissors, Mail, Lock, User, ArrowRight, ArrowLeft, Loader2, CheckCircle
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { cn } from '../lib/utils';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -13,6 +15,7 @@ export default function SignUp() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp, signIn, user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
 
   if (user) {
@@ -49,7 +52,7 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col lg:flex-row overflow-hidden">
+    <div className={cn("min-h-screen bg-white flex flex-col lg:flex-row overflow-hidden", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Left Side: Branding & Features (Hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-primary relative overflow-hidden flex-col justify-between p-12 text-white">
         {/* Background Accents */}
@@ -72,18 +75,18 @@ export default function SignUp() {
             transition={{ delay: 0.2 }}
           >
             <h1 className="text-5xl xl:text-7xl font-display font-black leading-[0.95] mb-8">
-              The Future of <br />
-              <span className="text-white/60 italic">Tailoring.</span>
+              {t('auth.futureOfTailoring')} <br />
+              <span className="text-white/60 italic">{t('auth.tailoring')}</span>
             </h1>
             <p className="text-xl text-white/80 max-w-md leading-relaxed mb-12">
-              Join 500+ professional tailors who have already digitized their craft with Loop Tailor.
+              {t('auth.join500')}
             </p>
 
             <div className="space-y-6">
               {[
-                { icon: <Zap className="h-5 w-5" />, text: "Instant Measurement Access" },
-                { icon: <Shield className="h-5 w-5" />, text: "Secure Cloud Backups" },
-                { icon: <Star className="h-5 w-5" />, text: "Professional Invoicing" }
+                { icon: <Zap className="h-5 w-5" />, text: t('auth.instantMeasurement') },
+                { icon: <Shield className="h-5 w-5" />, text: t('auth.secureCloud') },
+                { icon: <Star className="h-5 w-5" />, text: t('auth.professionalInvoicing') }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-4">
                   <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
@@ -102,8 +105,8 @@ export default function SignUp() {
               <BadgeCheck className="h-6 w-6 text-white" />
             </div>
             <div className="text-sm">
-              <div className="font-bold">Trusted by experts</div>
-              <div className="text-white/60">5.0 rating on Google</div>
+              <div className="font-bold">{t('auth.trustedByExperts')}</div>
+              <div className="text-white/60">{t('auth.rating')}</div>
             </div>
           </div>
         </div>
@@ -113,13 +116,13 @@ export default function SignUp() {
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 bg-[#FDFCF9]">
         <div className="max-w-md w-full mx-auto">
           <Link to="/" className="flex items-center gap-2 mb-8 text-slate-500 hover:text-slate-900 transition-colors w-fit">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm font-bold">Back to website</span>
+            {isRTL ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
+            <span className="text-sm font-bold">{t('auth.backToWebsite')}</span>
           </Link>
 
           <div className="mb-10">
-            <h2 className="text-3xl sm:text-4xl font-display font-black text-slate-900 mb-3">Create Account</h2>
-            <p className="text-slate-500 font-medium">Start your 14-day free trial. No credit card required.</p>
+            <h2 className="text-3xl sm:text-4xl font-display font-black text-slate-900 mb-3">{t('auth.createAccount')}</h2>
+            <p className="text-slate-500 font-medium">{t('auth.startFreeTrial')}</p>
           </div>
 
           <div className="mb-8">
@@ -149,7 +152,7 @@ export default function SignUp() {
                 />
                 <path d="M1 1h22v22H1z" fill="none" />
               </svg>
-              Sign up with Google
+              {t('auth.signUpWithGoogle')}
             </Button>
 
             <div className="relative mt-8">
@@ -157,52 +160,55 @@ export default function SignUp() {
                 <div className="w-full border-t border-slate-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 text-slate-400 bg-[#FDFCF9] font-bold uppercase tracking-widest">or email</span>
+                <span className="px-4 text-slate-400 bg-[#FDFCF9] font-bold uppercase tracking-widest">{t('auth.orEmail')}</span>
               </div>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Shop Name</label>
+              <label className={cn("text-sm font-bold text-slate-700 block", isRTL ? "mr-1" : "ml-1")}>{t('auth.shopName')}</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                 <Input
                   required
                   placeholder="e.g. Royal Stitch"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="pl-12 h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg"
+                  className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                  dir="ltr"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
+              <label className={cn("text-sm font-bold text-slate-700 block", isRTL ? "mr-1" : "ml-1")}>{t('auth.emailAddress')}</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                <Mail className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                 <Input
                   required
                   type="email"
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-12 h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg"
+                  className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                  dir="ltr"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
+              <label className={cn("text-sm font-bold text-slate-700 block", isRTL ? "mr-1" : "ml-1")}>{t('auth.password')}</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                <Lock className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                 <Input
                   required
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-12 h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg"
+                  className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                  dir="ltr"
                 />
               </div>
             </div>
@@ -219,14 +225,14 @@ export default function SignUp() {
 
             <Button
               disabled={isLoading}
-              className="w-full h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-white font-bold text-lg shadow-2xl shadow-brand-primary/20 transition-all active:scale-95 mt-4"
+              className={cn("w-full h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-white font-bold text-lg shadow-2xl shadow-brand-primary/20 transition-all active:scale-95 mt-4", isRTL && "flex-row-reverse")}
             >
               {isLoading ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
               ) : (
                 <>
-                  Create My Account
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  {t('auth.createMyAccount')}
+                  {isRTL ? <ArrowLeft className="mr-2 h-5 w-5" /> : <ArrowRight className="ml-2 h-5 w-5" />}
                 </>
               )}
             </Button>
@@ -234,19 +240,19 @@ export default function SignUp() {
 
           <div className="mt-10 pt-10 border-t border-slate-100 text-center">
             <p className="text-slate-500 font-medium">
-              Already have an account?
+              {t('auth.alreadyHaveAccount')}
               <Link
                 to="/login"
-                className="ml-2 text-brand-primary font-bold hover:underline"
+                className={cn("text-brand-primary font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
               >
-                Log In
+                {t('auth.logIn')}
               </Link>
             </p>
           </div>
           
           <div className="mt-8 text-center">
             <p className="text-xs text-slate-400 leading-relaxed">
-              By signing up, you agree to our <a href="#" className="underline">Terms of Service</a> and <a href="#" className="underline">Privacy Policy</a>.
+              {t('auth.bySigningUp')} <a href="#" className="underline">{t('auth.termsOfService')}</a> {t('auth.and')} <a href="#" className="underline">{t('auth.privacyPolicy')}</a>
             </p>
           </div>
         </div>

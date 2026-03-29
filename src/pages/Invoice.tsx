@@ -1,17 +1,20 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
-import { ArrowLeft, Printer, Download, Share2, Edit2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { cn } from '../lib/utils';
 
 export default function Invoice() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
   const invoiceRef = useRef<HTMLDivElement>(null);
   
@@ -46,7 +49,7 @@ export default function Invoice() {
     fetchInvoiceData();
   }, [user, id, navigate]);
 
-  if (!order || !shop || !customer) return <div className="p-8">Loading invoice...</div>;
+  if (!order || !shop || !customer) return <div className="p-8">{t('invoice.loading')}</div>;
 
   const handlePrint = () => {
     window.print();
@@ -91,8 +94,8 @@ export default function Invoice() {
         try {
           await navigator.share({
             files: [file],
-            title: `Invoice - ${shop.name}`,
-            text: `Invoice for ${customer.name} from ${shop.name}`
+            title: `${t('invoice.invoice')} - ${shop.name}`,
+            text: `${t('invoice.invoice')} for ${customer.name} from ${shop.name}`
           });
         } catch (shareError: any) {
           if (shareError.name !== 'AbortError') {
@@ -100,9 +103,9 @@ export default function Invoice() {
             // Fallback to clipboard if share fails
             try {
               await navigator.clipboard.writeText(window.location.href);
-              alert('Invoice link copied to clipboard!');
+              alert(t('invoice.shareSuccess'));
             } catch (clipboardError) {
-              alert('Sharing failed. You can download the PDF instead.');
+              alert(t('invoice.shareFallback'));
             }
           }
         }
@@ -110,9 +113,9 @@ export default function Invoice() {
         // Fallback
         try {
           await navigator.clipboard.writeText(window.location.href);
-          alert('Invoice link copied to clipboard! (File sharing is not supported on this browser)');
+          alert(t('invoice.shareNotSupported'));
         } catch (clipboardError) {
-          alert('File sharing is not supported on this browser/device. Please use the Download PDF button instead.');
+          alert(t('invoice.shareError'));
         }
       }
     } catch (error) {
@@ -168,7 +171,7 @@ export default function Invoice() {
       pdf.save(`Invoice_${order.id.slice(-6).toUpperCase()}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      alert(t('invoice.pdfError'));
     } finally {
       setIsGenerating(false);
     }
@@ -178,25 +181,25 @@ export default function Invoice() {
     <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 px-2 sm:px-0 pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 print:hidden">
         <Button variant="ghost" onClick={() => navigate('/dashboard/orders')} className="-ml-2 h-8 text-slate-500 hover:text-slate-900">
-          <ArrowLeft className="h-4 w-4 mr-1.5" /> Back
+          {isRTL ? <ArrowRight className="h-4 w-4 ml-1.5" /> : <ArrowLeft className="h-4 w-4 mr-1.5" />} {t('invoice.back')}
         </Button>
         <div className="flex gap-2 w-full sm:w-auto">
           <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/orders/${id}`)} className="flex-1 sm:flex-none rounded-xl h-9">
-            <Edit2 className="h-3.5 w-3.5 mr-1.5" /> Edit
+            <Edit2 className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {t('invoice.edit')}
           </Button>
           <Button variant="outline" size="sm" onClick={handleShare} disabled={isSharing} className="flex-1 sm:flex-none rounded-xl h-9">
-            <Share2 className="h-3.5 w-3.5 mr-1.5" /> {isSharing ? '...' : 'Share'}
+            <Share2 className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isSharing ? '...' : t('invoice.share')}
           </Button>
           <Button variant="outline" size="sm" onClick={handlePrint} className="flex-1 sm:flex-none rounded-xl h-9">
-            <Printer className="h-3.5 w-3.5 mr-1.5" /> Print
+            <Printer className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {t('invoice.print')}
           </Button>
           <Button size="sm" onClick={generatePDF} disabled={isGenerating} className="flex-1 sm:flex-none rounded-xl h-9 bg-slate-900">
-            <Download className="h-3.5 w-3.5 mr-1.5" /> {isGenerating ? '...' : 'PDF'}
+            <Download className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isGenerating ? '...' : t('invoice.pdf')}
           </Button>
         </div>
       </div>
 
-      <div id="invoice-capture-area" ref={invoiceRef} className="bg-white p-5 sm:p-10 rounded-3xl shadow-sm border border-slate-100 print:shadow-none print:border-none print:p-0 overflow-hidden">
+      <div id="invoice-capture-area" ref={invoiceRef} className="bg-white p-5 sm:p-10 rounded-3xl shadow-sm border border-slate-100 print:shadow-none print:border-none print:p-0 overflow-hidden" dir={isRTL ? "rtl" : "ltr"}>
         {/* Header Section */}
         <div className="flex flex-row justify-between items-start border-b border-slate-100 pb-5 mb-5 gap-4">
           <div className="flex items-center gap-3">
@@ -206,8 +209,8 @@ export default function Invoice() {
               <p className="text-[10px] sm:text-sm text-slate-500 font-medium">{shop.phone}</p>
             </div>
           </div>
-          <div className="text-right">
-            <h2 className="text-sm sm:text-xl font-black text-brand-primary tracking-tighter uppercase">Invoice</h2>
+          <div className={cn(isRTL ? "text-left" : "text-right")}>
+            <h2 className="text-sm sm:text-xl font-black text-brand-primary tracking-tighter uppercase">{t('invoice.invoice')}</h2>
             <p className="text-[10px] sm:text-sm font-bold text-slate-400 mt-0.5">#{order.id.slice(-6).toUpperCase()}</p>
           </div>
         </div>
@@ -215,45 +218,45 @@ export default function Invoice() {
         {/* Info Grid */}
         <div className="grid grid-cols-2 gap-4 mb-6 sm:mb-8">
           <div className="space-y-1">
-            <h3 className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Bill To</h3>
+            <h3 className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('invoice.billTo')}</h3>
             <p className="text-xs sm:text-base font-bold text-slate-900 leading-tight">{customer.name}</p>
             <p className="text-[10px] sm:text-sm text-slate-500 font-medium truncate max-w-[140px] sm:max-w-none">{customer.phone}</p>
           </div>
-          <div className="text-right space-y-1">
-            <h3 className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Delivery</h3>
+          <div className={cn("space-y-1", isRTL ? "text-left" : "text-right")}>
+            <h3 className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('invoice.delivery')}</h3>
             <p className="text-xs sm:text-base font-bold text-slate-900">{format(new Date(order.deliveryDate), 'MMM dd, yyyy')}</p>
-            <p className="text-[10px] sm:text-sm text-slate-500 font-medium">Issued: {format(new Date(), 'MMM dd')}</p>
+            <p className="text-[10px] sm:text-sm text-slate-500 font-medium">{t('invoice.issued')}: {format(new Date(), 'MMM dd')}</p>
           </div>
         </div>
 
         {/* Items Table - Compact */}
         <div className="mb-6 sm:mb-8 border-y border-slate-50 py-2">
           <div className="flex justify-between items-center py-2 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
-            <span>Description</span>
-            <span>Amount</span>
+            <span>{t('invoice.description')}</span>
+            <span>{t('invoice.amount')}</span>
           </div>
           <div className="flex justify-between items-center py-3 px-1">
             <div>
               <p className="text-xs sm:text-base font-bold text-slate-900">{order.dressType}</p>
-              <p className="text-[10px] sm:text-sm text-slate-500 font-medium">Custom Tailoring Service</p>
+              <p className="text-[10px] sm:text-sm text-slate-500 font-medium">{t('invoice.customTailoring')}</p>
             </div>
             <p className="text-xs sm:text-base font-black text-slate-900">PKR {order.price.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Totals Section */}
-        <div className="flex justify-end mb-6 sm:mb-10">
+        <div className={cn("flex mb-6 sm:mb-10", isRTL ? "justify-start" : "justify-end")}>
           <div className="w-full sm:w-64 space-y-2 bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
             <div className="flex justify-between text-[10px] sm:text-xs font-bold text-slate-500">
-              <span>Subtotal</span>
+              <span>{t('invoice.subtotal')}</span>
               <span>PKR {order.price.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-[10px] sm:text-xs font-bold text-emerald-600">
-              <span>Advance Paid</span>
+              <span>{t('invoice.advancePaid')}</span>
               <span>-PKR {(order.advancePayment || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm sm:text-lg font-black text-slate-900 pt-2 border-t border-slate-200">
-              <span>Balance Due</span>
+              <span>{t('invoice.balanceDue')}</span>
               <span className="text-brand-primary">PKR {(order.price - (order.advancePayment || 0)).toLocaleString()}</span>
             </div>
           </div>
@@ -261,9 +264,9 @@ export default function Invoice() {
 
         {/* Footer */}
         <div className="text-center space-y-1 pt-6 border-t border-slate-100">
-          <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">Thank You</p>
+          <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">{t('invoice.thankYou')}</p>
           <p className="text-xs sm:text-sm font-medium text-slate-500 italic">
-            "{shop.invoiceFooter || 'We appreciate your trust in our craftsmanship.'}"
+            "{shop.invoiceFooter || t('invoice.defaultFooter')}"
           </p>
           <div className="pt-4 flex justify-center gap-4 text-[9px] text-slate-300 font-medium">
             <span>{shop.address}</span>

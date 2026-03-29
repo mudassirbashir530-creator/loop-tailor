@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -12,6 +13,7 @@ import { cn } from '../lib/utils';
 
 export default function Customers() {
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,19 +72,19 @@ export default function Customers() {
         className="flex flex-col md:flex-row md:items-end justify-between gap-6"
       >
         <div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">Customer Directory</h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Manage your client profiles and measurement history.</p>
+          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">{t('customers.title')}</h1>
+          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">{t('customers.subtitle')}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 items-center w-full md:w-auto">
           <div className="relative w-full sm:w-80 group">
             <input
               type="text"
-              placeholder="Search by name or phone..."
+              placeholder={t('customers.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-slate-100 bg-white text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm"
+              className={cn("w-full h-14 rounded-2xl border-2 border-slate-100 bg-white text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
             />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors">
+            <div className={cn("absolute top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")}>
               <Search className="h-5 w-5" />
             </div>
           </div>
@@ -93,8 +95,8 @@ export default function Customers() {
               isAdding ? "bg-slate-100 text-slate-600 hover:bg-slate-200" : "bg-brand-primary text-white hover:bg-brand-primary/90 shadow-brand-primary/20"
             )}
           >
-            {isAdding ? <X className="h-5 w-5 mr-2" /> : <UserPlus className="h-5 w-5 mr-2" />}
-            {isAdding ? 'Cancel' : 'Add Customer'}
+            {isAdding ? <X className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <UserPlus className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
+            {isAdding ? t('customers.cancel') : t('customers.addCustomer')}
           </Button>
         </div>
       </motion.div>
@@ -109,57 +111,57 @@ export default function Customers() {
           >
             <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden border-2 border-brand-primary/10">
               <CardHeader className="p-8 pb-4">
-                <CardTitle className="text-2xl font-black text-slate-900">New Client Profile</CardTitle>
+                <CardTitle className="text-2xl font-black text-slate-900">{t('customers.newProfile')}</CardTitle>
               </CardHeader>
               <CardContent className="p-8 pt-0">
                 <form onSubmit={handleAddCustomer} className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Full Name *</label>
+                    <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.fullName')}</label>
                     <div className="relative group">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors" />
+                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={newCustomer.name} 
                         onChange={e => setNewCustomer({...newCustomer, name: e.target.value})} 
                         placeholder="e.g. Muhammad Ahmed" 
-                        className="h-14 pl-12 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
+                        className={cn("h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number *</label>
+                    <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.phone')}</label>
                     <div className="relative group">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors" />
+                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={newCustomer.phone} 
                         onChange={e => setNewCustomer({...newCustomer, phone: e.target.value})} 
                         placeholder="e.g. 0300 1234567" 
-                        className="h-14 pl-12 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
+                        className={cn("h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Residential Address</label>
+                    <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.address')}</label>
                     <div className="relative group">
-                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors" />
+                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         value={newCustomer.address} 
                         onChange={e => setNewCustomer({...newCustomer, address: e.target.value})} 
                         placeholder="e.g. House #123, Street 4, Lahore" 
-                        className="h-14 pl-12 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all"
+                        className={cn("h-14 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Additional Notes</label>
+                    <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.notes')}</label>
                     <div className="relative group">
-                      <Notebook className="absolute left-4 top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors" />
+                      <Notebook className={cn("absolute top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")} />
                       <textarea 
                         value={newCustomer.notes} 
                         onChange={e => setNewCustomer({...newCustomer, notes: e.target.value})} 
                         placeholder="Specific preferences, fit styles, etc." 
-                        className="w-full min-h-[120px] pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all focus:outline-none"
+                        className={cn("w-full min-h-[120px] py-4 rounded-2xl border-2 border-slate-100 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-bold transition-all focus:outline-none", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
                       />
                     </div>
                   </div>
@@ -170,13 +172,13 @@ export default function Customers() {
                       onClick={() => setIsAdding(false)}
                       className="h-14 px-8 rounded-2xl font-bold text-slate-500 hover:bg-slate-50"
                     >
-                      Discard
+                      {t('customers.discard')}
                     </Button>
                     <Button 
                       type="submit"
                       className="h-14 px-10 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 font-black text-base shadow-lg transition-all hover:scale-105 active:scale-95"
                     >
-                      Save Profile
+                      {t('customers.save')}
                     </Button>
                   </div>
                 </form>
@@ -204,15 +206,15 @@ export default function Customers() {
                   <User className="h-8 w-8" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">No customers found</h3>
-                  <p className="text-slate-400 font-medium">Try searching with a different name or phone number.</p>
+                  <h3 className="text-lg font-bold text-slate-900">{t('customers.noCustomers')}</h3>
+                  <p className="text-slate-400 font-medium">{t('customers.trySearching')}</p>
                 </div>
                 <Button 
                   onClick={() => setIsAdding(true)}
                   variant="outline"
                   className="rounded-xl font-bold border-slate-200"
                 >
-                  Add New Customer
+                  {t('customers.addCustomer')}
                 </Button>
               </motion.div>
             ) : (

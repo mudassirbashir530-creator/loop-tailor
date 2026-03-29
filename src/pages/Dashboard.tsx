@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -29,12 +30,14 @@ const itemVariants = {
   }
 };
 
-type DashboardTab = 'Recent Orders' | 'Upcoming Deliveries';
-const dashboardTabs: DashboardTab[] = ['Recent Orders', 'Upcoming Deliveries'];
-
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
+  
+  type DashboardTab = string;
+  const dashboardTabs: DashboardTab[] = [t('dashboard.recentOrders'), t('dashboard.upcomingDeliveries')];
+  
   const [stats, setStats] = useState({
     customers: 0,
     activeOrders: 0,
@@ -45,16 +48,16 @@ export default function Dashboard() {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [upcomingDeliveries, setUpcomingDeliveries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<DashboardTab>('Recent Orders');
+  const [activeTab, setActiveTab] = useState<DashboardTab>(dashboardTabs[0]);
   const [searchToken, setSearchToken] = useState('');
   const [searchError, setSearchError] = useState('');
 
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
     let newIndex = index;
     if (e.key === 'ArrowRight') {
-      newIndex = (index + 1) % dashboardTabs.length;
+      newIndex = (index + (isRTL ? -1 : 1) + dashboardTabs.length) % dashboardTabs.length;
     } else if (e.key === 'ArrowLeft') {
-      newIndex = (index - 1 + dashboardTabs.length) % dashboardTabs.length;
+      newIndex = (index + (isRTL ? 1 : -1) + dashboardTabs.length) % dashboardTabs.length;
     } else if (e.key === 'Home') {
       newIndex = 0;
     } else if (e.key === 'End') {
@@ -203,9 +206,9 @@ export default function Dashboard() {
       <motion.div variants={itemVariants} className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">
-            Hello, <span className="text-brand-primary">{user?.displayName?.split(' ')[0] || 'Tailor'}</span>
+            {t('dashboard.welcome')}, <span className="text-brand-primary">{user?.displayName?.split(' ')[0] || 'Tailor'}</span>
           </h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Welcome back! Here's what's happening today.</p>
+          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Here's what's happening today.</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
@@ -216,24 +219,24 @@ export default function Dashboard() {
             whileHover={{ scale: 1.02 }}
             whileFocus={{ scale: 1.02 }}
           >
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors">
+            <div className={cn("absolute top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")}>
               <Hash className="h-5 w-5" />
             </div>
             <input 
               type="text"
-              placeholder="Search by Token ID (e.g. 101)"
+              placeholder={t('dashboard.searchPlaceholder')}
               value={searchToken}
               onChange={(e) => setSearchToken(e.target.value)}
-              className="w-full h-16 pl-14 pr-4 rounded-3xl border-2 border-slate-100 bg-white text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm"
+              className={cn("w-full h-16 rounded-3xl border-2 border-slate-100 bg-white text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm", isRTL ? "pr-14 pl-4" : "pl-14 pr-4")}
             />
             <button 
               type="submit"
-              className="absolute right-3 top-3 h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center hover:bg-brand-primary transition-colors"
+              className={cn("absolute top-3 h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center hover:bg-brand-primary transition-colors", isRTL ? "left-3" : "right-3")}
             >
               <Search className="h-5 w-5" />
             </button>
             {searchError && (
-              <p className="absolute -bottom-6 left-2 text-[10px] font-bold text-red-500 uppercase tracking-wider">{searchError}</p>
+              <p className={cn("absolute -bottom-6 text-[10px] font-bold text-red-500 uppercase tracking-wider", isRTL ? "right-2" : "left-2")}>{searchError}</p>
             )}
           </motion.form>
         </div>
@@ -241,9 +244,9 @@ export default function Dashboard() {
 
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          { label: "Active Orders", value: stats.activeOrders, icon: Scissors, color: "text-brand-primary", bg: "bg-brand-primary/10" },
-          { label: "Completed Orders", value: stats.completedOrders, icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: "Total Revenue", value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-emerald-700", bg: "bg-emerald-100" },
+          { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-brand-primary", bg: "bg-brand-primary/10" },
+          { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-emerald-700", bg: "bg-emerald-100" },
         ].map((stat, idx) => (
           <motion.div key={idx} variants={itemVariants}>
             <Card className="border-none shadow-sm bg-white rounded-[2rem] p-6 flex items-center gap-4">
@@ -297,10 +300,10 @@ export default function Dashboard() {
                     </button>
                   ))}
                 </div>
-                {activeTab === 'Recent Orders' ? (
+                {activeTab === t('dashboard.recentOrders') ? (
                   <Button variant="ghost" size="sm" asChild className="rounded-xl hover:bg-brand-primary/5 text-brand-primary">
                     <Link to="/dashboard/orders" className="flex items-center font-bold">
-                      View All <ArrowRight className="ml-2 h-4 w-4" />
+                      {t('dashboard.viewAll')} <ArrowRight className={cn("h-4 w-4", isRTL ? "mr-2 rotate-180" : "ml-2")} />
                     </Link>
                   </Button>
                 ) : (
@@ -323,14 +326,14 @@ export default function Dashboard() {
                   transition={{ duration: 0.3 }}
                   className="divide-y divide-slate-50"
                 >
-                  {activeTab === 'Recent Orders' ? (
+                  {activeTab === t('dashboard.recentOrders') ? (
                     recentOrders.length === 0 ? (
-                      <div className="p-12 text-center text-slate-400 font-medium">No recent orders.</div>
+                      <div className="p-12 text-center text-slate-400 font-medium">{t('dashboard.noRecentOrders')}</div>
                     ) : (
                       recentOrders.map((order, idx) => (
                         <motion.div 
                           key={order.id} 
-                          initial={{ opacity: 0, x: -20 }}
+                          initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.05 }}
                           className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors cursor-pointer group"
@@ -345,7 +348,7 @@ export default function Dashboard() {
                               <div className="text-xs text-slate-500 font-medium">{order.dressType} • {formatDate(order.createdAt)}</div>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
                             <div className="text-sm font-black text-brand-primary">{formatCurrency(order.price)}</div>
                             <div className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${
                               order.status === 'Delivered' ? 'text-emerald-500' : 'text-amber-500'
@@ -356,12 +359,12 @@ export default function Dashboard() {
                     )
                   ) : (
                     upcomingDeliveries.length === 0 ? (
-                      <div className="p-12 text-center text-slate-400 font-medium">No deliveries due in the next 7 days.</div>
+                      <div className="p-12 text-center text-slate-400 font-medium">{t('dashboard.noUpcomingDeliveries')}</div>
                     ) : (
                       upcomingDeliveries.map((order, idx) => (
                         <motion.div 
                           key={order.id} 
-                          initial={{ opacity: 0, x: 20 }}
+                          initial={{ opacity: 0, x: isRTL ? -20 : 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.05 }}
                           className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors group cursor-pointer"
@@ -374,18 +377,18 @@ export default function Dashboard() {
                             <div>
                               <div className="font-bold text-slate-900 group-hover:text-brand-primary transition-colors">{order.customerName}</div>
                               <div className="text-xs text-slate-500 font-medium flex items-center">
-                                <Clock className="h-3 w-3 mr-1" />
-                                Due: {format(new Date(order.deliveryDate), 'MMM dd, yyyy')}
+                                <Clock className={cn("h-3 w-3", isRTL ? "ml-1" : "mr-1")} />
+                                {t('dashboard.due')}: {format(new Date(order.deliveryDate), 'MMM dd, yyyy')}
                               </div>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
                             <Button 
                               variant="outline" 
                               size="sm" 
                               className="rounded-xl border-slate-200 group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary transition-all"
                             >
-                              Details
+                              {t('dashboard.details')}
                             </Button>
                           </div>
                         </motion.div>

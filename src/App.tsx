@@ -6,6 +6,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import Layout from './components/Layout';
 import OfflineIndicator from './components/OfflineIndicator';
 import InstallPrompt from './components/InstallPrompt';
@@ -68,9 +69,10 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <AuthProvider>
-      <OfflineIndicator />
-      <InstallPrompt />
-      <Router>
+      <LanguageProvider>
+        <OfflineIndicator />
+        <InstallPrompt />
+        <Router>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Landing />} />
@@ -134,7 +136,8 @@ export default function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
-      </Router>
+        </Router>
+      </LanguageProvider>
     </AuthProvider>
   );
 }

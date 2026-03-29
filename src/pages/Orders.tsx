@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -12,6 +13,7 @@ import { cn } from '../lib/utils';
 
 export default function Orders() {
   const { user } = useAuth();
+  const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>('All');
@@ -81,19 +83,19 @@ export default function Orders() {
         className="flex flex-col md:flex-row md:items-end justify-between gap-4"
       >
         <div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">Order Tracking</h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Manage and track your customer orders in real-time.</p>
+          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">{t('orders.title')}</h1>
+          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">{t('orders.subtitle')}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 items-center w-full md:w-auto">
           <div className="relative w-full sm:w-80 group">
             <input
               type="text"
-              placeholder="Search Token ID, Name..."
+              placeholder={t('orders.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-slate-100 bg-white text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm"
+              className={cn("w-full h-14 rounded-2xl border-2 border-slate-100 bg-white text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
             />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors">
+            <div className={cn("absolute top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")}>
               <Search className="h-5 w-5" />
             </div>
           </div>
@@ -101,8 +103,8 @@ export default function Orders() {
             onClick={() => navigate('/dashboard/orders/new')} 
             className="w-full sm:w-auto h-14 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20 px-8 font-black text-base transition-all hover:scale-105 active:scale-95"
           >
-            <Plus className="h-5 w-5 mr-2" />
-            New Order
+            <Plus className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
+            {t('orders.newOrder')}
           </Button>
         </div>
       </motion.div>
@@ -121,7 +123,7 @@ export default function Orders() {
                 : "bg-white text-slate-500 border-slate-100 hover:bg-slate-50 hover:text-slate-900"
             )}
           >
-            {status}
+            {t(`orders.${status.toLowerCase()}`)}
           </Button>
         ))}
       </div>
@@ -129,7 +131,7 @@ export default function Orders() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 space-y-4">
           <Loader2 className="h-12 w-12 text-brand-primary animate-spin" />
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading orders...</p>
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{t('orders.loading')}</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -144,9 +146,9 @@ export default function Orders() {
                   <Package className="h-8 w-8" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">No orders found</h3>
+                  <h3 className="text-lg font-bold text-slate-900">{t('orders.noOrders')}</h3>
                   <p className="text-slate-400 font-medium">
-                    {filter === 'All' ? 'Start by creating your first order.' : `No ${filter.toLowerCase()} orders found.`}
+                    {filter === 'All' ? t('orders.startFirstOrder') : t('orders.noOrdersFound').replace('{{status}}', t(`orders.${filter.toLowerCase()}`))}
                   </p>
                 </div>
                 <Button 
@@ -154,7 +156,7 @@ export default function Orders() {
                   variant="outline"
                   className="rounded-xl font-bold border-slate-200"
                 >
-                  Create New Order
+                  {t('orders.createOrder')}
                 </Button>
               </motion.div>
             ) : (
@@ -183,20 +185,20 @@ export default function Orders() {
                         "px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm",
                         getStatusColor(order.status)
                       )}>
-                        {order.status}
+                        {t(`orders.${order.status.toLowerCase()}`)}
                       </span>
                     </CardHeader>
                     <CardContent className="p-7 pt-0 space-y-6">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div className="space-y-1.5">
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                            <Scissors className="h-3 w-3" /> Dress Type
+                            <Scissors className="h-3 w-3" /> {t('orders.dressType')}
                           </span>
                           <p className="font-bold text-slate-700">{order.dressType}</p>
                         </div>
                         <div className="space-y-1.5">
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                            <MapPin className="h-3 w-3" /> Rack
+                            <MapPin className="h-3 w-3" /> {t('orders.rack')}
                           </span>
                           <p className="font-bold text-slate-700">{order.rackLocation || '---'}</p>
                         </div>
@@ -205,7 +207,7 @@ export default function Orders() {
                       <div className="pt-6 border-t border-slate-50 flex items-center justify-between gap-2">
                         <div className="flex flex-col">
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                            <Calendar className="h-3 w-3" /> Delivery
+                            <Calendar className="h-3 w-3" /> {t('orders.delivery')}
                           </span>
                           <span className="text-sm font-black text-slate-900">
                             {format(new Date(order.deliveryDate), 'MMM dd, yyyy')}
@@ -219,8 +221,8 @@ export default function Orders() {
                               onClick={() => updateStatus(order.id, 'Stitching')}
                               className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 font-black text-xs rounded-xl h-10 px-4"
                             >
-                              <Scissors className="h-4 w-4 mr-1.5" />
-                              Start
+                              <Scissors className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
+                              {t('orders.start')}
                             </Button>
                           )}
                           {order.status === 'Stitching' && (
@@ -230,8 +232,8 @@ export default function Orders() {
                               onClick={() => updateStatus(order.id, 'Ready')}
                               className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-black text-xs rounded-xl h-10 px-4"
                             >
-                              <Package className="h-4 w-4 mr-1.5" />
-                              Ready
+                              <Package className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
+                              {t('orders.ready')}
                             </Button>
                           )}
                           {order.status === 'Ready' && (
@@ -241,14 +243,14 @@ export default function Orders() {
                               onClick={() => updateStatus(order.id, 'Delivered')}
                               className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 font-black text-xs rounded-xl h-10 px-4"
                             >
-                              <CheckCircle2 className="h-4 w-4 mr-1.5" />
-                              Deliver
+                              <CheckCircle2 className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
+                              {t('orders.deliver')}
                             </Button>
                           )}
                           {order.status === 'Delivered' && (
                             <div className="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5">
                               <CheckCircle2 className="h-4 w-4" />
-                              Done
+                              {t('orders.done')}
                             </div>
                           )}
                           <Button 
@@ -257,7 +259,7 @@ export default function Orders() {
                             onClick={() => navigate(`/dashboard/orders/${order.id}`)}
                             className="rounded-xl h-10 w-10 border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-all"
                           >
-                            <ArrowRight className="h-4 w-4" />
+                            <ArrowRight className={cn("h-4 w-4", isRTL ? "rotate-180" : "")} />
                           </Button>
                         </div>
                       </div>

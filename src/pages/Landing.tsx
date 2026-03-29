@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Link, Navigate } from 'react-router-dom';
 import Hero from '../components/Hero';
+import { cn } from '../lib/utils';
 import { 
   Scissors, 
   CheckCircle, 
@@ -31,7 +33,8 @@ import {
   Ruler,
   Truck,
   Workflow,
-  ChevronDown
+  ChevronDown,
+  Globe
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
@@ -56,44 +59,37 @@ const itemVariants = {
   }
 };
 
-const faqs = [
-  { q: "What is LoopTailor?", a: "LoopTailor is a smart tailoring management software designed for tailors and boutique owners to manage customer measurements, orders, token IDs, delivery tracking, and shop operations digitally without paper registers." },
-  { q: "Who can use LoopTailor?", a: "LoopTailor is built for tailors, tailoring shops, fashion boutiques, and stitching businesses that want to manage customers and orders efficiently using a digital system." },
-  { q: "How does LoopTailor help tailors?", a: "LoopTailor helps tailors organize measurements, track orders, assign token numbers, manage deliveries, and avoid manual record mistakes by keeping everything securely stored in one system." },
-  { q: "Does LoopTailor store customer measurements?", a: "Yes. LoopTailor securely saves customer measurements and order history so tailors can quickly access past records anytime." },
-  { q: "Can multiple shops use LoopTailor?", a: "Yes. LoopTailor supports multiple tailoring shops where each shop’s data stays separate and organized." },
-  { q: "Is LoopTailor easy to use?", a: "Yes. LoopTailor is designed for simplicity so even non-technical users can manage tailoring work easily." },
-  { q: "Does LoopTailor work on mobile and web?", a: "Yes. LoopTailor works on both mobile devices and web browsers, allowing shop owners to manage their business anywhere." },
-  { q: "Why choose LoopTailor instead of paper registers?", a: "LoopTailor saves time, reduces mistakes, improves customer management, and keeps records safe compared to traditional manual registers." },
-  { q: "Looking for loop tailor, loptailor, or loop teler?", a: "You've found the right place! LoopTailor (often searched as loop tailor or loptailor) is the leading digital management system for modern tailoring shops." },
-  { q: "Is LoopTailor the best darzi software?", a: "Yes, LoopTailor is widely considered the best darzi software for managing stitching orders, measurements, and customer records in a digital format." },
-  { q: "Can I use LoopTailor as a boutique software?", a: "Absolutely! LoopTailor is perfect boutique software, offering features for order tracking, measurement management, and customer relationship management." }
-];
-
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": faqs.map(faq => ({
-    "@type": "Question",
-    "name": faq.q,
-    "acceptedAnswer": {
-      "@type": "Answer",
-      "text": faq.a
-    }
-  }))
-};
-
 export default function Landing() {
   const { user } = useAuth();
+  const { t, isRTL, language, setLanguage } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const translatedFaqs = (t('landing.faq.items') as unknown as {q: string, a: string}[]);
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": translatedFaqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.a
+      }
+    }))
+  };
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'ur' : 'en');
+  };
+
   return (
-    <div className="min-h-screen bg-[#FDFCF9] font-sans text-slate-900 overflow-x-hidden selection:bg-brand-primary/10 selection:text-brand-primary">
+    <div className={cn("min-h-screen bg-[#FDFCF9] font-sans text-slate-900 overflow-x-hidden selection:bg-brand-primary/10 selection:text-brand-primary", isRTL ? "font-urdu" : "")}>
       <script type="application/ld+json">
         {JSON.stringify(faqSchema)}
       </script>
@@ -122,18 +118,27 @@ export default function Landing() {
             
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">Features</a>
-              <a href="#how-it-works" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">How it Works</a>
-              <Link to="/about" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">About</Link>
-              <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">Pricing</a>
+              <a href="#features" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.features')}</a>
+              <a href="#how-it-works" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.howItWorks')}</a>
+              <Link to="/about" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.about')}</Link>
+              <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.pricing')}</a>
+              
+              <button 
+                onClick={toggleLanguage}
+                className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors flex items-center gap-1"
+              >
+                <Globe className="h-4 w-4" />
+                <span>{language === 'en' ? 'اردو' : 'EN'}</span>
+              </button>
+
               <Link to="/login">
                 <Button variant="ghost" className="text-sm font-semibold">
-                  Sign In
+                  {t('landing.nav.signIn')}
                 </Button>
               </Link>
               <Link to="/signup">
                 <Button className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full px-6">
-                  Start Free Trial
+                  {t('landing.nav.startFreeTrial')}
                 </Button>
               </Link>
             </div>
@@ -157,16 +162,25 @@ export default function Landing() {
               className="md:hidden bg-white border-b border-slate-100 overflow-hidden"
             >
               <div className="px-4 py-6 space-y-4">
-                <a href="#features" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">Features</a>
-                <a href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">How it Works</a>
-                <Link to="/about" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">About</Link>
-                <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">Pricing</a>
+                <a href="#features" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.features')}</a>
+                <a href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.howItWorks')}</a>
+                <Link to="/about" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.about')}</Link>
+                <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.pricing')}</a>
+                
+                <button 
+                  onClick={() => { toggleLanguage(); setIsMenuOpen(false); }}
+                  className="flex items-center gap-2 text-lg font-medium text-slate-600 hover:text-brand-primary transition-colors w-full text-left"
+                >
+                  <Globe className="h-5 w-5" />
+                  <span>{language === 'en' ? 'اردو' : 'English'}</span>
+                </button>
+
                 <div className="pt-4 flex flex-col gap-3">
                   <Link to="/login" className="w-full">
-                    <Button variant="outline" className="w-full">Sign In</Button>
+                    <Button variant="outline" className="w-full">{t('landing.nav.signIn')}</Button>
                   </Link>
                   <Link to="/signup" className="w-full">
-                    <Button className="w-full bg-brand-primary text-white">Get Started</Button>
+                    <Button className="w-full bg-brand-primary text-white">{t('landing.nav.getStarted')}</Button>
                   </Link>
                 </div>
               </div>
@@ -195,7 +209,7 @@ export default function Landing() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-primary/5 border border-brand-primary/10 mb-6"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-brand-primary animate-pulse" />
-              <span className="text-xs font-black text-brand-primary uppercase tracking-[0.2em]">Core Capabilities</span>
+              <span className="text-xs font-black text-brand-primary uppercase tracking-[0.2em]">{t('landing.features.badge')}</span>
             </motion.div>
             <motion.h2 
               initial={{ opacity: 0, y: 20 }}
@@ -204,7 +218,7 @@ export default function Landing() {
               transition={{ delay: 0.1 }}
               className="text-4xl md:text-6xl font-display font-black tracking-tight text-slate-900 mb-6"
             >
-              Everything you need to <br className="hidden md:block" /> <span className="text-brand-primary">scale</span> your shop.
+              {t('landing.features.title')} <br className="hidden md:block" /> <span className="text-brand-primary">{t('landing.features.titleHighlight')}</span>
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -213,8 +227,7 @@ export default function Landing() {
               transition={{ delay: 0.2 }}
               className="text-lg text-slate-500 max-w-2xl mx-auto font-medium"
             >
-              Designed by tailors, for tailors. We've built the most intuitive 
-              platform to manage your craftsmanship and customer relationships.
+              {t('landing.features.subtitle')}
             </motion.p>
           </div>
 
@@ -222,43 +235,43 @@ export default function Landing() {
             {[
               {
                 icon: <Users className="h-6 w-6" />,
-                title: "Smart Customer CRM",
-                desc: "Store unlimited customer profiles with detailed measurement history, style preferences, and contact info.",
+                title: t('landing.features.items.crm.title'),
+                desc: t('landing.features.items.crm.desc'),
                 color: "from-blue-500 to-indigo-600",
                 lightColor: "bg-blue-50"
               },
               {
                 icon: <LayoutDashboard className="h-6 w-6" />,
-                title: "Live Order Tracking",
-                desc: "Real-time status updates from 'Pending' to 'Delivered'. Automatic delivery date reminders keep you on schedule.",
+                title: t('landing.features.items.tracking.title'),
+                desc: t('landing.features.items.tracking.desc'),
                 color: "from-emerald-500 to-teal-600",
                 lightColor: "bg-emerald-50"
               },
               {
                 icon: <FileText className="h-6 w-6" />,
-                title: "Digital Invoices",
-                desc: "Generate professional PDF invoices with one click. Send them directly to customers via WhatsApp or Email.",
+                title: t('landing.features.items.invoices.title'),
+                desc: t('landing.features.items.invoices.desc'),
                 color: "from-amber-500 to-orange-600",
                 lightColor: "bg-amber-50"
               },
               {
                 icon: <Camera className="h-6 w-6" />,
-                title: "Visual References",
-                desc: "Attach reference photos and sample designs to every order. Never mix up a customer's vision again.",
+                title: t('landing.features.items.visuals.title'),
+                desc: t('landing.features.items.visuals.desc'),
                 color: "from-purple-500 to-violet-600",
                 lightColor: "bg-purple-50"
               },
               {
                 icon: <Shield className="h-6 w-6" />,
-                title: "Secure Cloud Storage",
-                desc: "Your data is encrypted and backed up daily. Access your shop records from any device, anywhere in the world.",
+                title: t('landing.features.items.security.title'),
+                desc: t('landing.features.items.security.desc'),
                 color: "from-rose-500 to-pink-600",
                 lightColor: "bg-rose-50"
               },
               {
                 icon: <Zap className="h-6 w-6" />,
-                title: "Instant Analytics",
-                desc: "Track your revenue, pending payments, and order volume with a beautiful, real-time dashboard.",
+                title: t('landing.features.items.analytics.title'),
+                desc: t('landing.features.items.analytics.desc'),
                 color: "from-indigo-500 to-blue-600",
                 lightColor: "bg-indigo-50"
               }
@@ -301,13 +314,13 @@ export default function Landing() {
       {/* Why Tailors Choose Loop Tailor */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl md:text-5xl font-display font-black text-center text-slate-900 mb-16">Why Tailors Choose Loop Tailor</h2>
+          <h2 className="text-4xl md:text-5xl font-display font-black text-center text-slate-900 mb-16">{t('landing.whyChoose.title')}</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { icon: <ClipboardList className="h-8 w-8 text-brand-primary" />, title: "Easy Order Tracking", desc: "Keep all your orders organized and never miss a delivery deadline again." },
-              { icon: <Ruler className="h-8 w-8 text-brand-primary" />, title: "Customer Measurement Storage", desc: "Securely store and access customer measurements from any device." },
-              { icon: <Truck className="h-8 w-8 text-brand-primary" />, title: "Fast Delivery Management", desc: "Optimize your delivery process and keep customers informed with status updates." },
-              { icon: <Workflow className="h-8 w-8 text-brand-primary" />, title: "Simple Digital Workflow", desc: "Streamline your entire business process with our intuitive digital platform." }
+              { icon: <ClipboardList className="h-8 w-8 text-brand-primary" />, title: t('landing.whyChoose.items.tracking.title'), desc: t('landing.whyChoose.items.tracking.desc') },
+              { icon: <Ruler className="h-8 w-8 text-brand-primary" />, title: t('landing.whyChoose.items.measurements.title'), desc: t('landing.whyChoose.items.measurements.desc') },
+              { icon: <Truck className="h-8 w-8 text-brand-primary" />, title: t('landing.whyChoose.items.delivery.title'), desc: t('landing.whyChoose.items.delivery.desc') },
+              { icon: <Workflow className="h-8 w-8 text-brand-primary" />, title: t('landing.whyChoose.items.workflow.title'), desc: t('landing.whyChoose.items.workflow.desc') }
             ].map((item, idx) => (
               <motion.div 
                 key={idx}
@@ -344,16 +357,16 @@ export default function Landing() {
               viewport={{ once: true }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             >
-              <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">The Workflow</h2>
-              <h3 className="text-4xl md:text-5xl font-display font-black tracking-tight text-slate-900 mb-6">From first measurement <br className="hidden md:block" /> to final delivery.</h3>
-              <p className="text-lg text-slate-500 mb-10">We've simplified the entire tailoring process into four easy steps, so you can focus on what you do best: crafting beautiful clothes.</p>
+              <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">{t('landing.workflow.badge')}</h2>
+              <h3 className="text-4xl md:text-5xl font-display font-black tracking-tight text-slate-900 mb-6">{t('landing.workflow.title')} <br className="hidden md:block" /> {t('landing.workflow.titleHighlight')}</h3>
+              <p className="text-lg text-slate-500 mb-10">{t('landing.workflow.subtitle')}</p>
               
               <div className="space-y-4">
                 {[
-                  { icon: UserPlus, title: "Create Profile", desc: "Add a new customer and save their measurements once. They're stored forever securely." },
-                  { icon: Scissors, title: "Take Order", desc: "Select dress type, set delivery date, and upload reference photos for the design." },
-                  { icon: Activity, title: "Track Progress", desc: "Update status as you stitch. The dashboard shows you exactly what's due today." },
-                  { icon: FileCheck, title: "Deliver & Invoice", desc: "Mark as delivered and generate a professional invoice instantly. Get paid faster." }
+                  { icon: UserPlus, title: t('landing.workflow.items.profile.title'), desc: t('landing.workflow.items.profile.desc') },
+                  { icon: Scissors, title: t('landing.workflow.items.order.title'), desc: t('landing.workflow.items.order.desc') },
+                  { icon: Activity, title: t('landing.workflow.items.progress.title'), desc: t('landing.workflow.items.progress.desc') },
+                  { icon: FileCheck, title: t('landing.workflow.items.deliver.title'), desc: t('landing.workflow.items.deliver.desc') }
                 ].map((item, idx) => (
                   <div key={idx} className="flex gap-5 p-5 rounded-2xl bg-white shadow-sm border border-slate-100 hover:border-brand-primary/30 hover:shadow-md transition-all group cursor-default">
                     <div className="w-14 h-14 rounded-xl bg-brand-primary/10 flex items-center justify-center shrink-0 group-hover:bg-brand-primary group-hover:text-white transition-colors text-brand-primary">
@@ -361,7 +374,7 @@ export default function Landing() {
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Step 0{idx + 1}</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('landing.workflow.stepPrefix')} 0{idx + 1}</span>
                         <h4 className="text-lg font-bold text-slate-900">{item.title}</h4>
                       </div>
                       <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
@@ -520,8 +533,8 @@ export default function Landing() {
       <section id="pricing" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">Simple Pricing</h2>
-            <h3 className="text-4xl md:text-5xl font-display font-bold tracking-tight">Grow your business <br /> without the overhead.</h3>
+            <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">{t('landing.pricing.badge')}</h2>
+            <h3 className="text-4xl md:text-5xl font-display font-bold tracking-tight" dangerouslySetInnerHTML={{ __html: t('landing.pricing.title') }}></h3>
           </div>
 
           <div className="max-w-lg mx-auto">
@@ -534,30 +547,22 @@ export default function Landing() {
               <div className="bg-white rounded-[2.2rem] p-10">
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h4 className="text-2xl font-bold mb-1">Professional Plan</h4>
-                    <p className="text-slate-500">Everything you need to manage one shop.</p>
+                    <h4 className="text-2xl font-bold mb-1">{t('landing.pricing.planName')}</h4>
+                    <p className="text-slate-500">{t('landing.pricing.planDesc')}</p>
                   </div>
                   <div className="bg-brand-primary/10 text-brand-primary text-xs font-bold tracking-wide px-3 py-1 rounded-full">
-                    Most Popular
+                    {t('landing.pricing.mostPopular')}
                   </div>
                 </div>
                 
                 <div className="flex items-baseline gap-1 mb-10">
-                  <span className="text-5xl font-black">PKR 0</span>
-                  <span className="text-slate-400 font-medium">/ month</span>
-                  <span className="ml-2 text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded">Free Beta</span>
+                  <span className="text-5xl font-black">{t('landing.pricing.price')}</span>
+                  <span className="text-slate-400 font-medium">{t('landing.pricing.perMonth')}</span>
+                  <span className="ml-2 text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded">{t('landing.pricing.freeBeta')}</span>
                 </div>
 
                 <ul className="space-y-4 mb-10">
-                  {[
-                    "Unlimited Customer Profiles",
-                    "Unlimited Orders & Tracking",
-                    "Digital PDF Invoices",
-                    "Image Uploads (Reference Photos)",
-                    "Real-time Dashboard Analytics",
-                    "Mobile & Desktop Access",
-                    "24/7 Cloud Support"
-                  ].map((feature, idx) => (
+                  {(t('landing.pricing.features') as unknown as string[]).map((feature, idx) => (
                     <li key={idx} className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-emerald-500" />
                       <span className="text-slate-600 font-medium">{feature}</span>
@@ -567,10 +572,10 @@ export default function Landing() {
 
                 <Link to="/signup">
                   <Button size="lg" className="w-full h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-lg font-bold shadow-xl shadow-brand-primary/20">
-                    Get Started Now
+                    {t('landing.pricing.cta')}
                   </Button>
                 </Link>
-                <p className="text-center text-xs text-slate-400 mt-6 font-medium">No credit card required. Cancel anytime.</p>
+                <p className="text-center text-xs text-slate-400 mt-6 font-medium">{t('landing.pricing.noCreditCard')}</p>
               </div>
             </motion.div>
           </div>
@@ -586,12 +591,12 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-display font-black text-slate-900 mb-4">Frequently Asked Questions</h2>
-            <p className="text-lg text-slate-500">Everything you need to know about LoopTailor and how it works.</p>
+            <h2 className="text-3xl md:text-4xl font-display font-black text-slate-900 mb-4">{t('landing.faq.title')}</h2>
+            <p className="text-lg text-slate-500">{t('landing.faq.subtitle')}</p>
           </motion.div>
 
           <div className="space-y-4">
-            {faqs.map((faq, idx) => (
+            {translatedFaqs.map((faq, idx) => (
               <motion.div 
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
@@ -602,10 +607,10 @@ export default function Landing() {
               >
                 <button 
                   onClick={() => setOpenFaq(openFaq === idx ? null : idx)} 
-                  className="w-full px-6 py-5 text-left flex justify-between items-center focus:outline-none"
+                  className={cn("w-full px-6 py-5 flex justify-between items-center focus:outline-none", isRTL ? "text-right" : "text-left")}
                 >
-                  <span className="font-bold text-slate-900 pr-8">{faq.q}</span>
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center transition-transform duration-300 ${openFaq === idx ? 'rotate-180 bg-brand-primary/10 text-brand-primary' : 'text-slate-400'}`}>
+                  <span className={cn("font-bold text-slate-900", isRTL ? "pl-8" : "pr-8")}>{faq.q}</span>
+                  <div className={cn("flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center transition-transform duration-300", openFaq === idx ? 'rotate-180 bg-brand-primary/10 text-brand-primary' : 'text-slate-400')}>
                     <ChevronDown className="h-5 w-5" />
                   </div>
                 </button>
@@ -646,12 +651,12 @@ export default function Landing() {
             </div>
 
             <div className="relative z-10">
-              <h2 className="text-4xl md:text-6xl font-display font-black mb-8 leading-tight">Ready to transform your <br /> tailoring business?</h2>
-              <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">Join hundreds of tailors who have already switched to digital management. It's time to stitch smarter.</p>
+              <h2 className="text-4xl md:text-6xl font-display font-black mb-8 leading-tight" dangerouslySetInnerHTML={{ __html: t('landing.cta.title') }}></h2>
+              <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">{t('landing.cta.subtitle')}</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link to="/signup" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full sm:w-auto h-16 px-12 rounded-2xl bg-white text-brand-primary hover:bg-slate-50 text-lg font-bold shadow-2xl">
-                    Join Loop Tailor Today
+                    {t('landing.cta.button')}
                   </Button>
                 </Link>
               </div>
@@ -665,25 +670,25 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-12 items-center">
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className={cn("flex items-center gap-2 mb-4", isRTL ? "flex-row-reverse" : "")}>
                 <div className="bg-brand-primary p-2 rounded-xl">
                   <Scissors className="h-6 w-6 text-white" />
                 </div>
                 <span className="text-xl font-display font-bold text-slate-900">Loop Tailor</span>
               </div>
-              <p className="text-slate-500 mb-4">Smart Tailor Management Software</p>
-              <p className="text-sm text-slate-500">© 2026 Loop Tailor</p>
+              <p className="text-slate-500 mb-4">{t('landing.footer.tagline')}</p>
+              <p className="text-sm text-slate-500">{t('landing.footer.rights')}</p>
             </div>
             
             <div className="flex flex-col md:items-center gap-4">
-              <Link to="/" className="text-slate-600 hover:text-brand-primary transition-colors">Home</Link>
-              <a href="#features" className="text-slate-600 hover:text-brand-primary transition-colors">Features</a>
-              <Link to="/about" className="text-slate-600 hover:text-brand-primary transition-colors">About</Link>
-              <Link to="/contact" className="text-slate-600 hover:text-brand-primary transition-colors">Contact</Link>
+              <Link to="/" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.home')}</Link>
+              <a href="#features" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.features')}</a>
+              <Link to="/about" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.about')}</Link>
+              <Link to="/contact" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.contact')}</Link>
             </div>
 
-            <div className="flex flex-col md:items-end gap-4">
-              <h4 className="font-bold text-slate-900">Follow Loop Tailor</h4>
+            <div className={cn("flex flex-col gap-4", isRTL ? "md:items-start" : "md:items-end")}>
+              <h4 className="font-bold text-slate-900">{t('landing.footer.follow')}</h4>
               <div className="flex gap-2">
                 <a href="https://www.facebook.com/profile.php?id=61575736701852" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook profile" className="p-2 text-slate-500 hover:text-brand-primary transition-colors"><Facebook className="h-6 w-6" /></a>
                 <a href="https://www.linkedin.com/in/loop-tailor-1b50543ba/" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn profile" className="p-2 text-slate-500 hover:text-brand-primary transition-colors"><Linkedin className="h-6 w-6" /></a>
