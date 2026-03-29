@@ -18,10 +18,33 @@
   }
   html.lang-ur {
     font-family: var(--font-urdu);
-    line-height: 1.8;
+    line-height: 2;
+    font-size: 18px;
   }
   html.lang-ur * {
     font-family: var(--font-urdu);
+  }
+  /* Specific overrides for Urdu to fix alignment and size */
+  html.lang-ur h1, 
+  html.lang-ur h2, 
+  html.lang-ur h3, 
+  html.lang-ur h4, 
+  html.lang-ur h5, 
+  html.lang-ur h6 {
+    line-height: 1.6;
+    margin-bottom: 0.5em;
+  }
+  html.lang-ur input, 
+  html.lang-ur textarea, 
+  html.lang-ur select, 
+  html.lang-ur button {
+    font-size: 1.1em;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  /* Fix for text boxes where Urdu might be clipped or misaligned */
+  html.lang-ur input::placeholder {
+    text-align: right;
   }
   body {
     @apply bg-brand-secondary text-slate-900 font-sans;

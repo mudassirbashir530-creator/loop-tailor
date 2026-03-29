@@ -84,10 +84,6 @@ export default function Landing() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const toggleLanguage = () => {
-    setLanguage(language === 'en' ? 'ur' : 'en');
-  };
-
   return (
     <div className={cn("min-h-screen bg-[#FDFCF9] font-sans text-slate-900 overflow-x-hidden selection:bg-brand-primary/10 selection:text-brand-primary", isRTL ? "font-urdu" : "")}>
       <script type="application/ld+json">
@@ -123,14 +119,6 @@ export default function Landing() {
               <Link to="/about" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.about')}</Link>
               <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.pricing')}</a>
               
-              <button 
-                onClick={toggleLanguage}
-                className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors flex items-center gap-1"
-              >
-                <Globe className="h-4 w-4" />
-                <span>{language === 'en' ? 'اردو' : 'EN'}</span>
-              </button>
-
               <Link to="/login">
                 <Button variant="ghost" className="text-sm font-semibold">
                   {t('landing.nav.signIn')}
@@ -167,14 +155,6 @@ export default function Landing() {
                 <Link to="/about" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.about')}</Link>
                 <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.pricing')}</a>
                 
-                <button 
-                  onClick={() => { toggleLanguage(); setIsMenuOpen(false); }}
-                  className="flex items-center gap-2 text-lg font-medium text-slate-600 hover:text-brand-primary transition-colors w-full text-left"
-                >
-                  <Globe className="h-5 w-5" />
-                  <span>{language === 'en' ? 'اردو' : 'English'}</span>
-                </button>
-
                 <div className="pt-4 flex flex-col gap-3">
                   <Link to="/login" className="w-full">
                     <Button variant="outline" className="w-full">{t('landing.nav.signIn')}</Button>

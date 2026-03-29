@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Scissors, Mail, Lock, User, ArrowRight, ArrowLeft, Loader2, CheckCircle, Star, Shield, Zap, BadgeCheck } from 'lucide-react';
+import { Scissors, Mail, Lock, User, ArrowRight, ArrowLeft, Loader2, CheckCircle, Star, Shield, Zap, BadgeCheck, Globe } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,10 +12,11 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'ur'>('en');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp, signIn, user } = useAuth();
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, setLanguage } = useLanguage();
   const navigate = useNavigate();
 
   if (user) {
@@ -42,7 +43,8 @@ export default function SignUp() {
     setIsLoading(true);
 
     try {
-      await signUp(email, password, name);
+      await signUp(email, password, name, selectedLanguage);
+      await setLanguage(selectedLanguage);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');
@@ -52,7 +54,7 @@ export default function SignUp() {
   };
 
   return (
-    <div className={cn("min-h-screen bg-white flex flex-col lg:flex-row overflow-hidden", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={cn("min-h-screen bg-white flex flex-col lg:flex-row overflow-hidden", selectedLanguage === 'ur' && "font-urdu")} dir={selectedLanguage === 'ur' ? 'rtl' : 'ltr'}>
       {/* Left Side: Branding & Features (Hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-primary relative overflow-hidden flex-col justify-between p-12 text-white">
         {/* Background Accents */}
@@ -211,6 +213,47 @@ export default function SignUp() {
                   dir="ltr"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className={cn("text-sm font-bold text-slate-700 block", selectedLanguage === 'ur' ? "mr-1" : "ml-1")}>{t('auth.interfaceLanguage')}</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedLanguage('en');
+                    setLanguage('en');
+                  }}
+                  className={cn(
+                    "h-14 rounded-2xl border-2 font-bold transition-all flex items-center justify-center gap-2",
+                    selectedLanguage === 'en' 
+                      ? "border-brand-primary bg-brand-primary/5 text-brand-primary shadow-sm" 
+                      : "border-slate-100 bg-white text-slate-400 hover:border-slate-200"
+                  )}
+                >
+                  <Globe className="h-4 w-4" />
+                  English
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedLanguage('ur');
+                    setLanguage('ur');
+                  }}
+                  className={cn(
+                    "h-14 rounded-2xl border-2 font-bold transition-all flex items-center justify-center gap-2 font-urdu",
+                    selectedLanguage === 'ur' 
+                      ? "border-brand-primary bg-brand-primary/5 text-brand-primary shadow-sm" 
+                      : "border-slate-100 bg-white text-slate-400 hover:border-slate-200"
+                  )}
+                >
+                  <Globe className="h-4 w-4" />
+                  اردو
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-400 font-medium px-1">
+                {t('auth.selectLanguage')}
+              </p>
             </div>
 
             {error && (

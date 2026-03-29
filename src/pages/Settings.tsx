@@ -7,12 +7,12 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2, Store, Phone, MapPin, MessageSquare } from 'lucide-react';
+import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2, Store, Phone, MapPin, MessageSquare, Globe } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function Settings() {
   const { user } = useAuth();
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language, setLanguage } = useLanguage();
   const [shop, setShop] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '' });
   const [editData, setEditData] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '' });
   const [isEditing, setIsEditing] = useState(false);
@@ -201,6 +201,41 @@ export default function Settings() {
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">{t('auth.interfaceLanguage')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Button
+              variant={language === 'en' ? 'default' : 'outline'}
+              className={cn(
+                "h-16 rounded-2xl flex items-center justify-center gap-3 text-lg font-bold transition-all",
+                language === 'en' ? "bg-brand-primary shadow-lg shadow-brand-primary/20" : "border-slate-200 text-slate-500"
+              )}
+              onClick={() => setLanguage('en')}
+            >
+              <Globe className="h-5 w-5" />
+              English
+            </Button>
+            <Button
+              variant={language === 'ur' ? 'default' : 'outline'}
+              className={cn(
+                "h-16 rounded-2xl flex items-center justify-center gap-3 text-lg font-bold font-urdu transition-all",
+                language === 'ur' ? "bg-brand-primary shadow-lg shadow-brand-primary/20" : "border-slate-200 text-slate-500"
+              )}
+              onClick={() => setLanguage('ur')}
+            >
+              <Globe className="h-5 w-5" />
+              اردو
+            </Button>
+          </div>
+          <p className="text-sm text-slate-500 mt-4 px-1">
+            {t('auth.selectLanguage')}
+          </p>
         </CardContent>
       </Card>
     </div>

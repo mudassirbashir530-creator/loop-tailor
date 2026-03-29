@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Scissors, Mail, Lock, ArrowRight, ArrowLeft, Loader2, CheckCircle, Smartphone, Shield, Zap } from 'lucide-react';
+import { Scissors, Mail, Lock, ArrowRight, ArrowLeft, Loader2, CheckCircle, Smartphone, Shield, Zap, Globe } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,7 +16,7 @@ export default function Login() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, resetPassword, user } = useAuth();
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
 
   if (user) {
@@ -120,7 +120,18 @@ export default function Login() {
       </div>
 
       {/* Right Side: Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 bg-[#FDFCF9]">
+      <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 bg-[#FDFCF9] relative">
+        {/* Language Toggle */}
+        <div className={cn("absolute top-6 z-20", isRTL ? "left-6" : "right-6")}>
+          <button
+            onClick={() => setLanguage(language === 'en' ? 'ur' : 'en')}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:border-brand-primary hover:text-brand-primary transition-all shadow-sm font-bold text-sm"
+          >
+            <Globe className="h-4 w-4" />
+            <span>{language === 'en' ? 'اردو' : 'English'}</span>
+          </button>
+        </div>
+
         <div className="max-w-md w-full mx-auto">
           <Link to="/" className="flex items-center gap-2 mb-8 text-slate-500 hover:text-slate-900 transition-colors w-fit">
             {isRTL ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
