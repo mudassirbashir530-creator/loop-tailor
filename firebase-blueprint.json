@@ -92,9 +92,77 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["shopId", "tokenId", "customerName", "dressType", "status", "price", "createdAt", "updatedAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile and role information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Article": {
+      "title": "Article",
+      "description": "CMS Article.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "content": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "language": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "slug", "status"]
+    },
+    "SocialPost": {
+      "title": "SocialPost",
+      "description": "Generated social media posts.",
+      "type": "object",
+      "properties": {
+        "baseContent": { "type": "string" },
+        "facebook": { "type": "string" },
+        "instagram": { "type": "string" },
+        "linkedin": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["baseContent"]
+    },
+    "MediaFile": {
+      "title": "MediaFile",
+      "description": "Uploaded media files.",
+      "type": "object",
+      "properties": {
+        "url": { "type": "string" },
+        "name": { "type": "string" },
+        "size": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["url", "name"]
     }
   },
   "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles and roles."
+    },
+    "/articles/{articleId}": {
+      "schema": { "$ref": "#/entities/Article" },
+      "description": "Stores CMS articles."
+    },
+    "/social_posts/{postId}": {
+      "schema": { "$ref": "#/entities/SocialPost" },
+      "description": "Stores generated social media posts."
+    },
+    "/media_library/{mediaId}": {
+      "schema": { "$ref": "#/entities/MediaFile" },
+      "description": "Stores media file metadata."
+    },
     "/shops/{shopId}": {
       "schema": { "$ref": "#/entities/Shop" },
       "description": "Stores shop profiles. Document ID is the user's UID."

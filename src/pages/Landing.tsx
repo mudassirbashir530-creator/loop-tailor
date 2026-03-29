@@ -308,13 +308,13 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-8 rounded-3xl bg-slate-50 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full overflow-hidden"
+                className="p-8 rounded-3xl bg-slate-50 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full"
               >
                 <div className="bg-white w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-sm shrink-0">
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3 break-words">{item.title}</h3>
-                <p className="text-slate-500 leading-relaxed break-words">{item.desc}</p>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
+                <p className="text-slate-500 leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -660,7 +660,7 @@ export default function Landing() {
               <p className="text-sm text-slate-500">{t('landing.footer.rights')}</p>
             </div>
             
-            <div className="flex flex-col md:items-center gap-4">
+            <div className="flex flex-col md:items-start gap-4">
               <Link to="/" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.home')}</Link>
               <a href="#features" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.features')}</a>
               <Link to="/about" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.about')}</Link>

@@ -18,16 +18,12 @@ export default function Footer() {
             <p className="text-sm text-slate-500">© 2026 Loop Tailor</p>
           </div>
           
-          <div className="flex flex-col md:items-center gap-4">
+          <div className="flex flex-col md:items-start gap-4">
             <Link to="/" className="hover:text-white transition-colors">Home</Link>
             <a href="/#features" className="hover:text-white transition-colors">Features</a>
             <Link to="/about" className="hover:text-white transition-colors">About</Link>
-            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
-            <div className="flex gap-4 mt-2 text-xs text-slate-500">
-              <Link to="/privacy" className="hover:text-white transition-colors">Privacy and Policy</Link>
-              <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
-              <Link to="/cookies" className="hover:text-white transition-colors">Cookies</Link>
-            </div>
+            <Link to="/content" className="hover:text-white transition-colors">Content</Link>
+            <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
           </div>
 
           <div className="flex flex-col md:items-end gap-4">

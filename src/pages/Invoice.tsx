@@ -199,7 +199,7 @@ export default function Invoice() {
         </div>
       </div>
 
-      <div id="invoice-capture-area" ref={invoiceRef} className="bg-white p-5 sm:p-10 rounded-3xl shadow-sm border border-slate-100 print:shadow-none print:border-none print:p-0 overflow-hidden" dir={isRTL ? "rtl" : "ltr"}>
+      <div id="invoice-capture-area" ref={invoiceRef} className={cn("bg-white p-5 sm:p-10 rounded-3xl shadow-sm border border-slate-100 print:shadow-none print:border-none print:p-0 overflow-hidden", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
         {/* Header Section */}
         <div className="flex flex-row justify-between items-start border-b border-slate-100 pb-5 mb-5 gap-4">
           <div className="flex items-center gap-3">

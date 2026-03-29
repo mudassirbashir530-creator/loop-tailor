@@ -5,6 +5,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
+  isAdmin: boolean;
   loading: boolean;
   signIn: (email?: string, password?: string) => Promise<void>;
   signUp: (email: string, password: string, name: string, language?: string) => Promise<void>;
@@ -14,6 +15,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  isAdmin: false,
   loading: true,
   signIn: async () => {},
   signUp: async () => {},
@@ -25,11 +27,29 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists() && userDoc.data().role === 'admin') {
+            setIsAdmin(true);
+          } else if (currentUser.email === 'mudassirbashir530@gmail.com' && currentUser.emailVerified) {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
       setLoading(false);
     });
 
@@ -49,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           photoURL: user.photoURL || '',
           provider: provider,
           preferred_language: language || 'en',
+          role: 'user',
           createdAt: new Date().toISOString(),
         });
       }
@@ -70,7 +91,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email?: string, password?: string) => {
     if (email && password) {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // We don't necessarily need to save data on every email login, but it's safe if it checks exists()
       await saveUserData(userCredential.user, 'password');
     } else {
       const provider = new GoogleAuthProvider();
@@ -97,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, resetPassword, logOut }}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, signIn, signUp, resetPassword, logOut }}>
       {!loading && children}
     </AuthContext.Provider>
   );
