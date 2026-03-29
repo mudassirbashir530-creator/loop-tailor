@@ -665,6 +665,11 @@ export default function Landing() {
               <a href="#features" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.features')}</a>
               <Link to="/about" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.about')}</Link>
               <Link to="/contact" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.contact')}</Link>
+              <div className="flex gap-4 mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                <Link to="/privacy" className="hover:text-brand-primary transition-colors">Privacy and Policy</Link>
+                <Link to="/terms" className="hover:text-brand-primary transition-colors">Terms</Link>
+                <Link to="/cookies" className="hover:text-brand-primary transition-colors">Cookies</Link>
+              </div>
             </div>
 
             <div className={cn("flex flex-col gap-4", isRTL ? "md:items-start" : "md:items-end")}>

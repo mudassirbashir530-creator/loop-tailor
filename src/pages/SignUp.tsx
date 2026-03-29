@@ -295,7 +295,7 @@ export default function SignUp() {
           
           <div className="mt-8 text-center">
             <p className="text-xs text-slate-400 leading-relaxed">
-              {t('auth.bySigningUp')} <a href="#" className="underline">{t('auth.termsOfService')}</a> {t('auth.and')} <a href="#" className="underline">{t('auth.privacyPolicy')}</a>
+              {t('auth.bySigningUp')} <Link to="/terms" className="underline">{t('auth.termsOfService')}</Link> {t('auth.and')} <Link to="/privacy" className="underline">{t('auth.privacyPolicy')}</Link>
             </p>
           </div>
         </div>

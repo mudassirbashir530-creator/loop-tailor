@@ -91,14 +91,77 @@ export default function App() {
             
             {/* Legal Pages */}
             <Route path="/privacy" element={
-              <Legal title="Privacy Policy" lastUpdated={LEGAL_LAST_UPDATED}>
-                <p>At Loop Tailor, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our application.</p>
-                <h2>Information We Collect</h2>
-                <p>We collect information that you provide directly to us when you register for an account, create a profile, use our services, or communicate with us. This includes your name, email address, phone number, and any customer data you input into our system.</p>
-                <h2>How We Use Your Information</h2>
-                <p>We use the information we collect to operate, maintain, and provide the features and functionality of the Service, to communicate with you, and to monitor and improve our services.</p>
-                <h2>Data Security</h2>
-                <p>We implement appropriate technical and organizational security measures to protect your personal information against accidental or unlawful destruction, loss, alteration, or unauthorized disclosure.</p>
+              <Legal title="Privacy and Policy" lastUpdated={LEGAL_LAST_UPDATED}>
+                <div className="space-y-8">
+                  <section>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">1. What is Loop Tailor?</h2>
+                    <p>Loop Tailor is a specialized, cloud-based management platform designed exclusively for the tailoring industry. Our primary purpose is to digitize and streamline the traditional tailoring workflow, replacing manual paper-based records with a secure, efficient, and organized digital system.</p>
+                    <p>By using Loop Tailor, tailors and boutique owners can manage customer profiles, record precise measurements, track order progress, and generate professional invoices—all from a single, accessible interface available in both English and Urdu.</p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">2. Information We Collect</h2>
+                    <p>To provide our services effectively, we collect the following types of information:</p>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li><strong>Account Information:</strong> When you sign up, we collect your name, email address, shop name, and preferred interface language.</li>
+                      <li><strong>Customer Data:</strong> As part of the service, you may input data about your customers, including their names, contact details, and specific body measurements.</li>
+                      <li><strong>Order Information:</strong> Details regarding garments, styles, deadlines, and payment status for each order processed through the app.</li>
+                      <li><strong>Authentication Data:</strong> We use secure authentication methods (including Google Sign-In) which provide us with basic profile information to verify your identity.</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">3. How We Use Your Information</h2>
+                    <p>The information we collect is used solely for the following purposes:</p>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li>To provide, maintain, and improve the Loop Tailor application and its features.</li>
+                      <li>To manage your account and provide you with customer support.</li>
+                      <li>To process and track orders and generate invoices for your business.</li>
+                      <li>To communicate important updates, security alerts, and administrative messages.</li>
+                      <li>To personalize your experience, such as setting your preferred language (English or Urdu).</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">4. Data Storage and Security</h2>
+                    <p>We prioritize the security of your data. Loop Tailor utilizes industry-standard cloud infrastructure provided by Google Firebase to store and protect your information.</p>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li><strong>Encryption:</strong> Data is encrypted both in transit and at rest.</li>
+                      <li><strong>Access Control:</strong> Only authenticated users can access their own business data. We implement strict security rules to ensure data isolation between different shops.</li>
+                      <li><strong>Reliability:</strong> Our cloud-based system ensures that your records are backed up and protected against local hardware failures or loss of paper records.</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">5. Data Sharing and Disclosure</h2>
+                    <p>We do not sell, trade, or otherwise transfer your personal or business data to outside parties. Your data is your own. We may only disclose information when required by law or to protect our rights, property, or safety.</p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">6. Your Rights and Choices</h2>
+                    <p>You have full control over your data within Loop Tailor:</p>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li><strong>Access and Update:</strong> You can view and edit your profile, customer data, and order records at any time through the app interface.</li>
+                      <li><strong>Language Preference:</strong> You can switch between English and Urdu interfaces through the settings menu.</li>
+                      <li><strong>Account Deletion:</strong> If you choose to stop using Loop Tailor, you can request the deletion of your account and all associated data.</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">7. Cookies and Tracking</h2>
+                    <p>Loop Tailor uses essential cookies and local storage to maintain your session and remember your preferences (such as language). We do not use tracking cookies for advertising purposes.</p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">8. Changes to This Policy</h2>
+                    <p>We may update our Privacy and Policy from time to time. We will notify you of any significant changes by posting the new policy on this page and updating the "Last Updated" date at the top.</p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">9. Contact Us</h2>
+                    <p>If you have any questions or concerns about this Privacy and Policy, please contact us at <a href="mailto:support@looptailor.com" className="text-brand-primary font-bold">support@looptailor.com</a>.</p>
+                  </section>
+                </div>
               </Legal>
             } />
             <Route path="/terms" element={

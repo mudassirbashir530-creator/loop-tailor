@@ -16,7 +16,7 @@ export default function About() {
         
         <div className="grid md:grid-cols-2 gap-16 items-center mb-20">
           <div className="rounded-3xl h-96 w-full overflow-hidden shadow-2xl">
-             <img src="https://picsum.photos/seed/tailor-shop/800/600" alt="Professional tailor working in a modern boutique" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+             <img src="https://drive.google.com/thumbnail?id=1KhUN-FpCM7DcNhqVTAal-Q6RpDjo4bUi&sz=w1920" alt="Professional tailor working in a modern boutique" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </div>
           <div>
             <h2 className="text-3xl font-display font-bold mb-6 text-slate-900">Our Mission: Digitizing Tailoring Businesses</h2>
