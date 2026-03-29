@@ -662,7 +662,6 @@ export default function Landing() {
             
             <div className="flex flex-col md:items-center gap-4">
               <Link to="/" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.home')}</Link>
-              <Link to="/careers" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.careers')}</Link>
               <a href="#features" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.features')}</a>
               <Link to="/about" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.about')}</Link>
               <Link to="/content" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.content')}</Link>
