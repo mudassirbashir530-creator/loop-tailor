@@ -12,7 +12,7 @@ import { cn } from '../lib/utils';
 
 export default function Settings() {
   const { user } = useAuth();
-  const { t, isRTL, language, setLanguage, urduFont, setUrduFont } = useLanguage();
+  const { t, isRTL, language, setLanguage } = useLanguage();
   const [shop, setShop] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '' });
   const [editData, setEditData] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '' });
   const [isEditing, setIsEditing] = useState(false);
@@ -236,31 +236,6 @@ export default function Settings() {
           <p className="text-sm text-slate-500 mt-4 px-1">
             {t('auth.selectLanguage')}
           </p>
-
-          {language === 'ur' && (
-            <div className="mt-8 pt-8 border-t border-slate-100">
-              <h3 className="text-lg font-bold mb-4">{t('auth.urduFont')}</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {(['noto-nastaliq', 'gulzar', 'lateef', 'noto-sans'] as const).map((font) => (
-                  <Button
-                    key={font}
-                    variant={urduFont === font ? 'default' : 'outline'}
-                    className={cn(
-                      "h-14 rounded-xl flex items-center justify-center gap-3 text-sm font-bold transition-all",
-                      urduFont === font ? "bg-brand-primary shadow-md" : "border-slate-200 text-slate-500",
-                      `font-urdu-${font}`
-                    )}
-                    onClick={() => setUrduFont(font)}
-                  >
-                    {t(`auth.fonts.${font}`)}
-                  </Button>
-                ))}
-              </div>
-              <p className="text-sm text-slate-500 mt-4 px-1">
-                {t('auth.selectUrduFont')}
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

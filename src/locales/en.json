@@ -423,6 +423,11 @@
     "footer": {
       "tagline": "Smart Tailor Management Software",
       "home": "Home",
+      "careers": "Careers",
+      "features": "Features",
+      "about": "About",
+      "content": "Content",
+      "privacy": "Privacy and Policy",
       "follow": "Follow Loop Tailor",
       "rights": "© 2026 Loop Tailor"
     }

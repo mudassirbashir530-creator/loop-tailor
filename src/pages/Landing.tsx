@@ -662,14 +662,11 @@ export default function Landing() {
             
             <div className="flex flex-col md:items-center gap-4">
               <Link to="/" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.home')}</Link>
-              <a href="#features" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.features')}</a>
-              <Link to="/about" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.about')}</Link>
-              <Link to="/contact" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.contact')}</Link>
-              <div className="flex gap-4 mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                <Link to="/privacy" className="hover:text-brand-primary transition-colors">Privacy and Policy</Link>
-                <Link to="/terms" className="hover:text-brand-primary transition-colors">Terms</Link>
-                <Link to="/cookies" className="hover:text-brand-primary transition-colors">Cookies</Link>
-              </div>
+              <Link to="/careers" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.careers')}</Link>
+              <a href="#features" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.features')}</a>
+              <Link to="/about" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.about')}</Link>
+              <Link to="/content" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.content')}</Link>
+              <Link to="/privacy" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.privacy')}</Link>
             </div>
 
             <div className={cn("flex flex-col gap-4", isRTL ? "md:items-start" : "md:items-end")}>

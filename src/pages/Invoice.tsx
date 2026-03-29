@@ -203,59 +203,59 @@ export default function Invoice() {
         {/* Header Section */}
         <div className="flex flex-row justify-between items-start border-b border-slate-100 pb-5 mb-5 gap-4">
           <div className="flex items-center gap-3">
-            {shop.logoUrl && <img src={shop.logoUrl} alt="Shop Logo" className="h-10 w-10 sm:h-14 sm:w-14 object-contain rounded-xl bg-slate-50 p-1" />}
+            {shop.logoUrl && <img src={shop.logoUrl} alt="Shop Logo" className="h-10 w-10 sm:h-16 sm:w-16 object-contain rounded-xl bg-slate-50 p-1" />}
             <div>
-              <h1 className="text-lg sm:text-2xl font-black text-slate-900 leading-tight tracking-tight">{shop.name}</h1>
-              <p className="text-[10px] sm:text-sm text-slate-500 font-medium">{shop.phone}</p>
+              <h1 className="text-xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight">{shop.name}</h1>
+              <p className="text-xs sm:text-base text-slate-500 font-medium">{shop.phone}</p>
             </div>
           </div>
           <div className={cn(isRTL ? "text-left" : "text-right")}>
-            <h2 className="text-sm sm:text-xl font-black text-brand-primary tracking-tighter uppercase">{t('invoice.invoice')}</h2>
-            <p className="text-[10px] sm:text-sm font-bold text-slate-400 mt-0.5">#{order.id.slice(-6).toUpperCase()}</p>
+            <h2 className="text-base sm:text-2xl font-black text-brand-primary tracking-tighter uppercase">{t('invoice.invoice')}</h2>
+            <p className="text-xs sm:text-base font-bold text-slate-400 mt-0.5">#{order.id.slice(-6).toUpperCase()}</p>
           </div>
         </div>
 
         {/* Info Grid */}
         <div className="grid grid-cols-2 gap-4 mb-6 sm:mb-8">
           <div className="space-y-1">
-            <h3 className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('invoice.billTo')}</h3>
-            <p className="text-xs sm:text-base font-bold text-slate-900 leading-tight">{customer.name}</p>
-            <p className="text-[10px] sm:text-sm text-slate-500 font-medium truncate max-w-[140px] sm:max-w-none">{customer.phone}</p>
+            <h3 className="text-xs sm:text-sm font-black text-slate-400 uppercase tracking-widest">{t('invoice.billTo')}</h3>
+            <p className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">{customer.name}</p>
+            <p className="text-xs sm:text-base text-slate-500 font-medium truncate max-w-[140px] sm:max-w-none">{customer.phone}</p>
           </div>
           <div className={cn("space-y-1", isRTL ? "text-left" : "text-right")}>
-            <h3 className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('invoice.delivery')}</h3>
-            <p className="text-xs sm:text-base font-bold text-slate-900">{format(new Date(order.deliveryDate), 'MMM dd, yyyy')}</p>
-            <p className="text-[10px] sm:text-sm text-slate-500 font-medium">{t('invoice.issued')}: {format(new Date(), 'MMM dd')}</p>
+            <h3 className="text-xs sm:text-sm font-black text-slate-400 uppercase tracking-widest">{t('invoice.delivery')}</h3>
+            <p className="text-sm sm:text-lg font-bold text-slate-900">{format(new Date(order.deliveryDate), 'MMM dd, yyyy')}</p>
+            <p className="text-xs sm:text-base text-slate-500 font-medium">{t('invoice.issued')}: {format(new Date(), 'MMM dd')}</p>
           </div>
         </div>
 
         {/* Items Table - Compact */}
         <div className="mb-6 sm:mb-8 border-y border-slate-50 py-2">
-          <div className="flex justify-between items-center py-2 text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+          <div className="flex justify-between items-center py-2 text-xs sm:text-sm font-black text-slate-400 uppercase tracking-widest px-1">
             <span>{t('invoice.description')}</span>
             <span>{t('invoice.amount')}</span>
           </div>
           <div className="flex justify-between items-center py-3 px-1">
             <div>
-              <p className="text-xs sm:text-base font-bold text-slate-900">{order.dressType}</p>
-              <p className="text-[10px] sm:text-sm text-slate-500 font-medium">{t('invoice.customTailoring')}</p>
+              <p className="text-sm sm:text-lg font-bold text-slate-900">{order.dressType}</p>
+              <p className="text-xs sm:text-base text-slate-500 font-medium">{t('invoice.customTailoring')}</p>
             </div>
-            <p className="text-xs sm:text-base font-black text-slate-900">PKR {order.price.toLocaleString()}</p>
+            <p className="text-sm sm:text-lg font-black text-slate-900">PKR {order.price.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Totals Section */}
         <div className={cn("flex mb-6 sm:mb-10", isRTL ? "justify-start" : "justify-end")}>
-          <div className="w-full sm:w-64 space-y-2 bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
-            <div className="flex justify-between text-[10px] sm:text-xs font-bold text-slate-500">
+          <div className="w-full sm:w-72 space-y-2 bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
+            <div className="flex justify-between text-xs sm:text-sm font-bold text-slate-500">
               <span>{t('invoice.subtotal')}</span>
               <span>PKR {order.price.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-[10px] sm:text-xs font-bold text-emerald-600">
+            <div className="flex justify-between text-xs sm:text-sm font-bold text-emerald-600">
               <span>{t('invoice.advancePaid')}</span>
               <span>-PKR {(order.advancePayment || 0).toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-sm sm:text-lg font-black text-slate-900 pt-2 border-t border-slate-200">
+            <div className="flex justify-between text-base sm:text-xl font-black text-slate-900 pt-2 border-t border-slate-200">
               <span>{t('invoice.balanceDue')}</span>
               <span className="text-brand-primary">PKR {(order.price - (order.advancePayment || 0)).toLocaleString()}</span>
             </div>
@@ -264,11 +264,11 @@ export default function Invoice() {
 
         {/* Footer */}
         <div className="text-center space-y-1 pt-6 border-t border-slate-100">
-          <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest">{t('invoice.thankYou')}</p>
-          <p className="text-xs sm:text-sm font-medium text-slate-500 italic">
+          <p className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest">{t('invoice.thankYou')}</p>
+          <p className="text-sm sm:text-base font-medium text-slate-500 italic">
             "{shop.invoiceFooter || t('invoice.defaultFooter')}"
           </p>
-          <div className="pt-4 flex justify-center gap-4 text-[9px] text-slate-300 font-medium">
+          <div className="pt-4 flex justify-center gap-4 text-xs text-slate-300 font-medium">
             <span>{shop.address}</span>
           </div>
         </div>
