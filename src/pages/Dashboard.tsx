@@ -242,10 +242,11 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-brand-primary", bg: "bg-brand-primary/10" },
           { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: t('dashboard.pendingPayments'), value: formatCurrency(stats.pendingPayments), icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
           { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-emerald-700", bg: "bg-emerald-100" },
         ].map((stat, idx) => (
           <motion.div key={idx} variants={itemVariants}>

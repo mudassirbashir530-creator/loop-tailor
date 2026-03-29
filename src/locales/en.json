@@ -14,6 +14,7 @@
     "totalCustomers": "Total Customers",
     "activeOrders": "Active Orders",
     "completedOrders": "Completed Orders",
+    "pendingPayments": "Pending Payments",
     "revenue": "Revenue",
     "recentOrders": "Recent Orders",
     "upcomingDeliveries": "Upcoming Deliveries",
@@ -87,6 +88,11 @@
   "invoices": {
     "title": "Invoices",
     "noInvoices": "No invoices found.",
+    "emptyStateTitle": "No Invoices Yet",
+    "emptyStateDesc": "When you deliver orders, they will appear here as invoices.",
+    "filterByDate": "Filter by Date",
+    "filterByStatus": "Filter by Status",
+    "allStatuses": "All Statuses",
     "viewInvoice": "View Invoice",
     "na": "N/A"
   },
@@ -271,7 +277,8 @@
       "pricing": "Pricing",
       "signIn": "Sign In",
       "startFreeTrial": "Start Free Trial",
-      "getStarted": "Get Started"
+      "getStarted": "Get Started",
+      "contact": "Contact"
     },
     "hero": {
       "title": "Welcome to Loop Tailor",
@@ -279,7 +286,8 @@
     },
     "features": {
       "badge": "Core Capabilities",
-      "title": "Everything you need to <span class='text-brand-primary'>scale</span> your shop.",
+      "title": "Everything you need to",
+      "titleHighlight": "scale your shop.",
       "subtitle": "Designed by tailors, for tailors. We've built the most intuitive platform to manage your craftsmanship and customer relationships.",
       "explore": "Explore Feature",
       "items": {
@@ -302,6 +310,10 @@
         "storage": {
           "title": "Secure Cloud Storage",
           "desc": "Your data is encrypted and backed up daily. Access your shop records from any device, anywhere in the world."
+        },
+        "security": {
+          "title": "Data Security",
+          "desc": "We use industry-standard encryption to keep your customer data and shop records safe and private."
         },
         "analytics": {
           "title": "Instant Analytics",
@@ -332,7 +344,8 @@
     },
     "workflow": {
       "badge": "The Workflow",
-      "title": "From first measurement <br class='hidden md:block' /> to final delivery.",
+      "title": "From first measurement",
+      "titleHighlight": "to final delivery.",
       "subtitle": "We've simplified the entire tailoring process into four easy steps, so you can focus on what you do best: crafting beautiful clothes.",
       "stepPrefix": "Step",
       "items": {
