@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
-import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -56,74 +56,51 @@ export default function Invoice() {
   };
 
   const handleShare = async () => {
-    if (!invoiceRef.current) return;
     setIsSharing(true);
     try {
-      const element = invoiceRef.current;
-      
-      // Save original styles
-      const originalWidth = element.style.width;
-      const originalMaxWidth = element.style.maxWidth;
-      const originalPadding = element.style.padding;
-      
-      // Force desktop layout for capture
-      element.style.width = '800px';
-      element.style.maxWidth = '800px';
-      element.style.padding = '40px';
-      
-      await new Promise(resolve => setTimeout(resolve, 100));
+      const shareUrl = window.location.href;
+      const shareData = {
+        title: `${t('invoice.invoice')} - ${shop.name}`,
+        text: `${t('invoice.invoice')} for ${customer.name} from ${shop.name}`,
+        url: shareUrl
+      };
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      });
-      
-      // Restore original styles immediately
-      element.style.width = originalWidth;
-      element.style.maxWidth = originalMaxWidth;
-      element.style.padding = originalPadding;
-      
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-      if (!blob) throw new Error('Failed to generate image blob');
-
-      const file = new File([blob], `Invoice_${order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
-
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
         try {
-          await navigator.share({
-            files: [file],
-            title: `${t('invoice.invoice')} - ${shop.name}`,
-            text: `${t('invoice.invoice')} for ${customer.name} from ${shop.name}`
-          });
+          await navigator.share(shareData);
         } catch (shareError: any) {
           if (shareError.name !== 'AbortError') {
-            console.error('Share failed:', shareError);
-            // Fallback to clipboard if share fails
-            try {
-              await navigator.clipboard.writeText(window.location.href);
-              alert(t('invoice.shareSuccess'));
-            } catch (clipboardError) {
-              alert(t('invoice.shareFallback'));
-            }
+            await navigator.clipboard.writeText(shareUrl);
+            alert(t('invoice.shareSuccess'));
           }
         }
       } else {
-        // Fallback
-        try {
-          await navigator.clipboard.writeText(window.location.href);
-          alert(t('invoice.shareNotSupported'));
-        } catch (clipboardError) {
-          alert(t('invoice.shareError'));
-        }
+        await navigator.clipboard.writeText(shareUrl);
+        alert(t('invoice.shareFallback'));
       }
     } catch (error) {
       console.error('Error sharing invoice:', error);
-      alert(`An error occurred while preparing the invoice for sharing: ${error instanceof Error ? error.message : String(error)}`);
+      alert(t('invoice.shareError'));
     } finally {
       setIsSharing(false);
     }
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!customer?.phone) {
+      alert("Customer phone number is missing.");
+      return;
+    }
+    
+    const balanceDue = order.price - (order.advancePayment || 0);
+    const deliveryDate = format(new Date(order.deliveryDate), 'MMM dd, yyyy');
+    
+    const message = `Hello ${customer.name},\n\nHere are your order details from ${shop.name}:\n\nItem: ${order.dressType}\nPrice: PKR ${order.price.toLocaleString()}\nAdvance Paid: PKR ${(order.advancePayment || 0).toLocaleString()}\nBalance Due: PKR ${balanceDue.toLocaleString()}\nDelivery Date: ${deliveryDate}\n\nView your invoice here: ${window.location.href}\n\nThank you!`;
+    
+    const cleanPhone = customer.phone.replace(/[^\d+]/g, '').replace('+', '');
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappUrl, '_blank');
   };
 
   const generatePDF = async () => {
@@ -132,42 +109,60 @@ export default function Invoice() {
     try {
       const element = invoiceRef.current;
 
-      // Save original styles
-      const originalWidth = element.style.width;
-      const originalMaxWidth = element.style.maxWidth;
-      const originalPadding = element.style.padding;
-      
-      // Force desktop layout for capture
-      element.style.width = '800px';
-      element.style.maxWidth = '800px';
-      element.style.padding = '40px';
-      
-      await new Promise(resolve => setTimeout(resolve, 100));
-
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById('invoice-capture-area');
+          if (clonedElement) {
+            clonedElement.style.width = '800px';
+            clonedElement.style.maxWidth = '800px';
+            clonedElement.style.padding = '40px';
+            
+            // Strip backdrop-blur to prevent html2canvas crash
+            const allElements = clonedDoc.getElementsByTagName('*');
+            for (let i = 0; i < allElements.length; i++) {
+              const el = allElements[i] as HTMLElement;
+              if (el.style.backdropFilter) {
+                el.style.backdropFilter = 'none';
+              }
+              if ((el.style as any).webkitBackdropFilter) {
+                (el.style as any).webkitBackdropFilter = 'none';
+              }
+              if (el.className && typeof el.className === 'string') {
+                el.className = el.className.replace(/backdrop-blur[-\w]*/g, '');
+              }
+            }
+          }
+        }
       });
-      
-      // Restore original styles immediately
-      element.style.width = originalWidth;
-      element.style.maxWidth = originalMaxWidth;
-      element.style.padding = originalPadding;
       
       if (canvas.width === 0 || canvas.height === 0) {
         throw new Error('Canvas rendering failed (zero width/height)');
       }
 
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: [canvas.width, canvas.height]
-      });
+      const pdf = new jsPDF('p', 'mm', 'a4');
       
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
       pdf.save(`Invoice_${order.id.slice(-6).toUpperCase()}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -183,12 +178,15 @@ export default function Invoice() {
         <Button variant="ghost" onClick={() => navigate('/dashboard/orders')} className="-ml-2 h-8 text-slate-500 hover:text-slate-900">
           {isRTL ? <ArrowRight className="h-4 w-4 ml-1.5" /> : <ArrowLeft className="h-4 w-4 mr-1.5" />} {t('invoice.back')}
         </Button>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/orders/${id}`)} className="flex-1 sm:flex-none rounded-xl h-9">
             <Edit2 className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {t('invoice.edit')}
           </Button>
           <Button variant="outline" size="sm" onClick={handleShare} disabled={isSharing} className="flex-1 sm:flex-none rounded-xl h-9">
             <Share2 className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isSharing ? '...' : t('invoice.share')}
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleWhatsAppShare} className="flex-1 sm:flex-none rounded-xl h-9 bg-[#25D366] text-white hover:bg-[#128C7E] border-none">
+            <MessageCircle className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> WhatsApp
           </Button>
           <Button variant="outline" size="sm" onClick={handlePrint} className="flex-1 sm:flex-none rounded-xl h-9">
             <Printer className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {t('invoice.print')}
