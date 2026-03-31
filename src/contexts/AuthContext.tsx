@@ -8,7 +8,7 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   signIn: (email?: string, password?: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string, language?: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string, phone: string, language?: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logOut: () => Promise<void>;
 }
@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return unsubscribe;
   }, []);
 
-  const saveUserData = async (user: User, provider: string, name?: string, language?: string) => {
+  const saveUserData = async (user: User, provider: string, name?: string, phone?: string, language?: string) => {
     try {
       const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
@@ -66,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           uid: user.uid,
           name: name || user.displayName || 'New User',
           email: user.email,
+          phone: phone || '',
           photoURL: user.photoURL || '',
           provider: provider,
           preferred_language: language || 'en',
@@ -80,6 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!shopSnap.exists()) {
         await setDoc(shopRef, {
           name: name || user.displayName || 'My Tailor Shop',
+          phone: phone || '',
           createdAt: new Date().toISOString(),
         });
       }
@@ -102,10 +104,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, name: string, language: string = 'en') => {
+  const signUp = async (email: string, password: string, name: string, phone: string, language: string = 'en') => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(userCredential.user, { displayName: name });
-    await saveUserData(userCredential.user, 'password', name, language);
+    await saveUserData(userCredential.user, 'password', name, phone, language);
   };
 
   const logOut = async () => {

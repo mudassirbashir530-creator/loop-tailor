@@ -12,6 +12,7 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'ur'>('en');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +44,7 @@ export default function SignUp() {
     setIsLoading(true);
 
     try {
-      await signUp(email, password, name, selectedLanguage);
+      await signUp(email, password, name, phone, selectedLanguage);
       await setLanguage(selectedLanguage);
       navigate('/dashboard');
     } catch (err: any) {
@@ -177,6 +178,22 @@ export default function SignUp() {
                   placeholder="e.g. Royal Stitch"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                  dir="ltr"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className={cn("text-sm font-bold text-slate-700 block", isRTL ? "mr-1" : "ml-1")}>{t('auth.phoneNumber') || 'Phone Number'}</label>
+              <div className="relative">
+                <svg className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <Input
+                  required
+                  type="tel"
+                  placeholder="+92 300 1234567"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
                   dir="ltr"
                 />
