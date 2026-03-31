@@ -7,7 +7,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
 import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { cn } from '../lib/utils';
 
@@ -106,60 +106,47 @@ export default function Invoice() {
   const generatePDF = async () => {
     if (!invoiceRef.current) return;
     setIsGenerating(true);
+    let clone: HTMLElement | null = null;
     try {
       const element = invoiceRef.current;
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
+      // Create a clone to avoid touching the live UI and to get correct desktop dimensions
+      clone = element.cloneNode(true) as HTMLElement;
+      clone.style.width = '800px';
+      clone.style.maxWidth = '800px';
+      clone.style.padding = '40px';
+      clone.style.position = 'absolute';
+      clone.style.left = '-9999px';
+      clone.style.top = '-9999px';
+      
+      document.body.appendChild(clone);
+      
+      // Wait for layout to calculate
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const dataUrl = await toPng(clone, {
+        cacheBust: true,
         backgroundColor: '#ffffff',
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.getElementById('invoice-capture-area');
-          if (clonedElement) {
-            clonedElement.style.width = '800px';
-            clonedElement.style.maxWidth = '800px';
-            clonedElement.style.padding = '40px';
-            
-            // Strip backdrop-blur to prevent html2canvas crash
-            const allElements = clonedDoc.getElementsByTagName('*');
-            for (let i = 0; i < allElements.length; i++) {
-              const el = allElements[i] as HTMLElement;
-              if (el.style.backdropFilter) {
-                el.style.backdropFilter = 'none';
-              }
-              if ((el.style as any).webkitBackdropFilter) {
-                (el.style as any).webkitBackdropFilter = 'none';
-              }
-              if (el.className && typeof el.className === 'string') {
-                el.className = el.className.replace(/backdrop-blur[-\w]*/g, '');
-              }
-            }
-          }
-        }
+        pixelRatio: 2,
       });
       
-      if (canvas.width === 0 || canvas.height === 0) {
-        throw new Error('Canvas rendering failed (zero width/height)');
-      }
-
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       
+      const imgProps = pdf.getImageProperties(dataUrl);
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
       const pageHeight = pdf.internal.pageSize.getHeight();
       
       let heightLeft = pdfHeight;
       let position = 0;
 
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, pdfHeight);
       heightLeft -= pageHeight;
 
       while (heightLeft >= 0) {
         position = heightLeft - pdfHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, pdfHeight);
         heightLeft -= pageHeight;
       }
       
@@ -168,6 +155,9 @@ export default function Invoice() {
       console.error('Error generating PDF:', error);
       alert(t('invoice.pdfError'));
     } finally {
+      if (clone && clone.parentNode) {
+        clone.parentNode.removeChild(clone);
+      }
       setIsGenerating(false);
     }
   };
