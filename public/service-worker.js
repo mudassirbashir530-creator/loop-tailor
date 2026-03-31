@@ -1,4 +1,4 @@
-const CACHE_NAME = 'loop-tailor-cache-v2';
+const CACHE_NAME = 'loop-tailor-cache-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -9,12 +9,24 @@ const STATIC_ASSETS = [
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Force the waiting service worker to become the active service worker.
+  // We don't call skipWaiting() immediately anymore, we wait for user confirmation
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(STATIC_ASSETS);
+    }).then(() => {
+      // Notify clients that a new version is installed and waiting
+      return self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => client.postMessage({ type: 'SW_UPDATED' }));
+      });
     })
   );
+});
+
+// Listen for messages from the client
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', event => {

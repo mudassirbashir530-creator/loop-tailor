@@ -10,6 +10,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import Layout from './components/Layout';
 import OfflineIndicator from './components/OfflineIndicator';
 import InstallPrompt from './components/InstallPrompt';
+import UpdateNotification from './components/UpdateNotification';
 import { motion } from 'motion/react';
 import { Scissors } from 'lucide-react';
 
@@ -85,6 +86,7 @@ export default function App() {
         <LanguageProvider>
           <OfflineIndicator />
           <InstallPrompt />
+          <UpdateNotification />
           <Router>
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
