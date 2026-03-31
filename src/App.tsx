@@ -122,7 +122,7 @@ export default function App() {
                         <li><strong>Account Information:</strong> When you sign up, we collect your name, email address, shop name, and preferred interface language.</li>
                         <li><strong>Customer Data:</strong> As part of the service, you may input data about your customers, including their names, contact details, and specific body measurements.</li>
                         <li><strong>Order Information:</strong> Details regarding garments, styles, deadlines, and payment status for each order processed through the app.</li>
-                        <li><strong>Authentication Data:</strong> We use secure authentication methods (including Google Sign-In) which provide us with basic profile information to verify your identity.</li>
+                        <li><strong>Authentication Data:</strong> We use secure authentication methods which provide us with basic profile information to verify your identity.</li>
                       </ul>
                     </section>
 
