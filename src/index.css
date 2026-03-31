@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Gulzar&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
@@ -9,22 +10,29 @@
   
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", sans-serif;
-  --font-urdu: "Gulzar", serif;
+  --font-urdu: "Noto Nastaliq Urdu", serif;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
   }
+  
+  /* --- URDU MODE STYLES --- */
+  
   html.lang-ur {
-    line-height: 2.6;
-    font-size: 36px;
+    /* Noto Nastaliq Urdu needs slightly more line-height than Latin fonts, but 2.6 is too much. 1.8 is optimal for readability. */
+    line-height: 1.8;
+    /* 36px was enormous. 18px provides good legibility for Nastaliq script without breaking layouts. */
+    font-size: 18px;
   }
   
+  /* Apply the Urdu font to all elements in Urdu mode */
   html.lang-ur * {
     font-family: var(--font-urdu) !important;
   }
-  /* Specific overrides for Urdu to fix alignment and size */
+  
+  /* Headings need tighter line-height even in Urdu */
   html.lang-ur h1, 
   html.lang-ur h2, 
   html.lang-ur h3, 
@@ -34,18 +42,49 @@
     line-height: 1.6;
     margin-bottom: 0.5em;
   }
+
+  /* Ensure proper right-to-left text alignment for standard text elements */
+  html.lang-ur p,
+  html.lang-ur label,
+  html.lang-ur td,
+  html.lang-ur th,
+  html.lang-ur a,
+  html.lang-ur span {
+    text-align: right;
+  }
+  
+  /* Adjust inputs for Urdu text */
   html.lang-ur input, 
   html.lang-ur textarea, 
   html.lang-ur select, 
   html.lang-ur button {
-    font-size: 1.1em;
+    font-size: 1em; /* Inherit the base 18px */
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
   }
-  /* Fix for text boxes where Urdu might be clipped or misaligned */
-  html.lang-ur input::placeholder {
+  
+  /* Placeholders should be RTL and right-aligned in Urdu mode */
+  html.lang-ur input::placeholder,
+  html.lang-ur textarea::placeholder {
+    direction: rtl;
     text-align: right;
   }
+
+  /* Specific input types (numbers, emails, phones, dates) should remain LTR and left-aligned
+     because they contain Latin characters or numbers that read left-to-right */
+  html.lang-ur input[type="number"],
+  html.lang-ur input[type="tel"],
+  html.lang-ur input[type="email"],
+  html.lang-ur input[type="date"],
+  html.lang-ur input[type="time"],
+  html.lang-ur input[type="url"],
+  html.lang-ur input[dir="ltr"] {
+    direction: ltr !important;
+    text-align: left !important;
+    font-family: var(--font-sans) !important; /* Use sans font for numbers/emails for better legibility */
+  }
+
+  /* --- ENGLISH / LTR STYLES --- */
   body {
     @apply bg-brand-secondary text-slate-900 font-sans;
   }
