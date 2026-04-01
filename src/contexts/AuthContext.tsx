@@ -8,7 +8,17 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string, phone: string, language?: string) => Promise<void>;
+  signUp: (
+    email: string, 
+    password: string, 
+    name: string, 
+    phone: string, 
+    language: string,
+    photoURL?: string,
+    shopName?: string,
+    shopLogoUrl?: string,
+    shopAddress?: string
+  ) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logOut: () => Promise<void>;
 }
@@ -56,7 +66,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return unsubscribe;
   }, []);
 
-  const saveUserData = async (user: User, provider: string, name?: string, phone?: string, language?: string) => {
+  const saveUserData = async (
+    user: User, 
+    provider: string, 
+    name?: string, 
+    phone?: string, 
+    language?: string,
+    photoURL?: string,
+    shopName?: string,
+    shopLogoUrl?: string,
+    shopAddress?: string
+  ) => {
     try {
       const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
@@ -67,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: name || user.displayName || 'New User',
           email: user.email,
           phone: phone || '',
-          photoURL: user.photoURL || '',
+          photoURL: photoURL || user.photoURL || '',
           provider: provider,
           preferred_language: language || 'en',
           role: 'user',
@@ -80,8 +100,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const shopSnap = await getDoc(shopRef);
       if (!shopSnap.exists()) {
         await setDoc(shopRef, {
-          name: name || user.displayName || 'My Tailor Shop',
+          name: shopName || name || user.displayName || 'My Tailor Shop',
           phone: phone || '',
+          logoUrl: shopLogoUrl || '',
+          address: shopAddress || '',
           createdAt: new Date().toISOString(),
         });
       }
@@ -95,10 +117,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await saveUserData(userCredential.user, 'password');
   };
 
-  const signUp = async (email: string, password: string, name: string, phone: string, language: string = 'en') => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    name: string, 
+    phone: string, 
+    language: string = 'en',
+    photoURL?: string,
+    shopName?: string,
+    shopLogoUrl?: string,
+    shopAddress?: string
+  ) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(userCredential.user, { displayName: name });
-    await saveUserData(userCredential.user, 'password', name, phone, language);
+    
+    const profileUpdates: any = { displayName: name };
+    if (photoURL) {
+      profileUpdates.photoURL = photoURL;
+    }
+    await updateProfile(userCredential.user, profileUpdates);
+    
+    await saveUserData(userCredential.user, 'password', name, phone, language, photoURL, shopName, shopLogoUrl, shopAddress);
   };
 
   const logOut = async () => {
