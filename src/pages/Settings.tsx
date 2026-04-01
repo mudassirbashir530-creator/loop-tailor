@@ -7,8 +7,9 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2, Store, Phone, MapPin, MessageSquare, Globe } from 'lucide-react';
+import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2, Store, Phone, MapPin, MessageSquare, Globe, Trash2 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useOrderTemplates } from '../hooks/useOrderTemplates';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { templates, deleteTemplate } = useOrderTemplates(user?.uid);
 
   useEffect(() => {
     if (!user) return;
@@ -201,6 +203,31 @@ export default function Settings() {
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Order Templates</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {templates.length === 0 ? (
+              <p className="text-sm text-slate-500">No templates saved yet. Save templates from the Quick Order form.</p>
+            ) : (
+              templates.map(template => (
+                <div key={template.id} className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50">
+                  <div>
+                    <div className="font-bold text-slate-900">{template.name}</div>
+                    <div className="text-sm text-slate-500">{template.dressType} • <span className="capitalize">{template.gender}</span></div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => deleteTemplate(template.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
 

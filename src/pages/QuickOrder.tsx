@@ -8,10 +8,12 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, ArrowRight, Save, Hash, MapPin, Ruler, Loader2, Search, User, Phone, Check, Upload, X, Scissors, Calendar, CreditCard, Notebook } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Save, Hash, MapPin, Ruler, Loader2, Search, User, Phone, Check, Upload, X, Scissors, Calendar, CreditCard, Notebook, ChevronDown, Plus, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { KAMEEZ_MEASUREMENTS, SHALWAR_MEASUREMENTS } from '../lib/measurements';
 import { cn } from '../lib/utils';
+import { TemplateSelector, SaveTemplateButton } from '../components/OrderTemplates';
+import { useOrderTemplates } from '../hooks/useOrderTemplates';
 
 export default function QuickOrder() {
   const { user } = useAuth();
@@ -19,7 +21,51 @@ export default function QuickOrder() {
   const navigate = useNavigate();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const templateHook = useOrderTemplates(user?.uid);
+  const [preGeneratedToken, setPreGeneratedToken] = useState('');
+  const [gender, setGender] = useState('male');
+  const [showDressDropdown, setShowDressDropdown] = useState(false);
+  const [dressSearch, setDressSearch] = useState('');
+  const dressDropdownRef = useRef<HTMLDivElement>(null);
+
+  const DRESS_OPTIONS = {
+    male: [
+      { en: 'Shalwar Kameez', ur: 'مرد' },
+      { en: 'Kurta Pajama', ur: 'کرتہ' },
+      { en: 'Waistcoat', ur: 'واسکٹ' },
+      { en: 'Suit', ur: 'سوٹ' },
+      { en: 'Sherwani', ur: 'شیروانی' },
+      { en: 'Pants + Shirt', ur: 'پینٹ شرٹ' },
+      { en: 'Shalwar Only', ur: 'شلوار' },
+      { en: 'Kameez Only', ur: 'قمیض' },
+    ],
+    female: [
+      { en: 'Shalwar Kameez', ur: 'خواتین' },
+      { en: 'Frock', ur: 'فراک' },
+      { en: 'Lehenga', ur: 'لہنگا' },
+      { en: 'Gharara', ur: 'گھرارہ' },
+      { en: 'Saree Blouse', ur: 'ساڑی' },
+      { en: 'Kurti', ur: 'کرتی' },
+      { en: 'Dupatta', ur: 'دوپٹہ' },
+      { en: 'Bridal Dress', ur: 'برائیڈل' },
+      { en: 'Maxi', ur: 'میکسی' },
+    ],
+    kids: [
+      { en: 'Kids Shalwar Kameez', ur: 'بچوں' },
+      { en: 'Kids Frock', ur: 'بچیوں' },
+      { en: 'Kids Suit', ur: 'بچے' },
+    ]
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    const initToken = async () => {
+      const token = await generateTokenId(user.uid);
+      setPreGeneratedToken(token);
+    };
+    initToken();
+  }, [user]);
+
   // Customer Search State
   const [customers, setCustomers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,6 +92,9 @@ export default function QuickOrder() {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+      }
+      if (dressDropdownRef.current && !dressDropdownRef.current.contains(event.target as Node)) {
+        setShowDressDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -114,7 +163,7 @@ export default function QuickOrder() {
     setIsSubmitting(true);
     try {
       // 1. Generate Token ID
-      const tokenId = await generateTokenId(user.uid);
+      const tokenId = preGeneratedToken || await generateTokenId(user.uid);
 
       // 2. Check for existing customer by phone or selected ID
       let customerId = selectedCustomerId;
@@ -166,6 +215,7 @@ export default function QuickOrder() {
         customerId,
         customerName: customerData.name,
         phone: customerData.phone,
+        gender: gender,
         dressType: orderData.dressType,
         deliveryDate: new Date(orderData.deliveryDate).toISOString(),
         status: 'Pending',
@@ -224,7 +274,25 @@ export default function QuickOrder() {
           </Button>
           <h1 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-slate-900">{t('quickOrder.newOrder')}</h1>
         </div>
+        {preGeneratedToken && (
+          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-brand-primary/10 text-brand-primary rounded-xl font-bold border border-brand-primary/20">
+            <Hash className="h-4 w-4" />
+            Order Token: {preGeneratedToken}
+          </div>
+        )}
       </div>
+      {preGeneratedToken && (
+        <div className="sm:hidden flex items-center gap-2 px-4 py-2 bg-brand-primary/10 text-brand-primary rounded-xl font-bold border border-brand-primary/20 mb-4">
+          <Hash className="h-4 w-4" />
+          Order Token: {preGeneratedToken}
+        </div>
+      )}
+
+      <TemplateSelector 
+        templateHook={templateHook} 
+        setOrderData={setOrderData} 
+        setMeasurements={setMeasurements} 
+      />
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid lg:grid-cols-3 gap-8">
@@ -312,6 +380,23 @@ export default function QuickOrder() {
                       className={cn("rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium", isRTL ? "pr-12" : "pl-12")}
                     />
                   </div>
+                  <div className="flex gap-2 mt-4">
+                    {['male', 'female', 'kids'].map(g => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setGender(g)}
+                        className={cn(
+                          "flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all border-2",
+                          gender === g 
+                            ? "bg-brand-primary text-white border-brand-primary shadow-md" 
+                            : "bg-white text-slate-500 border-slate-200 hover:border-brand-primary/50 hover:bg-slate-50"
+                        )}
+                      >
+                        {g === 'male' ? '👨 Male' : g === 'female' ? '👩 Female' : '👶 Kids'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.phoneNumber')}</label>
@@ -350,18 +435,64 @@ export default function QuickOrder() {
               </CardHeader>
               <CardContent className="p-6 space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 relative" ref={dressDropdownRef}>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.dressType')}</label>
                     <div className="relative">
                       <Scissors className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
-                        value={orderData.dressType} 
-                        onChange={e => setOrderData({...orderData, dressType: e.target.value})}
+                        value={showDressDropdown ? dressSearch : orderData.dressType} 
+                        onChange={e => {
+                          setDressSearch(e.target.value);
+                          setShowDressDropdown(true);
+                        }}
+                        onFocus={() => {
+                          setDressSearch('');
+                          setShowDressDropdown(true);
+                        }}
                         placeholder={t('quickOrder.dressTypePlaceholder')}
                         className={cn("rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium", isRTL ? "pr-12" : "pl-12")}
                       />
+                      <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400", isRTL ? "left-4" : "right-4")} />
                     </div>
+                    
+                    <AnimatePresence>
+                      {showDressDropdown && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          className="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden max-h-60 overflow-y-auto"
+                        >
+                          {DRESS_OPTIONS[gender as keyof typeof DRESS_OPTIONS]
+                            .filter(opt => opt.en.toLowerCase().includes(dressSearch.toLowerCase()) || opt.ur.includes(dressSearch))
+                            .map((opt, i) => (
+                            <div 
+                              key={i}
+                              onClick={() => {
+                                setOrderData({...orderData, dressType: opt.en});
+                                setShowDressDropdown(false);
+                              }}
+                              className="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 flex items-center justify-between group transition-colors"
+                            >
+                              <div className="font-bold text-slate-900 group-hover:text-brand-primary">{opt.en}</div>
+                              <div className="text-sm text-slate-500 font-urdu">{opt.ur}</div>
+                            </div>
+                          ))}
+                          {dressSearch && !DRESS_OPTIONS[gender as keyof typeof DRESS_OPTIONS].some(opt => opt.en.toLowerCase() === dressSearch.toLowerCase()) && (
+                            <div 
+                              onClick={() => {
+                                setOrderData({...orderData, dressType: dressSearch});
+                                setShowDressDropdown(false);
+                              }}
+                              className="p-3 bg-brand-primary/5 hover:bg-brand-primary/10 cursor-pointer flex items-center gap-2 text-brand-primary font-bold"
+                            >
+                              <Plus className="h-4 w-4" /> Use custom: "{dressSearch}"
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.deliveryDate')}</label>
@@ -602,6 +733,12 @@ export default function QuickOrder() {
             </Card>
 
             <div className="flex flex-col gap-4">
+              <SaveTemplateButton 
+                templateHook={templateHook} 
+                currentOrderData={orderData} 
+                currentMeasurements={measurements} 
+                currentGender={gender} 
+              />
               <Button 
                 type="submit" 
                 disabled={isSubmitting}

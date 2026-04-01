@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, isBefore, startOfDay } from 'date-fns';
-import { Plus, Search, Loader2, Filter, Package, MapPin, Calendar, CheckCircle2, Clock, Hash, Scissors, ArrowRight, AlertCircle } from 'lucide-react';
+import { Plus, Search, Loader2, Filter, Package, MapPin, Calendar, CheckCircle2, Clock, Hash, Scissors, ArrowRight, AlertCircle, ChevronDown, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
@@ -19,6 +19,13 @@ export default function Orders() {
   const [filter, setFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [loading, setLoading] = useState(true);
+
+  // New filters
+  const [genderFilter, setGenderFilter] = useState('All');
+  const [dressTypeFilter, setDressTypeFilter] = useState('All');
+  const [dateFilter, setDateFilter] = useState('All Time');
+  const [showOverdue, setShowOverdue] = useState(false);
+  const [sortBy, setSortBy] = useState('Newest First');
 
   useEffect(() => {
     if (!user) return;
@@ -66,15 +73,6 @@ export default function Orders() {
     }
   };
 
-  const filteredOrders = orders.filter(order => {
-    const matchesStatus = filter === 'All' || order.status === filter;
-    const matchesSearch = 
-      (order.tokenId && order.tokenId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.dressType.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
-
   const isOverdue = (deliveryDate: string, status: string) => {
     if (!deliveryDate || status === 'Delivered') return false;
     try {
@@ -82,6 +80,76 @@ export default function Orders() {
     } catch (e) {
       return false;
     }
+  };
+
+  const uniqueDressTypes = Array.from(new Set(orders.map(o => o.dressType))).filter(Boolean);
+
+  const filteredOrders = orders.filter(order => {
+    const matchesStatus = filter === 'All' || order.status === filter;
+    const matchesGender = genderFilter === 'All' || order.gender === genderFilter;
+    const matchesDressType = dressTypeFilter === 'All' || order.dressType === dressTypeFilter;
+    
+    let matchesDate = true;
+    if (dateFilter !== 'All Time' && order.createdAt) {
+      const orderDate = order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt || 0);
+      const today = new Date();
+      if (dateFilter === 'Today') {
+        matchesDate = orderDate.toDateString() === today.toDateString();
+      } else if (dateFilter === 'This Week') {
+        const weekAgo = new Date(today.setDate(today.getDate() - 7));
+        matchesDate = orderDate >= weekAgo;
+      } else if (dateFilter === 'This Month') {
+        matchesDate = orderDate.getMonth() === today.getMonth() && orderDate.getFullYear() === today.getFullYear();
+      }
+    }
+
+    let matchesOverdue = true;
+    if (showOverdue) {
+      matchesOverdue = isOverdue(order.deliveryDate, order.status);
+    }
+
+    const matchesSearch = 
+      (order.tokenId && order.tokenId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.dressType.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    return matchesStatus && matchesGender && matchesDressType && matchesDate && matchesOverdue && matchesSearch;
+  });
+
+  filteredOrders.sort((a, b) => {
+    if (sortBy === 'Newest First') {
+      const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
+      const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
+      return dateB.getTime() - dateA.getTime();
+    } else if (sortBy === 'Oldest First') {
+      const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
+      const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
+      return dateA.getTime() - dateB.getTime();
+    } else if (sortBy === 'Delivery Date') {
+      const dateA = new Date(a.deliveryDate || 0);
+      const dateB = new Date(b.deliveryDate || 0);
+      return dateA.getTime() - dateB.getTime();
+    } else if (sortBy === 'Price High-Low') {
+      return (b.price || 0) - (a.price || 0);
+    } else if (sortBy === 'Price Low-High') {
+      return (a.price || 0) - (b.price || 0);
+    }
+    return 0;
+  });
+
+  const activeFilterCount = (filter !== 'All' ? 1 : 0) + 
+                            (genderFilter !== 'All' ? 1 : 0) + 
+                            (dressTypeFilter !== 'All' ? 1 : 0) + 
+                            (dateFilter !== 'All Time' ? 1 : 0) + 
+                            (showOverdue ? 1 : 0);
+
+  const clearAllFilters = () => {
+    setFilter('All');
+    setGenderFilter('All');
+    setDressTypeFilter('All');
+    setDateFilter('All Time');
+    setShowOverdue(false);
+    setSearchTerm('');
   };
 
   return (
@@ -118,23 +186,134 @@ export default function Orders() {
         </div>
       </motion.div>
 
-      <div className="flex flex-wrap gap-3">
-        {['All', 'Pending', 'Stitching', 'Ready', 'Delivered'].map((status) => (
-          <Button
-            key={status}
-            variant={filter === status ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilter(status)}
+      <div className="flex flex-col gap-4">
+        {/* Status Filters */}
+        <div className="flex flex-wrap gap-3">
+          {['All', 'Pending', 'Stitching', 'Ready', 'Delivered'].map((status) => (
+            <Button
+              key={status}
+              variant={filter === status ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilter(status)}
+              className={cn(
+                "rounded-xl px-6 h-10 font-bold transition-all",
+                filter === status 
+                  ? "bg-slate-900 text-white shadow-md scale-105" 
+                  : "bg-white text-slate-500 border-slate-100 hover:bg-slate-50 hover:text-slate-900"
+              )}
+            >
+              {t(`orders.${status.toLowerCase()}`)}
+            </Button>
+          ))}
+        </div>
+
+        {/* Advanced Filters Row */}
+        <div className="flex flex-wrap items-center gap-3 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="flex items-center gap-2 px-3 border-r border-slate-100">
+            <Filter className="h-4 w-4 text-slate-400" />
+            <span className="text-sm font-bold text-slate-700">Filters</span>
+          </div>
+
+          {/* Gender Filter */}
+          <div className="flex bg-slate-50 rounded-xl p-1">
+            {['All', 'male', 'female', 'kids'].map(g => (
+              <button
+                key={g}
+                onClick={() => setGenderFilter(g)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all",
+                  genderFilter === g ? "bg-white text-brand-primary shadow-sm" : "text-slate-500 hover:text-slate-700"
+                )}
+              >
+                {g === 'All' ? 'All Genders' : g}
+              </button>
+            ))}
+          </div>
+
+          {/* Date Filter */}
+          <div className="flex bg-slate-50 rounded-xl p-1">
+            {['All Time', 'Today', 'This Week', 'This Month'].map(d => (
+              <button
+                key={d}
+                onClick={() => setDateFilter(d)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                  dateFilter === d ? "bg-white text-brand-primary shadow-sm" : "text-slate-500 hover:text-slate-700"
+                )}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+
+          {/* Dress Type Dropdown */}
+          <select 
+            value={dressTypeFilter}
+            onChange={(e) => setDressTypeFilter(e.target.value)}
+            className="h-8 px-3 rounded-xl bg-slate-50 border-none text-xs font-bold text-slate-700 focus:ring-0 cursor-pointer outline-none"
+          >
+            <option value="All">All Types</option>
+            {uniqueDressTypes.map((type: any) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+
+          {/* Overdue Toggle */}
+          <button
+            onClick={() => setShowOverdue(!showOverdue)}
             className={cn(
-              "rounded-xl px-6 h-10 font-bold transition-all",
-              filter === status 
-                ? "bg-slate-900 text-white shadow-md scale-105" 
-                : "bg-white text-slate-500 border-slate-100 hover:bg-slate-50 hover:text-slate-900"
+              "px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all",
+              showOverdue ? "bg-red-100 text-red-700" : "bg-slate-50 text-slate-500 hover:bg-slate-100"
             )}
           >
-            {t(`orders.${status.toLowerCase()}`)}
-          </Button>
-        ))}
+            <AlertCircle className="h-3 w-3" />
+            Overdue
+          </button>
+
+          {/* Sort Dropdown */}
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400">Sort by:</span>
+            <select 
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="h-8 px-3 rounded-xl bg-slate-50 border-none text-xs font-bold text-slate-700 focus:ring-0 cursor-pointer outline-none"
+            >
+              <option value="Newest First">Newest First</option>
+              <option value="Oldest First">Oldest First</option>
+              <option value="Delivery Date">Delivery Date</option>
+              <option value="Price High-Low">Price High-Low</option>
+              <option value="Price Low-High">Price Low-High</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Filter Summary Bar */}
+        <AnimatePresence>
+          {activeFilterCount > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="flex items-center justify-between bg-brand-primary/5 rounded-xl px-4 py-2 border border-brand-primary/10"
+            >
+              <div className="text-sm font-medium text-brand-primary flex items-center gap-2 flex-wrap">
+                <span>Showing {filteredOrders.length} orders</span>
+                <span className="text-brand-primary/40">•</span>
+                {filter !== 'All' && <span className="bg-white px-2 py-0.5 rounded-md shadow-sm text-xs font-bold">{filter}</span>}
+                {genderFilter !== 'All' && <span className="bg-white px-2 py-0.5 rounded-md shadow-sm text-xs font-bold capitalize">{genderFilter}</span>}
+                {dressTypeFilter !== 'All' && <span className="bg-white px-2 py-0.5 rounded-md shadow-sm text-xs font-bold">{dressTypeFilter}</span>}
+                {dateFilter !== 'All Time' && <span className="bg-white px-2 py-0.5 rounded-md shadow-sm text-xs font-bold">{dateFilter}</span>}
+                {showOverdue && <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded-md shadow-sm text-xs font-bold">Overdue</span>}
+              </div>
+              <button 
+                onClick={clearAllFilters}
+                className="text-xs font-bold text-slate-500 hover:text-slate-700 flex items-center gap-1"
+              >
+                <X className="h-3 w-3" /> Clear All
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {loading ? (

@@ -82,6 +82,8 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 /**
  * Generates a unique, incremental Token ID for a shop.
  * Uses a transaction to ensure atomicity and prevent duplicates.
+ * Format: LT-{YEAR}{MONTH}-{NUMBER} (e.g. LT-2604-101)
+ * Resets to 100 each month automatically.
  */
 export async function generateTokenId(shopId: string): Promise<string> {
   const counterRef = doc(db, 'counters', shopId);
@@ -89,22 +91,37 @@ export async function generateTokenId(shopId: string): Promise<string> {
   try {
     const newTokenId = await runTransaction(db, async (transaction) => {
       const counterDoc = await transaction.get(counterRef);
-      let lastId = 100; // Start from 101
+      
+      const now = new Date();
+      const year = now.getFullYear().toString().slice(-2);
+      const month = (now.getMonth() + 1).toString().padStart(2, '0');
+      const currentMonth = `${year}${month}`;
+      
+      let lastId = 100;
+      let lastMonth = currentMonth;
       
       if (counterDoc.exists()) {
         const data = counterDoc.data();
-        lastId = data.lastTokenId || 100;
+        if (data.lastMonth === currentMonth) {
+          lastId = data.lastTokenId || 100;
+        } else {
+          // Reset for new month
+          lastId = 100;
+        }
       }
       
       const nextId = lastId + 1;
-      transaction.set(counterRef, { lastTokenId: nextId }, { merge: true });
-      return nextId.toString();
+      transaction.set(counterRef, { lastTokenId: nextId, lastMonth: currentMonth }, { merge: true });
+      return `LT-${currentMonth}-${nextId}`;
     });
     
     return newTokenId;
   } catch (error) {
     console.error("Error generating token ID:", error);
     // Fallback to a random short code if transaction fails
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    return `LT-${year}${month}-${Math.floor(Math.random() * 1000)}`;
   }
 }
