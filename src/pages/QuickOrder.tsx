@@ -10,7 +10,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ArrowLeft, ArrowRight, Save, Hash, MapPin, Ruler, Loader2, Search, User, Phone, Check, Upload, X, Scissors, Calendar, CreditCard, Notebook, ChevronDown, Plus, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { KAMEEZ_MEASUREMENTS, SHALWAR_MEASUREMENTS } from '../lib/measurements';
+import { getMeasurementCategoriesForDress } from '../lib/measurements';
 import { cn } from '../lib/utils';
 import { TemplateSelector, SaveTemplateButton } from '../components/OrderTemplates';
 import { useOrderTemplates } from '../hooks/useOrderTemplates';
@@ -292,6 +292,7 @@ export default function QuickOrder() {
         templateHook={templateHook} 
         setOrderData={setOrderData} 
         setMeasurements={setMeasurements} 
+        setGender={setGender}
       />
 
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -653,81 +654,48 @@ export default function QuickOrder() {
               </CardHeader>
               <CardContent className="p-6 space-y-8">
                 
-                {/* Kameez Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs">01</div>
-                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">{t('quickOrder.kameez')}</h3>
-                    <div className="flex-1 h-px bg-slate-100"></div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {KAMEEZ_MEASUREMENTS.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <div key={item.id} className="space-y-1.5 group">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
-                            <Icon className="h-3 w-3" />
-                            {isRTL ? item.ur : item.en}
-                          </label>
-                          <div className="relative">
-                            <Input 
-                              type="number" 
-                              step="0.25"
-                              value={measurements[item.id] || ''} 
-                              onChange={e => {
-                                const val = e.target.value === '' ? '' : Number(e.target.value);
-                                setMeasurements({...measurements, [item.id]: val});
-                              }}
-                              placeholder="0.00"
-                              className={cn("rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-sm font-bold", isRTL ? "pr-3 pl-8 text-right" : "pl-3 pr-8")}
-                              dir="ltr"
-                            />
-                            <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300", isRTL ? "left-3" : "right-3")}>{t('quickOrder.in')}</span>
+                {getMeasurementCategoriesForDress(orderData.dressType).map((category, index) => (
+                  <div key={category.id} className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs">
+                        {String(index + 1).padStart(2, '0')}
+                      </div>
+                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">
+                        {isRTL ? category.titleUr : category.titleEn}
+                      </h3>
+                      <div className="flex-1 h-px bg-slate-100"></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      {category.items.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <div key={item.id} className="space-y-1.5 group">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
+                              <Icon className="h-3 w-3" />
+                              {isRTL ? item.ur : item.en}
+                            </label>
+                            <div className="relative">
+                              <Input 
+                                type="number" 
+                                step="0.25"
+                                value={measurements[item.id] || ''} 
+                                onChange={e => {
+                                  const val = e.target.value === '' ? '' : Number(e.target.value);
+                                  setMeasurements({...measurements, [item.id]: val});
+                                }}
+                                placeholder="0.00"
+                                className={cn("rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-sm font-bold", isRTL ? "pr-3 pl-8 text-right" : "pl-3 pr-8")}
+                                dir="ltr"
+                              />
+                              <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300", isRTL ? "left-3" : "right-3")}>{t('quickOrder.in')}</span>
+                            </div>
+                            <p className="text-[9px] text-slate-400 font-medium">{item.desc}</p>
                           </div>
-                          <p className="text-[9px] text-slate-400 font-medium">{item.desc}</p>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-
-                {/* Shalwar Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs">02</div>
-                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">{t('quickOrder.shalwar')}</h3>
-                    <div className="flex-1 h-px bg-slate-100"></div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {SHALWAR_MEASUREMENTS.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <div key={item.id} className="space-y-1.5 group">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
-                            <Icon className="h-3 w-3" />
-                            {isRTL ? item.ur : item.en}
-                          </label>
-                          <div className="relative">
-                            <Input 
-                              type="number" 
-                              step="0.25"
-                              value={measurements[item.id] || ''} 
-                              onChange={e => {
-                                const val = e.target.value === '' ? '' : Number(e.target.value);
-                                setMeasurements({...measurements, [item.id]: val});
-                              }}
-                              placeholder="0.00"
-                              className={cn("rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-sm font-bold", isRTL ? "pr-3 pl-8 text-right" : "pl-3 pr-8")}
-                              dir="ltr"
-                            />
-                            <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300", isRTL ? "left-3" : "right-3")}>{t('quickOrder.in')}</span>
-                          </div>
-                          <p className="text-[9px] text-slate-400 font-medium">{item.desc}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                ))}
 
               </CardContent>
             </Card>

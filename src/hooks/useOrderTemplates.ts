@@ -18,7 +18,7 @@ export interface UseOrderTemplatesReturn {
   loading: boolean;
   saveTemplate: (data: Omit<OrderTemplate, 'id' | 'createdAt'>) => Promise<void>;
   deleteTemplate: (id: string) => Promise<void>;
-  applyTemplate: (template: OrderTemplate, setOrderData: Function, setMeasurements: Function) => void;
+  applyTemplate: (template: OrderTemplate, setOrderData: Function, setMeasurements: Function, setGender?: Function) => void;
 }
 
 export function useOrderTemplates(shopId: string | undefined): UseOrderTemplatesReturn {
@@ -75,14 +75,16 @@ export function useOrderTemplates(shopId: string | undefined): UseOrderTemplates
     }
   };
 
-  const applyTemplate = (template: OrderTemplate, setOrderData: Function, setMeasurements: Function) => {
+  const applyTemplate = (template: OrderTemplate, setOrderData: Function, setMeasurements: Function, setGender?: Function) => {
     setOrderData((prev: any) => ({
       ...prev,
       dressType: template.dressType,
       price: template.price ? template.price.toString() : '',
-      notes: template.notes || '',
-      gender: template.gender || 'male'
+      notes: template.notes || ''
     }));
+    if (setGender && template.gender) {
+      setGender(template.gender);
+    }
     if (template.measurements) {
       setMeasurements(template.measurements);
     }

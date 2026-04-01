@@ -12,7 +12,7 @@ import { ArrowLeft, ArrowRight, Plus, Save, Upload, Edit, X, FileText, Phone, Ma
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
-import { KAMEEZ_MEASUREMENTS, SHALWAR_MEASUREMENTS } from '../lib/measurements';
+import { getAllMeasurementCategories } from '../lib/measurements';
 
 export default function CustomerDetails() {
   const { id } = useParams<{ id: string }>();
@@ -450,77 +450,47 @@ export default function CustomerDetails() {
             </CardHeader>
             <CardContent className="p-8 pt-0">
               <form className="space-y-12">
-                <div className="space-y-8">
-                  <div className="flex items-center gap-4">
-                    <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs">01</div>
-                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">{t('customerDetails.kameez')}</h3>
-                    <div className="flex-1 h-px bg-slate-100"></div>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                    {KAMEEZ_MEASUREMENTS.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <div key={item.id} className="space-y-2 group">
-                          <label className={cn("text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
-                            <Icon className="h-3 w-3" />
-                            {isRTL ? item.ur : item.en}
-                          </label>
-                          <div className="relative">
-                            <Input 
-                              type="number" 
-                              step="0.25"
-                              placeholder="0.00"
-                              value={measurements[item.id] || ''} 
-                              onChange={e => {
-                                const val = e.target.value === '' ? '' : Number(e.target.value);
-                                setMeasurements({...measurements, [item.id]: val});
-                              }} 
-                              className={cn("h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all", isRTL ? "pr-3 pl-8" : "pl-3 pr-8")}
-                            />
-                            <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300", isRTL ? "left-4" : "right-4")}>IN</span>
+                {getAllMeasurementCategories().map((category, index) => (
+                  <div key={category.id} className="space-y-8">
+                    <div className="flex items-center gap-4">
+                      <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs">
+                        {String(index + 1).padStart(2, '0')}
+                      </div>
+                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">
+                        {isRTL ? category.titleUr : category.titleEn}
+                      </h3>
+                      <div className="flex-1 h-px bg-slate-100"></div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                      {category.items.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <div key={item.id} className="space-y-2 group">
+                            <label className={cn("text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
+                              <Icon className="h-3 w-3" />
+                              {isRTL ? item.ur : item.en}
+                            </label>
+                            <div className="relative">
+                              <Input 
+                                type="number" 
+                                step="0.25"
+                                placeholder="0.00"
+                                value={measurements[item.id] || ''} 
+                                onChange={e => {
+                                  const val = e.target.value === '' ? '' : Number(e.target.value);
+                                  setMeasurements({...measurements, [item.id]: val});
+                                }} 
+                                className={cn("h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all", isRTL ? "pr-3 pl-8" : "pl-3 pr-8")}
+                              />
+                              <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300", isRTL ? "left-4" : "right-4")}>IN</span>
+                            </div>
+                            <p className={cn("text-[9px] text-slate-400 font-medium", isRTL ? "mr-1" : "ml-1")}>{item.desc}</p>
                           </div>
-                          <p className={cn("text-[9px] text-slate-400 font-medium", isRTL ? "mr-1" : "ml-1")}>{item.desc}</p>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-
-                <div className="space-y-8">
-                  <div className="flex items-center gap-4">
-                    <div className="h-8 w-8 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary font-black text-xs">02</div>
-                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">{t('customerDetails.shalwar')}</h3>
-                    <div className="flex-1 h-px bg-slate-100"></div>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                    {SHALWAR_MEASUREMENTS.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <div key={item.id} className="space-y-2 group">
-                          <label className={cn("text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
-                            <Icon className="h-3 w-3" />
-                            {isRTL ? item.ur : item.en}
-                          </label>
-                          <div className="relative">
-                            <Input 
-                              type="number" 
-                              step="0.25"
-                              placeholder="0.00"
-                              value={measurements[item.id] || ''} 
-                              onChange={e => {
-                                const val = e.target.value === '' ? '' : Number(e.target.value);
-                                setMeasurements({...measurements, [item.id]: val});
-                              }} 
-                              className={cn("h-12 rounded-xl border-2 border-slate-50 bg-slate-50/50 focus:bg-white focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary text-base font-black transition-all", isRTL ? "pr-3 pl-8" : "pl-3 pr-8")}
-                            />
-                            <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300", isRTL ? "left-4" : "right-4")}>IN</span>
-                          </div>
-                          <p className={cn("text-[9px] text-slate-400 font-medium", isRTL ? "mr-1" : "ml-1")}>{item.desc}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                ))}
               </form>
             </CardContent>
           </Card>

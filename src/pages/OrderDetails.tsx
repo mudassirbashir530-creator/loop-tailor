@@ -10,6 +10,7 @@ import { Input } from '../components/ui/input';
 import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
+import { getMeasurementName } from '../lib/measurements';
 import { cn } from '../lib/utils';
 
 export default function OrderDetails() {
@@ -270,7 +271,7 @@ export default function OrderDetails() {
                 {order.measurements && Object.entries(order.measurements).map(([key, value]: [string, any]) => (
                   <div key={key} className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
-                      {key}
+                      {getMeasurementName(key, isRTL)}
                     </span>
                     {isEditing ? (
                       <Input 

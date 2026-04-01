@@ -12,12 +12,13 @@ interface OrderTemplatesProps {
   templateHook: UseOrderTemplatesReturn;
   setOrderData: Function;
   setMeasurements: Function;
+  setGender?: Function;
   currentOrderData: any;
   currentMeasurements: any;
   currentGender: string;
 }
 
-export function TemplateSelector({ templateHook, setOrderData, setMeasurements }: Omit<OrderTemplatesProps, 'currentOrderData' | 'currentMeasurements' | 'currentGender'>) {
+export function TemplateSelector({ templateHook, setOrderData, setMeasurements, setGender }: Omit<OrderTemplatesProps, 'currentOrderData' | 'currentMeasurements' | 'currentGender'>) {
   const { templates, loading, applyTemplate } = templateHook;
   const { t, isRTL } = useLanguage();
 
@@ -40,7 +41,7 @@ export function TemplateSelector({ templateHook, setOrderData, setMeasurements }
             >
               <button
                 type="button"
-                onClick={() => applyTemplate(template, setOrderData, setMeasurements)}
+                onClick={() => applyTemplate(template, setOrderData, setMeasurements, setGender)}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-slate-200 bg-white hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all text-left whitespace-nowrap group shadow-sm"
               >
                 <div className="h-8 w-8 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary">
