@@ -117,6 +117,7 @@ export default function Landing() {
               <a href="#features" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.features')}</a>
               <a href="#how-it-works" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.howItWorks')}</a>
               <Link to="/about" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.about')}</Link>
+              <Link to="/contact" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.contact')}</Link>
               <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.pricing')}</a>
               
               <Link to="/login">
@@ -153,6 +154,7 @@ export default function Landing() {
                 <a href="#features" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.features')}</a>
                 <a href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.howItWorks')}</a>
                 <Link to="/about" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.about')}</Link>
+                <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.contact')}</Link>
                 <a href="#pricing" onClick={() => setIsMenuOpen(false)} className="block text-lg font-medium text-slate-600">{t('landing.nav.pricing')}</a>
                 
                 <div className="pt-4 flex flex-col gap-3">
@@ -664,7 +666,7 @@ export default function Landing() {
               <Link to="/" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.home')}</Link>
               <a href="#features" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.features')}</a>
               <Link to="/about" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.about')}</Link>
-              <Link to="/content" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.content')}</Link>
+              <Link to="/contact" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.contact')}</Link>
               <Link to="/privacy" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.privacy')}</Link>
             </div>
 
