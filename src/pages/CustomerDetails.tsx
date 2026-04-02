@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, storage, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
-import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -39,14 +39,10 @@ export default function CustomerDetails() {
 
   useEffect(() => {
     if (!user || !id) return;
-    fetchData();
-  }, [user, id]);
-
-  const fetchData = async () => {
-    if (!user || !id) return;
+    
     setLoading(true);
-    try {
-      const custSnap = await getDoc(doc(db, 'shops', user.uid, 'customers', id));
+    
+    const unsubCustomer = onSnapshot(doc(db, 'shops', user.uid, 'customers', id), (custSnap) => {
       if (custSnap.exists() && custSnap.data().shopId === user.uid) {
         setCustomer({ id: custSnap.id, ...custSnap.data() });
         setEditCustomerData({
@@ -57,28 +53,35 @@ export default function CustomerDetails() {
         });
       } else {
         navigate('/dashboard/customers');
-        return;
       }
+    }, (error) => handleFirestoreError(error, OperationType.GET, `customers/${id}`));
 
-      const measSnap = await getDoc(doc(db, 'shops', user.uid, 'measurements', id));
+    const unsubMeasurements = onSnapshot(doc(db, 'shops', user.uid, 'measurements', id), (measSnap) => {
       if (measSnap.exists()) {
         setMeasurements(measSnap.data());
       }
+    }, (error) => handleFirestoreError(error, OperationType.GET, `measurements/${id}`));
 
-      const q = query(collection(db, 'shops', user.uid, 'orders'), where('customerId', '==', id));
-      const ordSnap = await getDocs(q);
+    const q = query(collection(db, 'shops', user.uid, 'orders'), where('customerId', '==', id));
+    const unsubOrders = onSnapshot(q, (ordSnap) => {
       const data = ordSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setOrders(data.sort((a: any, b: any) => {
         const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
         const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       }));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.GET, `customers/${id}`);
-    } finally {
       setLoading(false);
-    }
-  };
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `orders`);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubCustomer();
+      unsubMeasurements();
+      unsubOrders();
+    };
+  }, [user, id]);
 
   const handleDeleteCustomer = async () => {
     if (!window.confirm(t('customerDetails.deleteConfirm'))) return;
@@ -176,7 +179,6 @@ export default function CustomerDetails() {
       setNewOrder({ dressType: 'Shalwar Kameez', deliveryDate: '', price: '', advancePayment: '' });
       setReferencePhoto(null);
       setSampleDesign(null);
-      fetchData();
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'orders');
     } finally {

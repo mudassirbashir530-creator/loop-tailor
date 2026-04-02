@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -23,23 +23,20 @@ export default function Customers() {
 
   useEffect(() => {
     if (!user) return;
-    fetchCustomers();
-  }, [user]);
-
-  const fetchCustomers = async () => {
-    if (!user) return;
+    
     setLoading(true);
-    try {
-      const q = query(collection(db, 'shops', user.uid, 'customers'));
-      const snap = await getDocs(q);
+    const q = query(collection(db, 'shops', user.uid, 'customers'));
+    const unsubscribe = onSnapshot(q, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
       setCustomers(data.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.GET, 'customers');
-    } finally {
       setLoading(false);
-    }
-  };
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'customers');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const handleAddCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +50,6 @@ export default function Customers() {
       });
       setIsAdding(false);
       setNewCustomer({ name: '', phone: '', address: '', notes: '' });
-      fetchCustomers();
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'customers');
     }

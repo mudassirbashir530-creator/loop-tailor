@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
 import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -26,27 +26,28 @@ export default function Invoice() {
 
   useEffect(() => {
     if (!user || !id) return;
-    const fetchInvoiceData = async () => {
-      try {
-        const orderSnap = await getDoc(doc(db, 'shops', user.uid, 'orders', id));
-        if (!orderSnap.exists() || orderSnap.data().shopId !== user.uid) {
-          navigate('/dashboard/orders');
-          return;
-        }
-        const orderData = orderSnap.data();
-        setOrder({ id: orderSnap.id, ...orderData });
-
-        const shopSnap = await getDoc(doc(db, 'shops', user.uid));
-        if (shopSnap.exists()) setShop(shopSnap.data());
-
-        const custSnap = await getDoc(doc(db, 'shops', user.uid, 'customers', orderData.customerId));
-        if (custSnap.exists()) setCustomer(custSnap.data());
-
-      } catch (error) {
-        handleFirestoreError(error, OperationType.GET, `invoice/${id}`);
+    
+    const unsubOrder = onSnapshot(doc(db, 'shops', user.uid, 'orders', id), async (orderSnap) => {
+      if (!orderSnap.exists() || orderSnap.data().shopId !== user.uid) {
+        navigate('/dashboard/orders');
+        return;
       }
+      const orderData = orderSnap.data();
+      setOrder({ id: orderSnap.id, ...orderData });
+
+      // Fetch customer once order is loaded
+      const custSnap = await getDoc(doc(db, 'shops', user.uid, 'customers', orderData.customerId));
+      if (custSnap.exists()) setCustomer(custSnap.data());
+    }, (error) => handleFirestoreError(error, OperationType.GET, `invoice/${id}`));
+
+    const unsubShop = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
+      if (shopSnap.exists()) setShop(shopSnap.data());
+    }, (error) => handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`));
+
+    return () => {
+      unsubOrder();
+      unsubShop();
     };
-    fetchInvoiceData();
   }, [user, id, navigate]);
 
   if (!order || !shop || !customer) return <div className="p-8">{t('invoice.loading')}</div>;

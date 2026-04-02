@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   loading: boolean;
+  wasLoggedIn: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (
     email: string, 
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAdmin: false,
   loading: true,
+  wasLoggedIn: false,
   signIn: async () => {},
   signUp: async () => {},
   resetPassword: async () => {},
@@ -39,11 +41,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [wasLoggedIn, setWasLoggedIn] = useState(() => localStorage.getItem('wasLoggedIn') === 'true');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
+        localStorage.setItem('wasLoggedIn', 'true');
+        setWasLoggedIn(true);
         try {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
           if (userDoc.exists() && userDoc.data().role === 'admin') {
@@ -58,6 +63,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsAdmin(false);
         }
       } else {
+        localStorage.removeItem('wasLoggedIn');
+        setWasLoggedIn(false);
         setIsAdmin(false);
       }
       setLoading(false);
@@ -148,8 +155,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, signIn, signUp, resetPassword, logOut }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, isAdmin, loading, wasLoggedIn, signIn, signUp, resetPassword, logOut }}>
+      {children}
     </AuthContext.Provider>
   );
 };

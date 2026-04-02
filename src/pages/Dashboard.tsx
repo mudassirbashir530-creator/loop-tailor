@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Users, Scissors, CheckCircle, Clock, Plus, ArrowRight, Calendar, TrendingUp, Search, Hash, FileText } from 'lucide-react';
@@ -115,85 +115,87 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
 
-    const fetchDashboardData = async () => {
-      setLoading(true);
-      try {
-        const customersSnap = await getDocs(collection(db, 'shops', user.uid, 'customers'));
-        const ordersSnap = await getDocs(collection(db, 'shops', user.uid, 'orders'));
+    let isFirstLoad = true;
+
+    const unsubscribeCustomers = onSnapshot(collection(db, 'shops', user.uid, 'customers'), (customersSnap) => {
+      setStats(prev => ({ ...prev, customers: customersSnap.size }));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'dashboard_customers');
+    });
+
+    const unsubscribeOrders = onSnapshot(collection(db, 'shops', user.uid, 'orders'), (ordersSnap) => {
+      let active = 0;
+      let completed = 0;
+      let pendingPay = 0;
+      let revenue = 0;
+      const allOrders: any[] = [];
+      const upcoming: any[] = [];
+      const today = new Date();
+      const nextWeek = addDays(today, 7);
+
+      ordersSnap.forEach((doc) => {
+        const data = doc.data();
+        const order = { id: doc.id, ...data };
+        allOrders.push(order);
+
+        if (data.status === 'Delivered') {
+          completed++;
+          revenue += data.price;
+        } else {
+          active++;
+          const deliveryDate = new Date(data.deliveryDate);
+          if (isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
+            upcoming.push(order);
+          }
+        }
         
-        let active = 0;
-        let completed = 0;
-        let pendingPay = 0;
-        let revenue = 0;
-        const allOrders: any[] = [];
-        const upcoming: any[] = [];
-        const today = new Date();
-        const nextWeek = addDays(today, 7);
+        if (data.price > (data.advancePayment || 0) && data.status !== 'Delivered') {
+          pendingPay += (data.price - (data.advancePayment || 0));
+        }
+      });
 
-        ordersSnap.forEach((doc) => {
-          const data = doc.data();
-          const order = { id: doc.id, ...data };
-          allOrders.push(order);
+      upcoming.sort((a, b) => {
+        const dateA = a.deliveryDate?.toDate ? a.deliveryDate.toDate() : new Date(a.deliveryDate);
+        const dateB = b.deliveryDate?.toDate ? b.deliveryDate.toDate() : new Date(b.deliveryDate);
+        return dateA.getTime() - dateB.getTime();
+      });
 
-          if (data.status === 'Delivered') {
-            completed++;
-            revenue += data.price;
-          } else {
-            active++;
-            const deliveryDate = new Date(data.deliveryDate);
-            if (isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
-              upcoming.push(order);
-            }
-          }
-          
-          if (data.price > (data.advancePayment || 0) && data.status !== 'Delivered') {
-            pendingPay += (data.price - (data.advancePayment || 0));
-          }
-        });
+      const recent = [...allOrders]
+        .sort((a, b) => {
+          const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+          const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+          return dateB.getTime() - dateA.getTime();
+        })
+        .slice(0, 5);
 
-        upcoming.sort((a, b) => {
-          const dateA = a.deliveryDate?.toDate ? a.deliveryDate.toDate() : new Date(a.deliveryDate);
-          const dateB = b.deliveryDate?.toDate ? b.deliveryDate.toDate() : new Date(b.deliveryDate);
-          return dateA.getTime() - dateB.getTime();
-        });
-
-        const recent = [...allOrders]
-          .sort((a, b) => {
-            const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
-            const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
-            return dateB.getTime() - dateA.getTime();
-          })
-          .slice(0, 5);
-
-        setStats({
-          customers: customersSnap.size,
-          activeOrders: active,
-          completedOrders: completed,
-          pendingPayments: pendingPay,
-          totalRevenue: revenue,
-        });
-        setRecentOrders(recent);
-        setUpcomingDeliveries(upcoming);
-      } catch (error) {
-        handleFirestoreError(error, OperationType.GET, 'dashboard_data');
-      } finally {
+      setStats(prev => ({
+        ...prev,
+        activeOrders: active,
+        completedOrders: completed,
+        pendingPayments: pendingPay,
+        totalRevenue: revenue,
+      }));
+      setRecentOrders(recent);
+      setUpcomingDeliveries(upcoming);
+      
+      if (isFirstLoad) {
         setLoading(false);
+        isFirstLoad = false;
       }
-    };
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'dashboard_orders');
+      setLoading(false);
+    });
 
-    fetchDashboardData();
+    return () => {
+      unsubscribeCustomers();
+      unsubscribeOrders();
+    };
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-primary"
-        />
-      </div>
-    );
+  if (loading && !stats.customers) {
+    // Optional: Render a skeleton or just let the empty state show.
+    // For maximum perceived performance, we render the shell immediately.
   }
 
   return (
@@ -201,7 +203,7 @@ export default function Dashboard() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-10"
+      className={cn("space-y-10", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
     >
       <motion.div variants={itemVariants} className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>

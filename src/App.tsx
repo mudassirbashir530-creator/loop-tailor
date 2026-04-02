@@ -68,8 +68,14 @@ function LoadingFallback() {
 }
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, wasLoggedIn } = useAuth();
   
+  // If we know they were logged in, optimistically render the children
+  // The children (like Dashboard) will handle their own loading states or use cached data
+  if (loading && wasLoggedIn) {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return <LoadingFallback />;
   }

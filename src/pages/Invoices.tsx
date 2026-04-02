@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { FileText, Loader2, Search, Filter, Calendar, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -22,29 +22,24 @@ export default function Invoices() {
 
   useEffect(() => {
     if (!user) return;
-    fetchInvoices();
-  }, [user]);
-
-  const fetchInvoices = async () => {
-    if (!user) return;
+    
     setLoading(true);
-    try {
-      const q = query(collection(db, 'shops', user.uid, 'orders'));
-      const snap = await getDocs(q);
-      const data = snap.docs
-        .map(doc => ({ id: doc.id, ...doc.data() } as any));
-      
+    const q = query(collection(db, 'shops', user.uid, 'orders'));
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setInvoices(data.sort((a: any, b: any) => {
         const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
         const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       }));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.GET, 'invoices');
-    } finally {
       setLoading(false);
-    }
-  };
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'invoices');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter(invoice => {

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -27,32 +27,34 @@ export default function OrderDetails() {
 
   useEffect(() => {
     if (!user || !id) return;
-    fetchOrder();
-  }, [user, id]);
-
-  const fetchOrder = async () => {
-    try {
-      const docRef = doc(db, 'shops', user.uid, 'orders', id!);
-      const docSnap = await getDoc(docRef);
+    
+    setLoading(true);
+    
+    const unsubOrder = onSnapshot(doc(db, 'shops', user.uid, 'orders', id), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setOrder({ id: docSnap.id, ...data });
         setEditData({ ...data });
-
-        // Fetch shop data
-        const shopSnap = await getDoc(doc(db, 'shops', user.uid));
-        if (shopSnap.exists()) {
-          setShop(shopSnap.data());
-        }
       } else {
         navigate('/dashboard/orders');
       }
-    } catch (error) {
-      handleFirestoreError(error, OperationType.GET, `orders/${id}`);
-    } finally {
       setLoading(false);
-    }
-  };
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `orders/${id}`);
+      setLoading(false);
+    });
+
+    const unsubShop = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
+      if (shopSnap.exists()) {
+        setShop(shopSnap.data());
+      }
+    }, (error) => handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`));
+
+    return () => {
+      unsubOrder();
+      unsubShop();
+    };
+  }, [user, id]);
 
   const handleDeleteOrder = async () => {
     if (!window.confirm(t('orderDetails.deleteConfirm'))) return;
@@ -73,7 +75,6 @@ export default function OrderDetails() {
         status: newStatus, 
         updatedAt: serverTimestamp() 
       });
-      fetchOrder();
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
     }
@@ -86,7 +87,6 @@ export default function OrderDetails() {
         updatedAt: serverTimestamp()
       });
       setIsEditing(false);
-      fetchOrder();
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
     }

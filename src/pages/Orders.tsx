@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
@@ -29,27 +29,24 @@ export default function Orders() {
 
   useEffect(() => {
     if (!user) return;
-    fetchOrders();
-  }, [user]);
-
-  const fetchOrders = async () => {
-    if (!user) return;
+    
     setLoading(true);
-    try {
-      const q = query(collection(db, 'shops', user.uid, 'orders'));
-      const snap = await getDocs(q);
+    const q = query(collection(db, 'shops', user.uid, 'orders'));
+    const unsubscribe = onSnapshot(q, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setOrders(data.sort((a: any, b: any) => {
         const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
         const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       }));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.GET, 'orders');
-    } finally {
       setLoading(false);
-    }
-  };
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'orders');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const updateStatus = async (orderId: string, newStatus: string) => {
     try {
@@ -57,7 +54,6 @@ export default function Orders() {
         status: newStatus, 
         updatedAt: serverTimestamp() 
       });
-      fetchOrders();
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${orderId}`);
     }

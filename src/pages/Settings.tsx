@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, storage, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -24,19 +24,18 @@ export default function Settings() {
 
   useEffect(() => {
     if (!user) return;
-    const fetchShop = async () => {
-      try {
-        const docSnap = await getDoc(doc(db, 'shops', user.uid));
-        if (docSnap.exists()) {
-          const data = docSnap.data() as any;
-          setShop(prev => ({ ...prev, ...data }));
-          setEditData(prev => ({ ...prev, ...data }));
-        }
-      } catch (error) {
-        handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`);
+    
+    const unsubscribe = onSnapshot(doc(db, 'shops', user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data() as any;
+        setShop(prev => ({ ...prev, ...data }));
+        setEditData(prev => ({ ...prev, ...data }));
       }
-    };
-    fetchShop();
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`);
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
   const handleSave = async (e: React.FormEvent) => {

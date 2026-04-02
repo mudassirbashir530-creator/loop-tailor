@@ -60,7 +60,7 @@ const itemVariants = {
 };
 
 export default function Landing() {
-  const { user } = useAuth();
+  const { user, wasLoggedIn } = useAuth();
   const { t, isRTL, language, setLanguage } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -80,7 +80,7 @@ export default function Landing() {
     }))
   };
 
-  if (user) {
+  if (user || wasLoggedIn) {
     return <Navigate to="/dashboard" replace />;
   }
 
