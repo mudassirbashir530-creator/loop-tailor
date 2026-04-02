@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PublicLayout from '../components/PublicLayout';
 import { motion } from 'motion/react';
-import { Mail, MapPin, User, MessageSquare, Loader2, CheckCircle2 } from 'lucide-react';
+import { Mail, MapPin, User, MessageSquare, Loader2, CheckCircle2, Phone } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -14,6 +14,7 @@ export default function Contact() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    phone: '',
     email: '',
     message: ''
   });
@@ -40,6 +41,7 @@ export default function Contact() {
       const data = new FormData();
       data.append('firstName', formData.firstName);
       data.append('lastName', formData.lastName);
+      if (formData.phone) data.append('phone', formData.phone);
       data.append('email', formData.email);
       data.append('message', formData.message);
       data.append('timestamp', new Date().toISOString());
@@ -50,9 +52,25 @@ export default function Contact() {
         mode: 'no-cors', // Bypasses CORS issues for simple submissions
       });
 
+      // --- NEW SILENT BACKGROUND SUBMISSION ---
+      const newScriptUrl = 'https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec';
+      const jsonData = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        phone: formData.phone || "",
+        email: formData.email,
+        message: formData.message
+      };
+
+      fetch(newScriptUrl, {
+        method: 'POST',
+        body: JSON.stringify(jsonData),
+        mode: 'no-cors',
+      }).catch(err => console.error('Silent submission error:', err));
+      // ----------------------------------------
+
       setIsSubmitting(false);
       setIsSuccess(true);
-      setFormData({ firstName: '', lastName: '', email: '', message: '' });
+      setFormData({ firstName: '', lastName: '', phone: '', email: '', message: '' });
       
       // Reset success message after 5 seconds
       setTimeout(() => setIsSuccess(false), 5000);
@@ -151,19 +169,35 @@ export default function Contact() {
                   </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
-                  <Input 
-                    type="email" 
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="john@example.com" 
-                    className="h-12 pl-9" 
-                    required
-                  />
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                    <Input 
+                      type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="john@example.com" 
+                      className="h-12 pl-9" 
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Phone</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+                    <Input 
+                      type="tel" 
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="+1 (555) 000-0000" 
+                      className="h-12 pl-9" 
+                    />
+                  </div>
                 </div>
               </div>
               <div className="space-y-2">
