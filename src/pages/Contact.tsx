@@ -29,15 +29,9 @@ export default function Contact() {
     setError('');
 
     try {
-      // IMPORTANT: Replace this URL with your deployed Google Apps Script Web App URL
-      // See instructions in the chat on how to generate this URL.
+      // Original Google Apps Script URL
       const scriptUrl = 'https://script.google.com/macros/s/AKfycbxeXgU7jsDbL1CD3OsYY7Ua8L9W8ru0DyequnRa9zBuR-jv-7uCvlT4aAzjcVtLJ6Bowg/exec'; 
       
-      // We use no-cors mode because Google Apps Script doesn't return standard CORS headers 
-      // for simple POST requests in some configurations, but the data still gets saved.
-      // A better approach is to use a form data submission or a proxy if you need to read the response.
-      
-      // Creating FormData object to send to Google Apps Script
       const data = new FormData();
       data.append('firstName', formData.firstName);
       data.append('lastName', formData.lastName);
@@ -46,13 +40,7 @@ export default function Contact() {
       data.append('message', formData.message);
       data.append('timestamp', new Date().toISOString());
 
-      await fetch(scriptUrl, {
-        method: 'POST',
-        body: data,
-        mode: 'no-cors', // Bypasses CORS issues for simple submissions
-      });
-
-      // --- NEW SILENT BACKGROUND SUBMISSION ---
+      // New Google Apps Script URL for JSON payload
       const newScriptUrl = 'https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec';
       const jsonData = {
         name: `${formData.firstName} ${formData.lastName}`.trim(),
@@ -61,12 +49,22 @@ export default function Contact() {
         message: formData.message
       };
 
-      fetch(newScriptUrl, {
-        method: 'POST',
-        body: JSON.stringify(jsonData),
-        mode: 'no-cors',
-      }).catch(err => console.error('Silent submission error:', err));
-      // ----------------------------------------
+      // Execute both requests concurrently
+      await Promise.allSettled([
+        fetch(scriptUrl, {
+          method: 'POST',
+          body: data,
+          mode: 'no-cors',
+        }),
+        fetch(newScriptUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8',
+          },
+          body: JSON.stringify(jsonData),
+          mode: 'no-cors',
+        })
+      ]);
 
       setIsSubmitting(false);
       setIsSuccess(true);
