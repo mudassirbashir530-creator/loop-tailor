@@ -85,6 +85,7 @@ export function useImageUpload(): UseImageUploadReturn {
     setProgress(0);
 
     try {
+      /* BETA: Image upload is disabled
       const compressedBlob = await compressImage(file);
       const storageRef = ref(storage, path);
       const uploadTask = uploadBytesResumable(storageRef, compressedBlob);
@@ -109,6 +110,23 @@ export function useImageUpload(): UseImageUploadReturn {
             resolve(url);
           }
         );
+      });
+      */
+
+      // Use local preview instead
+      return new Promise((resolve) => {
+        let prog = 0;
+        const interval = setInterval(() => {
+          prog += 20;
+          setProgress(prog);
+          if (prog >= 100) {
+            clearInterval(interval);
+            const url = URL.createObjectURL(file);
+            setUploadedUrl(url);
+            setUploading(false);
+            resolve(url);
+          }
+        }, 100);
       });
     } catch (err: any) {
       setError(err.message || 'Upload failed');

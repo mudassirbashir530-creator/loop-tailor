@@ -55,28 +55,59 @@ export default function Invoice() {
     window.print();
   };
 
+  const generatePNGBlob = async (): Promise<Blob | null> => {
+    if (!invoiceRef.current) return null;
+    try {
+      const element = invoiceRef.current;
+      
+      const options = {
+        cacheBust: true,
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+        style: {
+          width: '800px',
+          maxWidth: '800px',
+          padding: '40px',
+          margin: '0',
+        }
+      };
+
+      // Workaround for iOS Safari blank image issue: call toPng twice
+      await toPng(element, options);
+      const dataUrl = await toPng(element, options);
+      
+      const res = await fetch(dataUrl);
+      return await res.blob();
+    } catch (error) {
+      console.error('Error generating PNG:', error);
+      return null;
+    }
+  };
+
   const handleShare = async () => {
     setIsSharing(true);
     try {
-      const shareUrl = window.location.href;
+      const blob = await generatePNGBlob();
+      if (!blob) throw new Error("Failed to generate image");
+      
+      const file = new File([blob], `Invoice_${order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
       const shareData = {
         title: `${t('invoice.invoice')} - ${shop.name}`,
-        text: `${t('invoice.invoice')} for ${customer.name} from ${shop.name}`,
-        url: shareUrl
+        files: [file]
       };
 
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        try {
-          await navigator.share(shareData);
-        } catch (shareError: any) {
-          if (shareError.name !== 'AbortError') {
-            await navigator.clipboard.writeText(shareUrl);
-            alert(t('invoice.shareSuccess'));
-          }
-        }
+      if (navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(shareUrl);
-        alert(t('invoice.shareFallback'));
+        // Fallback: Download the PNG
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
     } catch (error) {
       console.error('Error sharing invoice:', error);
@@ -86,78 +117,42 @@ export default function Invoice() {
     }
   };
 
-  const handleWhatsAppShare = () => {
-    if (!customer?.phone) {
-      alert("Customer phone number is missing.");
-      return;
-    }
-    
-    const balanceDue = order.price - (order.advancePayment || 0);
-    const deliveryDate = format(new Date(order.deliveryDate), 'MMM dd, yyyy');
-    
-    const message = `Hello ${customer.name},\n\nHere are your order details from ${shop.name}:\n\nItem: ${order.dressType}\nPrice: PKR ${order.price.toLocaleString()}\nAdvance Paid: PKR ${(order.advancePayment || 0).toLocaleString()}\nBalance Due: PKR ${balanceDue.toLocaleString()}\nDelivery Date: ${deliveryDate}\n\nView your invoice here: ${window.location.href}\n\nThank you!`;
-    
-    const cleanPhone = customer.phone.replace(/[^\d+]/g, '').replace('+', '');
-    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-    
-    window.open(whatsappUrl, '_blank');
-  };
-
-  const generatePDF = async () => {
-    if (!invoiceRef.current) return;
+  const handleWhatsAppShare = async () => {
     setIsGenerating(true);
-    let clone: HTMLElement | null = null;
     try {
-      const element = invoiceRef.current;
+      const blob = await generatePNGBlob();
+      if (!blob) throw new Error("Failed to generate image");
+      
+      const file = new File([blob], `Invoice_${order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
+      const shareData = {
+        title: `${t('invoice.invoice')} - ${shop.name}`,
+        files: [file]
+      };
 
-      // Create a clone to avoid touching the live UI and to get correct desktop dimensions
-      clone = element.cloneNode(true) as HTMLElement;
-      clone.style.width = '800px';
-      clone.style.maxWidth = '800px';
-      clone.style.padding = '40px';
-      clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
-      clone.style.top = '-9999px';
-      
-      document.body.appendChild(clone);
-      
-      // Wait for layout to calculate
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      const dataUrl = await toPng(clone, {
-        cacheBust: true,
-        backgroundColor: '#ffffff',
-        pixelRatio: 2,
-      });
-      
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const imgProps = pdf.getImageProperties(dataUrl);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      let heightLeft = pdfHeight;
-      let position = 0;
-
-      pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
+      if (navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: Download the PNG and open WhatsApp
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        if (customer?.phone) {
+          const cleanPhone = customer.phone.replace(/[^\d+]/g, '').replace('+', '');
+          window.open(`https://wa.me/${cleanPhone}`, '_blank');
+        } else {
+          window.open(`https://wa.me/`, '_blank');
+        }
       }
-      
-      pdf.save(`Invoice_${order.id.slice(-6).toUpperCase()}.pdf`);
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert(t('invoice.pdfError'));
+      console.error('Error sharing to WhatsApp:', error);
+      alert(t('invoice.shareError'));
     } finally {
-      if (clone && clone.parentNode) {
-        clone.parentNode.removeChild(clone);
-      }
       setIsGenerating(false);
     }
   };
@@ -175,14 +170,11 @@ export default function Invoice() {
           <Button variant="outline" size="sm" onClick={handleShare} disabled={isSharing} className="flex-1 sm:flex-none rounded-xl h-9">
             <Share2 className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isSharing ? '...' : t('invoice.share')}
           </Button>
-          <Button variant="outline" size="sm" onClick={handleWhatsAppShare} className="flex-1 sm:flex-none rounded-xl h-9 bg-[#25D366] text-white hover:bg-[#128C7E] border-none">
-            <MessageCircle className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> WhatsApp
+          <Button variant="outline" size="sm" onClick={handleWhatsAppShare} disabled={isGenerating} className="flex-1 sm:flex-none rounded-xl h-9 bg-[#25D366] text-white hover:bg-[#128C7E] border-none">
+            <MessageCircle className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isGenerating ? '...' : 'WhatsApp'}
           </Button>
           <Button variant="outline" size="sm" onClick={handlePrint} className="flex-1 sm:flex-none rounded-xl h-9">
             <Printer className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {t('invoice.print')}
-          </Button>
-          <Button size="sm" onClick={generatePDF} disabled={isGenerating} className="flex-1 sm:flex-none rounded-xl h-9 bg-slate-900">
-            <Download className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isGenerating ? '...' : t('invoice.pdf')}
           </Button>
         </div>
       </div>
@@ -191,7 +183,7 @@ export default function Invoice() {
         {/* Header Section */}
         <div className="flex flex-row justify-between items-start border-b border-slate-100 pb-5 mb-5 gap-4">
           <div className="flex items-center gap-3">
-            {shop.logoUrl && <img src={shop.logoUrl} alt="Shop Logo" className="h-10 w-10 sm:h-16 sm:w-16 object-contain rounded-xl bg-slate-50 p-1" />}
+            {shop.logoUrl && <img src={shop.logoUrl} alt="Shop Logo" crossOrigin="anonymous" className="h-10 w-10 sm:h-16 sm:w-16 object-contain rounded-xl bg-slate-50 p-1" />}
             <div>
               <h1 className="text-xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight">{shop.name}</h1>
               <p className="text-xs sm:text-base text-slate-500 font-medium">{shop.phone}</p>

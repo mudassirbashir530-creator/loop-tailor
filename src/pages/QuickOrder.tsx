@@ -231,10 +231,11 @@ export default function QuickOrder() {
         updatedAt: serverTimestamp()
       });
 
-      // 4. Upload Files
+      // 4. Upload Files (BETA - Disabled for now)
       let referencePhotoUrl = '';
       let sampleDesignUrl = '';
 
+      /* BETA: Image upload is disabled
       if (referencePhoto) {
         const photoRef = ref(storage, `orders/${orderRef.id}/reference_${referencePhoto.name}`);
         await uploadBytes(photoRef, referencePhoto);
@@ -250,6 +251,7 @@ export default function QuickOrder() {
       if (referencePhotoUrl || sampleDesignUrl) {
         await updateDoc(orderRef, { referencePhotoUrl, sampleDesignUrl });
       }
+      */
 
       // 5. Navigate to orders list
       navigate(`/dashboard/orders`);
@@ -589,7 +591,7 @@ export default function QuickOrder() {
                   <div className="space-y-3">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                       <Upload className="h-4 w-4" />
-                      {t('quickOrder.referencePhoto')}
+                      {t('quickOrder.referencePhoto')} (Beta)
                     </label>
                     <div className="relative">
                       {referencePhoto ? (
@@ -614,7 +616,7 @@ export default function QuickOrder() {
                   <div className="space-y-3">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                       <Upload className="h-4 w-4" />
-                      {t('quickOrder.sampleDesign')}
+                      {t('quickOrder.sampleDesign')} (Beta)
                     </label>
                     <div className="relative">
                       {sampleDesign ? (

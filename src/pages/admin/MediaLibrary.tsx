@@ -52,6 +52,7 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect }) => {
       const fileId = Date.now().toString();
       const storageRef = ref(storage, `media/${fileId}_${file.name}`);
       
+      /* BETA: Image upload is disabled
       // Upload to Firebase Storage
       const snapshot = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(snapshot.ref);
@@ -66,6 +67,21 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect }) => {
       };
 
       await setDoc(doc(db, 'media_library', fileId), mediaData);
+      */
+      
+      // Use local preview instead
+      const downloadURL = URL.createObjectURL(file);
+      const mediaData = {
+        id: fileId,
+        url: downloadURL,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        createdAt: new Date(),
+        storagePath: `local/${fileId}_${file.name}`
+      };
+      
+      setMedia(prev => [mediaData as any, ...prev]);
       
       // Refresh media list
       fetchMedia();

@@ -60,9 +60,15 @@ export default function Settings() {
 
     setUploading(true);
     try {
+      /* BETA: Image upload is disabled
       const storageRef = ref(storage, `shops/${user.uid}/logo_${Date.now()}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
+      setEditData(prev => ({ ...prev, logoUrl: url }));
+      */
+      
+      // Use local preview instead
+      const url = URL.createObjectURL(file);
       setEditData(prev => ({ ...prev, logoUrl: url }));
     } catch (error) {
       console.error('Error uploading logo:', error);

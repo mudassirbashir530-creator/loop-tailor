@@ -154,6 +154,7 @@ export default function CustomerDetails() {
         updatedAt: serverTimestamp()
       });
 
+      /* BETA: Image upload is disabled
       if (referencePhoto) {
         const photoRef = ref(storage, `orders/${orderRef.id}/reference_${referencePhoto.name}`);
         await uploadBytes(photoRef, referencePhoto);
@@ -169,6 +170,7 @@ export default function CustomerDetails() {
       if (referencePhotoUrl || sampleDesignUrl) {
         await updateDoc(orderRef, { referencePhotoUrl, sampleDesignUrl });
       }
+      */
 
       setIsAddingOrder(false);
       setNewOrder({ dressType: 'Shalwar Kameez', deliveryDate: '', price: '', advancePayment: '' });
@@ -406,6 +408,59 @@ export default function CustomerDetails() {
                           </div>
                         </div>
                       </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/10">
+                        <div className="space-y-3">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <Upload className="h-4 w-4" />
+                            {t('quickOrder.referencePhoto')} (Beta)
+                          </label>
+                          <div className="relative">
+                            {referencePhoto ? (
+                              <div className="relative h-32 w-full rounded-xl border-2 border-white/10 overflow-hidden group">
+                                <img src={URL.createObjectURL(referencePhoto)} alt="Reference" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Button type="button" variant="destructive" size="sm" onClick={() => setReferencePhoto(null)} className="rounded-full">
+                                    <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl border-2 border-dashed border-white/20 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
+                                <Upload className="h-6 w-6 text-white/40 mb-2" />
+                                <span className="text-sm font-medium text-white/60">{t('quickOrder.clickToUpload')}</span>
+                                <input type="file" accept="image/*" className="hidden" onChange={e => setReferencePhoto(e.target.files?.[0] || null)} />
+                              </label>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <Upload className="h-4 w-4" />
+                            {t('quickOrder.sampleDesign')} (Beta)
+                          </label>
+                          <div className="relative">
+                            {sampleDesign ? (
+                              <div className="relative h-32 w-full rounded-xl border-2 border-white/10 overflow-hidden group">
+                                <img src={URL.createObjectURL(sampleDesign)} alt="Sample" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Button type="button" variant="destructive" size="sm" onClick={() => setSampleDesign(null)} className="rounded-full">
+                                    <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl border-2 border-dashed border-white/20 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
+                                <Upload className="h-6 w-6 text-white/40 mb-2" />
+                                <span className="text-sm font-medium text-white/60">{t('quickOrder.clickToUpload')}</span>
+                                <input type="file" accept="image/*" className="hidden" onChange={e => setSampleDesign(e.target.files?.[0] || null)} />
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="flex justify-end gap-4 pt-4 border-t border-white/10">
                         <Button type="button" variant="ghost" onClick={() => setIsAddingOrder(false)} className="text-white hover:bg-white/10 h-12 px-6 rounded-xl font-bold">{t('customerDetails.cancel')}</Button>
                         <Button type="submit" disabled={isUploading} className="bg-brand-primary text-white hover:bg-brand-primary/90 h-12 px-10 rounded-xl font-black text-base shadow-lg shadow-brand-primary/20">
