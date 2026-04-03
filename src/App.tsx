@@ -181,7 +181,7 @@ export default function App() {
 
                     <section>
                       <h2 className="text-2xl font-bold text-slate-900 mb-4">9. Contact Us</h2>
-                      <p>If you have any questions or concerns about this Privacy and Policy, please contact us at <a href="mailto:support@looptailor.com" className="text-brand-primary font-bold">support@looptailor.com</a>.</p>
+                      <p>If you have any questions or concerns about this Privacy and Policy, please contact us at <a href="mailto:looptailor@gmail.com" className="text-brand-primary font-bold">looptailor@gmail.com</a>.</p>
                     </section>
                   </div>
                 </Legal>
