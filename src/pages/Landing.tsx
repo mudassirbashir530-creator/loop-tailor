@@ -121,12 +121,12 @@ export default function Landing() {
               <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors">{t('landing.nav.pricing')}</a>
               
               <Link to="/login">
-                <Button variant="ghost" className="text-sm font-semibold">
+                <Button variant="ghost" className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50">
                   {t('landing.nav.signIn')}
                 </Button>
               </Link>
               <Link to="/signup">
-                <Button className="bg-brand-primary hover:bg-brand-primary/90 text-white rounded-full px-6">
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6 shadow-lg shadow-orange-500/20">
                   {t('landing.nav.startFreeTrial')}
                 </Button>
               </Link>
@@ -159,10 +159,10 @@ export default function Landing() {
                 
                 <div className="pt-4 flex flex-col gap-3">
                   <Link to="/login" className="w-full">
-                    <Button variant="outline" className="w-full">{t('landing.nav.signIn')}</Button>
+                    <Button variant="outline" className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700">{t('landing.nav.signIn')}</Button>
                   </Link>
                   <Link to="/signup" className="w-full">
-                    <Button className="w-full bg-brand-primary text-white">{t('landing.nav.getStarted')}</Button>
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20">{t('landing.nav.getStarted')}</Button>
                   </Link>
                 </div>
               </div>
@@ -556,7 +556,7 @@ export default function Landing() {
                 </ul>
 
                 <Link to="/signup">
-                  <Button size="lg" className="w-full h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-lg font-bold shadow-xl shadow-brand-primary/20">
+                  <Button size="lg" className="w-full h-16 rounded-2xl bg-orange-500 hover:bg-orange-600 text-lg font-bold text-white shadow-xl shadow-orange-500/30">
                     {t('landing.pricing.cta')}
                   </Button>
                 </Link>
@@ -640,7 +640,7 @@ export default function Landing() {
               <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">{t('landing.cta.subtitle')}</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link to="/signup" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto h-16 px-12 rounded-2xl bg-white text-brand-primary hover:bg-slate-50 text-lg font-bold shadow-2xl">
+                  <Button size="lg" className="w-full sm:w-auto h-16 px-12 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-lg font-bold shadow-2xl shadow-orange-500/30">
                     {t('landing.cta.button')}
                   </Button>
                 </Link>

@@ -200,7 +200,7 @@ export default function Login() {
 
             <Button
               disabled={isLoading}
-              className={cn("w-full h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-white font-bold text-lg shadow-2xl shadow-brand-primary/20 transition-all active:scale-95 mt-4", isRTL && "flex-row-reverse")}
+              className={cn("w-full h-16 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg shadow-2xl shadow-blue-600/20 transition-all active:scale-95 mt-4", isRTL && "flex-row-reverse")}
             >
               {isLoading ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
@@ -219,7 +219,7 @@ export default function Login() {
               {mode === 'login' ? (
                 <Link
                   to="/signup"
-                  className={cn("text-brand-primary font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
+                  className={cn("text-orange-500 font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
                 >
                   {t('auth.signUp')}
                 </Link>
