@@ -293,16 +293,19 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Taylor Choose */}
-      <section className="py-24 bg-white">
+      {/* Why Choose Loop Tailor */}
+      <section className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl md:text-5xl font-display font-black text-center text-slate-900 mb-16">{t('landing.whyChoose.title')}</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="text-center mb-16">
+            <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">{t('landing.whyChoose.badge', 'Benefits')}</h2>
+            <h2 className="text-4xl md:text-5xl font-display font-black text-slate-900">{t('landing.whyChoose.title')}</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {[
-              { icon: <ClipboardList className="h-8 w-8 text-brand-primary" />, title: t('landing.whyChoose.items.tracking.title'), desc: t('landing.whyChoose.items.tracking.desc') },
-              { icon: <Ruler className="h-8 w-8 text-brand-primary" />, title: t('landing.whyChoose.items.measurements.title'), desc: t('landing.whyChoose.items.measurements.desc') },
-              { icon: <Truck className="h-8 w-8 text-brand-primary" />, title: t('landing.whyChoose.items.delivery.title'), desc: t('landing.whyChoose.items.delivery.desc') },
-              { icon: <Workflow className="h-8 w-8 text-brand-primary" />, title: t('landing.whyChoose.items.workflow.title'), desc: t('landing.whyChoose.items.workflow.desc') }
+              { icon: <ClipboardList className="h-6 w-6 text-brand-primary" />, title: t('landing.whyChoose.items.tracking.title'), desc: t('landing.whyChoose.items.tracking.desc') },
+              { icon: <Ruler className="h-6 w-6 text-brand-primary" />, title: t('landing.whyChoose.items.storage.title'), desc: t('landing.whyChoose.items.storage.desc') },
+              { icon: <Truck className="h-6 w-6 text-brand-primary" />, title: t('landing.whyChoose.items.delivery.title'), desc: t('landing.whyChoose.items.delivery.desc') },
+              { icon: <Workflow className="h-6 w-6 text-brand-primary" />, title: t('landing.whyChoose.items.workflow.title'), desc: t('landing.whyChoose.items.workflow.desc') }
             ].map((item, idx) => (
               <motion.div 
                 key={idx}
@@ -310,13 +313,13 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-8 rounded-3xl bg-slate-50 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full"
+                className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group"
               >
-                <div className="bg-white w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-sm shrink-0">
+                <div className="bg-slate-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-brand-primary/10 transition-colors shrink-0">
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
-                <p className="text-slate-500 leading-relaxed">{item.desc}</p>
+                <h3 className="text-xl font-bold text-slate-900 mb-3 leading-tight">{item.title}</h3>
+                <p className="text-slate-500 leading-relaxed text-sm">{item.desc}</p>
               </motion.div>
             ))}
           </div>
