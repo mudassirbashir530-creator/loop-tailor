@@ -18,6 +18,7 @@ import { Scissors } from 'lucide-react';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
+import ForgotPassword from './pages/ForgotPassword';
 
 // Lazy load other pages
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
@@ -99,6 +100,7 @@ export default function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               
               {/* Info Pages */}
               <Route path="/about" element={<About />} />

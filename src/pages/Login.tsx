@@ -11,11 +11,10 @@ import { cn } from '../lib/utils';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [mode, setMode] = useState<'login' | 'reset'>('login');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, resetPassword, user } = useAuth();
+  const { signIn, user } = useAuth();
   const { t, isRTL, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
 
@@ -30,13 +29,8 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      if (mode === 'login') {
-        await signIn(email, password);
-        navigate('/dashboard');
-      } else {
-        await resetPassword(email);
-        setSuccess('Password reset link sent to your email.');
-      }
+      await signIn(email, password);
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please try again.');
     } finally {
@@ -125,12 +119,10 @@ export default function Login() {
 
           <div className="mb-10">
             <h2 className="text-3xl sm:text-4xl font-display font-black text-slate-900 mb-3">
-              {mode === 'login' ? t('auth.signIn') : t('auth.resetPassword')}
+              {t('auth.signIn')}
             </h2>
             <p className="text-slate-500 font-medium">
-              {mode === 'login' 
-                ? t('auth.signInDesc') 
-                : t('auth.resetPasswordDesc')}
+              {t('auth.signInDesc')}
             </p>
           </div>
 
@@ -151,32 +143,29 @@ export default function Login() {
               </div>
             </div>
 
-            {mode === 'login' && (
-              <div className="space-y-2">
-                <div className={cn("flex justify-between items-center", isRTL ? "mr-1" : "ml-1")}>
-                  <label className="text-sm font-bold text-slate-700">{t('auth.password')}</label>
-                  <button
-                    type="button"
-                    onClick={() => setMode('reset')}
-                    className="text-xs font-bold text-brand-primary hover:underline"
-                  >
-                    {t('auth.forgotPassword')}
-                  </button>
-                </div>
-                <div className="relative">
-                  <Lock className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
-                  <Input
-                    required
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
-                    dir="ltr"
-                  />
-                </div>
+            <div className="space-y-2">
+              <div className={cn("flex justify-between items-center", isRTL ? "mr-1" : "ml-1")}>
+                <label className="text-sm font-bold text-slate-700">{t('auth.password')}</label>
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-bold text-brand-primary hover:underline"
+                >
+                  {t('auth.forgotPassword')}
+                </Link>
               </div>
-            )}
+              <div className="relative">
+                <Lock className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
+                <Input
+                  required
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                  dir="ltr"
+                />
+              </div>
+            </div>
 
             {error && (
               <motion.div
@@ -206,7 +195,7 @@ export default function Login() {
                 <Loader2 className="h-6 w-6 animate-spin" />
               ) : (
                 <>
-                  {mode === 'login' ? t('auth.signIn') : t('auth.sendResetLink')}
+                  {t('auth.signIn')}
                   {isRTL ? <ArrowLeft className="mr-2 h-5 w-5" /> : <ArrowRight className="ml-2 h-5 w-5" />}
                 </>
               )}
@@ -215,22 +204,13 @@ export default function Login() {
 
           <div className="mt-10 pt-10 border-t border-slate-100 text-center">
             <p className="text-slate-500 font-medium">
-              {mode === 'login' ? t('auth.dontHaveAccount') : t('auth.rememberedPassword')}
-              {mode === 'login' ? (
-                <Link
-                  to="/signup"
-                  className={cn("text-orange-500 font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
-                >
-                  {t('auth.signUp')}
-                </Link>
-              ) : (
-                <button
-                  onClick={() => setMode('login')}
-                  className={cn("text-brand-primary font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
-                >
-                  {t('auth.logIn')}
-                </button>
-              )}
+              {t('auth.dontHaveAccount')}
+              <Link
+                to="/signup"
+                className={cn("text-orange-500 font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
+              >
+                {t('auth.signUp')}
+              </Link>
             </p>
           </div>
         </div>
