@@ -5,6 +5,7 @@ import { Mail, MapPin, User, MessageSquare, Loader2, CheckCircle2, Phone } from 
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { safeFetchJSON } from '../lib/apiHelpers';
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,42 +30,14 @@ export default function Contact() {
     setError('');
 
     try {
-      // Original Google Apps Script URL
-      const scriptUrl = 'https://script.google.com/macros/s/AKfycbxeXgU7jsDbL1CD3OsYY7Ua8L9W8ru0DyequnRa9zBuR-jv-7uCvlT4aAzjcVtLJ6Bowg/exec'; 
-      
-      const data = new FormData();
-      data.append('firstName', formData.firstName);
-      data.append('lastName', formData.lastName);
-      if (formData.phone) data.append('phone', formData.phone);
-      data.append('email', formData.email);
-      data.append('message', formData.message);
-      data.append('timestamp', new Date().toISOString());
+      const { data, error: fetchError } = await safeFetchJSON('/api/contact', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      });
 
-      // New Google Apps Script URL for JSON payload
-      const newScriptUrl = 'https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec';
-      const jsonData = {
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        phone: formData.phone || "",
-        email: formData.email,
-        message: formData.message
-      };
-
-      // Execute both requests concurrently
-      await Promise.allSettled([
-        fetch(scriptUrl, {
-          method: 'POST',
-          body: data,
-          mode: 'no-cors',
-        }),
-        fetch(newScriptUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8',
-          },
-          body: JSON.stringify(jsonData),
-          mode: 'no-cors',
-        })
-      ]);
+      if (fetchError) {
+        throw new Error(fetchError);
+      }
 
       setIsSubmitting(false);
       setIsSuccess(true);

@@ -207,6 +207,45 @@ async function startServer() {
     }
   });
 
+  /**
+   * Handles contact form submissions
+   */
+  app.post("/api/contact", async (req, res) => {
+    try {
+      const { firstName, lastName, email, phone, message } = req.body;
+
+      if (!firstName || !lastName || !email || !message) {
+        return res.status(400).json({ error: "Required fields are missing" });
+      }
+
+      const mailTransporter = await getTransporter();
+      
+      const htmlContent = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #16a34a;">New Contact Form Submission</h2>
+          <p><strong>Name:</strong> ${firstName} ${lastName}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
+          <p><strong>Message:</strong></p>
+          <blockquote style="background: #f8fafc; border-left: 4px solid #16a34a; padding: 16px; margin: 0; white-space: pre-wrap;">${message}</blockquote>
+        </div>
+      `;
+
+      await mailTransporter.sendMail({
+        from: '"Loop Tailor Contact" <noreply@looptailor.com>',
+        to: process.env.SMTP_USER || "looptailor@gmail.com",
+        replyTo: email,
+        subject: `New Contact Message from ${firstName} ${lastName}`,
+        html: htmlContent,
+      });
+
+      res.status(200).json({ success: true, message: "Message sent successfully" });
+    } catch (error) {
+      console.error("Error processing contact form:", error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
