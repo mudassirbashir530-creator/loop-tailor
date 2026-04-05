@@ -218,26 +218,48 @@ async function startServer() {
         return res.status(400).json({ error: "Required fields are missing" });
       }
 
-      const mailTransporter = await getTransporter();
-      
-      const htmlContent = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #16a34a;">New Contact Form Submission</h2>
-          <p><strong>Name:</strong> ${firstName} ${lastName}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
-          <p><strong>Message:</strong></p>
-          <blockquote style="background: #f8fafc; border-left: 4px solid #16a34a; padding: 16px; margin: 0; white-space: pre-wrap;">${message}</blockquote>
-        </div>
-      `;
+      // 1. Save the message to Firestore so it's never lost
+      try {
+        await db.collection('contact_messages').add({
+          firstName,
+          lastName,
+          email,
+          phone: phone || '',
+          message,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          status: 'new'
+        });
+      } catch (dbError) {
+        console.error("Failed to save contact message to Firestore:", dbError);
+        // Continue anyway to try sending the email
+      }
 
-      await mailTransporter.sendMail({
-        from: '"Loop Tailor Contact" <noreply@looptailor.com>',
-        to: process.env.SMTP_USER || "looptailor@gmail.com",
-        replyTo: email,
-        subject: `New Contact Message from ${firstName} ${lastName}`,
-        html: htmlContent,
-      });
+      // 2. Try to send the email notification
+      try {
+        const mailTransporter = await getTransporter();
+        
+        const htmlContent = `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #16a34a;">New Contact Form Submission</h2>
+            <p><strong>Name:</strong> ${firstName} ${lastName}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
+            <p><strong>Message:</strong></p>
+            <blockquote style="background: #f8fafc; border-left: 4px solid #16a34a; padding: 16px; margin: 0; white-space: pre-wrap;">${message}</blockquote>
+          </div>
+        `;
+
+        await mailTransporter.sendMail({
+          from: '"Loop Tailor Contact" <noreply@looptailor.com>',
+          to: process.env.SMTP_USER || "looptailor@gmail.com",
+          replyTo: email,
+          subject: `New Contact Message from ${firstName} ${lastName}`,
+          html: htmlContent,
+        });
+      } catch (emailError) {
+        console.error("Failed to send contact email notification:", emailError);
+        // We don't throw here because the message was saved to Firestore
+      }
 
       res.status(200).json({ success: true, message: "Message sent successfully" });
     } catch (error) {

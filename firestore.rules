@@ -140,6 +140,11 @@ service cloud.firestore {
       allow read, write: if false; // Only backend (Admin SDK) can access
     }
 
+    match /contact_messages/{messageId} {
+      allow read: if isAdmin();
+      allow write: if false; // Only backend (Admin SDK) can write
+    }
+
     match /counters/{shopId} {
       allow read, write: if isOwner(shopId);
     }
