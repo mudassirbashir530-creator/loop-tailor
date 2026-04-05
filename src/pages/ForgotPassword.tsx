@@ -4,6 +4,7 @@ import { Mail, ArrowLeft, Loader2, CheckCircle, Scissors, KeyRound, Lock } from 
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Link } from 'react-router-dom';
+import { safeFetchJSON } from '../lib/apiHelpers';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -20,16 +21,13 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const { data, error: fetchError, response } = await safeFetchJSON('/api/auth/forgot-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send OTP');
+      if (fetchError) {
+        throw new Error(fetchError);
       }
 
       setStep('reset');
@@ -57,16 +55,13 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const { data, error: fetchError, response } = await safeFetchJSON('/api/auth/reset-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, newPassword }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to reset password');
+      if (fetchError) {
+        throw new Error(fetchError);
       }
 
       setStep('success');
