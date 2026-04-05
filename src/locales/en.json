@@ -278,7 +278,24 @@
     "bySigningUp": "By signing up, you agree to our",
     "termsOfService": "Terms of Service",
     "and": "and",
-    "privacyPolicy": "Privacy Policy"
+    "privacyPolicy": "Privacy Policy",
+    "resetYourPassword": "Reset your password",
+    "createNewPassword": "Create new password",
+    "passwordReset": "Password Reset",
+    "or": "Or",
+    "returnToSignIn": "return to sign in",
+    "passwordResetSuccess": "Password Reset Successfully!",
+    "passwordResetSuccessDesc": "Your password has been changed. You can now securely sign in with your new password.",
+    "returnToLogin": "Return to login",
+    "verificationCode": "6-Digit Verification Code",
+    "weSentCodeTo": "We sent a code to",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "sendVerificationCode": "Send verification code",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "failedToSendReset": "Failed to send reset link. Please try again.",
+    "failedToResetPassword": "Failed to reset password. Please try again."
   },
   "landing": {
     "nav": {

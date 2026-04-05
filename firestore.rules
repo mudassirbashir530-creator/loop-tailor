@@ -136,6 +136,10 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /password_resets/{document} {
+      allow read, write: if false; // Only backend (Admin SDK) can access
+    }
+
     match /counters/{shopId} {
       allow read, write: if isOwner(shopId);
     }

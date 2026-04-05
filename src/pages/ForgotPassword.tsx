@@ -5,8 +5,10 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Link } from 'react-router-dom';
 import { safeFetchJSON } from '../lib/apiHelpers';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function ForgotPassword() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -32,7 +34,7 @@ export default function ForgotPassword() {
 
       setStep('reset');
     } catch (err: any) {
-      setError(err.message || 'Failed to send reset link. Please try again.');
+      setError(err.message || t('auth.failedToSendReset'));
     } finally {
       setIsLoading(false);
     }
@@ -43,12 +45,12 @@ export default function ForgotPassword() {
     setError(null);
     
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t('auth.passwordsDoNotMatch'));
       return;
     }
 
     if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError(t('auth.passwordTooShort'));
       return;
     }
 
@@ -66,7 +68,7 @@ export default function ForgotPassword() {
 
       setStep('success');
     } catch (err: any) {
-      setError(err.message || 'Failed to reset password. Please try again.');
+      setError(err.message || t('auth.failedToResetPassword'));
     } finally {
       setIsLoading(false);
     }
@@ -82,12 +84,12 @@ export default function ForgotPassword() {
           <span className="text-2xl font-display font-bold tracking-tight text-slate-900">Loop Tailor</span>
         </Link>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
-          {step === 'email' ? 'Reset your password' : step === 'reset' ? 'Create new password' : 'Password Reset'}
+          {step === 'email' ? t('auth.resetYourPassword') : step === 'reset' ? t('auth.createNewPassword') : t('auth.passwordReset')}
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600">
-          Or{' '}
+          {t('auth.or')} {' '}
           <Link to="/login" className="font-medium text-green-600 hover:text-green-500 transition-colors">
-            return to sign in
+            {t('auth.returnToSignIn')}
           </Link>
         </p>
       </div>
@@ -103,13 +105,13 @@ export default function ForgotPassword() {
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
-              <h3 className="text-lg font-medium text-slate-900 mb-2">Password Reset Successfully!</h3>
+              <h3 className="text-lg font-medium text-slate-900 mb-2">{t('auth.passwordResetSuccess')}</h3>
               <p className="text-sm text-slate-500 mb-6">
-                Your password has been changed. You can now securely sign in with your new password.
+                {t('auth.passwordResetSuccessDesc')}
               </p>
               <Link to="/login">
                 <Button className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm transition-all">
-                  Return to login
+                  {t('auth.returnToLogin')}
                 </Button>
               </Link>
             </motion.div>
@@ -117,7 +119,7 @@ export default function ForgotPassword() {
             <form className="space-y-6" onSubmit={handleResetPassword}>
               <div>
                 <label htmlFor="otp" className="block text-sm font-medium text-slate-700">
-                  6-Digit Verification Code
+                  {t('auth.verificationCode')}
                 </label>
                 <div className="mt-2 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -136,13 +138,13 @@ export default function ForgotPassword() {
                   />
                 </div>
                 <p className="mt-2 text-xs text-slate-500 text-center">
-                  We sent a code to <span className="font-medium text-slate-900">{email}</span>
+                  {t('auth.weSentCodeTo')} <span className="font-medium text-slate-900">{email}</span>
                 </p>
               </div>
 
               <div>
                 <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700">
-                  New Password
+                  {t('auth.newPassword')}
                 </label>
                 <div className="mt-2 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -163,7 +165,7 @@ export default function ForgotPassword() {
 
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700">
-                  Confirm Password
+                  {t('auth.confirmPassword')}
                 </label>
                 <div className="mt-2 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -201,7 +203,7 @@ export default function ForgotPassword() {
                   {isLoading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    'Reset Password'
+                    t('auth.resetPassword')
                   )}
                 </Button>
               </div>
@@ -210,7 +212,7 @@ export default function ForgotPassword() {
             <form className="space-y-6" onSubmit={handleSendOtp}>
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-slate-700">
-                  Email address
+                  {t('auth.emailAddress')}
                 </label>
                 <div className="mt-2 relative rounded-md shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -249,7 +251,7 @@ export default function ForgotPassword() {
                   {isLoading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                    'Send verification code'
+                    t('auth.sendVerificationCode')
                   )}
                 </Button>
               </div>

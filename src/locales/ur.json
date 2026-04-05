@@ -278,7 +278,24 @@
     "bySigningUp": "سائن اپ کر کے، آپ ہماری",
     "termsOfService": "سروس کی شرائط",
     "and": "اور",
-    "privacyPolicy": "پرائیویسی پالیسی سے اتفاق کرتے ہیں۔"
+    "privacyPolicy": "پرائیویسی پالیسی سے اتفاق کرتے ہیں۔",
+    "resetYourPassword": "اپنا پاس ورڈ ری سیٹ کریں",
+    "createNewPassword": "نیا پاس ورڈ بنائیں",
+    "passwordReset": "پاس ورڈ ری سیٹ",
+    "or": "یا",
+    "returnToSignIn": "سائن ان پر واپس جائیں",
+    "passwordResetSuccess": "پاس ورڈ کامیابی سے ری سیٹ ہو گیا!",
+    "passwordResetSuccessDesc": "آپ کا پاس ورڈ تبدیل کر دیا گیا ہے۔ اب آپ اپنے نئے پاس ورڈ کے ساتھ محفوظ طریقے سے سائن ان کر سکتے ہیں۔",
+    "returnToLogin": "لاگ ان پر واپس جائیں",
+    "verificationCode": "6 ہندسوں کا تصدیقی کوڈ",
+    "weSentCodeTo": "ہم نے ایک کوڈ بھیجا ہے",
+    "newPassword": "نیا پاس ورڈ",
+    "confirmPassword": "پاس ورڈ کی تصدیق کریں",
+    "sendVerificationCode": "تصدیقی کوڈ بھیجیں",
+    "passwordsDoNotMatch": "پاس ورڈز آپس میں نہیں ملتے",
+    "passwordTooShort": "پاس ورڈ کم از کم 6 حروف کا ہونا چاہیے",
+    "failedToSendReset": "ری سیٹ لنک بھیجنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔",
+    "failedToResetPassword": "پاس ورڈ ری سیٹ کرنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔"
   },
   "landing": {
     "nav": {
