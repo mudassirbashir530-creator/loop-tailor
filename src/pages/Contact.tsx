@@ -30,6 +30,21 @@ export default function Contact() {
     setError('');
 
     try {
+      // Send to Google Apps Script silently in the background
+      fetch('https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          phone: formData.phone,
+          email: formData.email,
+          message: formData.message
+        })
+      }).catch(err => console.error('Error sending to Google Apps Script:', err));
+
       const { data, error: fetchError } = await safeFetchJSON('/api/contact', {
         method: 'POST',
         body: JSON.stringify(formData)
