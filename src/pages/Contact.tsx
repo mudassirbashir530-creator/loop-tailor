@@ -29,13 +29,16 @@ export default function Contact() {
     setIsSubmitting(true);
     setError('');
 
+    let googleScriptSuccess = false;
+    let localApiSuccess = false;
+
+    // 1. Try sending to Google Apps Script
     try {
-      // Send to Google Apps Script silently in the background
-      fetch('https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec', {
+      await fetch('https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec', {
         method: 'POST',
         mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain;charset=utf-8',
         },
         body: JSON.stringify({
           name: `${formData.firstName} ${formData.lastName}`.trim(),
@@ -43,28 +46,41 @@ export default function Contact() {
           email: formData.email,
           message: formData.message
         })
-      }).catch(err => console.error('Error sending to Google Apps Script:', err));
+      });
+      // no-cors fetch doesn't return readable status, but if it didn't throw a network error, we consider it sent
+      googleScriptSuccess = true;
+    } catch (err) {
+      console.error('Error sending to Google Apps Script:', err);
+    }
 
-      const { data, error: fetchError } = await safeFetchJSON('/api/contact', {
+    // 2. Try sending to local API
+    try {
+      const { error: fetchError } = await safeFetchJSON('/api/contact', {
         method: 'POST',
         body: JSON.stringify(formData)
       });
 
-      if (fetchError) {
-        throw new Error(fetchError);
+      if (!fetchError) {
+        localApiSuccess = true;
+      } else {
+        console.warn('Local API /api/contact failed or not available:', fetchError);
       }
+    } catch (err) {
+      console.error('Unexpected error with local API:', err);
+    }
 
-      setIsSubmitting(false);
+    setIsSubmitting(false);
+
+    // 3. Determine overall success
+    // If deployed on static hosting, local API will fail, but Google Script should succeed.
+    if (googleScriptSuccess || localApiSuccess) {
       setIsSuccess(true);
       setFormData({ firstName: '', lastName: '', phone: '', email: '', message: '' });
       
       // Reset success message after 5 seconds
       setTimeout(() => setIsSuccess(false), 5000);
-
-    } catch (err) {
-      console.error('Error submitting form:', err);
-      setError('Failed to send message. Please try again later.');
-      setIsSubmitting(false);
+    } else {
+      setError('Failed to send message. Please check your connection and try again.');
     }
   };
 
