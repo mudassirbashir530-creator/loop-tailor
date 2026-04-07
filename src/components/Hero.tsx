@@ -31,17 +31,21 @@ export default function Hero() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-        className="w-full max-w-3xl mx-auto mb-10 relative z-10"
+        className="w-full max-w-4xl mx-auto mb-10 relative z-10"
       >
-        <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-brand-primary/10 border border-slate-200/60 bg-white aspect-[16/9] sm:aspect-[21/9]">
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-brand-primary/10 border border-slate-200/60 bg-slate-100 aspect-video w-full">
           <img 
-            src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=1200&auto=format&fit=crop" 
-            alt="Tailoring workflow and tools" 
-            className="w-full h-full object-cover"
-            loading="eager"
-            referrerPolicy="no-referrer"
+            src="/hero-image.webp" 
+            alt="Digital tailoring management workflow" 
+            className="w-full h-full object-cover object-left sm:object-center transition-opacity duration-300 opacity-0"
+            loading="lazy"
+            onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+            onError={(e) => {
+              // Fallback to a relevant Unsplash image if the user hasn't uploaded their custom image yet
+              e.currentTarget.src = "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=1200&auto=format&fit=crop";
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none"></div>
         </div>
       </motion.div>
 
