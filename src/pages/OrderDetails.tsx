@@ -219,7 +219,7 @@ export default function OrderDetails() {
                       disabled={!isEditing}
                       value={isEditing ? editData.status : order.status}
                       onChange={(e) => setEditData({...editData, status: e.target.value})}
-                      className="h-10 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:opacity-100 disabled:bg-slate-50"
+                      className="h-10 w-full rounded-xl border border-slate-200 bg-white px-4 text-base sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:opacity-100 disabled:bg-slate-50"
                     >
                       <option value={ORDER_STATUS.PENDING}>{t('orderDetails.pending')}</option>
                       <option value={ORDER_STATUS.STITCHING}>{t('orderDetails.stitching')}</option>

@@ -307,13 +307,13 @@ export default function QuickOrder() {
           {/* Left Column: Customer & Basic Order Info */}
           <div className="lg:col-span-2 space-y-8">
             <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
+              <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-4 sm:p-6">
                 <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <span className="h-2 w-2 bg-blue-500 rounded-full"></span>
                   {t('quickOrder.customerInformation')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 grid sm:grid-cols-2 gap-4">
+              <CardContent className="p-4 sm:p-6 grid sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2 space-y-1.5 relative" ref={dropdownRef}>
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.searchCustomer')}</label>
                   <div className="relative">
@@ -388,20 +388,22 @@ export default function QuickOrder() {
                       className={cn("rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base font-medium", isRTL ? "pr-12" : "pl-12")}
                     />
                   </div>
-                  <div className="flex gap-2 mt-4">
+                  <div className="grid grid-cols-3 gap-2 mt-4">
                     {['male', 'female', 'kids'].map(g => (
                       <button
                         key={g}
                         type="button"
                         onClick={() => setGender(g)}
                         className={cn(
-                          "flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all border-2",
+                          "h-12 rounded-xl font-bold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all border-2 text-xs sm:text-sm",
                           gender === g 
                             ? "bg-brand-primary text-white border-brand-primary shadow-md" 
                             : "bg-white text-slate-500 border-slate-200 hover:border-brand-primary/50 hover:bg-slate-50"
                         )}
                       >
-                        {g === 'male' ? '👨 Male' : g === 'female' ? '👩 Female' : '👶 Kids'}
+                        <span>{g === 'male' ? '👨' : g === 'female' ? '👩' : '👶'}</span>
+                        <span className="hidden sm:inline">{g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Kids'}</span>
+                        <span className="sm:hidden text-[10px] leading-none">{g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Kids'}</span>
                       </button>
                     ))}
                   </div>
@@ -435,13 +437,13 @@ export default function QuickOrder() {
             </Card>
 
             <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
+              <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-4 sm:p-6">
                 <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <span className="h-2 w-2 bg-brand-primary rounded-full"></span>
                   {t('quickOrder.orderDetails')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="p-4 sm:p-6 space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5 relative" ref={dressDropdownRef}>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.dressType')}</label>
@@ -650,7 +652,7 @@ export default function QuickOrder() {
           {/* Right Column: Measurements */}
           <div className="space-y-8">
             <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
+              <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-4 sm:p-6">
                 <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <Ruler className="h-5 w-5 text-brand-primary" />
                   {t('quickOrder.measurements')}
@@ -659,7 +661,7 @@ export default function QuickOrder() {
                   {selectedCustomerId ? t('quickOrder.measurementsLoaded') : t('quickOrder.measurementsNew')}
                 </p>
               </CardHeader>
-              <CardContent className="p-6 space-y-8">
+              <CardContent className="p-4 sm:p-6 space-y-8">
                 
                 {getMeasurementCategoriesForDress(orderData.dressType).map((category, index) => (
                   <div key={category.id} className="space-y-4">
@@ -672,7 +674,7 @@ export default function QuickOrder() {
                       </h3>
                       <div className="flex-1 h-px bg-slate-100"></div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:gap-4">
                       {category.items.map((item) => {
                         const Icon = item.icon;
                         return (
@@ -691,7 +693,7 @@ export default function QuickOrder() {
                                   setMeasurements({...measurements, [item.id]: val});
                                 }}
                                 placeholder="0.00"
-                                className={cn("rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-sm font-bold", isRTL ? "pr-3 pl-8 text-right" : "pl-3 pr-8")}
+                                className={cn("rounded-xl border-slate-200 focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all h-12 text-base sm:text-sm font-bold", isRTL ? "pr-3 pl-8 text-right" : "pl-3 pr-8")}
                                 dir="ltr"
                               />
                               <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300", isRTL ? "left-3" : "right-3")}>{t('quickOrder.in')}</span>
