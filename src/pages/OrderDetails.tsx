@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useShop } from '../contexts/ShopContext';
+import { ORDER_STATUS } from '../lib/config';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -12,11 +14,13 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { getMeasurementName } from '../lib/measurements';
 import { cn } from '../lib/utils';
+import { toast } from 'sonner';
 
 export default function OrderDetails() {
   const { id } = useParams();
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
+  const { settings } = useShop();
   const navigate = useNavigate();
   const [order, setOrder] = useState<any>(null);
   const [shop, setShop] = useState<any>(null);
@@ -62,6 +66,7 @@ export default function OrderDetails() {
     setIsDeleting(true);
     try {
       await deleteDoc(doc(db, 'shops', user!.uid, 'orders', id!));
+      toast.success(t('orderDetails.orderDeleted') || 'Order deleted successfully');
       navigate('/dashboard/orders');
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `orders/${id}`);
@@ -75,6 +80,7 @@ export default function OrderDetails() {
         status: newStatus, 
         updatedAt: serverTimestamp() 
       });
+      toast.success(t('orderDetails.statusUpdated') || 'Status updated successfully');
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
     }
@@ -87,6 +93,7 @@ export default function OrderDetails() {
         updatedAt: serverTimestamp()
       });
       setIsEditing(false);
+      toast.success(t('orderDetails.orderUpdated') || 'Order updated successfully');
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
     }
@@ -135,9 +142,9 @@ export default function OrderDetails() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {order.status !== 'Delivered' && (
+          {order.status !== ORDER_STATUS.DELIVERED && (
             <Button 
-              onClick={() => handleUpdateStatus('Delivered')}
+              onClick={() => handleUpdateStatus(ORDER_STATUS.DELIVERED)}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl px-8 h-12 shadow-lg shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95"
             >
               <CheckCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
@@ -214,10 +221,10 @@ export default function OrderDetails() {
                       onChange={(e) => setEditData({...editData, status: e.target.value})}
                       className="h-10 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:opacity-100 disabled:bg-slate-50"
                     >
-                      <option value="Pending">{t('orderDetails.pending')}</option>
-                      <option value="Stitching">{t('orderDetails.stitching')}</option>
-                      <option value="Ready">{t('orderDetails.ready')}</option>
-                      <option value="Delivered">{t('orderDetails.delivered')}</option>
+                      <option value={ORDER_STATUS.PENDING}>{t('orderDetails.pending')}</option>
+                      <option value={ORDER_STATUS.STITCHING}>{t('orderDetails.stitching')}</option>
+                      <option value={ORDER_STATUS.READY}>{t('orderDetails.ready')}</option>
+                      <option value={ORDER_STATUS.DELIVERED}>{t('orderDetails.delivered')}</option>
                     </select>
                   </div>
                 </div>
@@ -300,16 +307,16 @@ export default function OrderDetails() {
             <CardContent className="p-8 space-y-6">
               <div className="space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.totalPrice')}</span>
-                <div className="text-3xl font-black">PKR {order.price}</div>
+                <div className="text-3xl font-black">{settings.currency} {order.price}</div>
               </div>
               <div className="space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.advancePaid')}</span>
-                <div className="text-xl font-bold text-emerald-400">PKR {order.advancePayment || 0}</div>
+                <div className="text-xl font-bold text-emerald-400">{settings.currency} {order.advancePayment || 0}</div>
               </div>
               <div className="pt-6 border-t border-white/10 space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.balanceDue')}</span>
                 <div className="text-2xl font-black text-brand-secondary">
-                  PKR {order.price - (order.advancePayment || 0)}
+                  {settings.currency} {order.price - (order.advancePayment || 0)}
                 </div>
               </div>
             </CardContent>
@@ -359,14 +366,14 @@ export default function OrderDetails() {
                   <div className={cn(isRTL ? "text-left" : "text-right")}>
                     <span className={cn(
                       "text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest",
-                      order.status === 'Delivered' ? "bg-emerald-100 text-emerald-700" :
-                      order.status === 'Ready' ? "bg-blue-100 text-blue-700" :
+                      order.status === ORDER_STATUS.DELIVERED ? "bg-emerald-100 text-emerald-700" :
+                      order.status === ORDER_STATUS.READY ? "bg-blue-100 text-blue-700" :
                       "bg-amber-100 text-amber-700"
                     )}>
-                      {order.status === 'Pending' ? t('orderDetails.pending') :
-                       order.status === 'Stitching' ? t('orderDetails.stitching') :
-                       order.status === 'Ready' ? t('orderDetails.ready') :
-                       order.status === 'Delivered' ? t('orderDetails.delivered') : order.status}
+                      {order.status === ORDER_STATUS.PENDING ? t('orderDetails.pending') :
+                       order.status === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
+                       order.status === ORDER_STATUS.READY ? t('orderDetails.ready') :
+                       order.status === ORDER_STATUS.DELIVERED ? t('orderDetails.delivered') : order.status}
                     </span>
                   </div>
                 </div>
@@ -378,7 +385,7 @@ export default function OrderDetails() {
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-slate-500">{t('orderDetails.totalAmount')}</span>
-                    <span className="font-bold text-slate-900">PKR {order.price}</span>
+                    <span className="font-bold text-slate-900">{settings.currency} {order.price}</span>
                   </div>
                 </div>
 

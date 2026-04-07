@@ -9,7 +9,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { format, isBefore, startOfDay } from 'date-fns';
 import { Plus, Search, Loader2, Filter, Package, MapPin, Calendar, CheckCircle2, Clock, Hash, Scissors, ArrowRight, AlertCircle, ChevronDown, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '../lib/utils';
+import { cn, isOrderOverdue } from '../lib/utils';
+import { ORDER_STATUS } from '../lib/config';
+import { toast } from 'sonner';
 
 export default function Orders() {
   const { user } = useAuth();
@@ -54,6 +56,7 @@ export default function Orders() {
         status: newStatus, 
         updatedAt: serverTimestamp() 
       });
+      toast.success(t('orders.statusUpdated') || 'Status updated successfully');
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${orderId}`);
     }
@@ -61,21 +64,17 @@ export default function Orders() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Pending': return 'bg-slate-100 text-slate-700';
-      case 'Stitching': return 'bg-blue-100 text-blue-700';
-      case 'Ready': return 'bg-amber-100 text-amber-700';
-      case 'Delivered': return 'bg-emerald-100 text-emerald-700';
+      case ORDER_STATUS.PENDING: return 'bg-slate-100 text-slate-700';
+      case ORDER_STATUS.STITCHING: return 'bg-blue-100 text-blue-700';
+      case ORDER_STATUS.READY: return 'bg-amber-100 text-amber-700';
+      case ORDER_STATUS.DELIVERED: return 'bg-emerald-100 text-emerald-700';
       default: return 'bg-slate-100 text-slate-700';
     }
   };
 
   const isOverdue = (deliveryDate: string, status: string) => {
-    if (!deliveryDate || status === 'Delivered') return false;
-    try {
-      return isBefore(startOfDay(new Date(deliveryDate)), startOfDay(new Date()));
-    } catch (e) {
-      return false;
-    }
+    if (!deliveryDate || status === ORDER_STATUS.DELIVERED) return false;
+    return isOrderOverdue(deliveryDate);
   };
 
   const uniqueDressTypes = Array.from(new Set(orders.map(o => o.dressType))).filter(Boolean);
@@ -185,7 +184,7 @@ export default function Orders() {
       <div className="flex flex-col gap-4">
         {/* Status Filters */}
         <div className="flex flex-wrap gap-3">
-          {['All', 'Pending', 'Stitching', 'Ready', 'Delivered'].map((status) => (
+          {['All', ORDER_STATUS.PENDING, ORDER_STATUS.STITCHING, ORDER_STATUS.READY, ORDER_STATUS.DELIVERED].map((status) => (
             <Button
               key={status}
               variant={filter === status ? 'default' : 'outline'}
@@ -412,40 +411,40 @@ export default function Orders() {
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            {order.status === 'Pending' && (
+                            {order.status === ORDER_STATUS.PENDING && (
                               <Button 
                                 size="sm" 
                                 variant="ghost"
-                                onClick={() => updateStatus(order.id, 'Stitching')}
+                                onClick={() => updateStatus(order.id, ORDER_STATUS.STITCHING)}
                                 className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 font-black text-xs rounded-xl h-10 px-4"
                               >
                                 <Scissors className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
                                 {t('orders.start')}
                               </Button>
                             )}
-                            {order.status === 'Stitching' && (
+                            {order.status === ORDER_STATUS.STITCHING && (
                               <Button 
                                 size="sm" 
                                 variant="ghost"
-                                onClick={() => updateStatus(order.id, 'Ready')}
+                                onClick={() => updateStatus(order.id, ORDER_STATUS.READY)}
                                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-black text-xs rounded-xl h-10 px-4"
                               >
                                 <Package className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
                                 {t('orders.ready')}
                               </Button>
                             )}
-                            {order.status === 'Ready' && (
+                            {order.status === ORDER_STATUS.READY && (
                               <Button 
                                 size="sm" 
                                 variant="ghost"
-                                onClick={() => updateStatus(order.id, 'Delivered')}
+                                onClick={() => updateStatus(order.id, ORDER_STATUS.DELIVERED)}
                                 className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 font-black text-xs rounded-xl h-10 px-4"
                               >
                                 <CheckCircle2 className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
                                 {t('orders.deliver')}
                               </Button>
                             )}
-                            {order.status === 'Delivered' && (
+                            {order.status === ORDER_STATUS.DELIVERED && (
                               <div className="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5">
                                 <CheckCircle2 className="h-4 w-4" />
                                 {t('orders.done')}

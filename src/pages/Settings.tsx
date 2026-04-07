@@ -10,6 +10,7 @@ import { Input } from '../components/ui/input';
 import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2, Store, Phone, MapPin, MessageSquare, Globe, Trash2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useOrderTemplates } from '../hooks/useOrderTemplates';
+import { toast } from 'sonner';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -46,6 +47,7 @@ export default function Settings() {
       await setDoc(doc(db, 'shops', user.uid), editData, { merge: true });
       setShop(editData);
       setIsEditing(false);
+      toast.success(t('settings.settingsSaved') || 'Settings saved successfully');
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `shops/${user.uid}`);
     } finally {
@@ -71,7 +73,7 @@ export default function Settings() {
       setEditData(prev => ({ ...prev, logoUrl: url }));
     } catch (error) {
       console.error('Error uploading logo:', error);
-      alert('Failed to upload logo. Please try again.');
+      toast.error('Failed to upload logo. Please try again.');
     } finally {
       setUploading(false);
     }

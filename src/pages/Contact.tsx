@@ -34,11 +34,10 @@ export default function Contact() {
 
     // 1. Try sending to Google Apps Script
     try {
-      await fetch('https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec', {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec', {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
-          'Content-Type': 'text/plain;charset=utf-8',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: `${formData.firstName} ${formData.lastName}`.trim(),
@@ -47,8 +46,13 @@ export default function Contact() {
           message: formData.message
         })
       });
-      // no-cors fetch doesn't return readable status, but if it didn't throw a network error, we consider it sent
-      googleScriptSuccess = true;
+      
+      const data = await response.json();
+      if (response.ok) {
+        googleScriptSuccess = true;
+      } else {
+        console.error('Google Apps Script returned an error:', data);
+      }
     } catch (err) {
       console.error('Error sending to Google Apps Script:', err);
     }

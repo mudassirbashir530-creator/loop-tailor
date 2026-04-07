@@ -3,6 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 import { collection, setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { Share2, Copy, CheckCircle2, Loader2, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const SocialPosts: React.FC = () => {
   const [content, setContent] = useState('');
@@ -54,7 +55,7 @@ export const SocialPosts: React.FC = () => {
       setGeneratedPosts(result);
     } catch (error) {
       console.error("Error generating posts:", error);
-      alert("Failed to generate posts. Please check your API key and try again.");
+      toast.error("Failed to generate posts. Please check your API key and try again.");
     } finally {
       setGenerating(false);
     }
@@ -76,7 +77,7 @@ export const SocialPosts: React.FC = () => {
         ...generatedPosts,
         createdAt: serverTimestamp(),
       });
-      alert('Posts saved to database successfully!');
+      toast.success('Posts saved to database successfully!');
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'social_posts');
     } finally {

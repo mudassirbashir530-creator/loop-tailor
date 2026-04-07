@@ -7,6 +7,7 @@ import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { ShopProvider } from './contexts/ShopContext';
 import Layout from './components/Layout';
 import OfflineIndicator from './components/OfflineIndicator';
 import InstallPrompt from './components/InstallPrompt';
@@ -85,19 +86,23 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from './components/ui/sonner';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function App() {
   return (
     <HelmetProvider>
       <AuthProvider>
-        <LanguageProvider>
-          <OfflineIndicator />
-          <InstallPrompt />
-          <UpdateNotification />
-          <Router>
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
+        <ShopProvider>
+          <LanguageProvider>
+            <OfflineIndicator />
+            <InstallPrompt />
+            <UpdateNotification />
+            <Router>
+            <Suspense fallback={<LoadingFallback />}>
+              <ErrorBoundary>
+                <Routes>
+                  <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -233,10 +238,13 @@ export default function App() {
               </Route>
 
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+                </Routes>
+              </ErrorBoundary>
+            </Suspense>
           </Router>
-        </LanguageProvider>
+          <Toaster position="top-center" />
+          </LanguageProvider>
+        </ShopProvider>
       </AuthProvider>
     </HelmetProvider>
   );

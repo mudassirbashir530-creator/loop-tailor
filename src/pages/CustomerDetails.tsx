@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useShop } from '../contexts/ShopContext';
+import { ORDER_STATUS } from '../lib/config';
 import { db, storage, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
 import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -13,11 +15,13 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { getAllMeasurementCategories } from '../lib/measurements';
+import { toast } from 'sonner';
 
 export default function CustomerDetails() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
+  const { settings } = useShop();
   const navigate = useNavigate();
   
   const [customer, setCustomer] = useState<any>(null);
@@ -89,6 +93,7 @@ export default function CustomerDetails() {
     setIsDeletingCustomer(true);
     try {
       await deleteDoc(doc(db, 'shops', user!.uid, 'customers', id!));
+      toast.success(t('customerDetails.customerDeleted') || 'Customer deleted successfully');
       navigate('/dashboard/customers');
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `customers/${id}`);
@@ -109,6 +114,7 @@ export default function CustomerDetails() {
         updatedAt: serverTimestamp()
       }, { merge: true });
       setSaveSuccess(true);
+      toast.success(t('customerDetails.measurementsSaved') || 'Measurements saved successfully');
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `measurements/${id}`);
@@ -127,6 +133,7 @@ export default function CustomerDetails() {
       });
       setCustomer({ ...customer, ...editCustomerData });
       setIsEditingCustomer(false);
+      toast.success(t('customerDetails.customerUpdated') || 'Customer updated successfully');
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `customers/${id}`);
     }
@@ -179,6 +186,7 @@ export default function CustomerDetails() {
       setNewOrder({ dressType: 'Shalwar Kameez', deliveryDate: '', price: '', advancePayment: '' });
       setReferencePhoto(null);
       setSampleDesign(null);
+      toast.success(t('customerDetails.orderCreated') || 'Order created successfully');
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'orders');
     } finally {
@@ -385,7 +393,7 @@ export default function CustomerDetails() {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.totalPrice')}</label>
+                          <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.totalPrice')} ({settings.currency})</label>
                           <div className="relative">
                             <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                             <Input 
@@ -398,7 +406,7 @@ export default function CustomerDetails() {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.advancePayment')}</label>
+                          <label className={cn("text-xs font-black text-slate-400 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.advancePayment')} ({settings.currency})</label>
                           <div className="relative">
                             <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                             <Input 
@@ -590,9 +598,9 @@ export default function CustomerDetails() {
                         </div>
                         <span className={cn(
                           "px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest",
-                          order.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                          order.status === ORDER_STATUS.DELIVERED ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
                         )}>
-                          {order.status}
+                          {t(`orders.${order.status.toLowerCase()}`)}
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
@@ -602,7 +610,7 @@ export default function CustomerDetails() {
                         </div>
                         <div className={cn(isRTL ? "text-left" : "text-right")}>
                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('customerDetails.amount')}</span>
-                          <span className="text-xs font-black text-slate-900">PKR {order.price}</span>
+                          <span className="text-xs font-black text-slate-900">{settings.currency} {order.price}</span>
                         </div>
                       </div>
                     </motion.div>

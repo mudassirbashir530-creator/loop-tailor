@@ -10,6 +10,7 @@ import { Search, Plus, User, Phone, MapPin, Notebook, ArrowRight, Loader2, UserP
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { toast } from 'sonner';
 
 export default function Customers() {
   const { user } = useAuth();
@@ -50,6 +51,7 @@ export default function Customers() {
       });
       setIsAdding(false);
       setNewCustomer({ name: '', phone: '', address: '', notes: '' });
+      toast.success(t('customers.customerAdded') || 'Customer added successfully');
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'customers');
     }

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { UseOrderTemplatesReturn } from '../hooks/useOrderTemplates';
 import { cn } from '../lib/utils';
+import { toast } from 'sonner';
 
 interface OrderTemplatesProps {
   templateHook: UseOrderTemplatesReturn;
@@ -83,6 +84,7 @@ export function SaveTemplateButton({ templateHook, currentOrderData, currentMeas
       setIsOpen(false);
       setTemplateName('');
       setShowSuccess(true);
+      toast.success(t('orderTemplates.templateSaved') || 'Template saved successfully');
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
       console.error(error);

@@ -3,6 +3,7 @@ import { collection, getDocs, setDoc, deleteDoc, doc, serverTimestamp, query, or
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { Upload, Trash2, Copy, Image as ImageIcon, Loader2, CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface MediaFile {
   id: string;
@@ -87,7 +88,7 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect }) => {
       fetchMedia();
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Failed to upload image. Please check your Firebase Storage settings.");
+      toast.error("Failed to upload image. Please check your Firebase Storage settings.");
     } finally {
       setUploading(false);
     }

@@ -28,6 +28,8 @@ enableIndexedDbPersistence(db).catch((err) => {
   }
 });
 
+import { toast } from 'sonner';
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
@@ -76,6 +78,15 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     path
   };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
+  
+  let errorMessage = 'An unexpected error occurred.';
+  if (errInfo.error.includes('Missing or insufficient permissions')) {
+    errorMessage = 'You do not have permission to perform this action.';
+  } else {
+    errorMessage = errInfo.error;
+  }
+  toast.error(errorMessage);
+  
   throw new Error(JSON.stringify(errInfo));
 }
 
@@ -118,10 +129,6 @@ export async function generateTokenId(shopId: string): Promise<string> {
     return newTokenId;
   } catch (error) {
     console.error("Error generating token ID:", error);
-    // Fallback to a random short code if transaction fails
-    const now = new Date();
-    const year = now.getFullYear().toString().slice(-2);
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    return `LT-${year}${month}-${Math.floor(Math.random() * 1000)}`;
+    throw new Error("Failed to generate a unique order ID. Please try again.");
   }
 }

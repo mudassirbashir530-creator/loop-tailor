@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useShop } from '../contexts/ShopContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
@@ -11,10 +12,13 @@ import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { cn } from '../lib/utils';
 
+import { toast } from 'sonner';
+
 export default function Invoice() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
+  const { settings } = useShop();
   const navigate = useNavigate();
   const invoiceRef = useRef<HTMLDivElement>(null);
   
@@ -109,7 +113,7 @@ export default function Invoice() {
       }
     } catch (error) {
       console.error('Error sharing invoice:', error);
-      alert(t('invoice.shareError'));
+      toast.error(t('invoice.shareError'));
     } finally {
       setIsSharing(false);
     }
@@ -149,7 +153,7 @@ export default function Invoice() {
       }
     } catch (error) {
       console.error('Error sharing to WhatsApp:', error);
-      alert(t('invoice.shareError'));
+      toast.error(t('invoice.shareError'));
     } finally {
       setIsGenerating(false);
     }
@@ -197,7 +201,7 @@ export default function Invoice() {
             <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{order.dressType}</p>
             <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base")}>{t('invoice.customTailoring')}</p>
           </div>
-          <p className={cn("font-black text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>PKR {order.price.toLocaleString()}</p>
+          <p className={cn("font-black text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{settings.currency} {order.price.toLocaleString()}</p>
         </div>
       </div>
 
@@ -206,15 +210,15 @@ export default function Invoice() {
         <div className={cn("space-y-3 bg-slate-50/50 rounded-2xl border border-slate-100/50", isCapture ? "w-96 p-6" : "w-full sm:w-72 p-4")}>
           <div className={cn("flex justify-between font-bold text-slate-500", isCapture ? "text-base" : "text-xs sm:text-sm")}>
             <span>{t('invoice.subtotal')}</span>
-            <span>PKR {order.price.toLocaleString()}</span>
+            <span>{settings.currency} {order.price.toLocaleString()}</span>
           </div>
           <div className={cn("flex justify-between font-bold text-emerald-600", isCapture ? "text-base" : "text-xs sm:text-sm")}>
             <span>{t('invoice.advancePaid')}</span>
-            <span>-PKR {(order.advancePayment || 0).toLocaleString()}</span>
+            <span>-{settings.currency} {(order.advancePayment || 0).toLocaleString()}</span>
           </div>
           <div className={cn("flex justify-between font-black text-slate-900 pt-3 border-t border-slate-200", isCapture ? "text-2xl" : "text-base sm:text-xl")}>
             <span>{t('invoice.balanceDue')}</span>
-            <span className="text-brand-primary">PKR {(order.price - (order.advancePayment || 0)).toLocaleString()}</span>
+            <span className="text-brand-primary">{settings.currency} {(order.price - (order.advancePayment || 0)).toLocaleString()}</span>
           </div>
         </div>
       </div>

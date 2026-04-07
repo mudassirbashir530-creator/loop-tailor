@@ -297,7 +297,7 @@ export default function Landing() {
       <section className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">{t('landing.whyChoose.badge', 'Benefits')}</h2>
+            <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">{t('landing.whyChoose.badge')}</h2>
             <h2 className="text-4xl md:text-5xl font-display font-black text-slate-900">{t('landing.whyChoose.title')}</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
@@ -488,7 +488,7 @@ export default function Landing() {
                   <div>
                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Notification</div>
                     <div className="text-sm font-bold text-slate-900 leading-tight">Order Delivered</div>
-                    <div className="text-xs text-emerald-600 font-bold mt-0.5">+ PKR 4,500</div>
+                    <div className="text-xs text-emerald-600 font-bold mt-0.5">+ 4,500</div>
                   </div>
                 </div>
               </motion.div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useShop } from '../contexts/ShopContext';
 import { db, storage, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
 import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, getDocs, limit, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -12,12 +13,15 @@ import { ArrowLeft, ArrowRight, Save, Hash, MapPin, Ruler, Loader2, Search, User
 import { motion, AnimatePresence } from 'motion/react';
 import { getMeasurementCategoriesForDress } from '../lib/measurements';
 import { cn } from '../lib/utils';
+import { ORDER_STATUS } from '../lib/config';
 import { TemplateSelector, SaveTemplateButton } from '../components/OrderTemplates';
 import { useOrderTemplates } from '../hooks/useOrderTemplates';
+import { toast } from 'sonner';
 
 export default function QuickOrder() {
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
+  const { settings } = useShop();
   const navigate = useNavigate();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -218,7 +222,7 @@ export default function QuickOrder() {
         gender: gender,
         dressType: orderData.dressType,
         deliveryDate: new Date(orderData.deliveryDate).toISOString(),
-        status: 'Pending',
+        status: ORDER_STATUS.PENDING,
         price: Number(orderData.price),
         advancePayment: Number(orderData.advancePayment || 0),
         quantity: Number(orderData.quantity),
@@ -254,6 +258,7 @@ export default function QuickOrder() {
       */
 
       // 5. Navigate to orders list
+      toast.success(t('quickOrder.orderCreated') || 'Order created successfully!');
       navigate(`/dashboard/orders`);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'quick_order');
@@ -528,7 +533,7 @@ export default function QuickOrder() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.totalPrice')}</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.totalPrice')} ({settings.currency})</label>
                     <div className="relative">
                       <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
@@ -543,7 +548,7 @@ export default function QuickOrder() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.advance')}</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.advance')} ({settings.currency})</label>
                     <div className="relative">
                       <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useShop } from '../contexts/ShopContext';
+import { ORDER_STATUS } from '../lib/config';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -26,13 +28,14 @@ const itemVariants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { type: 'spring', stiffness: 100, damping: 15 }
+    transition: { type: 'spring' as const, stiffness: 100, damping: 15 }
   }
 };
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
+  const { settings } = useShop();
   const navigate = useNavigate();
   
   type DashboardTab = string;
@@ -82,9 +85,9 @@ export default function Dashboard() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-PK', {
+    return new Intl.NumberFormat(isRTL ? 'ur-PK' : 'en-US', {
       style: 'currency',
-      currency: 'PKR',
+      currency: settings.currency || 'PKR',
       minimumFractionDigits: 0,
     }).format(amount);
   };
@@ -138,7 +141,7 @@ export default function Dashboard() {
         const order = { id: doc.id, ...data };
         allOrders.push(order);
 
-        if (data.status === 'Delivered') {
+        if (data.status === ORDER_STATUS.DELIVERED) {
           completed++;
           revenue += data.price;
         } else {
@@ -149,7 +152,7 @@ export default function Dashboard() {
           }
         }
         
-        if (data.price > (data.advancePayment || 0) && data.status !== 'Delivered') {
+        if (data.price > (data.advancePayment || 0) && data.status !== ORDER_STATUS.DELIVERED) {
           pendingPay += (data.price - (data.advancePayment || 0));
         }
       });
@@ -354,8 +357,8 @@ export default function Dashboard() {
                           <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
                             <div className="text-sm font-black text-brand-primary">{formatCurrency(order.price)}</div>
                             <div className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${
-                              order.status === 'Delivered' ? 'text-emerald-500' : 'text-amber-500'
-                            }`}>{order.status}</div>
+                              order.status === ORDER_STATUS.DELIVERED ? 'text-emerald-500' : 'text-amber-500'
+                            }`}>{t(`orders.${order.status.toLowerCase()}`)}</div>
                           </div>
                         </motion.div>
                       ))
