@@ -2,91 +2,103 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Scissors, Plus, List } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ClipboardList, Scissors, Users } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { cn } from '../lib/utils';
+
+const stats = [
+  { label: 'Orders tracked', value: '12k+' },
+  { label: 'Active shops', value: '1.8k+' },
+  { label: 'Avg. time saved', value: '9 hrs/week' },
+];
 
 export default function Hero() {
   const { isRTL } = useLanguage();
 
   return (
-    <section className="relative pt-24 pb-16 lg:pt-32 lg:pb-24 overflow-x-hidden flex flex-col items-center justify-center text-center px-4 bg-[#FDFCF9]">
-      {/* App Logo / Brand Name */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="flex items-center gap-3 mb-8"
-      >
-        <div className="bg-brand-primary p-3 rounded-2xl shadow-sm">
-          <Scissors className="h-8 w-8 text-white" />
-        </div>
-        <span className="text-3xl md:text-4xl font-display font-black tracking-tight text-slate-900">
-          Loop Tailor
-        </span>
-      </motion.div>
+    <section className="lt-section relative overflow-hidden pt-28 md:pt-32">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-brand-primary/10 blur-3xl" />
+      </div>
 
-      {/* Hero Image */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-        className="w-full max-w-4xl mx-auto mb-10 relative z-10"
-      >
-        <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-brand-primary/10 border border-slate-200/60 bg-slate-100 aspect-video w-full">
-          <img 
-            src="https://lh3.googleusercontent.com/d/1Tzg3-f0TUCzguxVst17tPqeJZixD6K4v" 
-            alt="Digital tailoring management workflow" 
-            className="w-full h-full object-cover object-left sm:object-center transition-opacity duration-300 opacity-0"
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
-            onError={(e) => {
-              if (!e.currentTarget.src.includes('thumbnail')) {
-                e.currentTarget.src = "https://drive.google.com/thumbnail?id=1Tzg3-f0TUCzguxVst17tPqeJZixD6K4v&sz=w1920";
-              } else {
-                e.currentTarget.src = "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=1200&auto=format&fit=crop";
-              }
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none"></div>
-        </div>
-      </motion.div>
+      <div className="lt-container grid gap-10 lg:grid-cols-2 lg:items-center">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22 }}
+          className="space-y-6"
+        >
+          <div className="inline-flex items-center gap-2 rounded-full border border-brand-primary/20 bg-brand-primary/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-primary">
+            <Scissors className="h-4 w-4" />
+            Built for modern tailoring teams
+          </div>
 
-      {/* Value Statement / Tagline */}
-      <motion.h1 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-        className="text-2xl sm:text-3xl md:text-4xl font-sans font-bold tracking-tight text-slate-900 mb-8 max-w-2xl mx-auto leading-tight"
-      >
-        Manage tailoring orders, clients, and deliveries in one place.
-      </motion.h1>
+          <h1 className="lt-heading-1 max-w-xl text-balance text-slate-900">
+            Run your tailoring business with precision, speed, and zero clutter.
+          </h1>
 
-      {/* Action Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-        className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto"
-      >
-        <Link to="/signup" className="w-full sm:w-auto">
-          <Button size="lg" className="w-full sm:w-auto rounded-2xl px-8 h-14 text-lg font-bold bg-brand-primary hover:bg-brand-primary/90 text-white shadow-xl shadow-brand-primary/20 transition-all active:scale-95">
-            <Plus className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
-            Create Order
-          </Button>
-        </Link>
-        <Link to="/login" className="w-full sm:w-auto">
-          <Button 
-            size="lg" 
-            variant="outline"
-            className="w-full sm:w-auto rounded-2xl px-8 h-14 text-lg font-bold bg-white border-2 border-slate-200 hover:border-brand-primary/30 hover:bg-slate-50 text-slate-900 shadow-sm transition-all active:scale-95"
-          >
-            <List className={cn("h-5 w-5 text-slate-500", isRTL ? "ml-2" : "mr-2")} />
-            View Orders
-          </Button>
-        </Link>
-      </motion.div>
+          <p className="lt-body-lg max-w-xl text-slate-600">
+            Loop Tailor brings orders, clients, measurements, and invoices into one intelligent workflow so your team can focus on craftsmanship.
+          </p>
+
+          <div className="flex flex-wrap gap-3">
+            <Link to="/signup">
+              <Button size="lg" className="min-w-44">
+                Start free trial
+                <ArrowRight className={cn('h-4 w-4', isRTL ? 'mr-2 rotate-180' : 'ml-2')} />
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button size="lg" variant="outline" className="min-w-44">
+                View demo dashboard
+              </Button>
+            </Link>
+          </div>
+
+          <div className="flex flex-wrap gap-5 text-sm text-slate-600">
+            {['No credit card required', '2-minute setup', 'Built for mobile teams'].map((item) => (
+              <div key={item} className="inline-flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-brand-primary" />
+                {item}
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 22 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.24, delay: 0.06 }}
+          className="lt-card p-5 md:p-7"
+        >
+          <div className="grid gap-4 sm:grid-cols-3">
+            {stats.map((stat) => (
+              <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xl font-semibold text-slate-900">{stat.value}</p>
+                <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {[
+              { icon: ClipboardList, title: 'Order pipeline', subtitle: 'Track every stage from intake to delivery' },
+              { icon: Users, title: 'Client records', subtitle: 'History, measurements, and preferences in one place' },
+              { icon: Scissors, title: 'Production clarity', subtitle: 'Keep cutters and stitchers aligned daily' },
+            ].map((item) => (
+              <div key={item.title} className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                <div className="rounded-xl bg-brand-primary/10 p-2 text-brand-primary">
+                  <item.icon className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">{item.title}</p>
+                  <p className="text-sm text-slate-600">{item.subtitle}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
 }
