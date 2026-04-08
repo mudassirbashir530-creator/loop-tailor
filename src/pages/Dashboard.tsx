@@ -206,14 +206,14 @@ export default function Dashboard() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className={cn("space-y-10", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
+      className="space-y-8"
     >
-      <motion.div variants={itemVariants} className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <motion.div variants={itemVariants} className="lt-card p-6 md:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">
             {t('dashboard.welcome')}, <span className="text-brand-primary">{user?.displayName?.split(' ')[0] || 'Tailor'}</span>
           </h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Here's what's happening today.</p>
+          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Track production, payments, and deliveries with one focused view.</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
@@ -232,11 +232,11 @@ export default function Dashboard() {
               placeholder={t('dashboard.searchPlaceholder')}
               value={searchToken}
               onChange={(e) => setSearchToken(e.target.value)}
-              className={cn("w-full h-16 rounded-3xl border-2 border-slate-100 bg-white text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm", isRTL ? "pr-14 pl-4" : "pl-14 pr-4")}
+              className={cn("w-full h-14 rounded-2xl border border-slate-200 bg-white text-base font-semibold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm", isRTL ? "pr-14 pl-4" : "pl-14 pr-4")}
             />
             <button 
               type="submit"
-              className={cn("absolute top-3 h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center hover:bg-brand-primary transition-colors", isRTL ? "left-3" : "right-3")}
+              className={cn("absolute top-2 h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-brand-primary transition-colors", isRTL ? "left-2" : "right-2")}
             >
               <Search className="h-5 w-5" />
             </button>
@@ -255,7 +255,7 @@ export default function Dashboard() {
           { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-emerald-700", bg: "bg-emerald-100" },
         ].map((stat, idx) => (
           <motion.div key={idx} variants={itemVariants}>
-            <Card className="border-none shadow-sm bg-white rounded-[2rem] p-6 flex items-center gap-4">
+            <Card className="p-6 flex items-center gap-4">
               <div className={`${stat.bg} p-4 rounded-2xl`}>
                 <stat.icon className={`h-6 w-6 ${stat.color}`} />
               </div>
@@ -268,9 +268,9 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-10">
+      <div className="grid lg:grid-cols-3 gap-6">
         <motion.div variants={itemVariants} className="lg:col-span-2">
-          <Card className="border-none shadow-sm bg-white overflow-hidden rounded-[2.5rem]">
+          <Card className="overflow-hidden">
             <CardHeader className="p-8 pb-0">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div 
@@ -404,6 +404,55 @@ export default function Dashboard() {
                 </motion.div>
               </AnimatePresence>
             </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div variants={itemVariants} className="space-y-6">
+          <Card className="p-6">
+            <CardTitle className="text-slate-900">{t('dashboard.quickActions')}</CardTitle>
+            <p className="mt-2 text-sm text-slate-600">Keep your daily workflow moving with high-impact actions.</p>
+            <div className="mt-5 space-y-3">
+              <Button asChild className="w-full justify-between">
+                <Link to="/dashboard/quick-order">
+                  {t('dashboard.newOrder')} <Plus className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-between">
+                <Link to="/dashboard/customers">
+                  {t('dashboard.addCustomer')} <Users className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-between">
+                <Link to="/dashboard/invoices">
+                  {t('dashboard.viewReports')} <FileText className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <CardTitle className="text-slate-900">Workflow health</CardTitle>
+            {loading ? (
+              <div className="mt-4 space-y-3">
+                <div className="lt-skeleton h-12 w-full" />
+                <div className="lt-skeleton h-12 w-full" />
+                <div className="lt-skeleton h-12 w-full" />
+              </div>
+            ) : (
+              <div className="mt-4 space-y-3 text-sm">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between">
+                  <span className="text-slate-600">Active production</span>
+                  <span className="font-semibold text-slate-900">{stats.activeOrders}</span>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between">
+                  <span className="text-slate-600">Upcoming deliveries (7 days)</span>
+                  <span className="font-semibold text-slate-900">{upcomingDeliveries.length}</span>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between">
+                  <span className="text-slate-600">Outstanding balance</span>
+                  <span className="font-semibold text-brand-primary">{formatCurrency(stats.pendingPayments)}</span>
+                </div>
+              </div>
+            )}
           </Card>
         </motion.div>
       </div>
