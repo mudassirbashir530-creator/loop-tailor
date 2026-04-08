@@ -35,14 +35,18 @@ export default function Hero() {
       >
         <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-brand-primary/10 border border-slate-200/60 bg-slate-100 aspect-video w-full">
           <img 
-            src="/hero-image.webp" 
+            src="https://lh3.googleusercontent.com/d/1Tzg3-f0TUCzguxVst17tPqeJZixD6K4v" 
             alt="Digital tailoring management workflow" 
             className="w-full h-full object-cover object-left sm:object-center transition-opacity duration-300 opacity-0"
             loading="lazy"
+            referrerPolicy="no-referrer"
             onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
             onError={(e) => {
-              // Fallback to a relevant Unsplash image if the user hasn't uploaded their custom image yet
-              e.currentTarget.src = "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=1200&auto=format&fit=crop";
+              if (!e.currentTarget.src.includes('thumbnail')) {
+                e.currentTarget.src = "https://drive.google.com/thumbnail?id=1Tzg3-f0TUCzguxVst17tPqeJZixD6K4v&sz=w1920";
+              } else {
+                e.currentTarget.src = "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=1200&auto=format&fit=crop";
+              }
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none"></div>
