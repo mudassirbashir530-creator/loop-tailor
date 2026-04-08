@@ -84,7 +84,7 @@ Loop Tailor is optimized for static hosting platforms like Cloudflare Pages, Ver
 4.  **Environment Variables:** Add all the `VITE_FIREBASE_*` variables from your `.env` file into the Cloudflare Pages environment variables settings.
 5.  Click **Save and Deploy**.
 
-**Routing Note:** Client-side routing fallback is configured via `wrangler.toml` using `assets.not_found_handling = "single-page-application"`. This ensures React Router routes work on refresh without relying on `_redirects`.
+**Routing Note:** Client-side routing fallback is configured via `public/_redirects` (`/* /index.html 200`) so React Router routes work on refresh. `wrangler.toml` is used only for Pages build configuration.
 
 ---
 
