@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, storage, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -61,19 +61,32 @@ export default function Settings() {
 
     setUploading(true);
     try {
-      /* BETA: Image upload is disabled
       const storageRef = ref(storage, `shops/${user.uid}/logo_${Date.now()}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
       setEditData(prev => ({ ...prev, logoUrl: url }));
-      */
-      
-      // Use local preview instead
-      const url = URL.createObjectURL(file);
-      setEditData(prev => ({ ...prev, logoUrl: url }));
+      await setDoc(doc(db, 'shops', user.uid), { logoUrl: url }, { merge: true });
+      setShop((prev) => ({ ...prev, logoUrl: url }));
+      toast.success('Shop icon updated');
     } catch (error) {
       console.error('Error uploading logo:', error);
       toast.error('Failed to upload logo. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!user) return;
+    setUploading(true);
+    try {
+      await setDoc(doc(db, 'shops', user.uid), { logoUrl: '' }, { merge: true });
+      setEditData((prev) => ({ ...prev, logoUrl: '' }));
+      setShop((prev) => ({ ...prev, logoUrl: '' }));
+      toast.success('Shop icon removed');
+    } catch (error) {
+      console.error('Error removing logo:', error);
+      toast.error('Failed to remove logo. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -135,6 +148,19 @@ export default function Settings() {
                     >
                       <Upload className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {editData.logoUrl ? t('settings.changeLogo') : t('settings.uploadLogo')}
                     </Button>
+                    {editData.logoUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemoveLogo}
+                        disabled={uploading}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} />
+                        Remove Shop Icon
+                      </Button>
+                    )}
                     <p className="text-xs text-slate-500">{t('settings.recommendedLogo')}</p>
                   </div>
                 </div>

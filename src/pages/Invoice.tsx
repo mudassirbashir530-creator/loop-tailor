@@ -6,7 +6,7 @@ import { useShop } from '../contexts/ShopContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
-import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2, MessageCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
@@ -27,6 +27,7 @@ export default function Invoice() {
   const [customer, setCustomer] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -119,6 +120,48 @@ export default function Invoice() {
     }
   };
 
+  const handleDownloadImage = async () => {
+    setIsDownloading(true);
+    try {
+      const blob = await generatePNGBlob();
+      if (!blob) throw new Error('Failed to generate PNG');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Invoice_${order.id.slice(-6).toUpperCase()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Invoice image downloaded');
+    } catch (error) {
+      console.error('Error downloading invoice image:', error);
+      toast.error(t('invoice.downloadError') || 'Failed to download invoice');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsDownloading(true);
+    try {
+      if (!invoiceRef.current) return;
+      const dataUrl = await toPng(invoiceRef.current, { cacheBust: true, backgroundColor: '#ffffff', pixelRatio: 2 });
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const imgHeight = (imgProps.height * pageWidth) / imgProps.width;
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pageWidth, imgHeight);
+      pdf.save(`Invoice_${order.id.slice(-6).toUpperCase()}.pdf`);
+      toast.success('Invoice PDF downloaded');
+    } catch (error) {
+      console.error('Error downloading invoice pdf:', error);
+      toast.error(t('invoice.downloadError') || 'Failed to download invoice');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const handleWhatsAppShare = async () => {
     setIsGenerating(true);
     try {
@@ -131,6 +174,7 @@ export default function Invoice() {
         files: [file]
       };
 
+      const message = `${t('invoice.invoice')} #${order.id.slice(-6).toUpperCase()} - ${shop.name}`;
       if (navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
       } else {
@@ -146,9 +190,9 @@ export default function Invoice() {
         
         if (customer?.phone) {
           const cleanPhone = customer.phone.replace(/[^\d+]/g, '').replace('+', '');
-          window.open(`https://wa.me/${cleanPhone}`, '_blank');
+          window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
         } else {
-          window.open(`https://wa.me/`, '_blank');
+          window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
         }
       }
     } catch (error) {
@@ -251,6 +295,12 @@ export default function Invoice() {
           </Button>
           <Button variant="outline" size="sm" onClick={handleWhatsAppShare} disabled={isGenerating} className="flex-1 sm:flex-none rounded-xl h-9 bg-[#25D366] text-white hover:bg-[#128C7E] border-none">
             <MessageCircle className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isGenerating ? '...' : 'WhatsApp'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDownloadImage} disabled={isDownloading} className="flex-1 sm:flex-none rounded-xl h-9">
+            <Download className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isDownloading ? '...' : 'PNG'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDownloadPDF} disabled={isDownloading} className="flex-1 sm:flex-none rounded-xl h-9">
+            <FileText className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isDownloading ? '...' : 'PDF'}
           </Button>
           <Button variant="outline" size="sm" onClick={handlePrint} className="flex-1 sm:flex-none rounded-xl h-9">
             <Printer className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {t('invoice.print')}
