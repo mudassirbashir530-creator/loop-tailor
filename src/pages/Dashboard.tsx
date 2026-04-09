@@ -206,14 +206,14 @@ export default function Dashboard() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8"
+      className={cn("space-y-10", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
     >
-      <motion.div variants={itemVariants} className="lt-card p-6 md:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <motion.div variants={itemVariants} className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">
             {t('dashboard.welcome')}, <span className="text-brand-primary">{user?.displayName?.split(' ')[0] || 'Tailor'}</span>
           </h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Track production, payments, and deliveries with one focused view.</p>
+          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Here's what's happening today.</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
@@ -232,11 +232,11 @@ export default function Dashboard() {
               placeholder={t('dashboard.searchPlaceholder')}
               value={searchToken}
               onChange={(e) => setSearchToken(e.target.value)}
-              className={cn("w-full h-14 rounded-2xl border border-slate-200 bg-white text-base font-semibold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm", isRTL ? "pr-14 pl-4" : "pl-14 pr-4")}
+              className={cn("w-full h-16 rounded-3xl border-2 border-slate-100 bg-white text-base font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all shadow-sm", isRTL ? "pr-14 pl-4" : "pl-14 pr-4")}
             />
             <button 
               type="submit"
-              className={cn("absolute top-2 h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-brand-primary transition-colors", isRTL ? "left-2" : "right-2")}
+              className={cn("absolute top-3 h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center hover:bg-brand-primary transition-colors", isRTL ? "left-3" : "right-3")}
             >
               <Search className="h-5 w-5" />
             </button>
@@ -247,21 +247,21 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-brand-primary", bg: "bg-brand-primary/10" },
-          { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: t('dashboard.pendingPayments'), value: formatCurrency(stats.pendingPayments), icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-          { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-emerald-700", bg: "bg-emerald-100" },
+          { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-slate-700", bg: "bg-slate-100" },
+          { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-slate-700", bg: "bg-slate-100" },
+          { label: t('dashboard.pendingPayments'), value: formatCurrency(stats.pendingPayments), icon: Clock, color: "text-slate-700", bg: "bg-slate-100" },
+          { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-slate-700", bg: "bg-slate-100" },
         ].map((stat, idx) => (
           <motion.div key={idx} variants={itemVariants}>
-            <Card className="p-6 flex items-center gap-4">
-              <div className={`${stat.bg} p-4 rounded-2xl`}>
-                <stat.icon className={`h-6 w-6 ${stat.color}`} />
+            <Card className="border border-slate-200/60 shadow-sm bg-white rounded-xl p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
+              <div className={`${stat.bg} p-3 rounded-lg`}>
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
               </div>
               <div>
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">{stat.label}</div>
-                <div className="text-2xl font-black text-slate-900 tracking-tight">{stat.value}</div>
+                <div className="text-xs font-medium text-slate-500">{stat.label}</div>
+                <div className="text-2xl font-bold text-slate-900 tracking-tight mt-0.5">{stat.value}</div>
               </div>
             </Card>
           </motion.div>
@@ -270,11 +270,11 @@ export default function Dashboard() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <motion.div variants={itemVariants} className="lg:col-span-2">
-          <Card className="overflow-hidden">
-            <CardHeader className="p-8 pb-0">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <Card className="border border-slate-200/60 shadow-sm bg-white overflow-hidden rounded-xl">
+            <CardHeader className="p-6 pb-4 border-b border-slate-100">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div 
-                  className="flex p-1 bg-slate-100 rounded-2xl w-fit"
+                  className="flex p-1 bg-slate-100/80 rounded-lg w-fit"
                   role="tablist"
                   aria-label="Dashboard views"
                 >
@@ -289,75 +289,68 @@ export default function Dashboard() {
                       onClick={() => setActiveTab(tab)}
                       onKeyDown={(e) => handleTabKeyDown(e, index)}
                       className={cn(
-                        "px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary",
+                        "px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary",
                         activeTab === tab 
-                          ? "text-brand-primary" 
+                          ? "text-slate-900 shadow-sm bg-white" 
                           : "text-slate-500 hover:text-slate-700"
                       )}
                     >
-                      {activeTab === tab && (
-                        <motion.div 
-                          layoutId="activeTab"
-                          className="absolute inset-0 bg-white rounded-xl shadow-sm -z-10"
-                          transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                        />
-                      )}
                       {tab}
                     </button>
                   ))}
                 </div>
                 {activeTab === t('dashboard.recentOrders') ? (
-                  <Button variant="ghost" size="sm" asChild className="rounded-xl hover:bg-brand-primary/5 text-brand-primary">
-                    <Link to="/dashboard/orders" className="flex items-center font-bold">
+                  <Button variant="ghost" size="sm" asChild className="rounded-lg hover:bg-slate-50 text-slate-600 font-medium h-8">
+                    <Link to="/dashboard/orders" className="flex items-center">
                       {t('dashboard.viewAll')} <ArrowRight className={cn("h-4 w-4", isRTL ? "mr-2 rotate-180" : "ml-2")} />
                     </Link>
                   </Button>
                 ) : (
-                  <div className="bg-slate-50 p-2 rounded-xl">
-                    <Calendar className="h-5 w-5 text-slate-400" />
+                  <div className="bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                    <Calendar className="h-4 w-4 text-slate-400" />
                   </div>
                 )}
               </div>
             </CardHeader>
-            <CardContent className="p-0 mt-6">
+            <CardContent className="p-0">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
                   id={`dashboard-tabpanel-${dashboardTabs.indexOf(activeTab)}`}
                   role="tabpanel"
                   aria-labelledby={`dashboard-tab-${dashboardTabs.indexOf(activeTab)}`}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="divide-y divide-slate-50"
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.2 }}
+                  className="divide-y divide-slate-100"
                 >
                   {activeTab === t('dashboard.recentOrders') ? (
                     recentOrders.length === 0 ? (
-                      <div className="p-12 text-center text-slate-400 font-medium">{t('dashboard.noRecentOrders')}</div>
+                      <div className="p-12 text-center text-slate-500 text-sm">{t('dashboard.noRecentOrders')}</div>
                     ) : (
                       recentOrders.map((order, idx) => (
                         <motion.div 
                           key={order.id} 
-                          initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
-                          animate={{ opacity: 1, x: 0 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                           transition={{ delay: idx * 0.05 }}
-                          className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors cursor-pointer group"
+                          className="p-4 sm:p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors cursor-pointer group"
                           onClick={() => navigate(`/dashboard/orders/${order.id}`)}
                         >
                           <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-brand-primary/10 group-hover:text-brand-primary transition-colors">
-                              <Scissors className="h-5 w-5" />
+                            <div className="h-10 w-10 rounded-full bg-slate-100 border border-slate-200/60 flex items-center justify-center text-slate-500 group-hover:bg-brand-primary/5 group-hover:text-brand-primary group-hover:border-brand-primary/20 transition-colors">
+                              <Scissors className="h-4 w-4" />
                             </div>
                             <div>
-                              <div className="font-bold text-slate-900 group-hover:text-brand-primary transition-colors">{order.customerName}</div>
-                              <div className="text-xs text-slate-500 font-medium">{order.dressType} • {formatDate(order.createdAt)}</div>
+                              <div className="font-medium text-slate-900 group-hover:text-brand-primary transition-colors">{order.customerName}</div>
+                              <div className="text-xs text-slate-500 mt-0.5">{order.dressType} • {formatDate(order.createdAt)}</div>
                             </div>
                           </div>
                           <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
-                            <div className="text-sm font-black text-brand-primary">{formatCurrency(order.price)}</div>
-                            <div className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${
-                              order.status === ORDER_STATUS.DELIVERED ? 'text-emerald-500' : 'text-amber-500'
+                            <div className="text-sm font-semibold text-slate-900">{formatCurrency(order.price)}</div>
+                            <div className={`text-[11px] font-medium mt-1 ${
+                              order.status === ORDER_STATUS.DELIVERED ? 'text-emerald-600' : 'text-amber-600'
                             }`}>{t(`orders.${order.status.toLowerCase()}`)}</div>
                           </div>
                         </motion.div>
@@ -365,24 +358,24 @@ export default function Dashboard() {
                     )
                   ) : (
                     upcomingDeliveries.length === 0 ? (
-                      <div className="p-12 text-center text-slate-400 font-medium">{t('dashboard.noUpcomingDeliveries')}</div>
+                      <div className="p-12 text-center text-slate-500 text-sm">{t('dashboard.noUpcomingDeliveries')}</div>
                     ) : (
                       upcomingDeliveries.map((order, idx) => (
                         <motion.div 
                           key={order.id} 
-                          initial={{ opacity: 0, x: isRTL ? -20 : 20 }}
-                          animate={{ opacity: 1, x: 0 }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
                           transition={{ delay: idx * 0.05 }}
-                          className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors group cursor-pointer"
+                          className="p-4 sm:p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors group cursor-pointer"
                           onClick={() => navigate(`/dashboard/orders/${order.id}`)}
                         >
                           <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-2xl bg-brand-primary/5 flex items-center justify-center text-brand-primary font-black text-lg group-hover:bg-brand-primary group-hover:text-white transition-all duration-300">
+                            <div className="h-10 w-10 rounded-full bg-slate-100 border border-slate-200/60 flex items-center justify-center text-slate-600 font-semibold text-sm group-hover:bg-brand-primary/5 group-hover:text-brand-primary group-hover:border-brand-primary/20 transition-colors">
                               {order.customerName.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <div className="font-bold text-slate-900 group-hover:text-brand-primary transition-colors">{order.customerName}</div>
-                              <div className="text-xs text-slate-500 font-medium flex items-center">
+                              <div className="font-medium text-slate-900 group-hover:text-brand-primary transition-colors">{order.customerName}</div>
+                              <div className="text-xs text-slate-500 mt-0.5 flex items-center">
                                 <Clock className={cn("h-3 w-3", isRTL ? "ml-1" : "mr-1")} />
                                 {t('dashboard.due')}: {format(new Date(order.deliveryDate), 'MMM dd, yyyy')}
                               </div>
@@ -392,7 +385,7 @@ export default function Dashboard() {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="rounded-xl border-slate-200 group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary transition-all"
+                              className="h-8 text-xs font-medium"
                             >
                               {t('dashboard.details')}
                             </Button>
@@ -404,55 +397,6 @@ export default function Dashboard() {
                 </motion.div>
               </AnimatePresence>
             </CardContent>
-          </Card>
-        </motion.div>
-        <motion.div variants={itemVariants} className="space-y-6">
-          <Card className="p-6">
-            <CardTitle className="text-slate-900">{t('dashboard.quickActions')}</CardTitle>
-            <p className="mt-2 text-sm text-slate-600">Keep your daily workflow moving with high-impact actions.</p>
-            <div className="mt-5 space-y-3">
-              <Button asChild className="w-full justify-between">
-                <Link to="/dashboard/quick-order">
-                  {t('dashboard.newOrder')} <Plus className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="w-full justify-between">
-                <Link to="/dashboard/customers">
-                  {t('dashboard.addCustomer')} <Users className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="w-full justify-between">
-                <Link to="/dashboard/invoices">
-                  {t('dashboard.viewReports')} <FileText className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <CardTitle className="text-slate-900">Workflow health</CardTitle>
-            {loading ? (
-              <div className="mt-4 space-y-3">
-                <div className="lt-skeleton h-12 w-full" />
-                <div className="lt-skeleton h-12 w-full" />
-                <div className="lt-skeleton h-12 w-full" />
-              </div>
-            ) : (
-              <div className="mt-4 space-y-3 text-sm">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between">
-                  <span className="text-slate-600">Active production</span>
-                  <span className="font-semibold text-slate-900">{stats.activeOrders}</span>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between">
-                  <span className="text-slate-600">Upcoming deliveries (7 days)</span>
-                  <span className="font-semibold text-slate-900">{upcomingDeliveries.length}</span>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between">
-                  <span className="text-slate-600">Outstanding balance</span>
-                  <span className="font-semibold text-brand-primary">{formatCurrency(stats.pendingPayments)}</span>
-                </div>
-              </div>
-            )}
           </Card>
         </motion.div>
       </div>

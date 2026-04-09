@@ -14,8 +14,13 @@
   --color-brand-accent: #004643;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Outfit", sans-serif;
+  --font-display: "Inter", sans-serif;
   --font-urdu: "Noto Nastaliq Urdu", serif;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
 }
 
 @layer base {
@@ -24,25 +29,32 @@
     @apply font-sans;
   }
 
+  /* --- URDU MODE STYLES --- */
+
   html.lang-ur {
+    /* Noto Nastaliq Urdu needs slightly more line-height than Latin fonts, but 2.6 is too much. 1.8 is optimal for readability. */
     line-height: 1.8;
+    /* 36px was enormous. 18px provides good legibility for Nastaliq script without breaking layouts. */
     font-size: 18px;
   }
 
+  /* Apply the Urdu font to all elements in Urdu mode */
   html.lang-ur * {
     font-family: var(--font-urdu) !important;
   }
 
-  html.lang-ur h1,
-  html.lang-ur h2,
-  html.lang-ur h3,
-  html.lang-ur h4,
-  html.lang-ur h5,
+  /* Headings need tighter line-height even in Urdu */
+  html.lang-ur h1, 
+  html.lang-ur h2, 
+  html.lang-ur h3, 
+  html.lang-ur h4, 
+  html.lang-ur h5, 
   html.lang-ur h6 {
     line-height: 1.6;
     margin-bottom: 0.5em;
   }
 
+  /* Ensure proper right-to-left text alignment for standard text elements */
   html.lang-ur p,
   html.lang-ur label,
   html.lang-ur td,
@@ -52,21 +64,25 @@
     text-align: right;
   }
 
-  html.lang-ur input,
-  html.lang-ur textarea,
-  html.lang-ur select,
+  /* Adjust inputs for Urdu text */
+  html.lang-ur input, 
+  html.lang-ur textarea, 
+  html.lang-ur select, 
   html.lang-ur button {
-    font-size: 1em;
+    font-size: 1em; /* Inherit the base 18px */
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
   }
 
+  /* Placeholders should be RTL and right-aligned in Urdu mode */
   html.lang-ur input::placeholder,
   html.lang-ur textarea::placeholder {
     direction: rtl;
     text-align: right;
   }
 
+  /* Specific input types (numbers, emails, phones, dates) should remain LTR and left-aligned
+     because they contain Latin characters or numbers that read left-to-right */
   html.lang-ur input[type="number"],
   html.lang-ur input[type="tel"],
   html.lang-ur input[type="email"],
@@ -76,57 +92,15 @@
   html.lang-ur input[dir="ltr"] {
     direction: ltr !important;
     text-align: left !important;
-    font-family: var(--font-sans) !important;
+    font-family: var(--font-sans) !important; /* Use sans font for numbers/emails for better legibility */
   }
 
+  /* --- ENGLISH / LTR STYLES --- */
   body {
-    @apply font-sans bg-background text-foreground antialiased;
+    @apply font-sans bg-background text-foreground;
   }
-
   * {
     @apply border-border outline-ring/50;
-  }
-}
-
-@layer components {
-  .lt-container {
-    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
-  }
-
-  .lt-section {
-    @apply py-16 md:py-20;
-  }
-
-  .lt-eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.16em] text-brand-primary;
-  }
-
-  .lt-heading-1 {
-    @apply text-4xl leading-tight font-semibold tracking-tight md:text-5xl;
-  }
-
-  .lt-heading-2 {
-    @apply text-3xl leading-tight font-semibold tracking-tight md:text-4xl;
-  }
-
-  .lt-heading-3 {
-    @apply text-2xl leading-tight font-semibold tracking-tight md:text-3xl;
-  }
-
-  .lt-body-lg {
-    @apply text-base leading-relaxed md:text-lg;
-  }
-
-  .lt-card {
-    @apply rounded-3xl border border-slate-200/90 bg-white/90 shadow-[0_12px_32px_-16px_rgba(15,23,42,0.25)] backdrop-blur;
-  }
-
-  .lt-skeleton {
-    @apply animate-pulse rounded-xl bg-slate-200/70;
-  }
-
-  .shadow-soft {
-    box-shadow: 0 8px 24px -14px rgba(0, 70, 67, 0.5);
   }
 }
 
@@ -197,7 +171,7 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.875rem;
+  --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);

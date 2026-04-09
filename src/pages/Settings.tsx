@@ -126,15 +126,29 @@ export default function Settings() {
                       accept="image/*"
                       onChange={handleLogoUpload}
                     />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                    >
-                      <Upload className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {editData.logoUrl ? t('settings.changeLogo') : t('settings.uploadLogo')}
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                      >
+                        <Upload className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {editData.logoUrl ? t('settings.changeLogo') : t('settings.uploadLogo')}
+                      </Button>
+                      {editData.logoUrl && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditData(prev => ({ ...prev, logoUrl: '' }))}
+                          disabled={uploading}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                        >
+                          <Trash2 className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> Remove Icon
+                        </Button>
+                      )}
+                    </div>
                     <p className="text-xs text-slate-500">{t('settings.recommendedLogo')}</p>
                   </div>
                 </div>

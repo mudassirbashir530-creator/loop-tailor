@@ -6,12 +6,11 @@ import { useShop } from '../contexts/ShopContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
-import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2, MessageCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
-import { toPng } from 'html-to-image';
+import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { cn } from '../lib/utils';
-
 import { toast } from 'sonner';
 
 export default function Invoice() {
@@ -60,29 +59,76 @@ export default function Invoice() {
     window.print();
   };
 
-  const generatePNGBlob = async (): Promise<Blob | null> => {
+  const generateCanvas = async () => {
     if (!invoiceRef.current) return null;
     try {
-      const element = invoiceRef.current;
-      
-      const options = {
-        cacheBust: true,
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
         backgroundColor: '#ffffff',
-        pixelRatio: 2,
-        style: {
-          margin: '0',
-        }
-      };
-
-      // Workaround for iOS Safari blank image issue: call toPng twice
-      await toPng(element, options);
-      const dataUrl = await toPng(element, options);
-      
-      const res = await fetch(dataUrl);
-      return await res.blob();
+      });
+      return canvas;
     } catch (error) {
-      console.error('Error generating PNG:', error);
+      console.error('Error generating canvas:', error);
       return null;
+    }
+  };
+
+  const generatePNGBlob = async (): Promise<Blob | null> => {
+    const canvas = await generateCanvas();
+    if (!canvas) return null;
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(blob);
+      }, 'image/png', 1.0);
+    });
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsGenerating(true);
+    try {
+      const canvas = await generateCanvas();
+      if (!canvas) throw new Error("Failed to generate PDF");
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(`Invoice_${order.id.slice(-6).toUpperCase()}.pdf`);
+      toast.success("PDF downloaded successfully");
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast.error("Failed to download PDF");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadImage = async () => {
+    setIsGenerating(true);
+    try {
+      const blob = await generatePNGBlob();
+      if (!blob) throw new Error("Failed to generate image");
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Invoice_${order.id.slice(-6).toUpperCase()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Image downloaded successfully");
+    } catch (error) {
+      console.error('Error downloading Image:', error);
+      toast.error("Failed to download Image");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -102,14 +148,7 @@ export default function Invoice() {
         await navigator.share(shareData);
       } else {
         // Fallback: Download the PNG
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = file.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        handleDownloadImage();
       }
     } catch (error) {
       console.error('Error sharing invoice:', error);
@@ -135,14 +174,7 @@ export default function Invoice() {
         await navigator.share(shareData);
       } else {
         // Fallback: Download the PNG and open WhatsApp
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = file.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        handleDownloadImage();
         
         if (customer?.phone) {
           const cleanPhone = customer.phone.replace(/[^\d+]/g, '').replace('+', '');
@@ -252,8 +284,11 @@ export default function Invoice() {
           <Button variant="outline" size="sm" onClick={handleWhatsAppShare} disabled={isGenerating} className="flex-1 sm:flex-none rounded-xl h-9 bg-[#25D366] text-white hover:bg-[#128C7E] border-none">
             <MessageCircle className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isGenerating ? '...' : 'WhatsApp'}
           </Button>
-          <Button variant="outline" size="sm" onClick={handlePrint} className="flex-1 sm:flex-none rounded-xl h-9">
-            <Printer className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {t('invoice.print')}
+          <Button variant="outline" size="sm" onClick={handleDownloadPDF} disabled={isGenerating} className="flex-1 sm:flex-none rounded-xl h-9">
+            <FileText className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDownloadImage} disabled={isGenerating} className="flex-1 sm:flex-none rounded-xl h-9">
+            <Download className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> Image
           </Button>
         </div>
       </div>
