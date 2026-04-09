@@ -130,7 +130,7 @@ export default function OrderDetails() {
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/orders')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/orders')} className="bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none rounded-xl">
             {isRTL ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
           </Button>
           <div>
@@ -141,22 +141,22 @@ export default function OrderDetails() {
             <h1 className="text-xl font-bold text-slate-900">{order.customerName}</h1>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {order.status !== ORDER_STATUS.DELIVERED && (
             <Button 
               onClick={() => handleUpdateStatus(ORDER_STATUS.DELIVERED)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl px-8 h-12 shadow-lg shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95"
+              className="bg-emerald-500 text-white font-black rounded-2xl px-6 h-12 shadow-neu-sm hover:shadow-neu-pressed-sm transition-all border-none"
             >
               <CheckCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
               {t('orderDetails.deliver')}
             </Button>
           )}
           <Button 
-            variant={isEditing ? "default" : "outline"}
+            variant="ghost"
             onClick={() => isEditing ? handleSaveEdit() : setIsEditing(true)}
             className={cn(
-              "rounded-2xl font-black h-12 px-6 transition-all hover:scale-105 active:scale-95",
-              isEditing ? "bg-slate-900 text-white" : "border-slate-200"
+              "rounded-2xl font-black h-12 px-6 transition-all border-none",
+              isEditing ? "bg-gray-100 shadow-neu-pressed text-brand-primary" : "bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-slate-700"
             )}
           >
             {isEditing ? <Save className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <Edit2 className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
@@ -164,18 +164,18 @@ export default function OrderDetails() {
           </Button>
           {!isEditing && (
             <Button 
-              variant="outline"
+              variant="ghost"
               onClick={handleDeleteOrder}
               disabled={isDeleting}
-              className="rounded-2xl font-black h-12 px-6 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 transition-all hover:scale-105 active:scale-95"
+              className="rounded-2xl font-black h-12 px-6 border-none text-red-500 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm transition-all"
             >
               {isDeleting ? <Loader2 className={cn("h-5 w-5 animate-spin", isRTL ? "ml-2" : "mr-2")} /> : <Trash2 className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
               {t('orderDetails.delete')}
             </Button>
           )}
           {isEditing && (
-            <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="rounded-2xl h-12 w-12">
-              <X className="h-6 w-6" />
+            <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="rounded-2xl h-12 w-12 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none">
+              <X className="h-6 w-6 text-slate-500" />
             </Button>
           )}
         </div>
@@ -184,42 +184,42 @@ export default function OrderDetails() {
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Main Info Card */}
-          <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
+          <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-transparent border-b border-gray-200/50 p-6">
               <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <User className="h-5 w-5 text-blue-500" />
+                <User className="h-5 w-5 text-brand-primary" />
                 {t('orderDetails.orderInformation')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 grid sm:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.customerDetails')}</span>
-                  <div className="flex items-center gap-3 text-slate-700">
-                    <User className="h-4 w-4 text-slate-400" />
-                    <span className="font-semibold">{order.customerName}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.customerDetails')}</span>
+                  <div className="flex items-center gap-3 text-slate-900">
+                    <User className="h-4 w-4 text-brand-primary" />
+                    <span className="font-bold">{order.customerName}</span>
                   </div>
                   {order.phone && (
-                    <div className="flex items-center gap-3 text-slate-700 mt-2">
-                      <Phone className="h-4 w-4 text-slate-400" />
-                      <span className="font-semibold">{order.phone}</span>
+                    <div className="flex items-center gap-3 text-slate-900 mt-2">
+                      <Phone className="h-4 w-4 text-brand-primary" />
+                      <span className="font-bold">{order.phone}</span>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.dressType')}</span>
-                  <div className="text-lg font-bold text-slate-900">{order.dressType}</div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.dressType')}</span>
+                  <div className="text-lg font-black text-slate-900">{order.dressType}</div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.status')}</span>
-                  <div className="mt-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.status')}</span>
+                  <div className="mt-2">
                     <select 
                       disabled={!isEditing}
                       value={isEditing ? editData.status : order.status}
                       onChange={(e) => setEditData({...editData, status: e.target.value})}
-                      className="h-10 w-full rounded-xl border border-slate-200 bg-white px-4 text-base sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:opacity-100 disabled:bg-slate-50"
+                      className="h-12 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-base sm:text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:opacity-100 disabled:shadow-neu-sm"
                     >
                       <option value={ORDER_STATUS.PENDING}>{t('orderDetails.pending')}</option>
                       <option value={ORDER_STATUS.STITCHING}>{t('orderDetails.stitching')}</option>
@@ -232,32 +232,32 @@ export default function OrderDetails() {
 
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.rackLocation')}</span>
-                  <div className="flex items-center gap-3 text-slate-700">
-                    <MapPin className="h-4 w-4 text-slate-400" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.rackLocation')}</span>
+                  <div className="flex items-center gap-3 text-slate-900 mt-1">
+                    <MapPin className="h-4 w-4 text-brand-primary" />
                     {isEditing ? (
                       <Input 
                         value={editData.rackLocation}
                         onChange={(e) => setEditData({...editData, rackLocation: e.target.value})}
-                        className="h-9 rounded-lg"
+                        className="h-10 rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none"
                       />
                     ) : (
-                      <span className="font-bold text-brand-primary">{order.rackLocation || t('orderDetails.notAssigned')}</span>
+                      <span className="font-bold">{order.rackLocation || t('orderDetails.notAssigned')}</span>
                     )}
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.deliveryDate')}</span>
-                  <div className="flex items-center gap-3 text-slate-700">
-                    <Calendar className="h-4 w-4 text-slate-400" />
-                    <span className="font-bold text-slate-900">{formatDate(order.deliveryDate)}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.deliveryDate')}</span>
+                  <div className="flex items-center gap-3 text-slate-900 mt-1">
+                    <Calendar className="h-4 w-4 text-brand-primary" />
+                    <span className="font-bold">{formatDate(order.deliveryDate)}</span>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.notes')}</span>
-                  <p className="text-sm text-slate-600 italic">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.notes')}</span>
+                  <p className="text-sm text-slate-700 font-medium mt-1 bg-gray-100 shadow-neu-pressed-sm p-3 rounded-xl min-h-[60px]">
                     {order.notes || t('orderDetails.noNotes')}
                   </p>
                 </div>
@@ -266,8 +266,8 @@ export default function OrderDetails() {
           </Card>
 
           {/* Measurements Card */}
-          <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
+          <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-transparent border-b border-gray-200/50 p-6">
               <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Ruler className="h-5 w-5 text-brand-primary" />
                 {t('orderDetails.measurements')}
@@ -276,8 +276,8 @@ export default function OrderDetails() {
             <CardContent className="p-6">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                 {order.measurements && Object.entries(order.measurements).map(([key, value]: [string, any]) => (
-                  <div key={key} className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">
+                  <div key={key} className="bg-gray-100 shadow-neu-pressed-sm p-4 rounded-2xl border-none">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">
                       {getMeasurementName(key, isRTL)}
                     </span>
                     {isEditing ? (
@@ -289,10 +289,10 @@ export default function OrderDetails() {
                           ...editData, 
                           measurements: { ...editData.measurements, [key]: e.target.value }
                         })}
-                        className="h-8 text-sm font-bold"
+                        className="h-10 text-sm font-bold bg-gray-100 shadow-neu-sm border-none"
                       />
                     ) : (
-                      <span className="text-lg font-black text-slate-900">{value}"</span>
+                      <span className="text-xl font-black text-slate-900">{value}"</span>
                     )}
                   </div>
                 ))}
@@ -303,19 +303,19 @@ export default function OrderDetails() {
 
         <div className="space-y-8">
           {/* Payment Card */}
-          <Card className="border-none shadow-sm bg-slate-900 text-white rounded-[2rem] overflow-hidden">
+          <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.totalPrice')}</span>
-                <div className="text-3xl font-black">{settings.currency} {order.price}</div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.totalPrice')}</span>
+                <div className="text-3xl font-black text-slate-900">{settings.currency} {order.price}</div>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.advancePaid')}</span>
-                <div className="text-xl font-bold text-emerald-400">{settings.currency} {order.advancePayment || 0}</div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.advancePaid')}</span>
+                <div className="text-xl font-bold text-emerald-600">{settings.currency} {order.advancePayment || 0}</div>
               </div>
-              <div className="pt-6 border-t border-white/10 space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('orderDetails.balanceDue')}</span>
-                <div className="text-2xl font-black text-brand-secondary">
+              <div className="pt-6 border-t border-gray-200/50 space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.balanceDue')}</span>
+                <div className="text-2xl font-black text-brand-primary">
                   {settings.currency} {order.price - (order.advancePayment || 0)}
                 </div>
               </div>
@@ -323,41 +323,41 @@ export default function OrderDetails() {
           </Card>
 
           {/* Timeline Card */}
-          <Card className="border-none shadow-sm bg-white rounded-[2.5rem] overflow-hidden">
+          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400">
+                <div className="h-12 w-12 rounded-2xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary">
                   <Clock className="h-5 w-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">{t('orderDetails.createdOn')}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">{t('orderDetails.createdOn')}</span>
                   <span className="text-sm font-black text-slate-900">
                     {formatDateTime(order.createdAt)}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400">
+                <div className="h-12 w-12 rounded-2xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary">
                   <Hash className="h-5 w-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">{t('orderDetails.systemId')}</span>
-                  <span className="text-xs font-mono font-bold text-slate-400 break-all">{order.id}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">{t('orderDetails.systemId')}</span>
+                  <span className="text-xs font-mono font-bold text-slate-500 break-all">{order.id}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Invoice Preview Card */}
-          <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden border border-slate-100">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
+          <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-transparent border-b border-gray-200/50 p-6">
               <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-brand-primary" />
                 {t('orderDetails.invoicePreview')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="p-4 rounded-2xl bg-slate-50 border border-dashed border-slate-200 space-y-3">
+              <div className="p-5 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <h4 className="text-sm font-black text-slate-900">{shop?.name || t('orderDetails.yourShop')}</h4>
@@ -365,10 +365,10 @@ export default function OrderDetails() {
                   </div>
                   <div className={cn(isRTL ? "text-left" : "text-right")}>
                     <span className={cn(
-                      "text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest",
-                      order.status === ORDER_STATUS.DELIVERED ? "bg-emerald-100 text-emerald-700" :
-                      order.status === ORDER_STATUS.READY ? "bg-blue-100 text-blue-700" :
-                      "bg-amber-100 text-amber-700"
+                      "text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-neu-sm",
+                      order.status === ORDER_STATUS.DELIVERED ? "bg-gray-100 text-emerald-600" :
+                      order.status === ORDER_STATUS.READY ? "bg-gray-100 text-blue-600" :
+                      "bg-gray-100 text-amber-600"
                     )}>
                       {order.status === ORDER_STATUS.PENDING ? t('orderDetails.pending') :
                        order.status === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
@@ -378,20 +378,20 @@ export default function OrderDetails() {
                   </div>
                 </div>
                 
-                <div className="pt-3 border-t border-slate-200 space-y-2">
+                <div className="pt-4 border-t border-gray-200/50 space-y-3">
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">{t('orderDetails.customer')}</span>
-                    <span className="font-bold text-slate-900">{order.customerName}</span>
+                    <span className="text-slate-500 font-bold">{t('orderDetails.customer')}</span>
+                    <span className="font-black text-slate-900">{order.customerName}</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">{t('orderDetails.totalAmount')}</span>
-                    <span className="font-bold text-slate-900">{settings.currency} {order.price}</span>
+                    <span className="text-slate-500 font-bold">{t('orderDetails.totalAmount')}</span>
+                    <span className="font-black text-slate-900">{settings.currency} {order.price}</span>
                   </div>
                 </div>
 
                 <Button 
-                  variant="outline" 
-                  className="w-full rounded-xl h-10 text-xs font-bold border-slate-200 hover:bg-slate-100"
+                  variant="ghost" 
+                  className="w-full rounded-xl h-12 text-sm font-bold bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-brand-primary border-none mt-2"
                   onClick={() => navigate(`/dashboard/orders/${order.id}/invoice`)}
                 >
                   {t('orderDetails.viewFullInvoice')}
