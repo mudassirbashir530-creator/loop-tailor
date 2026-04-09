@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { ArrowRight, CheckCircle2, ClipboardList, Scissors, Users } from 'lucide-react';
@@ -12,8 +12,20 @@ const stats = [
   { label: 'Avg. time saved', value: '9 hrs/week' },
 ];
 
+const heroImages = [
+  {
+    src: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=80',
+    alt: 'Tailor taking precise body measurements in a studio',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1594633313593-bab3825d0caf?auto=format&fit=crop&w=900&q=80',
+    alt: 'Close-up of a fashion designer working with fabric and pins',
+  },
+];
+
 export default function Hero() {
   const { isRTL } = useLanguage();
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <section className="lt-section relative overflow-hidden pt-28 md:pt-32">
@@ -69,8 +81,53 @@ export default function Hero() {
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24, delay: 0.06 }}
-          className="lt-card p-5 md:p-7"
+          className="lt-card overflow-hidden p-5 md:p-7"
         >
+          <div className="relative mb-5 grid gap-3 sm:grid-cols-[1.35fr_1fr]">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.14 }}
+              className="overflow-hidden rounded-2xl"
+            >
+              <img
+                src={heroImages[0].src}
+                alt={heroImages[0].alt}
+                loading="eager"
+                decoding="async"
+                width={1200}
+                height={800}
+                className="h-44 w-full object-cover md:h-56"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.2 }}
+              className="overflow-hidden rounded-2xl"
+            >
+              <img
+                src={heroImages[1].src}
+                alt={heroImages[1].alt}
+                loading="lazy"
+                decoding="async"
+                width={900}
+                height={800}
+                className="h-44 w-full object-cover md:h-56"
+              />
+            </motion.div>
+
+            {!prefersReducedMotion && (
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                className="pointer-events-none absolute -top-6 right-2 hidden rounded-xl border border-white/70 bg-white/85 px-3 py-2 text-xs font-medium text-slate-700 shadow-sm backdrop-blur md:block"
+              >
+                Live tailoring workflow
+              </motion.div>
+            )}
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-3">
             {stats.map((stat) => (
               <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-4">
