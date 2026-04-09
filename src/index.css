@@ -108,6 +108,17 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  /* --- MINIMALIST THEME OVERRIDES --- */
+  .theme-minimalist {
+    --shadow-neu: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-neu-pressed: inset 0 0 0 1px #e2e8f0;
+    --shadow-neu-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-neu-pressed-sm: inset 0 0 0 1px #e2e8f0;
+    --shadow-neu-icon: none;
+    --color-gray-100: #ffffff;
+    --color-gray-200: #f1f5f9; /* slate-100 */
+  }
 }
 
 @theme inline {

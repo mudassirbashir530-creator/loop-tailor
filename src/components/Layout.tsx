@@ -77,7 +77,7 @@ export default function Layout() {
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-72 bg-gray-100 flex-col z-20 shadow-[8px_0_16px_#d1d5db]">
+      <aside className="hidden lg:flex w-72 bg-gray-100 flex-col z-20 shadow-neu">
         <Link to="/dashboard" className="h-24 flex items-center px-8 cursor-pointer mb-4">
           <motion.div 
             whileHover={{ rotate: 180 }}

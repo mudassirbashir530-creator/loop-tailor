@@ -70,7 +70,7 @@ export default function Invoices() {
         </div>
       </div>
 
-      <Card className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden">
+      <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
         <CardContent className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative group">
@@ -80,7 +80,7 @@ export default function Invoices() {
                 placeholder={t('customers.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={cn("w-full h-12 rounded-xl border-2 border-slate-100 bg-white text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
+                className={cn("w-full h-12 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-primary transition-all", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
               />
             </div>
 
@@ -89,7 +89,7 @@ export default function Invoices() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className={cn("w-full h-12 rounded-xl border-2 border-slate-100 bg-white text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all appearance-none", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
+                className={cn("w-full h-12 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-primary transition-all appearance-none", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
               >
                 <option value="All">{t('invoices.allStatuses')}</option>
                 <option value="Pending">{t('orders.pending')}</option>
@@ -105,7 +105,7 @@ export default function Invoices() {
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className={cn("w-full h-12 rounded-xl border-2 border-slate-100 bg-white text-sm font-bold focus:outline-none focus:ring-4 focus:ring-brand-primary/10 focus:border-brand-primary transition-all", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
+                className={cn("w-full h-12 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-primary transition-all", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
               />
             </div>
           </div>
@@ -117,11 +117,11 @@ export default function Invoices() {
           <Loader2 className="h-12 w-12 text-brand-primary animate-spin" />
         </div>
       ) : (
-        <Card className="border-none shadow-sm bg-white rounded-[2.5rem] overflow-hidden">
+        <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
           <CardContent className="p-0">
             {filteredInvoices.length === 0 ? (
               <div className="p-20 text-center flex flex-col items-center space-y-4">
-                <div className="h-20 w-20 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-200">
+                <div className="h-20 w-20 bg-gray-100 shadow-neu-pressed-sm rounded-3xl flex items-center justify-center text-slate-400">
                   <Package className="h-10 w-10" />
                 </div>
                 <div>
@@ -130,11 +130,11 @@ export default function Invoices() {
                 </div>
               </div>
             ) : (
-              <div className="divide-y divide-slate-50">
+              <div className="divide-y divide-gray-200/50">
                 {filteredInvoices.map((invoice) => (
-                  <div key={invoice.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
+                  <div key={invoice.id} className="p-6 flex items-center justify-between hover:bg-gray-200/20 transition-colors group">
                     <div className="flex items-center gap-4">
-                      <div className="h-14 w-14 rounded-2xl bg-brand-primary/5 flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all duration-300">
+                      <div className="h-14 w-14 rounded-2xl bg-gray-100 shadow-neu-sm flex items-center justify-center text-brand-primary group-hover:shadow-neu-pressed-sm transition-all duration-300">
                         <FileText className="h-6 w-6" />
                       </div>
                       <div>

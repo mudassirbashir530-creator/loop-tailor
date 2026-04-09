@@ -7,7 +7,7 @@ import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { ShopProvider } from './contexts/ShopContext';
+import { ShopProvider, useShop } from './contexts/ShopContext';
 import Layout from './components/Layout';
 import OfflineIndicator from './components/OfflineIndicator';
 import InstallPrompt from './components/InstallPrompt';
@@ -89,11 +89,28 @@ import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from './components/ui/sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
+function ThemeManager() {
+  const { settings } = useShop();
+  
+  React.useEffect(() => {
+    if (settings.uiTheme === 'minimalist') {
+      document.body.classList.add('theme-minimalist');
+      document.body.classList.remove('theme-neumorphic');
+    } else {
+      document.body.classList.add('theme-neumorphic');
+      document.body.classList.remove('theme-minimalist');
+    }
+  }, [settings.uiTheme]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <HelmetProvider>
       <AuthProvider>
         <ShopProvider>
+          <ThemeManager />
           <LanguageProvider>
             <OfflineIndicator />
             <InstallPrompt />

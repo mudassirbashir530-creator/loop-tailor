@@ -7,7 +7,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2, Store, Phone, MapPin, MessageSquare, Globe, Trash2 } from 'lucide-react';
+import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2, Store, Phone, MapPin, MessageSquare, Globe, Trash2, LayoutTemplate } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useOrderTemplates } from '../hooks/useOrderTemplates';
 import { toast } from 'sonner';
@@ -15,8 +15,8 @@ import { toast } from 'sonner';
 export default function Settings() {
   const { user } = useAuth();
   const { t, isRTL, language, setLanguage } = useLanguage();
-  const [shop, setShop] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '' });
-  const [editData, setEditData] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '' });
+  const [shop, setShop] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic' as 'neumorphic' | 'minimalist' });
+  const [editData, setEditData] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic' as 'neumorphic' | 'minimalist' });
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -29,8 +29,8 @@ export default function Settings() {
     const unsubscribe = onSnapshot(doc(db, 'shops', user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as any;
-        setShop(prev => ({ ...prev, ...data }));
-        setEditData(prev => ({ ...prev, ...data }));
+        setShop(prev => ({ ...prev, ...data, uiTheme: data.uiTheme || 'neumorphic' }));
+        setEditData(prev => ({ ...prev, ...data, uiTheme: data.uiTheme || 'neumorphic' }));
       }
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`);
@@ -91,8 +91,8 @@ export default function Settings() {
         <p className="text-slate-500 mt-2">{t('settings.subtitle')}</p>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+      <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200/50 bg-transparent">
           <CardTitle className="text-xl">{t('settings.shopProfile')}</CardTitle>
           {!isEditing && (
             <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
@@ -106,7 +106,7 @@ export default function Settings() {
               <div className="flex flex-col items-center sm:items-start gap-4">
                 <label className="text-sm font-medium block">{t('settings.shopLogo')}</label>
                 <div className="flex items-center gap-4">
-                  <div className="h-20 w-20 rounded-xl bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group">
+                  <div className="h-20 w-20 rounded-xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center overflow-hidden relative group">
                     {editData.logoUrl ? (
                       <img src={editData.logoUrl} alt="Logo Preview" className="h-full w-full object-contain" />
                     ) : (
@@ -158,29 +158,29 @@ export default function Settings() {
                 <div>
                   <label className="text-sm font-medium mb-1 block">{t('settings.shopName')}</label>
                   <div className="relative">
-                    <Store className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10", isRTL ? "right-3" : "left-3")} />
-                    <Input required value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="My Tailor Shop" className={cn(isRTL ? "pr-9" : "pl-9")} />
+                    <Store className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
+                    <Input required value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="My Tailor Shop" className={cn(isRTL ? "pr-12" : "pl-12")} />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">{t('settings.phoneNumber')}</label>
                   <div className="relative">
-                    <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10", isRTL ? "right-3" : "left-3")} />
-                    <Input value={editData.phone || ''} onChange={e => setEditData({...editData, phone: e.target.value})} placeholder="+1 234 567 8900" className={cn(isRTL ? "pr-9" : "pl-9")} />
+                    <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
+                    <Input value={editData.phone || ''} onChange={e => setEditData({...editData, phone: e.target.value})} placeholder="+1 234 567 8900" className={cn(isRTL ? "pr-12" : "pl-12")} />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">{t('settings.address')}</label>
                   <div className="relative">
-                    <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10", isRTL ? "right-3" : "left-3")} />
-                    <Input value={editData.address || ''} onChange={e => setEditData({...editData, address: e.target.value})} placeholder="123 Tailor Street" className={cn(isRTL ? "pr-9" : "pl-9")} />
+                    <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
+                    <Input value={editData.address || ''} onChange={e => setEditData({...editData, address: e.target.value})} placeholder="123 Tailor Street" className={cn(isRTL ? "pr-12" : "pl-12")} />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">{t('settings.invoiceFooter')}</label>
                   <div className="relative">
-                    <MessageSquare className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10", isRTL ? "right-3" : "left-3")} />
-                    <Input value={editData.invoiceFooter || ''} onChange={e => setEditData({...editData, invoiceFooter: e.target.value})} placeholder="Thank you for your business!" className={cn(isRTL ? "pr-9" : "pl-9")} />
+                    <MessageSquare className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10", isRTL ? "right-4" : "left-4")} />
+                    <Input value={editData.invoiceFooter || ''} onChange={e => setEditData({...editData, invoiceFooter: e.target.value})} placeholder="Thank you for your business!" className={cn(isRTL ? "pr-12" : "pl-12")} />
                   </div>
                 </div>
               </div>
@@ -198,7 +198,7 @@ export default function Settings() {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 border-b border-slate-100 pb-6">
                 <div className="text-sm font-medium text-slate-500 w-32">{t('settings.shopLogo')}</div>
-                <div className="h-16 w-16 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
+                <div className="h-16 w-16 rounded-lg bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center overflow-hidden">
                   {shop.logoUrl ? (
                     <img src={shop.logoUrl} alt="Shop Logo" className="h-full w-full object-contain" />
                   ) : (
@@ -227,8 +227,8 @@ export default function Settings() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
+      <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+        <CardHeader className="border-b border-gray-200/50 bg-transparent">
           <CardTitle className="text-xl">Order Templates</CardTitle>
         </CardHeader>
         <CardContent>
@@ -237,12 +237,12 @@ export default function Settings() {
               <p className="text-sm text-slate-500">No templates saved yet. Save templates from the Quick Order form.</p>
             ) : (
               templates.map(template => (
-                <div key={template.id} className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50">
+                <div key={template.id} className="flex items-center justify-between p-4 rounded-2xl shadow-neu-sm bg-gray-100">
                   <div>
                     <div className="font-bold text-slate-900">{template.name}</div>
                     <div className="text-sm text-slate-500">{template.dressType} • <span className="capitalize">{template.gender}</span></div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => deleteTemplate(template.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                  <Button variant="ghost" size="icon" onClick={() => deleteTemplate(template.id)} className="text-red-500 hover:text-red-600 hover:shadow-neu-pressed-sm rounded-xl">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -252,8 +252,70 @@ export default function Settings() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
+      <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+        <CardHeader className="border-b border-gray-200/50 bg-transparent">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <LayoutTemplate className="h-5 w-5 text-brand-primary" />
+            UI Theme
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Button
+              variant={shop.uiTheme === 'neumorphic' ? 'default' : 'outline'}
+              className={cn(
+                "h-24 rounded-2xl flex flex-col items-center justify-center gap-2 text-base font-bold transition-all",
+                shop.uiTheme === 'neumorphic' ? "bg-brand-primary shadow-lg shadow-brand-primary/20" : "border-slate-200 text-slate-500"
+              )}
+              onClick={async () => {
+                if (!user) return;
+                try {
+                  await setDoc(doc(db, 'shops', user.uid), { uiTheme: 'neumorphic' }, { merge: true });
+                  setShop(prev => ({ ...prev, uiTheme: 'neumorphic' }));
+                  toast.success('UI Theme updated to Neumorphic');
+                } catch (error) {
+                  console.error('Error updating theme:', error);
+                  toast.error('Failed to update theme');
+                }
+              }}
+            >
+              <div className="h-8 w-16 rounded-lg bg-gray-100 shadow-neu-sm flex items-center justify-center">
+                <div className="h-2 w-8 rounded-full bg-brand-primary/50"></div>
+              </div>
+              Neumorphic (Embossed)
+            </Button>
+            <Button
+              variant={shop.uiTheme === 'minimalist' ? 'default' : 'outline'}
+              className={cn(
+                "h-24 rounded-2xl flex flex-col items-center justify-center gap-2 text-base font-bold transition-all",
+                shop.uiTheme === 'minimalist' ? "bg-brand-primary shadow-lg shadow-brand-primary/20" : "border-slate-200 text-slate-500"
+              )}
+              onClick={async () => {
+                if (!user) return;
+                try {
+                  await setDoc(doc(db, 'shops', user.uid), { uiTheme: 'minimalist' }, { merge: true });
+                  setShop(prev => ({ ...prev, uiTheme: 'minimalist' }));
+                  toast.success('UI Theme updated to Minimalist');
+                } catch (error) {
+                  console.error('Error updating theme:', error);
+                  toast.error('Failed to update theme');
+                }
+              }}
+            >
+              <div className="h-8 w-16 rounded-lg bg-white border border-slate-200 flex items-center justify-center">
+                <div className="h-2 w-8 rounded-full bg-slate-300"></div>
+              </div>
+              Minimalist (Flat)
+            </Button>
+          </div>
+          <p className="text-sm text-slate-500 mt-4 px-1">
+            Choose the visual style of the application. Neumorphic offers a raised, embossed look with shadows, while Minimalist provides a clean, flat aesthetic.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+        <CardHeader className="border-b border-gray-200/50 bg-transparent">
           <CardTitle className="text-xl">{t('auth.interfaceLanguage')}</CardTitle>
         </CardHeader>
         <CardContent>

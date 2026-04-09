@@ -43,7 +43,7 @@ export function TemplateSelector({ templateHook, setOrderData, setMeasurements, 
               <button
                 type="button"
                 onClick={() => applyTemplate(template, setOrderData, setMeasurements, setGender)}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-slate-200 bg-white hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all text-left whitespace-nowrap group shadow-sm"
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl border-none bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm transition-all text-left whitespace-nowrap group"
               >
                 <div className="h-8 w-8 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary">
                   <Scissors className="h-4 w-4" />
@@ -119,7 +119,7 @@ export function SaveTemplateButton({ templateHook, currentOrderData, currentMeas
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden"
+              className="w-full max-w-sm bg-gray-100 rounded-[2rem] shadow-neu overflow-hidden"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               <div className="p-6">

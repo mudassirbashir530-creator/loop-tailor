@@ -293,13 +293,13 @@ export default function Invoice() {
         </div>
       </div>
 
-      <div className={cn("bg-white p-5 sm:p-10 rounded-3xl shadow-sm border border-slate-100 print:shadow-none print:border-none print:p-0 overflow-hidden", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
+      <div className={cn("bg-gray-100 p-5 sm:p-10 rounded-[2.5rem] shadow-neu border-none print:shadow-none print:border-none print:p-0 overflow-hidden", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
         {renderInvoiceContent(false)}
       </div>
 
       {/* Off-screen Invoice for Capture */}
       <div className="fixed top-0 left-0 -z-50 opacity-0 pointer-events-none w-[800px] overflow-hidden">
-        <div ref={invoiceRef} className={cn("bg-white p-12", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
+        <div ref={invoiceRef} className={cn("bg-gray-100 p-12", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
           {renderInvoiceContent(true)}
         </div>
       </div>

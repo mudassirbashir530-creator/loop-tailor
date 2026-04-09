@@ -11,6 +11,7 @@ interface ShopSettings {
   logoUrl: string;
   invoiceFooter: string;
   currency: string;
+  uiTheme: 'neumorphic' | 'minimalist';
 }
 
 interface ShopContextType {
@@ -25,6 +26,7 @@ const defaultSettings: ShopSettings = {
   logoUrl: '',
   invoiceFooter: '',
   currency: APP_CONFIG.defaultCurrency,
+  uiTheme: 'neumorphic',
 };
 
 const ShopContext = createContext<ShopContextType>({
@@ -56,6 +58,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
           logoUrl: data.logoUrl || '',
           invoiceFooter: data.invoiceFooter || '',
           currency: data.currency || APP_CONFIG.defaultCurrency,
+          uiTheme: data.uiTheme || 'neumorphic',
         });
       }
       setLoading(false);

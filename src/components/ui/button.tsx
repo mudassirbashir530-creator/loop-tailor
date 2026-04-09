@@ -5,25 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "../../lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-bold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
   {
     variants: {
       variant: {
-        default: "bg-brand-primary text-white hover:bg-brand-primary/90 shadow-sm",
+        default: "bg-brand-primary text-white hover:bg-brand-primary/90 shadow-lg shadow-brand-primary/20",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
+          "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20",
         outline:
-          "border border-slate-200/60 bg-white hover:bg-slate-50 hover:text-slate-900 shadow-sm",
+          "border-none bg-gray-100 text-slate-600 shadow-neu-sm hover:shadow-neu-pressed-sm hover:text-brand-primary",
         secondary:
-          "bg-slate-100 text-slate-900 hover:bg-slate-200/80",
-        ghost: "hover:bg-slate-100 hover:text-slate-900",
+          "bg-gray-100 text-slate-900 shadow-neu-sm hover:shadow-neu-pressed-sm",
+        ghost: "hover:shadow-neu-pressed-sm hover:text-brand-primary bg-transparent",
         link: "text-brand-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-12 px-6 py-3",
+        sm: "h-10 rounded-lg px-4",
+        lg: "h-14 rounded-2xl px-8 text-base",
+        icon: "h-12 w-12 rounded-xl",
       },
     },
     defaultVariants: {
