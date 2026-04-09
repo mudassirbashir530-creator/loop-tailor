@@ -64,7 +64,7 @@ const steps = [
   { icon: Wallet, title: 'Invoice & track', text: 'Send invoice, collect payments, and close smoothly.' },
 ];
 
-  const sectionImageMap = {
+const sectionImageMap = {
   features: {
     src: 'https://images.unsplash.com/photo-1595341595379-cf0f7f6bd6a8?auto=format&fit=crop&w=1600&q=80',
     alt: 'Tailor discussing garment details with a customer in a workshop',
@@ -77,7 +77,7 @@ const steps = [
     src: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80',
     alt: 'Premium tailored suit details on mannequin with measuring tape',
   },
-};
+} as const;
 
 export default function Landing() {
   const { user, wasLoggedIn } = useAuth();

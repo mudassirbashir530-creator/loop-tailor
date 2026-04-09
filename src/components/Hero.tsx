@@ -55,13 +55,13 @@ export default function Hero() {
           </motion.p>
 
           <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
-            <Link to="/signup">
+            <Link to="/signup" aria-label="Start now with Loop Tailor">
               <Button size="lg" className="min-w-44">
                 Start now
                 <ArrowRight className={cn('h-4 w-4', isRTL ? 'mr-2 rotate-180' : 'ml-2')} />
               </Button>
             </Link>
-            <Link to="/#features">
+            <Link to="/#features" aria-label="Learn more about product features">
               <Button size="lg" variant="outline" className="min-w-44">
                 Learn more
               </Button>
