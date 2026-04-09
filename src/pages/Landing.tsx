@@ -6,6 +6,7 @@ import Hero from '../components/Hero';
 import { cn } from '../lib/utils';
 import {
   ArrowRight,
+  Camera,
   CheckCircle2,
   ChevronDown,
   ClipboardList,
@@ -83,6 +84,27 @@ const workflowSignals = [
   { label: 'Intake to Cutting', value: 92 },
   { label: 'Cutting to Stitching', value: 78 },
   { label: 'Stitching to Delivery', value: 64 },
+];
+
+const visualGallery = [
+  {
+    title: 'Tailor workspace digitized',
+    subtitle: 'Track orders from measurement to final press.',
+    image:
+      'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1200&auto=format&fit=crop',
+  },
+  {
+    title: 'Client profile confidence',
+    subtitle: 'Keep measurements and style notes always ready.',
+    image:
+      'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=1200&auto=format&fit=crop',
+  },
+  {
+    title: 'Clear team production flow',
+    subtitle: 'Visualize pending, active, and delivery-ready pieces.',
+    image:
+      'https://images.unsplash.com/photo-1520012218364-3dbe62c99bee?q=80&w=1200&auto=format&fit=crop',
+  },
 ];
 
 const sectionReveal = {
@@ -200,6 +222,51 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      <motion.section
+        className="lt-section pt-4"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionReveal}
+        transition={{ duration: 0.35 }}
+      >
+        <div className="lt-container">
+          <div className="mb-8 text-center">
+            <p className="lt-eyebrow">Visual experience</p>
+            <h2 className="lt-heading-2 mt-3">A clean interface with strong visual guidance for daily tailoring work.</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {visualGallery.map((item, index) => (
+              <motion.div
+                key={item.title}
+                className="group relative overflow-hidden rounded-3xl border border-slate-200"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.25, delay: index * 0.06 }}
+                whileHover={{ y: -5 }}
+              >
+                <div className="aspect-[4/5] overflow-hidden">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 to-transparent p-4 text-white">
+                  <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-1 text-[11px]">
+                    <Camera className="h-3 w-3" /> Preview
+                  </div>
+                  <h3 className="text-base font-semibold">{item.title}</h3>
+                  <p className="mt-1 text-xs text-white/85">{item.subtitle}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
 
       <motion.section
         id="features"
