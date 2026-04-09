@@ -68,8 +68,8 @@ export const Users: React.FC = () => {
         </h1>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-4 border-b border-slate-200 bg-slate-50/50">
+      <div className="bg-gray-100 rounded-[2rem] shadow-neu border-none overflow-hidden">
+        <div className="p-4 border-b border-gray-200/50 bg-transparent">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
@@ -85,7 +85,7 @@ export const Users: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+              <tr className="bg-gray-100 shadow-neu-pressed-sm text-slate-500 text-xs font-bold uppercase tracking-wider">
                 <th className="px-6 py-4">User</th>
                 <th className="px-6 py-4">Role</th>
                 <th className="px-6 py-4">Joined</th>
@@ -108,7 +108,7 @@ export const Users: React.FC = () => {
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.uid} className="hover:bg-slate-50 transition-colors">
+                  <tr key={user.uid} className="hover:bg-gray-100 hover:shadow-neu-pressed-sm transition-all">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">

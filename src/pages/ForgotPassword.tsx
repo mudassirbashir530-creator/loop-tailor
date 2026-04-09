@@ -31,7 +31,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link to="/" className="flex items-center justify-center gap-2 mb-8 group">
           <div className="bg-brand-primary p-2 rounded-xl group-hover:bg-brand-primary/90 transition-all shadow-sm">
@@ -51,7 +51,7 @@ export default function ForgotPassword() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-sm sm:rounded-2xl sm:px-10 border border-slate-100">
+        <div className="bg-gray-100 py-8 px-4 shadow-neu sm:rounded-[2rem] sm:px-10 border-none">
           {step === 'success' ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -89,7 +89,7 @@ export default function ForgotPassword() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-10 h-12 rounded-xl border-slate-200 focus:ring-brand-primary focus:border-brand-primary sm:text-sm transition-all"
+                    className="block w-full pl-10 h-12 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 sm:text-sm transition-all"
                     placeholder="you@example.com"
                   />
                 </div>

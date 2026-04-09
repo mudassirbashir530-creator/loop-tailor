@@ -196,7 +196,7 @@ export default function Invoice() {
       {/* Header Section */}
       <div className={cn("flex flex-row justify-between items-start border-b border-slate-100 gap-4", isCapture ? "pb-8 mb-8" : "pb-5 mb-5")}>
         <div className="flex items-center gap-3">
-          {shop.logoUrl && <img src={shop.logoUrl} alt="Shop Logo" crossOrigin="anonymous" className={cn("object-contain rounded-xl bg-slate-50 p-1", isCapture ? "h-20 w-20" : "h-10 w-10 sm:h-16 sm:w-16")} />}
+          {shop.logoUrl && <img src={shop.logoUrl} alt="Shop Logo" crossOrigin="anonymous" className={cn("object-contain rounded-xl bg-gray-100 shadow-neu-pressed-sm p-1", isCapture ? "h-20 w-20" : "h-10 w-10 sm:h-16 sm:w-16")} />}
           <div>
             <h1 className={cn("font-black text-slate-900 leading-tight tracking-tight", isCapture ? "text-4xl" : "text-xl sm:text-3xl")}>{shop.name}</h1>
             <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg mt-1" : "text-xs sm:text-base")}>{shop.phone}</p>
@@ -223,7 +223,7 @@ export default function Invoice() {
       </div>
 
       {/* Items Table - Compact */}
-      <div className={cn("border-y border-slate-50 py-2", isCapture ? "mb-10" : "mb-6 sm:mb-8")}>
+      <div className={cn("border-y border-gray-200/50 py-2", isCapture ? "mb-10" : "mb-6 sm:mb-8")}>
         <div className={cn("flex justify-between items-center py-2 font-black text-slate-400 uppercase tracking-widest px-1", isCapture ? "text-sm" : "text-xs sm:text-sm")}>
           <span>{t('invoice.description')}</span>
           <span>{t('invoice.amount')}</span>
@@ -239,7 +239,7 @@ export default function Invoice() {
 
       {/* Totals Section */}
       <div className={cn("flex", isCapture ? "mb-12" : "mb-6 sm:mb-10", isRTL ? "justify-start" : "justify-end")}>
-        <div className={cn("space-y-3 bg-slate-50/50 rounded-2xl border border-slate-100/50", isCapture ? "w-96 p-6" : "w-full sm:w-72 p-4")}>
+        <div className={cn("space-y-3 bg-gray-100 shadow-neu-pressed-sm rounded-2xl border-none", isCapture ? "w-96 p-6" : "w-full sm:w-72 p-4")}>
           <div className={cn("flex justify-between font-bold text-slate-500", isCapture ? "text-base" : "text-xs sm:text-sm")}>
             <span>{t('invoice.subtotal')}</span>
             <span>{settings.currency} {order.price.toLocaleString()}</span>

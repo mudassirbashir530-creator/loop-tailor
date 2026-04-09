@@ -39,18 +39,18 @@ export default function Login() {
   };
 
   return (
-    <div className={cn("min-h-screen bg-white flex flex-col lg:flex-row overflow-hidden", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={cn("min-h-screen bg-gray-100 flex flex-col lg:flex-row overflow-hidden", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Left Side: Branding & Features (Hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-primary relative overflow-hidden flex-col justify-between p-12 text-white">
         {/* Background Accents */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-white rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-white rounded-full blur-[120px]"></div>
+          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-gray-100 rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-gray-100 rounded-full blur-[120px]"></div>
         </div>
 
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-2 mb-16 group">
-            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md group-hover:bg-white/30 transition-all">
+            <div className="bg-gray-100/20 p-2 rounded-xl backdrop-blur-md group-hover:bg-gray-100/30 transition-all">
               <Scissors className="h-6 w-6 text-white" />
             </div>
             <span className="text-2xl font-display font-bold tracking-tight">Loop Tailor</span>
@@ -75,7 +75,7 @@ export default function Login() {
                 { icon: <Shield className="h-5 w-5" />, text: t('auth.encryptedData') }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                  <div className="h-10 w-10 rounded-full bg-gray-100/10 flex items-center justify-center backdrop-blur-sm">
                     {item.icon}
                   </div>
                   <span className="font-semibold text-lg">{item.text}</span>
@@ -86,8 +86,8 @@ export default function Login() {
         </div>
 
         <div className="relative z-10">
-          <div className="flex items-center gap-4 p-6 bg-white/10 backdrop-blur-md rounded-[2rem] border border-white/10 max-w-sm">
-            <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center">
+          <div className="flex items-center gap-4 p-6 bg-gray-100/10 backdrop-blur-md rounded-[2rem] border border-white/10 max-w-sm">
+            <div className="h-12 w-12 rounded-2xl bg-gray-100 flex items-center justify-center">
               <Zap className="h-6 w-6 text-brand-primary" />
             </div>
             <div className="text-sm">
@@ -104,7 +104,7 @@ export default function Login() {
         <div className={cn("absolute top-6 z-20", isRTL ? "left-6" : "right-6")}>
           <button
             onClick={() => setLanguage(language === 'en' ? 'ur' : 'en')}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-600 hover:border-brand-primary hover:text-brand-primary transition-all shadow-sm font-bold text-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 border-none text-slate-600 hover:shadow-neu-pressed-sm hover:text-brand-primary transition-all shadow-neu-sm font-bold text-sm"
           >
             <Globe className="h-4 w-4" />
             <span>{language === 'en' ? 'اردو' : 'English'}</span>
@@ -137,7 +137,7 @@ export default function Login() {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                  className={cn("h-14 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
                   dir="ltr"
                 />
               </div>
@@ -161,7 +161,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                  className={cn("h-14 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
                   dir="ltr"
                 />
               </div>

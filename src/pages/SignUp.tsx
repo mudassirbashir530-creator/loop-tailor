@@ -90,18 +90,18 @@ export default function SignUp() {
   const isUploading = profileUpload.uploading || logoUpload.uploading;
 
   return (
-    <div className={cn("min-h-screen bg-white flex flex-col lg:flex-row overflow-hidden", selectedLanguage === 'ur' && "font-urdu")} dir={selectedLanguage === 'ur' ? 'rtl' : 'ltr'}>
+    <div className={cn("min-h-screen bg-gray-100 flex flex-col lg:flex-row overflow-hidden", selectedLanguage === 'ur' && "font-urdu")} dir={selectedLanguage === 'ur' ? 'rtl' : 'ltr'}>
       {/* Left Side: Branding & Features (Hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-primary relative overflow-hidden flex-col justify-between p-12 text-white">
         {/* Background Accents */}
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-white rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-white rounded-full blur-[120px]"></div>
+          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-gray-100 rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-gray-100 rounded-full blur-[120px]"></div>
         </div>
 
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-2 mb-16 group">
-            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md group-hover:bg-white/30 transition-all">
+            <div className="bg-gray-100/20 p-2 rounded-xl backdrop-blur-md group-hover:bg-gray-100/30 transition-all">
               <Scissors className="h-6 w-6 text-white" />
             </div>
             <span className="text-2xl font-display font-bold tracking-tight">Loop Tailor</span>
@@ -127,7 +127,7 @@ export default function SignUp() {
                 { icon: <Star className="h-5 w-5" />, text: t('auth.professionalInvoicing') }
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                  <div className="h-10 w-10 rounded-full bg-gray-100/10 flex items-center justify-center backdrop-blur-sm">
                     {item.icon}
                   </div>
                   <span className="font-semibold text-lg">{item.text}</span>
@@ -138,8 +138,8 @@ export default function SignUp() {
         </div>
 
         <div className="relative z-10">
-          <div className="flex items-center gap-4 p-6 bg-white/10 backdrop-blur-md rounded-[2rem] border border-white/10 max-w-sm">
-            <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-md border border-white/20">
+          <div className="flex items-center gap-4 p-6 bg-gray-100/10 backdrop-blur-md rounded-[2rem] border border-white/10 max-w-sm">
+            <div className="h-12 w-12 rounded-2xl bg-gray-100/20 flex items-center justify-center backdrop-blur-md border border-white/20">
               <BadgeCheck className="h-6 w-6 text-white" />
             </div>
             <div className="text-sm">
@@ -192,7 +192,7 @@ export default function SignUp() {
                         className="hidden" 
                         onChange={(e) => e.target.files?.[0] && profileUpload.selectFile(e.target.files[0])}
                       />
-                      <div className="w-24 h-24 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden bg-slate-50 group-hover:border-brand-primary transition-colors">
+                      <div className="w-24 h-24 rounded-full border-none shadow-neu-pressed-sm flex items-center justify-center overflow-hidden bg-gray-100 group-hover:shadow-neu transition-all">
                         {profileUpload.preview ? (
                           <img src={profileUpload.preview} alt="Profile Preview" className="w-full h-full object-cover" />
                         ) : (
@@ -220,7 +220,7 @@ export default function SignUp() {
                         placeholder="e.g. John Doe"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                        className={cn("h-14 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
                       />
                     </div>
                   </div>
@@ -235,7 +235,7 @@ export default function SignUp() {
                         placeholder="+92 300 1234567"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                        className={cn("h-14 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
                         dir="ltr"
                       />
                     </div>
@@ -251,7 +251,7 @@ export default function SignUp() {
                         placeholder="you@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                        className={cn("h-14 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
                         dir="ltr"
                       />
                     </div>
@@ -267,7 +267,7 @@ export default function SignUp() {
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                        className={cn("h-14 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
                         dir="ltr"
                       />
                     </div>
@@ -283,10 +283,10 @@ export default function SignUp() {
                           setLanguage('en');
                         }}
                         className={cn(
-                          "h-14 rounded-2xl border-2 font-bold transition-all flex items-center justify-center gap-2",
+                          "h-14 rounded-2xl border-none font-bold transition-all flex items-center justify-center gap-2",
                           selectedLanguage === 'en' 
-                            ? "border-brand-primary bg-brand-primary/5 text-brand-primary shadow-sm" 
-                            : "border-slate-100 bg-white text-slate-400 hover:border-slate-200"
+                            ? "bg-gray-100 shadow-neu-pressed-sm text-brand-primary" 
+                            : "bg-gray-100 shadow-neu-sm text-slate-400 hover:shadow-neu-pressed-sm"
                         )}
                       >
                         <Globe className="h-4 w-4" />
@@ -299,10 +299,10 @@ export default function SignUp() {
                           setLanguage('ur');
                         }}
                         className={cn(
-                          "h-14 rounded-2xl border-2 font-bold transition-all flex items-center justify-center gap-2 font-urdu",
+                          "h-14 rounded-2xl border-none font-bold transition-all flex items-center justify-center gap-2 font-urdu",
                           selectedLanguage === 'ur' 
-                            ? "border-brand-primary bg-brand-primary/5 text-brand-primary shadow-sm" 
-                            : "border-slate-100 bg-white text-slate-400 hover:border-slate-200"
+                            ? "bg-gray-100 shadow-neu-pressed-sm text-brand-primary" 
+                            : "bg-gray-100 shadow-neu-sm text-slate-400 hover:shadow-neu-pressed-sm"
                         )}
                       >
                         <Globe className="h-4 w-4" />
@@ -367,18 +367,18 @@ export default function SignUp() {
                         onChange={(e) => e.target.files?.[0] && logoUpload.selectFile(e.target.files[0])}
                       />
                       {logoUpload.preview ? (
-                        <div className="w-full h-32 border-2 border-slate-200 rounded-2xl relative overflow-hidden bg-white flex items-center justify-center">
+                        <div className="w-full h-32 border-none shadow-neu-pressed-sm rounded-2xl relative overflow-hidden bg-gray-100 flex items-center justify-center">
                           <img src={logoUpload.preview} alt="Shop Logo Preview" className="h-full object-contain p-2" />
                           <button 
                             type="button"
                             onClick={(e) => { e.preventDefault(); logoUpload.reset(); }}
-                            className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full shadow-sm hover:bg-white text-slate-600 transition-colors"
+                            className="absolute top-2 right-2 bg-gray-100 shadow-neu-sm p-1.5 rounded-full hover:shadow-neu-pressed-sm text-slate-600 transition-all"
                           >
                             <X size={16} />
                           </button>
                         </div>
                       ) : (
-                        <label htmlFor="logo-upload" className="w-full h-32 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-brand-primary transition-colors group">
+                        <label htmlFor="logo-upload" className="w-full h-32 border-none shadow-neu-sm rounded-2xl flex flex-col items-center justify-center cursor-pointer bg-gray-100 hover:shadow-neu-pressed-sm transition-all group">
                           <Store className="h-8 w-8 text-slate-400 group-hover:text-brand-primary mb-2 transition-colors" />
                           <span className="text-sm font-medium text-slate-500 group-hover:text-brand-primary transition-colors">Upload Shop Logo</span>
                         </label>
@@ -400,7 +400,7 @@ export default function SignUp() {
                         placeholder="e.g. 123 Main St, City"
                         value={shopAddress}
                         onChange={(e) => setShopAddress(e.target.value)}
-                        className={cn("h-14 rounded-2xl border-slate-200 bg-white focus:ring-brand-primary focus:border-brand-primary transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
+                        className={cn("h-14 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all text-lg", isRTL ? "pr-12 text-right" : "pl-12")}
                       />
                     </div>
                   </div>
@@ -421,7 +421,7 @@ export default function SignUp() {
                       variant="outline"
                       onClick={handleBack}
                       disabled={isLoading || isUploading}
-                      className="h-16 px-6 rounded-2xl border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                      className="h-16 px-6 rounded-2xl border-none bg-gray-100 shadow-neu-sm text-slate-600 font-bold hover:shadow-neu-pressed-sm transition-all"
                     >
                       {isRTL ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
                     </Button>
