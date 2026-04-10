@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { RefreshCw, X } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function UpdateNotification() {
+  const { t } = useLanguage();
   const [showUpdate, setShowUpdate] = useState(false);
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
 
@@ -78,8 +80,8 @@ export default function UpdateNotification() {
                 <RefreshCw size={20} className="animate-spin-slow" />
               </div>
               <div>
-                <p className="font-semibold text-sm">New update available!</p>
-                <p className="text-xs text-white/80">Tap to refresh</p>
+                <p className="font-semibold text-sm">{t('common.updateAvailable') || 'New update available!'}</p>
+                <p className="text-xs text-white/80">{t('common.tapToRefresh') || 'Tap to refresh'}</p>
               </div>
             </div>
             <button 

@@ -29,35 +29,6 @@ export default function Contact() {
     setIsSubmitting(true);
     setError('');
 
-    let googleScriptSuccess = false;
-    let localApiSuccess = false;
-
-    // 1. Try sending to Google Apps Script
-    try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: `${formData.firstName} ${formData.lastName}`.trim(),
-          phone: formData.phone,
-          email: formData.email,
-          message: formData.message
-        })
-      });
-      
-      const data = await response.json();
-      if (response.ok) {
-        googleScriptSuccess = true;
-      } else {
-        console.error('Google Apps Script returned an error:', data);
-      }
-    } catch (err) {
-      console.error('Error sending to Google Apps Script:', err);
-    }
-
-    // 2. Try sending to local API
     try {
       const { error: fetchError } = await safeFetchJSON('/api/contact', {
         method: 'POST',
@@ -65,26 +36,19 @@ export default function Contact() {
       });
 
       if (!fetchError) {
-        localApiSuccess = true;
+        setIsSuccess(true);
+        setFormData({ firstName: '', lastName: '', phone: '', email: '', message: '' });
+        
+        // Reset success message after 5 seconds
+        setTimeout(() => setIsSuccess(false), 5000);
       } else {
-        console.warn('Local API /api/contact failed or not available:', fetchError);
+        setError(fetchError || 'Failed to send message. Please try again.');
       }
     } catch (err) {
-      console.error('Unexpected error with local API:', err);
-    }
-
-    setIsSubmitting(false);
-
-    // 3. Determine overall success
-    // If deployed on static hosting, local API will fail, but Google Script should succeed.
-    if (googleScriptSuccess || localApiSuccess) {
-      setIsSuccess(true);
-      setFormData({ firstName: '', lastName: '', phone: '', email: '', message: '' });
-      
-      // Reset success message after 5 seconds
-      setTimeout(() => setIsSuccess(false), 5000);
-    } else {
-      setError('Failed to send message. Please check your connection and try again.');
+      console.error('Error sending contact form:', err);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
