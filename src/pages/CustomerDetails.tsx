@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
 import { ORDER_STATUS } from '../lib/config';
 import { db, storage, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
-import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -194,10 +194,12 @@ export default function CustomerDetails() {
     }
   };
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: Timestamp | Date | string | number | null | undefined) => {
     if (!timestamp) return t('customerDetails.na');
     try {
-      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      const date = timestamp instanceof Timestamp || (typeof timestamp === 'object' && 'toDate' in timestamp && typeof (timestamp as any).toDate === 'function')
+        ? (timestamp as Timestamp).toDate()
+        : new Date(timestamp as Date | string | number);
       return format(date, 'MMM dd, yyyy');
     } catch (e) {
       return t('customerDetails.invalidDate');
