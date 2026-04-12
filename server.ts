@@ -22,6 +22,19 @@ try {
 
 const db = admin.firestore();
 
+/**
+ * Escapes HTML special characters to prevent HTML injection and XSS
+ */
+function escapeHtml(unsafe: string): string {
+  if (typeof unsafe !== 'string') return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 let transporter: nodemailer.Transporter | null = null;
 
 async function getTransporter() {
@@ -235,14 +248,20 @@ async function startServer() {
       try {
         const mailTransporter = await getTransporter();
         
+        const safeFirstName = escapeHtml(firstName);
+        const safeLastName = escapeHtml(lastName);
+        const safeEmail = escapeHtml(email);
+        const safePhone = escapeHtml(phone || 'N/A');
+        const safeMessage = escapeHtml(message);
+
         const htmlContent = `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #16a34a;">New Contact Form Submission</h2>
-            <p><strong>Name:</strong> ${firstName} ${lastName}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
+            <p><strong>Name:</strong> ${safeFirstName} ${safeLastName}</p>
+            <p><strong>Email:</strong> ${safeEmail}</p>
+            <p><strong>Phone:</strong> ${safePhone}</p>
             <p><strong>Message:</strong></p>
-            <blockquote style="background: #f8fafc; border-left: 4px solid #16a34a; padding: 16px; margin: 0; white-space: pre-wrap;">${message}</blockquote>
+            <blockquote style="background: #f8fafc; border-left: 4px solid #16a34a; padding: 16px; margin: 0; white-space: pre-wrap;">${safeMessage}</blockquote>
           </div>
         `;
 
