@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, query, orderBy, Timestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { Users as UsersIcon, Shield, User as UserIcon, Mail, Calendar, Search, Loader2 } from 'lucide-react';
 
@@ -8,7 +8,7 @@ interface UserProfile {
   name: string;
   email: string;
   role: 'user' | 'admin';
-  createdAt: any;
+  createdAt: Timestamp;
 }
 
 export const Users: React.FC = () => {
