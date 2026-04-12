@@ -93,13 +93,8 @@ function ThemeManager() {
   const { settings } = useShop();
   
   React.useEffect(() => {
-    if (settings.uiTheme === 'minimalist') {
-      document.body.classList.add('theme-minimalist');
-      document.body.classList.remove('theme-neumorphic');
-    } else {
-      document.body.classList.add('theme-neumorphic');
-      document.body.classList.remove('theme-minimalist');
-    }
+    document.body.classList.remove('theme-neumorphic', 'theme-minimalist', 'theme-modern', 'theme-elegant');
+    document.body.classList.add(`theme-${settings.uiTheme}`);
   }, [settings.uiTheme]);
 
   return null;

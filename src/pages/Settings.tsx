@@ -15,8 +15,8 @@ import { toast } from 'sonner';
 export default function Settings() {
   const { user } = useAuth();
   const { t, isRTL, language, setLanguage } = useLanguage();
-  const [shop, setShop] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic' as 'neumorphic' | 'minimalist' });
-  const [editData, setEditData] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic' as 'neumorphic' | 'minimalist' });
+  const [shop, setShop] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'modern' as 'neumorphic' | 'minimalist' | 'modern' | 'elegant' });
+  const [editData, setEditData] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'modern' as 'neumorphic' | 'minimalist' | 'modern' | 'elegant' });
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -29,8 +29,8 @@ export default function Settings() {
     const unsubscribe = onSnapshot(doc(db, 'shops', user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as any;
-        setShop(prev => ({ ...prev, ...data, uiTheme: data.uiTheme || 'neumorphic' }));
-        setEditData(prev => ({ ...prev, ...data, uiTheme: data.uiTheme || 'neumorphic' }));
+        setShop(prev => ({ ...prev, ...data, uiTheme: data.uiTheme || 'modern' }));
+        setEditData(prev => ({ ...prev, ...data, uiTheme: data.uiTheme || 'modern' }));
       }
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`);
@@ -260,7 +260,53 @@ export default function Settings() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button
+              variant={shop.uiTheme === 'modern' ? 'default' : 'outline'}
+              className={cn(
+                "h-24 rounded-2xl flex flex-col items-center justify-center gap-2 text-base font-bold transition-all",
+                shop.uiTheme === 'modern' ? "bg-brand-primary shadow-lg shadow-brand-primary/20" : "border-slate-200 text-slate-500"
+              )}
+              onClick={async () => {
+                if (!user) return;
+                try {
+                  await setDoc(doc(db, 'shops', user.uid), { uiTheme: 'modern' }, { merge: true });
+                  setShop(prev => ({ ...prev, uiTheme: 'modern' }));
+                  toast.success('UI Theme updated to Modern');
+                } catch (error) {
+                  console.error('Error updating theme:', error);
+                  toast.error('Failed to update theme');
+                }
+              }}
+            >
+              <div className="h-8 w-16 rounded-lg bg-slate-900 flex items-center justify-center">
+                <div className="h-2 w-8 rounded-full bg-blue-500"></div>
+              </div>
+              Modern
+            </Button>
+            <Button
+              variant={shop.uiTheme === 'elegant' ? 'default' : 'outline'}
+              className={cn(
+                "h-24 rounded-2xl flex flex-col items-center justify-center gap-2 text-base font-bold transition-all",
+                shop.uiTheme === 'elegant' ? "bg-brand-primary shadow-lg shadow-brand-primary/20" : "border-slate-200 text-slate-500"
+              )}
+              onClick={async () => {
+                if (!user) return;
+                try {
+                  await setDoc(doc(db, 'shops', user.uid), { uiTheme: 'elegant' }, { merge: true });
+                  setShop(prev => ({ ...prev, uiTheme: 'elegant' }));
+                  toast.success('UI Theme updated to Elegant');
+                } catch (error) {
+                  console.error('Error updating theme:', error);
+                  toast.error('Failed to update theme');
+                }
+              }}
+            >
+              <div className="h-8 w-16 rounded-lg bg-orange-950 flex items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.1)]">
+                <div className="h-2 w-8 rounded-full bg-amber-700"></div>
+              </div>
+              Elegant
+            </Button>
             <Button
               variant={shop.uiTheme === 'neumorphic' ? 'default' : 'outline'}
               className={cn(
@@ -282,7 +328,7 @@ export default function Settings() {
               <div className="h-8 w-16 rounded-lg bg-gray-100 shadow-neu-sm flex items-center justify-center">
                 <div className="h-2 w-8 rounded-full bg-brand-primary/50"></div>
               </div>
-              Neumorphic (Embossed)
+              Neumorphic
             </Button>
             <Button
               variant={shop.uiTheme === 'minimalist' ? 'default' : 'outline'}
@@ -305,11 +351,11 @@ export default function Settings() {
               <div className="h-8 w-16 rounded-lg bg-white border border-slate-200 flex items-center justify-center">
                 <div className="h-2 w-8 rounded-full bg-slate-300"></div>
               </div>
-              Minimalist (Flat)
+              Minimalist
             </Button>
           </div>
           <p className="text-sm text-slate-500 mt-4 px-1">
-            Choose the visual style of the application. Neumorphic offers a raised, embossed look with shadows, while Minimalist provides a clean, flat aesthetic.
+            Choose the visual style of the application. Modern offers a sleek corporate look, Elegant provides a rich dark mode feel, Neumorphic gives an embossed look, and Minimalist offers a clean flat style.
           </p>
         </CardContent>
       </Card>

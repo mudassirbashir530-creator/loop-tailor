@@ -119,6 +119,36 @@
     --color-gray-100: #ffffff;
     --color-gray-200: #f1f5f9; /* slate-100 */
   }
+
+  /* --- MODERN THEME OVERRIDES --- */
+  .theme-modern {
+    --shadow-neu: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    --shadow-neu-pressed: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+    --shadow-neu-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+    --shadow-neu-pressed-sm: inset 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-neu-icon: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --color-gray-100: #f8fafc;
+    --color-gray-200: #e2e8f0;
+    --radius: 0.5rem;
+    --color-brand-primary: #0f172a; /* Slate 900 */
+    --color-brand-secondary: #ffffff;
+    --color-brand-accent: #3b82f6; /* Blue 500 */
+  }
+
+  /* --- ELEGANT THEME OVERRIDES --- */
+  .theme-elegant {
+    --shadow-neu: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-neu-pressed: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+    --shadow-neu-sm: 0 10px 15px -3px rgb(0 0 0 / 0.05);
+    --shadow-neu-pressed-sm: inset 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-neu-icon: none;
+    --color-gray-100: #fafaf9; /* Stone 50 */
+    --color-gray-200: #e7e5e4; /* Stone 200 */
+    --radius: 1rem;
+    --color-brand-primary: #431407; /* Orange 950 */
+    --color-brand-secondary: #fffbeb; /* Amber 50 */
+    --color-brand-accent: #b45309; /* Amber 700 */
+  }
 }
 
 @theme inline {
