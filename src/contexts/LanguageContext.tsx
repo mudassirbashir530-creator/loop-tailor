@@ -77,16 +77,18 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const t = (path: string) => {
     const keys = path.split('.');
-    let current: any = language === 'ur' ? urTranslations : enTranslations;
+    type TranslationNode = string | { [key: string]: TranslationNode };
+    let current: TranslationNode = language === 'ur' ? (urTranslations as TranslationNode) : (enTranslations as TranslationNode);
     
     for (const key of keys) {
-      if (current[key] === undefined) {
+      if (typeof current === 'object' && current !== null && key in current) {
+        current = (current as Record<string, TranslationNode>)[key];
+      } else {
         console.warn(`Translation key not found: ${path}`);
         return path;
       }
-      current = current[key];
     }
-    return current as string;
+    return typeof current === 'string' ? current : path;
   };
 
   return (
