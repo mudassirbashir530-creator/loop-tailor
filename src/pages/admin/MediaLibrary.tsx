@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, setDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, deleteDoc, doc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { Upload, Trash2, Copy, Image as ImageIcon, Loader2, CheckCircle2 } from 'lucide-react';
@@ -11,7 +11,7 @@ interface MediaFile {
   name: string;
   size: number;
   type: string;
-  createdAt: any;
+  createdAt: Timestamp;
 }
 
 interface MediaLibraryProps {
