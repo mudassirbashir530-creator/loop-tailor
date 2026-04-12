@@ -131,11 +131,8 @@ async function startServer() {
         console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
       }
       
-      // Do not return the OTP in the response in production!
       res.status(200).json({ 
-        message: "If an account exists with this email, an OTP has been sent.",
-        // Only including for testing purposes in this environment
-        _dev_otp: process.env.NODE_ENV !== 'production' ? otp : undefined
+        message: "If an account exists with this email, an OTP has been sent."
       });
 
     } catch (error) {
