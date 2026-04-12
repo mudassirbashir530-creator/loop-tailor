@@ -80,8 +80,9 @@ export default function SignUp() {
       await signUp(email, password, name, phone, selectedLanguage, photoURL, shopName, shopLogoUrl, shopAddress);
       await setLanguage(selectedLanguage);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create account. Please try again.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create account. Please try again.';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
