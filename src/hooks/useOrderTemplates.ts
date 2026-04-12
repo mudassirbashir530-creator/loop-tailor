@@ -18,7 +18,20 @@ export interface UseOrderTemplatesReturn {
   loading: boolean;
   saveTemplate: (data: Omit<OrderTemplate, 'id' | 'createdAt'>) => Promise<void>;
   deleteTemplate: (id: string) => Promise<void>;
-  applyTemplate: (template: OrderTemplate, setOrderData: Function, setMeasurements: Function, setGender?: Function) => void;
+  applyTemplate: (
+    template: OrderTemplate,
+    setOrderData: React.Dispatch<React.SetStateAction<{
+      dressType: string;
+      deliveryDate: string;
+      price: string;
+      advancePayment: string;
+      quantity: string;
+      rackLocation: string;
+      notes: string;
+    }>>,
+    setMeasurements: React.Dispatch<React.SetStateAction<Record<string, number>>>,
+    setGender?: React.Dispatch<React.SetStateAction<string>>
+  ) => void;
 }
 
 export function useOrderTemplates(shopId: string | undefined): UseOrderTemplatesReturn {
@@ -75,8 +88,21 @@ export function useOrderTemplates(shopId: string | undefined): UseOrderTemplates
     }
   };
 
-  const applyTemplate = (template: OrderTemplate, setOrderData: Function, setMeasurements: Function, setGender?: Function) => {
-    setOrderData((prev: any) => ({
+  const applyTemplate = (
+    template: OrderTemplate,
+    setOrderData: React.Dispatch<React.SetStateAction<{
+      dressType: string;
+      deliveryDate: string;
+      price: string;
+      advancePayment: string;
+      quantity: string;
+      rackLocation: string;
+      notes: string;
+    }>>,
+    setMeasurements: React.Dispatch<React.SetStateAction<Record<string, number>>>,
+    setGender?: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    setOrderData(prev => ({
       ...prev,
       dressType: template.dressType,
       price: template.price ? template.price.toString() : '',
