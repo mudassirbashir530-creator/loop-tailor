@@ -65,7 +65,6 @@ export default function Invoice() {
       const canvas = await html2canvas(invoiceRef.current, {
         scale: 2,
         useCORS: true,
-        allowTaint: true,
         backgroundColor: '#ffffff',
       });
       return canvas;
