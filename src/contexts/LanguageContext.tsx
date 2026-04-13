@@ -10,14 +10,14 @@ export type Language = 'en' | 'ur';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => Promise<void>;
-  t: (key: string) => string;
+  t: (key: string, returnObjects?: boolean) => any;
   isRTL: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
   language: 'en',
   setLanguage: async () => {},
-  t: (key: string) => key,
+  t: (key: string, returnObjects?: boolean) => key,
   isRTL: false,
 });
 
@@ -75,9 +75,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const t = (path: string) => {
+  const t = (path: string, returnObjects: boolean = false): any => {
     const keys = path.split('.');
-    type TranslationNode = string | { [key: string]: TranslationNode };
+    type TranslationNode = string | any[] | { [key: string]: TranslationNode };
     let current: TranslationNode = language === 'ur' ? (urTranslations as TranslationNode) : (enTranslations as TranslationNode);
     
     for (const key of keys) {
@@ -88,6 +88,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return path;
       }
     }
+
+    if (returnObjects) {
+      return current;
+    }
+
     return typeof current === 'string' ? current : path;
   };
 
