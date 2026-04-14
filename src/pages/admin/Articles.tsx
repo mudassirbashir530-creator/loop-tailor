@@ -58,16 +58,16 @@ export const Articles: React.FC = () => {
         <h1 className="text-2xl font-bold text-slate-900">Articles</h1>
         <Link
           to="/admin/articles/new"
-          className="flex items-center gap-2 px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-primary/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-gray-100 shadow-neu-sm text-brand-primary hover:shadow-neu-pressed-sm rounded-xl transition-all border-none font-bold"
         >
           <Plus className="w-4 h-4" />
           New Article
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <table className="min-w-full divide-y divide-slate-200">
-          <thead className="bg-slate-50">
+      <div className="bg-gray-100 rounded-[2rem] shadow-neu border-none overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200/50">
+          <thead className="bg-transparent">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
@@ -77,7 +77,7 @@ export const Articles: React.FC = () => {
               <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-slate-200">
+          <tbody className="bg-transparent divide-y divide-gray-200/50">
             {articles.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-4 text-center text-slate-500 text-sm">
@@ -86,7 +86,7 @@ export const Articles: React.FC = () => {
               </tr>
             ) : (
               articles.map((article) => (
-                <tr key={article.id} className="hover:bg-slate-50">
+                <tr key={article.id} className="hover:bg-gray-100 hover:shadow-neu-pressed-sm transition-all">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-slate-900">{article.title}</div>
                   </td>
@@ -108,10 +108,10 @@ export const Articles: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end gap-3">
-                      <Link to={`/admin/articles/edit/${article.id}`} className="text-indigo-600 hover:text-indigo-900">
+                      <Link to={`/admin/articles/edit/${article.id}`} className="p-2 bg-gray-100 shadow-neu-sm text-indigo-600 hover:text-indigo-900 rounded-lg hover:shadow-neu-pressed-sm transition-all border-none">
                         <Edit className="w-4 h-4" />
                       </Link>
-                      <button onClick={() => handleDelete(article.id)} className="text-red-600 hover:text-red-900">
+                      <button onClick={() => handleDelete(article.id)} className="p-2 bg-gray-100 shadow-neu-sm text-red-600 hover:text-red-900 rounded-lg hover:shadow-neu-pressed-sm transition-all border-none">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

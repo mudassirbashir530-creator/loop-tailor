@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, getDocs, deleteDoc, doc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, setDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { Upload, Trash2, Copy, Image as ImageIcon, Loader2, CheckCircle2 } from 'lucide-react';
@@ -11,7 +11,7 @@ interface MediaFile {
   name: string;
   size: number;
   type: string;
-  createdAt: Timestamp;
+  createdAt: any;
 }
 
 interface MediaLibraryProps {
@@ -146,8 +146,8 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect }) => {
           />
           <label
             htmlFor="media-upload"
-            className={`flex items-center gap-2 px-4 py-2 bg-brand-primary text-white rounded-md transition-colors cursor-pointer ${
-              uploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-brand-primary/90'
+            className={`flex items-center gap-2 px-4 py-2 bg-gray-100 shadow-neu-sm text-brand-primary hover:shadow-neu-pressed-sm rounded-xl transition-all cursor-pointer border-none ${
+              uploading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
@@ -158,15 +158,15 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect }) => {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
         {media.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-slate-500 bg-white rounded-xl border border-slate-200 border-dashed">
-            <ImageIcon className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+          <div className="col-span-full py-12 text-center text-slate-500 bg-gray-100 rounded-[2rem] shadow-neu-pressed-sm border-none">
+            <ImageIcon className="w-12 h-12 mx-auto mb-3 text-slate-400" />
             <p>No media files found.</p>
             <p className="text-sm">Upload images to use in your articles.</p>
           </div>
         ) : (
           media.map((item) => (
-            <div key={item.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden group">
-              <div className="aspect-square bg-slate-100 relative">
+            <div key={item.id} className="bg-gray-100 rounded-[2rem] shadow-neu border-none overflow-hidden group">
+              <div className="aspect-square bg-gray-200 relative">
                 <img src={item.url} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                   {onSelect ? (
@@ -180,14 +180,14 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect }) => {
                     <>
                       <button
                         onClick={() => handleCopyUrl(item.url, item.id)}
-                        className="p-2 bg-white rounded-full text-slate-700 hover:text-brand-primary transition-colors"
+                        className="p-2 bg-gray-100 shadow-neu rounded-full text-slate-700 hover:text-brand-primary hover:shadow-neu-pressed-sm transition-all"
                         title="Copy URL"
                       >
                         {copied === item.id ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                       </button>
                       <button
                         onClick={() => handleDelete(item)}
-                        className="p-2 bg-white rounded-full text-red-600 hover:text-red-700 transition-colors"
+                        className="p-2 bg-gray-100 shadow-neu rounded-full text-red-600 hover:text-red-700 hover:shadow-neu-pressed-sm transition-all"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />

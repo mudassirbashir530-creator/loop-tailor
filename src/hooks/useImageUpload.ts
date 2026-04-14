@@ -128,8 +128,8 @@ export function useImageUpload(): UseImageUploadReturn {
           }
         }, 100);
       });
-    } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : 'Upload failed');
+    } catch (err: any) {
+      setError(err.message || 'Upload failed');
       setUploading(false);
       return null;
     }

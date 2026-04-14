@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, updateDoc, doc, query, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, doc, query, orderBy } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { Users as UsersIcon, Shield, User as UserIcon, Mail, Calendar, Search, Loader2 } from 'lucide-react';
 
@@ -8,7 +8,7 @@ interface UserProfile {
   name: string;
   email: string;
   role: 'user' | 'admin';
-  createdAt: Timestamp;
+  createdAt: any;
 }
 
 export const Users: React.FC = () => {
@@ -77,7 +77,7 @@ export const Users: React.FC = () => {
               placeholder="Search users by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all font-medium text-slate-700"
             />
           </div>
         </div>
@@ -111,7 +111,7 @@ export const Users: React.FC = () => {
                   <tr key={user.uid} className="hover:bg-gray-100 hover:shadow-neu-pressed-sm transition-all">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-slate-500">
                           <UserIcon className="w-5 h-5" />
                         </div>
                         <div>
@@ -143,10 +143,10 @@ export const Users: React.FC = () => {
                       <button
                         onClick={() => toggleRole(user)}
                         disabled={updating === user.uid}
-                        className={`text-sm font-medium transition-colors ${
+                        className={`px-3 py-1.5 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm rounded-xl text-xs font-bold transition-all border-none ${
                           user.role === 'admin' 
-                            ? 'text-red-600 hover:text-red-700' 
-                            : 'text-brand-primary hover:text-brand-primary/80'
+                            ? 'text-red-600' 
+                            : 'text-brand-primary'
                         } disabled:opacity-50`}
                       >
                         {updating === user.uid ? (

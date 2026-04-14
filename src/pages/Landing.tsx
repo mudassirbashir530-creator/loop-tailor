@@ -67,7 +67,7 @@ export default function Landing() {
   const { t, isRTL, language, setLanguage } = useLanguage();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const translatedFaqs = (t('landing.faq.items', true) as unknown as {q: string, a: string}[]);
+  const translatedFaqs = (t('landing.faq.items') as unknown as {q: string, a: string}[]);
 
   const faqSchema = {
     "@context": "https://schema.org",
@@ -470,7 +470,7 @@ export default function Landing() {
                 </div>
 
                 <ul className="space-y-4 mb-10">
-                  {(t('landing.pricing.features', true) as unknown as string[]).map((feature, idx) => (
+                  {(t('landing.pricing.features') as unknown as string[]).map((feature, idx) => (
                     <li key={idx} className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-emerald-500" />
                       <span className="text-slate-600 font-medium">{feature}</span>

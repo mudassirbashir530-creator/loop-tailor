@@ -24,10 +24,10 @@ export const AdminLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-slate-200 flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-slate-200">
+      <div className="w-64 bg-gray-100 shadow-neu border-none flex flex-col z-10">
+        <div className="h-16 flex items-center px-6 border-b border-gray-200/50">
           <span className="text-xl font-bold text-slate-800">Admin Panel</span>
         </div>
         
@@ -38,10 +38,10 @@ export const AdminLayout: React.FC = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all border-none ${
                   isActive 
-                    ? 'bg-brand-primary/10 text-brand-primary' 
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-gray-100 shadow-neu-pressed-sm text-brand-primary' 
+                    : 'text-slate-500 hover:text-brand-primary hover:shadow-neu-sm'
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -51,10 +51,17 @@ export const AdminLayout: React.FC = () => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-200">
+        <div className="p-4 border-t border-gray-200/50 space-y-2">
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-bold text-slate-500 hover:text-brand-primary hover:shadow-neu-sm transition-all border-none"
+          >
+            <LayoutDashboard className="w-5 h-5" />
+            Back to App
+          </Link>
           <button
             onClick={logOut}
-            className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-bold text-slate-500 hover:text-red-600 hover:shadow-neu-sm transition-all border-none"
           >
             <LogOut className="w-5 h-5" />
             Sign Out

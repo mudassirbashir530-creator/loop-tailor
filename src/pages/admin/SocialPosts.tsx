@@ -96,7 +96,7 @@ export const SocialPosts: React.FC = () => {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-md hover:bg-slate-800 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 shadow-neu text-slate-700 rounded-xl hover:shadow-neu-pressed-sm transition-all disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save to Database
@@ -106,7 +106,7 @@ export const SocialPosts: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-4">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <div className="bg-gray-100 p-6 rounded-[2rem] shadow-neu border-none">
             <label className="block text-sm font-medium text-slate-700 mb-2">
               What do you want to post about?
             </label>
@@ -114,13 +114,13 @@ export const SocialPosts: React.FC = () => {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={6}
-              className="w-full px-4 py-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent resize-none"
+              className="w-full px-4 py-3 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all resize-none"
               placeholder="E.g., We just launched a new feature that allows tailors to send automated WhatsApp reminders to customers when their order is ready..."
             />
             <button
               onClick={handleGenerate}
               disabled={generating || !content.trim()}
-              className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 bg-brand-primary text-white rounded-md hover:bg-brand-primary/90 transition-colors disabled:opacity-50 font-medium"
+              className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 shadow-neu-sm text-brand-primary hover:shadow-neu-pressed-sm rounded-xl transition-all disabled:opacity-50 font-bold border-none"
             >
               {generating ? (
                 <>
@@ -138,40 +138,40 @@ export const SocialPosts: React.FC = () => {
           {generatedPosts ? (
             <>
               {['facebook', 'instagram', 'linkedin'].map((platform) => (
-                <div key={platform} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div key={platform} className="bg-gray-100 p-6 rounded-[2rem] shadow-neu border-none">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-lg font-semibold text-slate-900 capitalize">{platform}</h3>
                     <button
                       onClick={() => handleCopy(generatedPosts[platform as keyof typeof generatedPosts], platform)}
-                      className="text-slate-500 hover:text-brand-primary transition-colors"
+                      className="p-2 bg-gray-100 shadow-neu rounded-full text-slate-500 hover:text-brand-primary hover:shadow-neu-pressed-sm transition-all"
                       title="Copy to clipboard"
                     >
                       {copied === platform ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
                     </button>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-lg whitespace-pre-wrap text-sm text-slate-700 border border-slate-100">
+                  <div className="p-4 bg-gray-100 shadow-neu-pressed-sm rounded-2xl whitespace-pre-wrap text-sm text-slate-700 border-none">
                     {generatedPosts[platform as keyof typeof generatedPosts]}
                   </div>
                 </div>
               ))}
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <div className="bg-gray-100 p-6 rounded-[2rem] shadow-neu border-none">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-lg font-semibold text-slate-900">Hashtags</h3>
                   <button
                     onClick={() => handleCopy(generatedPosts.hashtags, 'hashtags')}
-                    className="text-slate-500 hover:text-brand-primary transition-colors"
+                    className="p-2 bg-gray-100 shadow-neu rounded-full text-slate-500 hover:text-brand-primary hover:shadow-neu-pressed-sm transition-all"
                   >
                     {copied === 'hashtags' ? <CheckCircle2 className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
                   </button>
                 </div>
-                <div className="p-4 bg-slate-50 rounded-lg text-sm text-brand-primary font-medium border border-slate-100">
+                <div className="p-4 bg-gray-100 shadow-neu-pressed-sm rounded-2xl text-sm text-brand-primary font-medium border-none">
                   {generatedPosts.hashtags}
                 </div>
               </div>
             </>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl p-12 text-center bg-slate-50/50">
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 bg-gray-100 shadow-neu-pressed-sm rounded-[2rem] p-12 text-center border-none">
               <Share2 className="w-12 h-12 mb-4 text-slate-300" />
               <p className="text-lg font-medium text-slate-600">No posts generated yet</p>
               <p className="text-sm mt-2">Enter your idea on the left and click generate to see the magic happen.</p>

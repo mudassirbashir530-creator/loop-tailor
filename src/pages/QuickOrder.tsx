@@ -118,10 +118,9 @@ export default function QuickOrder() {
 
     // Fetch measurements
     try {
-      if (!user) return;
       const measSnap = await getDoc(doc(db, 'shops', user.uid, 'measurements', customer.id));
       if (measSnap.exists()) {
-        setMeasurements(measSnap.data() as Record<string, number>);
+        setMeasurements(measSnap.data());
       } else {
         setMeasurements({});
       }
@@ -159,7 +158,7 @@ export default function QuickOrder() {
   const [sampleDesign, setSampleDesign] = useState<File | null>(null);
 
   // Measurements
-  const [measurements, setMeasurements] = useState<Record<string, number>>({});
+  const [measurements, setMeasurements] = useState<any>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -690,7 +689,7 @@ export default function QuickOrder() {
                                 step="0.25"
                                 value={measurements[item.id] || ''} 
                                 onChange={e => {
-                                  const val = e.target.value === '' ? 0 : Number(e.target.value);
+                                  const val = e.target.value === '' ? '' : Number(e.target.value);
                                   setMeasurements({...measurements, [item.id]: val});
                                 }}
                                 placeholder="0.00"

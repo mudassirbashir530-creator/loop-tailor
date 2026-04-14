@@ -10,14 +10,14 @@ export type Language = 'en' | 'ur';
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => Promise<void>;
-  t: (key: string, returnObjects?: boolean) => any;
+  t: (key: string) => string;
   isRTL: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
   language: 'en',
   setLanguage: async () => {},
-  t: (key: string, returnObjects?: boolean) => key,
+  t: (key: string) => key,
   isRTL: false,
 });
 
@@ -75,25 +75,18 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const t = (path: string, returnObjects: boolean = false): any => {
+  const t = (path: string) => {
     const keys = path.split('.');
-    type TranslationNode = string | any[] | { [key: string]: TranslationNode };
-    let current: TranslationNode = language === 'ur' ? (urTranslations as TranslationNode) : (enTranslations as TranslationNode);
+    let current: any = language === 'ur' ? urTranslations : enTranslations;
     
     for (const key of keys) {
-      if (typeof current === 'object' && current !== null && key in current) {
-        current = (current as Record<string, TranslationNode>)[key];
-      } else {
+      if (current[key] === undefined) {
         console.warn(`Translation key not found: ${path}`);
         return path;
       }
+      current = current[key];
     }
-
-    if (returnObjects) {
-      return current;
-    }
-
-    return typeof current === 'string' ? current : path;
+    return current as string;
   };
 
   return (

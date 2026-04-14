@@ -25,9 +25,6 @@
  *     .where('updatedAt', '<', fourteenDaysAgo.toISOString())
  *     .get();
  *     
- *   let batch = db.batch();
- *   let operationCount = 0;
- *
  *   for (const doc of snapshot.docs) {
  *     const order = doc.data();
  *     
@@ -44,24 +41,10 @@
  *     }
  *     
  *     // Update order to remove URLs
- *     batch.update(doc.ref, {
+ *     await doc.ref.update({
  *       referencePhotoUrl: admin.firestore.FieldValue.delete(),
  *       sampleDesignUrl: admin.firestore.FieldValue.delete()
  *     });
- *
- *     operationCount++;
- *
- *     // Firestore limits batches to 500 operations
- *     if (operationCount === 500) {
- *       await batch.commit();
- *       batch = db.batch();
- *       operationCount = 0;
- *     }
- *   }
- *
- *   // Commit any remaining operations
- *   if (operationCount > 0) {
- *     await batch.commit();
  *   }
  * });
  * ```

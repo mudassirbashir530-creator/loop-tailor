@@ -223,10 +223,6 @@
     "saveOrder": "Save Order",
     "cancel": "Cancel"
   },
-  "common": {
-    "updateAvailable": "New update available!",
-    "tapToRefresh": "Tap to refresh"
-  },
   "auth": {
     "welcomeBack": "Welcome Back.",
     "welcomeBackDesc": "Log in to access your dashboard and manage your tailoring business with ease.",

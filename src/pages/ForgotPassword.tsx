@@ -23,8 +23,8 @@ export default function ForgotPassword() {
     try {
       await resetPassword(email);
       setStep('success');
-    } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('auth.failedToSendReset'));
+    } catch (err: any) {
+      setError(err.message || t('auth.failedToSendReset'));
     } finally {
       setIsLoading(false);
     }

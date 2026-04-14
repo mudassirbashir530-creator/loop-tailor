@@ -123,17 +123,16 @@ export const ArticleEditor: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Media Picker Modal */}
       {showMediaPicker && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-gray-100 w-full max-w-4xl max-h-[90vh] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col border-none">
+            <div className="p-4 border-b border-gray-200/50 flex items-center justify-between bg-transparent">
               <h2 className="text-xl font-bold text-slate-900">Select Featured Image</h2>
-              <button onClick={() => setShowMediaPicker(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+              <button onClick={() => setShowMediaPicker(false)} className="p-2 bg-gray-100 shadow-neu rounded-full hover:shadow-neu-pressed-sm transition-all">
                 <X className="w-5 h-5 text-slate-500" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6 bg-transparent">
               <MediaLibrary onSelect={handleImageSelect} />
             </div>
           </div>
@@ -142,7 +141,7 @@ export const ArticleEditor: React.FC = () => {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/admin/articles')} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+          <button onClick={() => navigate('/admin/articles')} className="p-2 bg-gray-100 shadow-neu-sm rounded-full hover:shadow-neu-pressed-sm transition-all border-none">
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
           <h1 className="text-2xl font-bold text-slate-900">{isEditing ? 'Edit Article' : 'New Article'}</h1>
@@ -151,14 +150,14 @@ export const ArticleEditor: React.FC = () => {
           <button
             onClick={() => handleSave('draft')}
             disabled={saving}
-            className="px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-slate-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm rounded-xl transition-all disabled:opacity-50 border-none font-bold"
           >
             Save Draft
           </button>
           <button
             onClick={() => handleSave('published')}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-primary/90 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 shadow-neu-sm text-brand-primary hover:shadow-neu-pressed-sm rounded-xl transition-all disabled:opacity-50 border-none"
           >
             <Save className="w-4 h-4" />
             Publish
@@ -169,7 +168,7 @@ export const ArticleEditor: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content Area */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+          <div className="bg-gray-100 p-6 rounded-[2rem] shadow-neu border-none space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
               <input
@@ -177,7 +176,7 @@ export const ArticleEditor: React.FC = () => {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                className="w-full px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 placeholder="Article Title"
                 required
               />
@@ -189,24 +188,24 @@ export const ArticleEditor: React.FC = () => {
                 name="subtitle"
                 value={formData.subtitle}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                className="w-full px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 placeholder="A brief summary of the article"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Content</label>
-              <div className="h-96 mb-12">
+              <div className="h-96 mb-12 bg-gray-100 rounded-2xl shadow-neu-pressed-sm overflow-hidden border-none">
                 <ReactQuill
                   theme="snow"
                   value={formData.content}
                   onChange={handleContentChange}
-                  className={`h-full ${formData.language === 'ur' ? 'font-urdu text-right' : ''}`}
+                  className={`h-full border-none ${formData.language === 'ur' ? 'font-urdu text-right' : ''}`}
                 />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+          <div className="bg-gray-100 p-6 rounded-[2rem] shadow-neu border-none space-y-4">
             <h3 className="text-lg font-semibold text-slate-900">SEO & Metadata</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -216,7 +215,7 @@ export const ArticleEditor: React.FC = () => {
                   name="metaTitle"
                   value={formData.metaTitle}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 />
               </div>
               <div>
@@ -227,7 +226,7 @@ export const ArticleEditor: React.FC = () => {
                   value={formData.slug}
                   onChange={handleChange}
                   disabled={isEditing}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent disabled:bg-slate-100"
+                  className="w-full px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all disabled:opacity-50"
                 />
               </div>
               <div className="md:col-span-2">
@@ -237,7 +236,7 @@ export const ArticleEditor: React.FC = () => {
                   value={formData.metaDescription}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all resize-none"
                 />
               </div>
               <div className="md:col-span-2">
@@ -247,7 +246,7 @@ export const ArticleEditor: React.FC = () => {
                   name="seoKeywords"
                   value={formData.seoKeywords}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  className="w-full px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 />
               </div>
             </div>
@@ -256,7 +255,7 @@ export const ArticleEditor: React.FC = () => {
 
         {/* Sidebar Area */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+          <div className="bg-gray-100 p-6 rounded-[2rem] shadow-neu border-none space-y-4">
             <h3 className="text-lg font-semibold text-slate-900">Publishing</h3>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Language</label>
@@ -264,7 +263,7 @@ export const ArticleEditor: React.FC = () => {
                 name="language"
                 value={formData.language}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                className="w-full px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
               >
                 <option value="en">English</option>
                 <option value="ur">Urdu (Nastaliq/Gulzar)</option>
@@ -277,7 +276,7 @@ export const ArticleEditor: React.FC = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                className="w-full px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 placeholder="e.g. Tailoring Tips"
               />
             </div>
@@ -288,13 +287,13 @@ export const ArticleEditor: React.FC = () => {
                 name="tags"
                 value={formData.tags}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                className="w-full px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 placeholder="fashion, tips, guide"
               />
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+          <div className="bg-gray-100 p-6 rounded-[2rem] shadow-neu border-none space-y-4">
             <h3 className="text-lg font-semibold text-slate-900">Featured Image</h3>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Image URL</label>
@@ -304,20 +303,20 @@ export const ArticleEditor: React.FC = () => {
                   name="featuredImage"
                   value={formData.featuredImage}
                   onChange={handleChange}
-                  className="flex-1 px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  className="flex-1 px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
                   placeholder="https://..."
                 />
                 <button
                   type="button"
                   onClick={() => setShowMediaPicker(true)}
-                  className="p-2 bg-slate-100 text-slate-600 rounded-md hover:bg-slate-200 transition-colors"
+                  className="p-2 bg-gray-100 shadow-neu-sm text-slate-600 rounded-xl hover:shadow-neu-pressed-sm transition-all border-none"
                   title="Select from Library"
                 >
                   <ImageIcon className="w-5 h-5" />
                 </button>
               </div>
               {formData.featuredImage && (
-                <div className="mt-4 aspect-video rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+                <div className="mt-4 aspect-video rounded-2xl overflow-hidden bg-gray-200 border-none shadow-neu-pressed-sm">
                   <img src={formData.featuredImage} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
@@ -329,7 +328,7 @@ export const ArticleEditor: React.FC = () => {
                 name="imageAlt"
                 value={formData.imageAlt}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                className="w-full px-4 py-2 bg-gray-100 border-none rounded-2xl shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
               />
             </div>
           </div>

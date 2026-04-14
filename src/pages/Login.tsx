@@ -31,8 +31,8 @@ export default function Login() {
     try {
       await signIn(email, password);
       navigate('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

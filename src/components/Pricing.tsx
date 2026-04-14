@@ -43,7 +43,7 @@ export default function Pricing() {
               </div>
 
               <ul className="space-y-4 mb-10">
-                {(t('landing.pricing.features', true) as unknown as string[]).map((feature, idx) => (
+                {(t('landing.pricing.features') as unknown as string[]).map((feature, idx) => (
                   <li key={idx} className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center">
                       <CheckCircle className="h-4 w-4 text-emerald-500" />

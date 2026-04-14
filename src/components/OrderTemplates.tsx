@@ -9,23 +9,13 @@ import { UseOrderTemplatesReturn } from '../hooks/useOrderTemplates';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 
-export interface OrderDataInfo {
-  dressType: string;
-  deliveryDate: string;
-  price: string;
-  advancePayment: string;
-  quantity: string;
-  rackLocation: string;
-  notes: string;
-}
-
 interface OrderTemplatesProps {
   templateHook: UseOrderTemplatesReturn;
-  setOrderData: React.Dispatch<React.SetStateAction<OrderDataInfo>>;
-  setMeasurements: React.Dispatch<React.SetStateAction<Record<string, number>>>;
-  setGender?: React.Dispatch<React.SetStateAction<string>>;
-  currentOrderData: OrderDataInfo;
-  currentMeasurements: Record<string, number>;
+  setOrderData: Function;
+  setMeasurements: Function;
+  setGender?: Function;
+  currentOrderData: any;
+  currentMeasurements: any;
   currentGender: string;
 }
 

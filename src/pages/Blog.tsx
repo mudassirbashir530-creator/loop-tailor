@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PublicLayout from '../components/PublicLayout';
 import { motion } from 'motion/react';
 import { Card, CardContent } from '../components/ui/card';
-import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
 import { SEO } from '../components/SEO';
@@ -14,7 +14,7 @@ interface Article {
   slug: string;
   featuredImage: string;
   imageAlt: string;
-  createdAt: Timestamp;
+  createdAt: any;
   category: string;
   language: string;
 }

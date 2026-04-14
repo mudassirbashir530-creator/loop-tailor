@@ -40,10 +40,10 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   const statCards = [
-    { name: 'Total Articles', value: stats.articles, icon: FileText, color: 'bg-blue-500', link: '/admin/articles' },
-    { name: 'Social Posts', value: stats.socialPosts, icon: Share2, color: 'bg-purple-500', link: '/admin/social' },
-    { name: 'Media Files', value: stats.media, icon: ImageIcon, color: 'bg-emerald-500', link: '/admin/media' },
-    { name: 'Total Users', value: stats.users, icon: Users, color: 'bg-orange-500', link: '/admin/users' },
+    { name: 'Total Articles', value: stats.articles, icon: FileText, color: 'text-blue-600', link: '/admin/articles' },
+    { name: 'Social Posts', value: stats.socialPosts, icon: Share2, color: 'text-purple-600', link: '/admin/social' },
+    { name: 'Media Files', value: stats.media, icon: ImageIcon, color: 'text-emerald-600', link: '/admin/media' },
+    { name: 'Total Users', value: stats.users, icon: Users, color: 'text-orange-600', link: '/admin/users' },
   ];
 
   if (loading) {
@@ -52,12 +52,12 @@ export const AdminDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">Dashboard Overview</h1>
+      <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">Dashboard Overview</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat) => (
-          <Link key={stat.name} to={stat.link} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center gap-4 hover:shadow-md transition-shadow">
-            <div className={`p-4 rounded-lg text-white ${stat.color}`}>
+          <Link key={stat.name} to={stat.link} className="bg-gray-100 rounded-[2rem] shadow-neu border-none p-6 flex items-center gap-4 hover:shadow-neu-pressed-sm transition-all">
+            <div className={`p-4 rounded-2xl bg-gray-100 shadow-neu-pressed-sm ${stat.color}`}>
               <stat.icon className="w-6 h-6" />
             </div>
             <div>
@@ -68,16 +68,16 @@ export const AdminDashboard: React.FC = () => {
         ))}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-8">
+      <div className="bg-gray-100 rounded-[2rem] shadow-neu border-none p-6 mt-8">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h2>
         <div className="flex flex-wrap gap-4">
-          <Link to="/admin/articles/new" className="px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-primary/90 transition-colors">
+          <Link to="/admin/articles/new" className="px-4 py-2 bg-gray-100 shadow-neu-sm text-brand-primary hover:shadow-neu-pressed-sm rounded-xl transition-all border-none font-bold">
             Write New Article
           </Link>
-          <Link to="/admin/social" className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md hover:bg-slate-200 transition-colors">
+          <Link to="/admin/social" className="px-4 py-2 bg-gray-100 shadow-neu-sm text-slate-700 hover:shadow-neu-pressed-sm rounded-xl transition-all border-none font-bold">
             Generate Social Post
           </Link>
-          <Link to="/admin/media" className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md hover:bg-slate-200 transition-colors">
+          <Link to="/admin/media" className="px-4 py-2 bg-gray-100 shadow-neu-sm text-slate-700 hover:shadow-neu-pressed-sm rounded-xl transition-all border-none font-bold">
             Upload Media
           </Link>
         </div>

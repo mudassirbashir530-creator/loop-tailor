@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { collection, query, where, getDocs, limit, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import PublicLayout from '../components/PublicLayout';
 import { motion } from 'motion/react';
@@ -22,8 +22,8 @@ interface Article {
   featuredImage: string;
   imageAlt: string;
   status: 'draft' | 'published';
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: any;
+  updatedAt: any;
 }
 
 export default function ArticleView() {
