@@ -62,10 +62,14 @@ export default function Invoice() {
   const generateCanvas = async () => {
     if (!invoiceRef.current) return null;
     try {
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
       const canvas = await html2canvas(invoiceRef.current, {
         scale: 2,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
+        logging: false,
         backgroundColor: '#ffffff',
       });
       return canvas;
@@ -132,23 +136,41 @@ export default function Invoice() {
     }
   };
 
+  const getInvoiceFile = async () => {
+    const blob = await generatePNGBlob();
+    if (!blob) {
+      throw new Error('Failed to generate image');
+    }
+
+    return new File([blob], `Invoice_${order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
+  };
+
+  const openWhatsApp = () => {
+    const invoiceLabel = `Invoice #${order.id.slice(-6).toUpperCase()}`;
+    const message = `${invoiceLabel} - ${shop.name}`;
+    if (!customer?.phone) {
+      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    const cleanPhone = customer.phone.replace(/[^\d]/g, '');
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  };
+
   const handleShare = async () => {
     setIsSharing(true);
     try {
-      const blob = await generatePNGBlob();
-      if (!blob) throw new Error("Failed to generate image");
-      
-      const file = new File([blob], `Invoice_${order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
+      const file = await getInvoiceFile();
       const shareData = {
         title: `${t('invoice.invoice')} - ${shop.name}`,
+        text: `${t('invoice.invoice')} #${order.id.slice(-6).toUpperCase()}`,
         files: [file]
       };
 
       if (navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
       } else {
-        // Fallback: Download the PNG
-        handleDownloadImage();
+        await handleDownloadImage();
       }
     } catch (error) {
       console.error('Error sharing invoice:', error);
@@ -161,27 +183,18 @@ export default function Invoice() {
   const handleWhatsAppShare = async () => {
     setIsGenerating(true);
     try {
-      const blob = await generatePNGBlob();
-      if (!blob) throw new Error("Failed to generate image");
-      
-      const file = new File([blob], `Invoice_${order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
+      const file = await getInvoiceFile();
       const shareData = {
-        title: `${t('invoice.invoice')} - ${shop.name}`,
+        title: `WhatsApp - ${t('invoice.invoice')}`,
+        text: `${t('invoice.invoice')} #${order.id.slice(-6).toUpperCase()} - ${shop.name}`,
         files: [file]
       };
 
       if (navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
       } else {
-        // Fallback: Download the PNG and open WhatsApp
-        handleDownloadImage();
-        
-        if (customer?.phone) {
-          const cleanPhone = customer.phone.replace(/[^\d+]/g, '').replace('+', '');
-          window.open(`https://wa.me/${cleanPhone}`, '_blank');
-        } else {
-          window.open(`https://wa.me/`, '_blank');
-        }
+        await handleDownloadImage();
+        openWhatsApp();
       }
     } catch (error) {
       console.error('Error sharing to WhatsApp:', error);
@@ -213,7 +226,7 @@ export default function Invoice() {
         <div className="space-y-1">
           <h3 className={cn("font-black text-slate-400 uppercase tracking-widest", isCapture ? "text-sm" : "text-xs sm:text-sm")}>{t('invoice.billTo')}</h3>
           <p className={cn("font-bold text-slate-900 leading-tight", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{customer.name}</p>
-          <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base truncate max-w-[140px] sm:max-w-none")}>{customer.phone}</p>
+          <p className={cn("text-slate-500 font-medium break-words", isCapture ? "text-lg" : "text-xs sm:text-base")}>{customer.phone}</p>
         </div>
         <div className={cn("space-y-1", isRTL ? "text-left" : "text-right")}>
           <h3 className={cn("font-black text-slate-400 uppercase tracking-widest", isCapture ? "text-sm" : "text-xs sm:text-sm")}>{t('invoice.delivery')}</h3>
@@ -233,7 +246,7 @@ export default function Invoice() {
             <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{order.dressType}</p>
             <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base")}>{t('invoice.customTailoring')}</p>
           </div>
-          <p className={cn("font-black text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{settings.currency} {order.price.toLocaleString()}</p>
+          <p className={cn("font-black text-slate-900 text-right", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{settings.currency} {order.price.toLocaleString()}</p>
         </div>
       </div>
 
@@ -293,12 +306,12 @@ export default function Invoice() {
         </div>
       </div>
 
-      <div className={cn("bg-gray-100 p-5 sm:p-10 rounded-[2.5rem] shadow-neu border-none print:shadow-none print:border-none print:p-0 overflow-hidden", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
+      <div className={cn("bg-gray-100 p-4 sm:p-8 lg:p-10 rounded-[2.5rem] shadow-neu border-none print:shadow-none print:border-none print:p-0 overflow-hidden", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
         {renderInvoiceContent(false)}
       </div>
 
       {/* Off-screen Invoice for Capture */}
-      <div className="fixed top-0 left-0 -z-50 opacity-0 pointer-events-none w-[800px] overflow-hidden">
+      <div className="fixed top-0 left-[-99999px] pointer-events-none w-[800px] overflow-hidden">
         <div ref={invoiceRef} className={cn("bg-gray-100 p-12", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
           {renderInvoiceContent(true)}
         </div>
