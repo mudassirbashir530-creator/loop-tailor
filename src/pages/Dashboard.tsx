@@ -206,11 +206,12 @@ export default function Dashboard() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className={cn("space-y-10", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
+      className={cn("space-y-8 sm:space-y-10", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
     >
-      <motion.div variants={itemVariants} className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">
+      <motion.div variants={itemVariants} className="rounded-[2rem] bg-gradient-to-br from-white to-slate-50 border border-slate-100 p-5 sm:p-7 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-black tracking-tight text-slate-900">
             {t('dashboard.welcome')}, <span className="text-brand-primary">{user?.displayName?.split(' ')[0] || 'Tailor'}</span>
           </h1>
           <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Here's what's happening today.</p>
@@ -220,7 +221,7 @@ export default function Dashboard() {
           {/* Token Search Bar */}
           <motion.form 
             onSubmit={handleTokenSearch} 
-            className="relative group w-full sm:w-96"
+            className="relative group w-full sm:w-[26rem]"
             whileHover={{ scale: 1.02 }}
             whileFocus={{ scale: 1.02 }}
           >
@@ -245,9 +246,10 @@ export default function Dashboard() {
             )}
           </motion.form>
         </div>
+        </div>
       </motion.div>
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-brand-primary" },
           { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-brand-primary" },
@@ -255,7 +257,7 @@ export default function Dashboard() {
           { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-brand-primary" },
         ].map((stat, idx) => (
           <motion.div key={idx} variants={itemVariants}>
-            <Card className="border-none shadow-neu bg-gray-100 rounded-2xl p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform duration-300">
+            <Card className="border-none shadow-neu bg-gray-100 rounded-2xl p-5 sm:p-6 flex items-center gap-4 interactive-surface">
               <div className="bg-gray-100 shadow-neu-pressed-sm p-4 rounded-xl flex items-center justify-center">
                 <stat.icon className={`h-6 w-6 ${stat.color}`} />
               </div>

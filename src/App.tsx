@@ -88,17 +88,18 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from './components/ui/sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import ScrollAndRevealManager from './components/ScrollAndRevealManager';
 
 function ThemeManager() {
   const { settings } = useShop();
   
   React.useEffect(() => {
-    if (settings.uiTheme === 'minimalist') {
-      document.body.classList.add('theme-minimalist');
-      document.body.classList.remove('theme-neumorphic');
+    if (settings.uiTheme === 'simple') {
+      document.body.classList.add('theme-simple');
+      document.body.classList.remove('theme-default');
     } else {
-      document.body.classList.add('theme-neumorphic');
-      document.body.classList.remove('theme-minimalist');
+      document.body.classList.add('theme-default');
+      document.body.classList.remove('theme-simple');
     }
   }, [settings.uiTheme]);
 
@@ -116,6 +117,7 @@ export default function App() {
             <InstallPrompt />
             <UpdateNotification />
             <Router>
+            <ScrollAndRevealManager />
             <Suspense fallback={<LoadingFallback />}>
               <ErrorBoundary>
                 <Routes>

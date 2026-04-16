@@ -109,15 +109,88 @@
     @apply border-border outline-ring/50;
   }
 
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 420ms ease, transform 420ms ease;
+    will-change: opacity, transform;
+  }
+
+  [data-reveal="left"] {
+    transform: translateX(-24px);
+  }
+
+  [data-reveal="right"] {
+    transform: translateX(24px);
+  }
+
+  [data-reveal].is-visible {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  .interactive-surface {
+    transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
+  }
+
+  .interactive-surface:hover {
+    transform: translateY(-2px) scale(1.01);
+    filter: saturate(1.02);
+  }
+
+  .interactive-surface:active {
+    transform: scale(0.985);
+  }
+
   /* --- MINIMALIST THEME OVERRIDES --- */
-  .theme-minimalist {
+  .theme-simple {
     --shadow-neu: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
     --shadow-neu-pressed: inset 0 0 0 1px #e2e8f0;
     --shadow-neu-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-neu-pressed-sm: inset 0 0 0 1px #e2e8f0;
     --shadow-neu-icon: none;
-    --color-gray-100: #ffffff;
-    --color-gray-200: #f1f5f9; /* slate-100 */
+    --color-gray-100: #f8fafc;
+    --color-gray-200: #e2e8f0;
+  }
+
+  .theme-simple .rounded-\[2rem\],
+  .theme-simple .rounded-\[2\.5rem\],
+  .theme-simple .rounded-3xl {
+    border-radius: 1.5rem;
+  }
+
+  .theme-simple .shadow-neu,
+  .theme-simple .shadow-neu-sm,
+  .theme-simple .shadow-neu-pressed-sm {
+    box-shadow: 0 6px 20px rgb(15 23 42 / 6%);
+  }
+
+  .theme-simple .bg-gray-100 {
+    background-color: #f8fafc !important;
+  }
+
+  .theme-simple .border-none {
+    border: 1px solid #e2e8f0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .interactive-surface,
+  .interactive-surface:hover,
+  .interactive-surface:active {
+    transform: none;
+    transition: none;
+    filter: none;
   }
 }
 

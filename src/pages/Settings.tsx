@@ -12,11 +12,16 @@ import { cn } from '../lib/utils';
 import { useOrderTemplates } from '../hooks/useOrderTemplates';
 import { toast } from 'sonner';
 
+const normalizeTheme = (theme: unknown): 'default' | 'simple' => {
+  if (theme === 'simple' || theme === 'minimalist') return 'simple';
+  return 'default';
+};
+
 export default function Settings() {
   const { user } = useAuth();
   const { t, isRTL, language, setLanguage } = useLanguage();
-  const [shop, setShop] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic' as 'neumorphic' | 'minimalist' });
-  const [editData, setEditData] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic' as 'neumorphic' | 'minimalist' });
+  const [shop, setShop] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'default' as 'default' | 'simple' });
+  const [editData, setEditData] = useState({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'default' as 'default' | 'simple' });
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -29,8 +34,9 @@ export default function Settings() {
     const unsubscribe = onSnapshot(doc(db, 'shops', user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as any;
-        setShop(prev => ({ ...prev, ...data, uiTheme: data.uiTheme || 'neumorphic' }));
-        setEditData(prev => ({ ...prev, ...data, uiTheme: data.uiTheme || 'neumorphic' }));
+        const normalizedTheme = normalizeTheme(data.uiTheme);
+        setShop(prev => ({ ...prev, ...data, uiTheme: normalizedTheme }));
+        setEditData(prev => ({ ...prev, ...data, uiTheme: normalizedTheme }));
       }
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`);
@@ -52,6 +58,20 @@ export default function Settings() {
       handleFirestoreError(error, OperationType.UPDATE, `shops/${user.uid}`);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const updateTheme = async (theme: 'default' | 'simple') => {
+    if (!user) return;
+    try {
+      localStorage.setItem('loop_ui_theme', theme);
+      await setDoc(doc(db, 'shops', user.uid), { uiTheme: theme }, { merge: true });
+      setShop(prev => ({ ...prev, uiTheme: theme }));
+      setEditData(prev => ({ ...prev, uiTheme: theme }));
+      toast.success(theme === 'simple' ? 'Simple UI enabled' : 'Default UI enabled');
+    } catch (error) {
+      console.error('Error updating theme:', error);
+      toast.error('Failed to update theme');
     }
   };
 
@@ -85,7 +105,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-8 max-w-2xl px-4 sm:px-0">
+    <div className="space-y-8 max-w-4xl px-2 sm:px-0">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
         <p className="text-slate-500 mt-2">{t('settings.subtitle')}</p>
@@ -256,60 +276,40 @@ export default function Settings() {
         <CardHeader className="border-b border-gray-200/50 bg-transparent">
           <CardTitle className="text-xl flex items-center gap-2">
             <LayoutTemplate className="h-5 w-5 text-brand-primary" />
-            UI Theme
+            UI Mode
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Button
-              variant={shop.uiTheme === 'neumorphic' ? 'default' : 'outline'}
+              variant={shop.uiTheme === 'default' ? 'default' : 'outline'}
               className={cn(
-                "h-24 rounded-2xl flex flex-col items-center justify-center gap-2 text-base font-bold transition-all",
-                shop.uiTheme === 'neumorphic' ? "bg-brand-primary shadow-lg shadow-brand-primary/20" : "border-slate-200 text-slate-500"
+                "h-28 rounded-3xl flex flex-col items-center justify-center gap-2 text-base font-bold transition-all interactive-surface",
+                shop.uiTheme === 'default' ? "bg-brand-primary shadow-lg shadow-brand-primary/20" : "border-slate-200 text-slate-500"
               )}
-              onClick={async () => {
-                if (!user) return;
-                try {
-                  await setDoc(doc(db, 'shops', user.uid), { uiTheme: 'neumorphic' }, { merge: true });
-                  setShop(prev => ({ ...prev, uiTheme: 'neumorphic' }));
-                  toast.success('UI Theme updated to Neumorphic');
-                } catch (error) {
-                  console.error('Error updating theme:', error);
-                  toast.error('Failed to update theme');
-                }
-              }}
+              onClick={() => updateTheme('default')}
             >
-              <div className="h-8 w-16 rounded-lg bg-gray-100 shadow-neu-sm flex items-center justify-center">
-                <div className="h-2 w-8 rounded-full bg-brand-primary/50"></div>
+              <div className="h-9 w-20 rounded-xl bg-gray-100 shadow-neu-sm flex items-center justify-center">
+                <div className="h-2.5 w-10 rounded-full bg-brand-primary/50"></div>
               </div>
-              Neumorphic (Embossed)
+              Default UI
             </Button>
             <Button
-              variant={shop.uiTheme === 'minimalist' ? 'default' : 'outline'}
+              variant={shop.uiTheme === 'simple' ? 'default' : 'outline'}
               className={cn(
-                "h-24 rounded-2xl flex flex-col items-center justify-center gap-2 text-base font-bold transition-all",
-                shop.uiTheme === 'minimalist' ? "bg-brand-primary shadow-lg shadow-brand-primary/20" : "border-slate-200 text-slate-500"
+                "h-28 rounded-3xl flex flex-col items-center justify-center gap-2 text-base font-bold transition-all interactive-surface",
+                shop.uiTheme === 'simple' ? "bg-brand-primary shadow-lg shadow-brand-primary/20" : "border-slate-200 text-slate-500"
               )}
-              onClick={async () => {
-                if (!user) return;
-                try {
-                  await setDoc(doc(db, 'shops', user.uid), { uiTheme: 'minimalist' }, { merge: true });
-                  setShop(prev => ({ ...prev, uiTheme: 'minimalist' }));
-                  toast.success('UI Theme updated to Minimalist');
-                } catch (error) {
-                  console.error('Error updating theme:', error);
-                  toast.error('Failed to update theme');
-                }
-              }}
+              onClick={() => updateTheme('simple')}
             >
-              <div className="h-8 w-16 rounded-lg bg-white border border-slate-200 flex items-center justify-center">
-                <div className="h-2 w-8 rounded-full bg-slate-300"></div>
+              <div className="h-9 w-20 rounded-2xl bg-white border border-slate-200 flex items-center justify-center">
+                <div className="h-2.5 w-10 rounded-full bg-slate-300"></div>
               </div>
-              Minimalist (Flat)
+              Simple UI
             </Button>
           </div>
           <p className="text-sm text-slate-500 mt-4 px-1">
-            Choose the visual style of the application. Neumorphic offers a raised, embossed look with shadows, while Minimalist provides a clean, flat aesthetic.
+            Switch UI instantly. Default keeps the original bold style; Simple UI applies softer colors, cleaner spacing, and extra-rounded cards.
           </p>
         </CardContent>
       </Card>

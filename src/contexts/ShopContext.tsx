@@ -11,7 +11,7 @@ interface ShopSettings {
   logoUrl: string;
   invoiceFooter: string;
   currency: string;
-  uiTheme: 'neumorphic' | 'minimalist';
+  uiTheme: 'default' | 'simple';
 }
 
 interface ShopContextType {
@@ -26,7 +26,7 @@ const defaultSettings: ShopSettings = {
   logoUrl: '',
   invoiceFooter: '',
   currency: APP_CONFIG.defaultCurrency,
-  uiTheme: 'neumorphic',
+  uiTheme: 'default',
 };
 
 const ShopContext = createContext<ShopContextType>({
@@ -41,9 +41,15 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [settings, setSettings] = useState<ShopSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
 
+  const normalizeTheme = (theme: unknown): ShopSettings['uiTheme'] => {
+    if (theme === 'simple' || theme === 'minimalist') return 'simple';
+    return 'default';
+  };
+
   useEffect(() => {
     if (!user) {
-      setSettings(defaultSettings);
+      const localTheme = localStorage.getItem('loop_ui_theme');
+      setSettings({ ...defaultSettings, uiTheme: normalizeTheme(localTheme) });
       setLoading(false);
       return;
     }
@@ -58,8 +64,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
           logoUrl: data.logoUrl || '',
           invoiceFooter: data.invoiceFooter || '',
           currency: data.currency || APP_CONFIG.defaultCurrency,
-          uiTheme: data.uiTheme || 'neumorphic',
+          uiTheme: normalizeTheme(data.uiTheme),
         });
+        localStorage.setItem('loop_ui_theme', normalizeTheme(data.uiTheme));
       }
       setLoading(false);
     }, (error) => {
