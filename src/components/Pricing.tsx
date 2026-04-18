@@ -54,7 +54,7 @@ export default function Pricing() {
               </ul>
 
               <Link to="/signup">
-                <Button size="lg" className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-base font-bold text-white shadow-xl shadow-slate-900/10 hover:-translate-y-1 transition-all">
+                <Button size="lg" className="w-full h-14 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-base font-bold text-white shadow-xl shadow-brand-primary/20 hover:-translate-y-1 transition-all">
                   {t('landing.pricing.cta')}
                 </Button>
               </Link>

@@ -327,7 +327,7 @@ export default function SignUp() {
                   <Button
                     type="button"
                     onClick={handleNext}
-                    className={cn("w-full h-16 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg shadow-2xl shadow-orange-500/20 transition-all active:scale-95 mt-4 flex items-center justify-center gap-2", isRTL && "flex-row-reverse")}
+                    className={cn("w-full h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-white font-bold text-lg shadow-2xl shadow-brand-primary/20 transition-all active:scale-95 mt-4 flex items-center justify-center gap-2", isRTL && "flex-row-reverse")}
                   >
                     Next
                     {isRTL ? <ArrowLeft className="h-5 w-5" /> : <ArrowRight className="h-5 w-5" />}
@@ -428,7 +428,7 @@ export default function SignUp() {
                     <Button
                       type="submit"
                       disabled={isLoading || isUploading}
-                      className={cn("flex-1 h-16 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg shadow-2xl shadow-orange-500/20 transition-all active:scale-95 flex items-center justify-center gap-2", isRTL && "flex-row-reverse")}
+                      className={cn("flex-1 h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-white font-bold text-lg shadow-2xl shadow-brand-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2", isRTL && "flex-row-reverse")}
                     >
                       {isLoading || isUploading ? (
                         <Loader2 className="h-6 w-6 animate-spin" />
@@ -450,7 +450,7 @@ export default function SignUp() {
               {t('auth.alreadyHaveAccount')}
               <Link
                 to="/login"
-                className={cn("text-blue-600 font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
+                className={cn("text-brand-primary font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
               >
                 {t('auth.logIn')}
               </Link>

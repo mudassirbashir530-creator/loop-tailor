@@ -126,31 +126,31 @@
 
   /* --- ELEGANT THEME OVERRIDES (New UI) --- */
   .theme-elegant {
-    /* Super soft modern drop shadows */
-    --shadow-neu: 0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0,0,0,0.03);
+    /* Super soft modern drop shadows using the brand primary color (#004643) for a unified, premium look */
+    --shadow-neu: 0 10px 40px -10px rgba(0, 70, 67, 0.12), 0 4px 10px rgba(0, 70, 67, 0.04);
     /* Subtle inner shadow for pressed states instead of dark inset */
-    --shadow-neu-pressed: 0 2px 4px rgba(0, 0, 0, 0.04);
+    --shadow-neu-pressed: 0 2px 4px rgba(0, 70, 67, 0.06);
     /* Soft small shadow for elements */
-    --shadow-neu-sm: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0,0,0,0.02);
+    --shadow-neu-sm: 0 4px 12px rgba(0, 70, 67, 0.08), 0 1px 2px rgba(0, 70, 67, 0.03);
     /* Small pressed */
-    --shadow-neu-pressed-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-neu-pressed-sm: 0 1px 2px rgba(0, 70, 67, 0.06);
     /* Icon bounds */
-    --shadow-neu-icon: 0 4px 8px rgba(0, 0, 0, 0.04);
+    --shadow-neu-icon: 0 4px 8px rgba(0, 70, 67, 0.06);
     
-    /* Clean pure white for elements, very light gray for backgrounds */
+    /* Clean pure white for elements, slightly tinted light background */
     --color-gray-100: #ffffff;
-    --color-gray-200: #f8fafc;
+    --color-gray-200: #f2f7f6;
   }
 
   .theme-elegant body {
-    background-color: #f8fafc !important; /* Soft backdrop */
+    background-color: #f4f8f7 !important; /* Soft backdrop using brand tint */
   }
 
-  /* Make sure layout wrappers are off-white */
+  /* Make sure layout wrappers are tinted correctly */
   .theme-elegant .min-h-screen,
   .theme-elegant .h-screen,
   .theme-elegant main {
-    background-color: #f8fafc !important;
+    background-color: #f4f8f7 !important;
   }
 
   /* Sidebar and headers should be pure white */
@@ -158,11 +158,11 @@
   .theme-elegant header,
   .theme-elegant .fixed.bottom-0 {
     background-color: #ffffff !important;
-    border-color: rgba(0,0,0,0.05) !important;
+    border-color: rgba(0, 70, 67, 0.08) !important;
   }
   
   .theme-elegant .fixed.bottom-0 {
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.04) !important;
+      box-shadow: 0 -4px 20px rgba(0, 70, 67, 0.06) !important;
   }
 
   /* Components using bg-gray-100 should be white to pop out of off-white background */
@@ -172,20 +172,20 @@
 
   .theme-elegant .shadow-neu,
   .theme-elegant .shadow-neu-sm {
-    border: 1px solid rgba(0,0,0,0.04) !important; /* Add subtle border to cards */
+    border: 1px solid rgba(0, 70, 67, 0.05) !important; /* Add subtle tinted border to cards */
     box-shadow: var(--shadow-neu) !important;
   }
 
   .theme-elegant .shadow-neu-pressed, 
   .theme-elegant .shadow-neu-pressed-sm {
-    border: 1px solid rgba(0,0,0,0.06) !important;
+    border: 1px solid rgba(0, 70, 67, 0.08) !important;
     box-shadow: var(--shadow-neu-sm) !important;
   }
 
   .theme-elegant .rounded-[2rem],
   .theme-elegant .rounded-2xl,
   .theme-elegant .rounded-xl {
-    border-radius: 20px !important; /* Standardize cards to nice modern 20px radius */
+    border-radius: 24px !important; /* Extremely soft and friendly 24px radius for core elements */
   }
 
   .theme-elegant button {
@@ -202,17 +202,18 @@
   .theme-elegant input, 
   .theme-elegant select, 
   .theme-elegant textarea {
-    border-radius: 12px !important; /* Rounded inputs */
-    border: 1px solid rgba(0,0,0,0.08) !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+    border-radius: 16px !important; /* Soft Rounded inputs */
+    border: 1px solid rgba(0, 70, 67, 0.12) !important;
+    box-shadow: 0 2px 6px rgba(0, 70, 67, 0.03) !important;
     background-color: #ffffff !important;
+    transition: all 0.2s ease;
   }
   
   .theme-elegant input:focus, 
   .theme-elegant select:focus, 
   .theme-elegant textarea:focus {
-    border-color: var(--color-primary) !important;
-    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1) !important;
+    border-color: var(--color-brand-primary) !important;
+    box-shadow: 0 0 0 3px rgba(0, 70, 67, 0.15) !important;
   }
 }
 

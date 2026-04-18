@@ -207,7 +207,7 @@ export default function Login() {
               {t('auth.dontHaveAccount')}
               <Link
                 to="/signup"
-                className={cn("text-orange-500 font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
+                className={cn("text-brand-primary font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
               >
                 {t('auth.signUp')}
               </Link>

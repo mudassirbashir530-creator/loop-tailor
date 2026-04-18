@@ -479,7 +479,7 @@ export default function Landing() {
                 </ul>
 
                 <Link to="/signup">
-                  <Button size="lg" className="w-full h-16 rounded-2xl bg-orange-500 hover:bg-orange-600 text-lg font-bold text-white shadow-xl shadow-orange-500/30">
+                  <Button size="lg" className="w-full h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-lg font-bold text-white shadow-xl shadow-brand-primary/30">
                     {t('landing.pricing.cta')}
                   </Button>
                 </Link>
@@ -563,7 +563,7 @@ export default function Landing() {
               <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">{t('landing.cta.subtitle')}</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link to="/signup" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto h-16 px-12 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-lg font-bold shadow-2xl shadow-orange-500/30">
+                  <Button size="lg" className="w-full sm:w-auto h-16 px-12 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-white text-lg font-bold shadow-2xl shadow-brand-primary/30">
                     {t('landing.cta.button')}
                   </Button>
                 </Link>
