@@ -102,6 +102,10 @@
   }
 
   /* --- ENGLISH / LTR STYLES --- */
+  html {
+    scroll-behavior: smooth;
+  }
+  
   body {
     @apply font-sans bg-background text-foreground;
   }
@@ -118,6 +122,97 @@
     --shadow-neu-icon: none;
     --color-gray-100: #ffffff;
     --color-gray-200: #f1f5f9; /* slate-100 */
+  }
+
+  /* --- ELEGANT THEME OVERRIDES (New UI) --- */
+  .theme-elegant {
+    /* Super soft modern drop shadows */
+    --shadow-neu: 0 10px 40px -10px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0,0,0,0.03);
+    /* Subtle inner shadow for pressed states instead of dark inset */
+    --shadow-neu-pressed: 0 2px 4px rgba(0, 0, 0, 0.04);
+    /* Soft small shadow for elements */
+    --shadow-neu-sm: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0,0,0,0.02);
+    /* Small pressed */
+    --shadow-neu-pressed-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    /* Icon bounds */
+    --shadow-neu-icon: 0 4px 8px rgba(0, 0, 0, 0.04);
+    
+    /* Clean pure white for elements, very light gray for backgrounds */
+    --color-gray-100: #ffffff;
+    --color-gray-200: #f8fafc;
+  }
+
+  .theme-elegant body {
+    background-color: #f8fafc !important; /* Soft backdrop */
+  }
+
+  /* Make sure layout wrappers are off-white */
+  .theme-elegant .min-h-screen,
+  .theme-elegant .h-screen,
+  .theme-elegant main {
+    background-color: #f8fafc !important;
+  }
+
+  /* Sidebar and headers should be pure white */
+  .theme-elegant aside,
+  .theme-elegant header,
+  .theme-elegant .fixed.bottom-0 {
+    background-color: #ffffff !important;
+    border-color: rgba(0,0,0,0.05) !important;
+  }
+  
+  .theme-elegant .fixed.bottom-0 {
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.04) !important;
+  }
+
+  /* Components using bg-gray-100 should be white to pop out of off-white background */
+  .theme-elegant .bg-gray-100:not(main):not(body):not(html):not(.min-h-screen):not(.h-screen) {
+    background-color: #ffffff !important;
+  }
+
+  .theme-elegant .shadow-neu,
+  .theme-elegant .shadow-neu-sm {
+    border: 1px solid rgba(0,0,0,0.04) !important; /* Add subtle border to cards */
+    box-shadow: var(--shadow-neu) !important;
+  }
+
+  .theme-elegant .shadow-neu-pressed, 
+  .theme-elegant .shadow-neu-pressed-sm {
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    box-shadow: var(--shadow-neu-sm) !important;
+  }
+
+  .theme-elegant .rounded-[2rem],
+  .theme-elegant .rounded-2xl,
+  .theme-elegant .rounded-xl {
+    border-radius: 20px !important; /* Standardize cards to nice modern 20px radius */
+  }
+
+  .theme-elegant button {
+    border-radius: 9999px !important; /* Fully rounded pill buttons */
+  }
+
+  /* Make sure icons inside buttons stay reasonably shaped */
+  .theme-elegant button[size="icon"],
+  .theme-elegant .rounded-full {
+    border-radius: 50% !important; 
+  }
+
+  /* Clean up inputs */
+  .theme-elegant input, 
+  .theme-elegant select, 
+  .theme-elegant textarea {
+    border-radius: 12px !important; /* Rounded inputs */
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+    background-color: #ffffff !important;
+  }
+  
+  .theme-elegant input:focus, 
+  .theme-elegant select:focus, 
+  .theme-elegant textarea:focus {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1) !important;
   }
 }
 

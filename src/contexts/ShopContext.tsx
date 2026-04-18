@@ -11,7 +11,7 @@ interface ShopSettings {
   logoUrl: string;
   invoiceFooter: string;
   currency: string;
-  uiTheme: 'neumorphic' | 'minimalist';
+  uiTheme: 'neumorphic' | 'minimalist' | 'elegant';
 }
 
 interface ShopContextType {

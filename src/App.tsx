@@ -95,10 +95,13 @@ function ThemeManager() {
   React.useEffect(() => {
     if (settings.uiTheme === 'minimalist') {
       document.body.classList.add('theme-minimalist');
-      document.body.classList.remove('theme-neumorphic');
+      document.body.classList.remove('theme-neumorphic', 'theme-elegant');
+    } else if (settings.uiTheme === 'elegant') {
+      document.body.classList.add('theme-elegant');
+      document.body.classList.remove('theme-neumorphic', 'theme-minimalist');
     } else {
       document.body.classList.add('theme-neumorphic');
-      document.body.classList.remove('theme-minimalist');
+      document.body.classList.remove('theme-minimalist', 'theme-elegant');
     }
   }, [settings.uiTheme]);
 
