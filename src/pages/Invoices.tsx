@@ -43,11 +43,9 @@ export default function Invoices() {
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter(invoice => {
-      const customerName = (invoice.customerName || '').toString();
-      const tokenId = (invoice.tokenId || '').toString();
       const matchesSearch = 
-        customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tokenId.toLowerCase().includes(searchTerm.toLowerCase());
+        invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (invoice.tokenId && invoice.tokenId.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesStatus = statusFilter === 'All' || invoice.status === statusFilter;
       
@@ -134,21 +132,21 @@ export default function Invoices() {
             ) : (
               <div className="divide-y divide-gray-200/50">
                 {filteredInvoices.map((invoice) => (
-                  <div key={invoice.id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-200/20 transition-colors group">
-                    <div className="flex items-center gap-4 min-w-0">
+                  <div key={invoice.id} className="p-6 flex items-center justify-between hover:bg-gray-200/20 transition-colors group">
+                    <div className="flex items-center gap-4">
                       <div className="h-14 w-14 rounded-2xl bg-gray-100 shadow-neu-sm flex items-center justify-center text-brand-primary group-hover:shadow-neu-pressed-sm transition-all duration-300">
                         <FileText className="h-6 w-6" />
                       </div>
-                      <div className="min-w-0">
-                        <div className="font-bold text-slate-900 group-hover:text-brand-primary transition-colors truncate">{invoice.customerName || t('invoices.na')}</div>
-                        <div className="text-xs text-slate-500 font-medium truncate">
+                      <div>
+                        <div className="font-bold text-slate-900 group-hover:text-brand-primary transition-colors">{invoice.customerName}</div>
+                        <div className="text-xs text-slate-500 font-medium">
                           {invoice.dressType} • {invoice.createdAt ? format(invoice.createdAt.seconds ? new Date(invoice.createdAt.seconds * 1000) : new Date(invoice.createdAt), 'MMM dd, yyyy') : t('invoices.na')}
                         </div>
                       </div>
                     </div>
-                    <div className={cn("w-full sm:w-auto", isRTL ? "sm:text-left" : "sm:text-right")}>
+                    <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
                       <Link to={`/dashboard/orders/${invoice.id}/invoice`}>
-                        <Button variant="outline" size="sm" className="w-full sm:w-auto rounded-xl font-bold border-slate-200 hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-all">
+                        <Button variant="outline" size="sm" className="rounded-xl font-bold border-slate-200 hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-all">
                           {t('invoices.viewInvoice')}
                         </Button>
                       </Link>

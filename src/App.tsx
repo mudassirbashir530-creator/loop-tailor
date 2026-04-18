@@ -88,7 +88,6 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from './components/ui/sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import ScrollAndRevealManager from './components/ScrollAndRevealManager';
 
 function ThemeManager() {
   const { settings } = useShop();
@@ -117,7 +116,6 @@ export default function App() {
             <InstallPrompt />
             <UpdateNotification />
             <Router>
-            <ScrollAndRevealManager />
             <Suspense fallback={<LoadingFallback />}>
               <ErrorBoundary>
                 <Routes>

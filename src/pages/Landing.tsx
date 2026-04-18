@@ -98,7 +98,7 @@ export default function Landing() {
       <Hero />
 
       {/* Features Section */}
-      <section id="features" data-reveal className="py-32 bg-[#FDFCF9] relative overflow-hidden">
+      <section id="features" className="py-32 bg-[#FDFCF9] relative overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-40">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/5 rounded-full blur-[120px]" />
@@ -188,7 +188,7 @@ export default function Landing() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1, duration: 0.5 }}
                 whileHover={{ y: -8 }}
-                className="group interactive-surface relative p-10 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-500"
+                className="group relative p-10 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-500"
               >
                 {/* Decorative corner element */}
                 <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-[0.03] rounded-bl-[5rem] transition-opacity duration-500`} />
@@ -217,7 +217,7 @@ export default function Landing() {
       </section>
 
       {/* Why Choose Loop Tailor */}
-      <section data-reveal className="py-24 bg-slate-50">
+      <section className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">{t('landing.whyChoose.badge')}</h2>
@@ -236,7 +236,7 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="interactive-surface p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group"
+                className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group"
               >
                 <div className="bg-slate-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-brand-primary/10 transition-colors shrink-0">
                   {item.icon}
@@ -250,7 +250,7 @@ export default function Landing() {
       </section>
 
       {/* How it Works */}
-      <section id="how-it-works" data-reveal className="py-24 bg-slate-50 relative overflow-hidden">
+      <section id="how-it-works" className="py-24 bg-slate-50 relative overflow-hidden">
         {/* Background Decorative Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-brand-primary/5 blur-3xl"></div>
@@ -276,7 +276,7 @@ export default function Landing() {
                   { icon: Activity, title: t('landing.workflow.items.progress.title'), desc: t('landing.workflow.items.progress.desc') },
                   { icon: FileCheck, title: t('landing.workflow.items.deliver.title'), desc: t('landing.workflow.items.deliver.desc') }
                 ].map((item, idx) => (
-                  <div key={idx} className="interactive-surface flex gap-5 p-5 rounded-2xl bg-white shadow-sm border border-slate-100 hover:border-brand-primary/30 hover:shadow-md transition-all group cursor-default">
+                  <div key={idx} className="flex gap-5 p-5 rounded-2xl bg-white shadow-sm border border-slate-100 hover:border-brand-primary/30 hover:shadow-md transition-all group cursor-default">
                     <div className="w-14 h-14 rounded-xl bg-brand-primary/10 flex items-center justify-center shrink-0 group-hover:bg-brand-primary group-hover:text-white transition-colors text-brand-primary">
                       <item.icon className="w-6 h-6" />
                     </div>
