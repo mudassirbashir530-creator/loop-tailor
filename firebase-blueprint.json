@@ -15,6 +15,18 @@
       },
       "required": ["name", "createdAt"]
     },
+    "Staff": {
+      "title": "Staff",
+      "description": "Represents a staff/worker in the shop.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the staff member" },
+        "phone": { "type": "string", "description": "Contact phone number" },
+        "role": { "type": "string", "enum": ["stitcher", "cutter", "presser"], "description": "Job role" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "role", "createdAt"]
+    },
     "Customer": {
       "title": "Customer",
       "description": "A customer of a specific shop.",
@@ -84,6 +96,10 @@
           "type": "array",
           "description": "Logs of sent notifications (e.g. WhatsApp)",
           "items": { "type": "object" }
+        },
+        "assignedWorkerId": {
+          "type": "string",
+          "description": "ID of the staff handling the order"
         },
         "quantity": { "type": "number", "default": 1 },
         "rackLocation": { "type": "string", "description": "Physical location in the shop" },
@@ -189,6 +205,10 @@
     "/shops/{shopId}/customers/{customerId}": {
       "schema": { "$ref": "#/entities/Customer" },
       "description": "Stores customers for a specific shop."
+    },
+    "/shops/{shopId}/staff/{staffId}": {
+      "schema": { "$ref": "#/entities/Staff" },
+      "description": "Stores shop workers/staff."
     },
     "/shops/{shopId}/measurements/{measurementId}": {
       "schema": { "$ref": "#/entities/Measurement" },

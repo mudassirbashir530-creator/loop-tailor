@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useShop } from '../contexts/ShopContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -13,12 +14,15 @@ import { cn, isOrderOverdue } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/config';
 import { toast } from 'sonner';
 import { sendWhatsappNotification } from '../lib/notifications';
+import { useStaff } from '../hooks/useStaff';
+import { User } from 'lucide-react';
 
 export default function Orders() {
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
   const { settings } = useShop();
   const navigate = useNavigate();
+  const { staff } = useStaff();
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -427,6 +431,16 @@ export default function Orders() {
                               <MapPin className="h-3.5 w-3.5 text-brand-primary" /> {t('orders.rack')}
                             </span>
                             <p className="font-bold text-slate-900">{order.rackLocation || '---'}</p>
+                          </div>
+                          <div className="space-y-1.5 col-span-2">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                              <User className="h-3.5 w-3.5 text-brand-primary" /> Assigned Worker
+                            </span>
+                            <p className="font-bold text-slate-900">
+                              {order.assignedWorkerId 
+                                ? staff.find(w => w.id === order.assignedWorkerId)?.name || 'Unknown'
+                                : 'Unassigned'}
+                            </p>
                           </div>
                         </div>
 

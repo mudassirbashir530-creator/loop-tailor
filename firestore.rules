@@ -81,6 +81,13 @@ service cloud.firestore {
              (data.createdAt is string || data.createdAt is timestamp);
     }
 
+    function isValidStaff(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 50)) &&
+             data.role in ['stitcher', 'cutter', 'presser'] &&
+             (data.createdAt is string || data.createdAt is timestamp);
+    }
+
     function isValidCustomer(data, shopId) {
       return data.shopId == shopId &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
@@ -108,6 +115,7 @@ service cloud.firestore {
              (!('rackLocation' in data) || data.rackLocation is string) &&
              (!('measurements' in data) || data.measurements is map) &&
              (!('notificationLogs' in data) || data.notificationLogs is list) &&
+             (!('assignedWorkerId' in data) || data.assignedWorkerId is string) &&
              (!('advancePayment' in data) || data.advancePayment is number) &&
              (!('paymentStatus' in data) || data.paymentStatus in ["Unpaid", "Partial", "Paid"]) &&
              (!('payments' in data) || data.payments is list) &&
@@ -164,6 +172,13 @@ service cloud.firestore {
         allow read: if isOwner(shopId);
         allow create: if isOwner(shopId) && isValidCustomer(request.resource.data, shopId);
         allow update: if isOwner(shopId) && isValidCustomer(request.resource.data, shopId);
+        allow delete: if isOwner(shopId);
+      }
+
+      match /staff/{staffId} {
+        allow read: if isOwner(shopId);
+        allow create: if isOwner(shopId) && isValidStaff(request.resource.data);
+        allow update: if isOwner(shopId) && isValidStaff(request.resource.data);
         allow delete: if isOwner(shopId);
       }
 

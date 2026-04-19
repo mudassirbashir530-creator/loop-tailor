@@ -16,6 +16,7 @@ import { getMeasurementName } from '../lib/measurements';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { sendWhatsappNotification } from '../lib/notifications';
+import { useStaff } from '../hooks/useStaff';
 
 export default function OrderDetails() {
   const { id } = useParams();
@@ -23,6 +24,7 @@ export default function OrderDetails() {
   const { t, isRTL } = useLanguage();
   const { settings } = useShop();
   const navigate = useNavigate();
+  const { staff } = useStaff();
   const [order, setOrder] = useState<any>(null);
   const [shop, setShop] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -301,6 +303,31 @@ export default function OrderDetails() {
                       <option value={ORDER_STATUS.READY}>{t('orderDetails.ready')}</option>
                       <option value={ORDER_STATUS.DELIVERED}>{t('orderDetails.delivered')}</option>
                     </select>
+                  </div>
+                </div>
+                
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Assigned Worker</span>
+                  <div className="flex items-center gap-3 text-slate-900 mt-2">
+                    <User className="h-4 w-4 text-brand-primary" />
+                    {isEditing ? (
+                      <select
+                        value={editData.assignedWorkerId || ''}
+                        onChange={(e) => setEditData({...editData, assignedWorkerId: e.target.value})}
+                        className="h-10 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                      >
+                        <option value="">Unassigned</option>
+                        {staff.map(w => (
+                          <option key={w.id} value={w.id}>{w.name} ({w.role})</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="font-bold">
+                        {order.assignedWorkerId 
+                          ? staff.find(w => w.id === order.assignedWorkerId)?.name || 'Unknown'
+                          : 'Unassigned'}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

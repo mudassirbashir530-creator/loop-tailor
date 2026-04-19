@@ -36,6 +36,7 @@ export default function Layout() {
     { name: t('layout.dashboard'), path: '/dashboard', icon: LayoutDashboard },
     { name: t('layout.customers'), path: '/dashboard/customers', icon: Users },
     { name: t('layout.orders'), path: '/dashboard/orders', icon: FileText },
+    { name: "Staff", path: '/dashboard/staff', icon: UserCircle },
     { name: t('layout.settings'), path: '/dashboard/settings', icon: Settings },
   ];
 

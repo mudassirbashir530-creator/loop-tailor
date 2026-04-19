@@ -7,11 +7,12 @@ import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Users, Scissors, CheckCircle, Clock, Plus, ArrowRight, Calendar, TrendingUp, Search, Hash, FileText } from 'lucide-react';
+import { Users, Scissors, CheckCircle, Clock, Plus, ArrowRight, Calendar, TrendingUp, Search, Hash, FileText, UserCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { format, addDays, isAfter, isBefore } from 'date-fns';
+import { format, addDays, isAfter, isBefore, isThisMonth } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { useStaff } from '../hooks/useStaff';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -50,10 +51,12 @@ export default function Dashboard() {
   });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [upcomingDeliveries, setUpcomingDeliveries] = useState<any[]>([]);
+  const [allOrders, setAllOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<DashboardTab>(dashboardTabs[0]);
   const [searchToken, setSearchToken] = useState('');
   const [searchError, setSearchError] = useState('');
+  const { staff } = useStaff();
 
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
     let newIndex = index;
@@ -180,6 +183,7 @@ export default function Dashboard() {
       }));
       setRecentOrders(recent);
       setUpcomingDeliveries(upcoming);
+      setAllOrders(allOrders);
       
       if (isFirstLoad) {
         setLoading(false);
@@ -406,6 +410,69 @@ export default function Dashboard() {
                   )}
                 </motion.div>
               </AnimatePresence>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Third column / right side widgets */}
+        <motion.div variants={itemVariants} className="lg:col-span-1 space-y-6">
+          {/* Staff Performance Widget */}
+          <Card className="border-none shadow-neu bg-gray-100 overflow-hidden rounded-3xl h-full">
+            <CardHeader className="p-6 border-b border-gray-200/50">
+              <CardTitle className="flex items-center gap-2 text-lg font-bold text-slate-900">
+                <UserCircle className="h-5 w-5 text-brand-primary" />
+                Staff Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {staff.length === 0 ? (
+                <div className="text-center text-sm font-medium text-slate-500 py-4">No staff members assigned.</div>
+              ) : (
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                  {staff.map(member => {
+                    const assignedOrders = allOrders.filter(o => o.assignedWorkerId === member.id);
+                    const pendingOrders = assignedOrders.filter(o => o.status !== ORDER_STATUS.DELIVERED);
+                    const completedThisMonth = assignedOrders.filter(o => {
+                      if (o.status !== ORDER_STATUS.DELIVERED) return false;
+                      const date = o.updatedAt?.toDate ? o.updatedAt.toDate() : new Date(o.updatedAt || Date.now());
+                      return isThisMonth(date);
+                    });
+
+                    return (
+                      <div key={member.id} className="bg-gray-100 shadow-neu-pressed-sm rounded-2xl p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h4 className="font-bold text-slate-900">{member.name}</h4>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{member.role}</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-black text-brand-primary">{assignedOrders.length}</div>
+                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Total</div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-gray-100 shadow-neu-sm rounded-xl p-2 text-center">
+                            <span className="block text-sm font-black text-slate-600">{assignedOrders.filter(o => o.status === ORDER_STATUS.PENDING).length}</span>
+                            <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Pending</span>
+                          </div>
+                          <div className="bg-gray-100 shadow-neu-sm rounded-xl p-2 text-center">
+                            <span className="block text-sm font-black text-amber-600">{assignedOrders.filter(o => o.status === ORDER_STATUS.STITCHING).length}</span>
+                            <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Stitching</span>
+                          </div>
+                          <div className="bg-gray-100 shadow-neu-sm rounded-xl p-2 text-center">
+                            <span className="block text-sm font-black text-blue-600">{assignedOrders.filter(o => o.status === ORDER_STATUS.READY).length}</span>
+                            <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Ready</span>
+                          </div>
+                          <div className="bg-emerald-50 shadow-neu-sm rounded-xl p-2 text-center border-none">
+                            <span className="block text-sm font-black text-emerald-600">{completedThisMonth.length}</span>
+                            <span className="block text-[8px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">Done(Mo)</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

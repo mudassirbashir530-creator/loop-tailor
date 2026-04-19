@@ -16,6 +16,7 @@ import { cn } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/config';
 import { TemplateSelector, SaveTemplateButton } from '../components/OrderTemplates';
 import { useOrderTemplates } from '../hooks/useOrderTemplates';
+import { useStaff } from '../hooks/useStaff';
 import { toast } from 'sonner';
 
 export default function QuickOrder() {
@@ -23,6 +24,7 @@ export default function QuickOrder() {
   const { t, isRTL } = useLanguage();
   const { settings } = useShop();
   const navigate = useNavigate();
+  const { staff } = useStaff();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const templateHook = useOrderTemplates(user?.uid);
@@ -143,14 +145,24 @@ export default function QuickOrder() {
   });
 
   // Order Data
-  const [orderData, setOrderData] = useState({
+  const [orderData, setOrderData] = useState<{
+    dressType: string;
+    deliveryDate: string;
+    price: string;
+    advancePayment: string;
+    quantity: string;
+    rackLocation: string;
+    notes: string;
+    assignedWorkerId: string;
+  }>({
     dressType: 'Shalwar Kameez',
     deliveryDate: '',
     price: '',
     advancePayment: '',
     quantity: '1',
     rackLocation: '',
-    notes: ''
+    notes: '',
+    assignedWorkerId: ''
   });
 
   // File Uploads
@@ -241,6 +253,7 @@ export default function QuickOrder() {
         advancePayment: advanceTotal,
         paymentStatus: paymentStatus,
         payments: initialPayments,
+        assignedWorkerId: orderData.assignedWorkerId || '',
         quantity: Number(orderData.quantity),
         rackLocation: orderData.rackLocation,
         notes: orderData.notes,
@@ -582,6 +595,26 @@ export default function QuickOrder() {
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-6">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                      <Scissors className="h-3 w-3" /> Assign Worker
+                    </label>
+                    <div className="relative">
+                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
+                      <select
+                        value={orderData.assignedWorkerId}
+                        onChange={(e) => setOrderData({...orderData, assignedWorkerId: e.target.value})}
+                        className={cn("w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 transition-all h-12 text-base font-medium appearance-none", isRTL ? "pr-12 text-right" : "pl-12")}
+                      >
+                        <option value="">Unassigned</option>
+                        {staff.map(w => (
+                          <option key={w.id} value={w.id}>{w.name} ({w.role})</option>
+                        ))}
+                      </select>
+                      <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none", isRTL ? "left-4" : "right-4")} />
+                    </div>
+                  </div>
+                  
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                       <MapPin className="h-3 w-3" /> {t('quickOrder.rackLocation')}
