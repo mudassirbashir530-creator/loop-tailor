@@ -10,6 +10,7 @@
         "address": { "type": "string", "description": "Shop address" },
         "logoUrl": { "type": "string", "description": "URL to shop logo" },
         "invoiceFooter": { "type": "string", "description": "Custom message for invoice footer" },
+        "enableWhatsappNotifications": { "type": "boolean", "description": "Toggle WhatsApp notifications" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "createdAt"]
@@ -79,6 +80,11 @@
             "neck": { "type": "number" }
           }
         },
+        "notificationLogs": {
+          "type": "array",
+          "description": "Logs of sent notifications (e.g. WhatsApp)",
+          "items": { "type": "object" }
+        },
         "quantity": { "type": "number", "default": 1 },
         "rackLocation": { "type": "string", "description": "Physical location in the shop" },
         "notes": { "type": "string" },
@@ -86,6 +92,19 @@
         "status": { "type": "string", "enum": ["Pending", "Stitching", "Ready", "Delivered"] },
         "price": { "type": "number" },
         "advancePayment": { "type": "number" },
+        "paymentStatus": { "type": "string", "enum": ["Unpaid", "Partial", "Paid"] },
+        "payments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "amount": { "type": "number" },
+              "date": { "type": "string", "format": "date-time" },
+              "method": { "type": "string" },
+              "note": { "type": "string" }
+            }
+          }
+        },
         "referencePhotoUrl": { "type": "string" },
         "sampleDesignUrl": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },

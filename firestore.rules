@@ -77,6 +77,7 @@ service cloud.firestore {
              (!('address' in data) || (data.address is string && data.address.size() <= 200)) &&
              (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 1000)) &&
              (!('invoiceFooter' in data) || (data.invoiceFooter is string && data.invoiceFooter.size() <= 500)) &&
+             (!('enableWhatsappNotifications' in data) || data.enableWhatsappNotifications is bool) &&
              (data.createdAt is string || data.createdAt is timestamp);
     }
 
@@ -106,6 +107,10 @@ service cloud.firestore {
              (!('quantity' in data) || data.quantity is number) &&
              (!('rackLocation' in data) || data.rackLocation is string) &&
              (!('measurements' in data) || data.measurements is map) &&
+             (!('notificationLogs' in data) || data.notificationLogs is list) &&
+             (!('advancePayment' in data) || data.advancePayment is number) &&
+             (!('paymentStatus' in data) || data.paymentStatus in ["Unpaid", "Partial", "Paid"]) &&
+             (!('payments' in data) || data.payments is list) &&
              (data.createdAt is string || data.createdAt is timestamp) &&
              (data.updatedAt is string || data.updatedAt is timestamp);
     }

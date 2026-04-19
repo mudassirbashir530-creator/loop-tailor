@@ -12,10 +12,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn, isOrderOverdue } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/config';
 import { toast } from 'sonner';
+import { sendWhatsappNotification } from '../lib/notifications';
 
 export default function Orders() {
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
+  const { settings } = useShop();
   const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>('All');
@@ -57,6 +59,23 @@ export default function Orders() {
         updatedAt: serverTimestamp() 
       });
       toast.success(t('orders.statusUpdated') || 'Status updated successfully');
+
+      // Send WhatsApp Notification if configured and status is Ready/Delivered
+      if (settings.enableWhatsappNotifications && (newStatus === ORDER_STATUS.READY || newStatus === ORDER_STATUS.DELIVERED)) {
+        const order = orders.find(o => o.id === orderId);
+        if (order && order.phone) {
+          await sendWhatsappNotification({
+            to: order.phone,
+            customerName: order.customerName,
+            dressType: order.dressType || 'Suit',
+            token: order.tokenId,
+            shopName: settings.name || 'Loop Tailor',
+            status: newStatus,
+            orderId: order.id,
+            shopId: user!.uid
+          });
+        }
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${orderId}`);
     }
@@ -378,12 +397,22 @@ export default function Orders() {
                             {order.customerName}
                           </CardTitle>
                         </div>
-                        <span className={cn(
-                          "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-neu-pressed-sm",
-                          getStatusColor(order.status)
-                        )}>
-                          {t(`orders.${order.status.toLowerCase()}`)}
-                        </span>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className={cn(
+                            "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-neu-pressed-sm",
+                            getStatusColor(order.status)
+                          )}>
+                            {t(`orders.${order.status.toLowerCase()}`)}
+                          </span>
+                          <span className={cn(
+                            "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-neu-sm",
+                            (!order.paymentStatus || order.paymentStatus === 'Unpaid') ? "bg-red-50 text-rose-500" :
+                            order.paymentStatus === 'Partial' ? "bg-blue-50 text-blue-600" :
+                            "bg-emerald-50 text-emerald-600"
+                          )}>
+                            {order.paymentStatus || 'Unpaid'}
+                          </span>
+                        </div>
                       </CardHeader>
                       <CardContent className="p-7 pt-0 space-y-6">
                         <div className="grid grid-cols-2 gap-4 text-sm">

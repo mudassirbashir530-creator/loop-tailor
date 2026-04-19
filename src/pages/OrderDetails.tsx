@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { getMeasurementName } from '../lib/measurements';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
+import { sendWhatsappNotification } from '../lib/notifications';
 
 export default function OrderDetails() {
   const { id } = useParams();
@@ -28,6 +29,8 @@ export default function OrderDetails() {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'Cash', note: '' });
 
   useEffect(() => {
     if (!user || !id) return;
@@ -81,6 +84,21 @@ export default function OrderDetails() {
         updatedAt: serverTimestamp() 
       });
       toast.success(t('orderDetails.statusUpdated') || 'Status updated successfully');
+
+      if (settings.enableWhatsappNotifications && (newStatus === ORDER_STATUS.READY || newStatus === ORDER_STATUS.DELIVERED)) {
+        if (order && order.phone) {
+          await sendWhatsappNotification({
+            to: order.phone,
+            customerName: order.customerName,
+            dressType: order.dressType || 'Suit',
+            token: order.tokenId,
+            shopName: settings.name || 'Loop Tailor',
+            status: newStatus,
+            orderId: order.id,
+            shopId: user.uid
+          });
+        }
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
     }
@@ -94,6 +112,63 @@ export default function OrderDetails() {
       });
       setIsEditing(false);
       toast.success(t('orderDetails.orderUpdated') || 'Order updated successfully');
+
+      // In case status was changed directly in the edit modal to Ready or Delivered
+      if (editData.status !== order.status) {
+        if (settings.enableWhatsappNotifications && (editData.status === ORDER_STATUS.READY || editData.status === ORDER_STATUS.DELIVERED)) {
+          if (editData.phone || order.phone) {
+            await sendWhatsappNotification({
+              to: editData.phone || order.phone,
+              customerName: editData.customerName || order.customerName,
+              dressType: editData.dressType || order.dressType || 'Suit',
+              token: order.tokenId,
+              shopName: settings.name || 'Loop Tailor',
+              status: editData.status,
+              orderId: order.id,
+              shopId: user.uid
+            });
+          }
+        }
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
+    }
+  };
+
+  const totalPaid = (order?.payments || []).reduce((sum: number, p: any) => sum + Number(p.amount), 0) + Number(order?.advancePayment || 0);
+  const balanceDue = Math.max(0, Number(order?.price || 0) - totalPaid);
+
+  const handleRecordPayment = async () => {
+    const amount = Number(paymentForm.amount);
+    if (!amount || amount <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    if (amount > balanceDue) {
+      toast.error('Payment cannot exceed balance due');
+      return;
+    }
+
+    const newPayment = {
+      amount,
+      date: new Date().toISOString(),
+      method: paymentForm.method,
+      note: paymentForm.note
+    };
+
+    const newPayments = [...(order.payments || []), newPayment];
+    const newTotalPaid = totalPaid + amount;
+    const newPaymentStatus = newTotalPaid >= order.price ? 'Paid' : 'Partial';
+
+    try {
+      await updateDoc(doc(db, 'shops', user!.uid, 'orders', id!), {
+        payments: newPayments,
+        paymentStatus: newPaymentStatus,
+        updatedAt: serverTimestamp()
+      });
+      toast.success('Payment recorded successfully');
+      setIsPaymentModalOpen(false);
+      setPaymentForm({ amount: '', method: 'Cash', note: '' });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
     }
@@ -305,20 +380,40 @@ export default function OrderDetails() {
           {/* Payment Card */}
           <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
             <CardContent className="p-8 space-y-6">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Payment Status</span>
+                <span className={cn(
+                  "text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-neu-sm",
+                  (!order.paymentStatus || order.paymentStatus === 'Unpaid') ? "bg-gray-100 text-rose-500" :
+                  order.paymentStatus === 'Partial' ? "bg-gray-100 text-blue-500" :
+                  "bg-gray-100 text-emerald-500"
+                )}>
+                  {order.paymentStatus || 'Unpaid'}
+                </span>
+              </div>
               <div className="space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.totalPrice')}</span>
                 <div className="text-3xl font-black text-slate-900">{settings.currency} {order.price}</div>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.advancePaid')}</span>
-                <div className="text-xl font-bold text-emerald-600">{settings.currency} {order.advancePayment || 0}</div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Total Paid</span>
+                <div className="text-xl font-bold text-emerald-600">{settings.currency} {totalPaid}</div>
               </div>
               <div className="pt-6 border-t border-gray-200/50 space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.balanceDue')}</span>
                 <div className="text-2xl font-black text-brand-primary">
-                  {settings.currency} {order.price - (order.advancePayment || 0)}
+                  {settings.currency} {balanceDue}
                 </div>
               </div>
+              
+              {balanceDue > 0 && (
+                <Button 
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  className="w-full bg-brand-primary text-white font-bold rounded-2xl h-12 shadow-neu-sm border-none mt-4"
+                >
+                  Record Payment
+                </Button>
+              )}
             </CardContent>
           </Card>
 
@@ -401,6 +496,73 @@ export default function OrderDetails() {
           </Card>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isPaymentModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative"
+            >
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsPaymentModalOpen(false)}
+                className="absolute right-4 top-4 rounded-full bg-slate-100 hover:bg-slate-200 p-2"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+
+              <h2 className="text-2xl font-black text-slate-900 mb-6">Record Payment</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Amount</label>
+                  <Input 
+                    type="number" 
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                    placeholder={`Max ${settings.currency} ${balanceDue}`}
+                    className="h-12 bg-gray-50 border-none shadow-inner rounded-xl font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Payment Method</label>
+                  <select 
+                    value={paymentForm.method}
+                    onChange={(e) => setPaymentForm({...paymentForm, method: e.target.value})}
+                    className="w-full h-12 bg-gray-50 border-none shadow-inner rounded-xl font-bold px-4"
+                  >
+                    <option value="Cash">Cash</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Mobile Money">Mobile Money</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Note (Optional)</label>
+                  <Input 
+                    type="text" 
+                    value={paymentForm.note}
+                    onChange={(e) => setPaymentForm({...paymentForm, note: e.target.value})}
+                    placeholder="e.g. Paid via Easypaisa"
+                    className="h-12 bg-gray-50 border-none shadow-inner rounded-xl font-bold"
+                  />
+                </div>
+
+                <Button 
+                  onClick={handleRecordPayment}
+                  className="w-full bg-brand-primary text-white font-bold rounded-2xl h-12 mt-6"
+                >
+                  Confirm Payment
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

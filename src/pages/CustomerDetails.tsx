@@ -596,12 +596,22 @@ export default function CustomerDetails() {
                           </div>
                           <div className="font-black text-slate-900 group-hover:text-brand-primary transition-colors">{order.dressType}</div>
                         </div>
-                        <span className={cn(
-                          "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-neu-sm",
-                          order.status === ORDER_STATUS.DELIVERED ? 'bg-gray-100 text-emerald-600' : 'bg-gray-100 text-amber-600'
-                        )}>
-                          {t(`orders.${order.status.toLowerCase()}`)}
-                        </span>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className={cn(
+                            "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-neu-sm",
+                            order.status === ORDER_STATUS.DELIVERED ? 'bg-gray-100 text-emerald-600' : 'bg-gray-100 text-amber-600'
+                          )}>
+                            {t(`orders.${order.status.toLowerCase()}`)}
+                          </span>
+                          <span className={cn(
+                            "px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-neu-sm",
+                            (!order.paymentStatus || order.paymentStatus === 'Unpaid') ? "bg-red-50 text-rose-500" :
+                            order.paymentStatus === 'Partial' ? "bg-blue-50 text-blue-500" :
+                            "bg-emerald-50 text-emerald-500"
+                          )}>
+                            {order.paymentStatus || 'Unpaid'}
+                          </span>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200/50">
                         <div>

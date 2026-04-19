@@ -212,6 +212,20 @@ export default function QuickOrder() {
         }, { merge: true });
       }
 
+      const price = Number(orderData.price || 0);
+      const advanceTotal = Number(orderData.advancePayment || 0);
+      let paymentStatus = 'Unpaid';
+      if (advanceTotal > 0) {
+        paymentStatus = advanceTotal >= price ? 'Paid' : 'Partial';
+      }
+
+      const initialPayments = advanceTotal > 0 ? [{
+        amount: advanceTotal,
+        date: new Date().toISOString(),
+        method: 'Cash',
+        note: 'Advance Payment'
+      }] : [];
+
       // 3. Create Order
       const orderRef = await addDoc(collection(db, 'shops', user.uid, 'orders'), {
         shopId: user.uid,
@@ -223,8 +237,10 @@ export default function QuickOrder() {
         dressType: orderData.dressType,
         deliveryDate: new Date(orderData.deliveryDate).toISOString(),
         status: ORDER_STATUS.PENDING,
-        price: Number(orderData.price),
-        advancePayment: Number(orderData.advancePayment || 0),
+        price: price,
+        advancePayment: advanceTotal,
+        paymentStatus: paymentStatus,
+        payments: initialPayments,
         quantity: Number(orderData.quantity),
         rackLocation: orderData.rackLocation,
         notes: orderData.notes,

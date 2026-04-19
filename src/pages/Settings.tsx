@@ -15,8 +15,8 @@ import { toast } from 'sonner';
 export default function Settings() {
   const { user } = useAuth();
   const { t, isRTL, language, setLanguage } = useLanguage();
-  const [shop, setShop] = useState<{name: string, phone: string, address: string, logoUrl: string, invoiceFooter: string, uiTheme: 'neumorphic' | 'minimalist' | 'elegant'}>({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic' });
-  const [editData, setEditData] = useState<{name: string, phone: string, address: string, logoUrl: string, invoiceFooter: string, uiTheme: 'neumorphic' | 'minimalist' | 'elegant'}>({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic' });
+  const [shop, setShop] = useState<{name: string, phone: string, address: string, logoUrl: string, invoiceFooter: string, uiTheme: 'neumorphic' | 'minimalist' | 'elegant', enableWhatsappNotifications: boolean}>({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic', enableWhatsappNotifications: false });
+  const [editData, setEditData] = useState<{name: string, phone: string, address: string, logoUrl: string, invoiceFooter: string, uiTheme: 'neumorphic' | 'minimalist' | 'elegant', enableWhatsappNotifications: boolean}>({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic', enableWhatsappNotifications: false });
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -183,6 +183,21 @@ export default function Settings() {
                     <Input value={editData.invoiceFooter || ''} onChange={e => setEditData({...editData, invoiceFooter: e.target.value})} placeholder="Thank you for your business!" className={cn(isRTL ? "pr-12" : "pl-12")} />
                   </div>
                 </div>
+                <div className="flex items-center justify-between p-4 bg-gray-100 shadow-neu-sm rounded-2xl">
+                  <div>
+                    <label className="text-sm font-bold block text-brand-primary">WhatsApp Notifications</label>
+                    <p className="text-xs text-slate-500 mt-1">Send automatic updates to customers when orders are ready or delivered.</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer" 
+                      checked={editData.enableWhatsappNotifications || false}
+                      onChange={(e) => setEditData({...editData, enableWhatsappNotifications: e.target.checked})}
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-neu-pressed-sm"></div>
+                  </label>
+                </div>
               </div>
 
               <div className="pt-4 flex flex-col sm:flex-row gap-2">
@@ -218,9 +233,17 @@ export default function Settings() {
                 <div className="text-sm font-medium text-slate-500">{t('settings.address')}</div>
                 <div className="sm:col-span-2 text-sm text-slate-900">{shop.address || t('settings.notSet')}</div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 border-b border-slate-100 pb-4">
                 <div className="text-sm font-medium text-slate-500">{t('settings.invoiceFooter')}</div>
                 <div className="sm:col-span-2 text-sm text-slate-900">{shop.invoiceFooter || t('settings.notSet')}</div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+                <div className="text-sm font-medium text-slate-500">WhatsApp Alerts</div>
+                <div className="sm:col-span-2 text-sm text-slate-900">
+                  <span className={cn("px-2 py-1 rounded-lg text-xs font-bold", shop.enableWhatsappNotifications ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500")}>
+                    {shop.enableWhatsappNotifications ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
               </div>
             </div>
           )}

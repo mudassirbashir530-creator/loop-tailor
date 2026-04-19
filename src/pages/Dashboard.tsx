@@ -349,9 +349,19 @@ export default function Dashboard() {
                           </div>
                           <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
                             <div className="text-base font-black text-slate-900">{formatCurrency(order.price)}</div>
-                            <div className={`text-[11px] font-bold mt-1 uppercase tracking-wider ${
-                              order.status === ORDER_STATUS.DELIVERED ? 'text-emerald-600' : 'text-amber-600'
-                            }`}>{t(`orders.${order.status.toLowerCase()}`)}</div>
+                            <div className="flex flex-col items-end gap-1 mt-1">
+                              <div className={`text-[11px] font-bold uppercase tracking-wider ${
+                                order.status === ORDER_STATUS.DELIVERED ? 'text-emerald-600' : 'text-amber-600'
+                              }`}>{t(`orders.${order.status.toLowerCase()}`)}</div>
+                              <span className={cn(
+                                "text-[9px] font-black uppercase tracking-widest",
+                                (!order.paymentStatus || order.paymentStatus === 'Unpaid') ? "text-rose-500" :
+                                order.paymentStatus === 'Partial' ? "text-blue-500" :
+                                "text-emerald-500"
+                              )}>
+                                {order.paymentStatus || 'Unpaid'}
+                              </span>
+                            </div>
                           </div>
                         </motion.div>
                       ))

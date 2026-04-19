@@ -12,6 +12,7 @@ interface ShopSettings {
   invoiceFooter: string;
   currency: string;
   uiTheme: 'neumorphic' | 'minimalist' | 'elegant';
+  enableWhatsappNotifications?: boolean;
 }
 
 interface ShopContextType {
@@ -59,6 +60,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
           invoiceFooter: data.invoiceFooter || '',
           currency: data.currency || APP_CONFIG.defaultCurrency,
           uiTheme: data.uiTheme || 'neumorphic',
+          enableWhatsappNotifications: !!data.enableWhatsappNotifications,
         });
       }
       setLoading(false);

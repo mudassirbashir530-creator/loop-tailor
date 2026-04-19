@@ -55,6 +55,9 @@ export default function Invoice() {
 
   if (!order || !shop || !customer) return <div className="p-8">{t('invoice.loading')}</div>;
 
+  const totalPaid = (order?.payments || []).reduce((sum: number, p: any) => sum + Number(p.amount), 0) + Number(order?.advancePayment || 0);
+  const balanceDue = Math.max(0, Number(order?.price || 0) - totalPaid);
+
   const handlePrint = () => {
     window.print();
   };
@@ -237,6 +240,33 @@ export default function Invoice() {
         </div>
       </div>
 
+      {/* Payment History */}
+      {((order.payments && order.payments.length > 0) || Number(order.advancePayment) > 0) && (
+        <div className={cn("mb-6 sm:mb-8", isCapture ? "mx-1" : "")}>
+          <h3 className={cn("font-black text-slate-400 uppercase tracking-widest px-1 mb-2", isCapture ? "text-sm" : "text-xs sm:text-sm")}>Payment History</h3>
+          <div className="bg-gray-100 shadow-neu-pressed-sm rounded-2xl border-none p-4 divide-y divide-gray-200/50">
+            {Number(order.advancePayment) > 0 && (
+              <div className="py-2 flex justify-between items-center text-sm font-bold text-slate-700">
+                <div className="flex flex-col">
+                  <span>{format(new Date(order.createdAt), 'MMM dd, yyyy')}</span>
+                  <span className="text-xs text-slate-500 font-medium">Initial Advance</span>
+                </div>
+                <span className="text-emerald-600">+{settings.currency} {Number(order.advancePayment).toLocaleString()}</span>
+              </div>
+            )}
+            {(order.payments || []).map((payment: any, index: number) => (
+              <div key={index} className="py-2 flex justify-between items-center text-sm font-bold text-slate-700">
+                <div className="flex flex-col">
+                  <span>{format(new Date(payment.date), 'MMM dd, yyyy')}</span>
+                  <span className="text-xs text-slate-500 font-medium">{payment.method} {payment.note && `- ${payment.note}`}</span>
+                </div>
+                <span className="text-emerald-600">+{settings.currency} {Number(payment.amount).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Totals Section */}
       <div className={cn("flex", isCapture ? "mb-12" : "mb-6 sm:mb-10", isRTL ? "justify-start" : "justify-end")}>
         <div className={cn("space-y-3 bg-gray-100 shadow-neu-pressed-sm rounded-2xl border-none", isCapture ? "w-96 p-6" : "w-full sm:w-72 p-4")}>
@@ -245,12 +275,12 @@ export default function Invoice() {
             <span>{settings.currency} {order.price.toLocaleString()}</span>
           </div>
           <div className={cn("flex justify-between font-bold text-emerald-600", isCapture ? "text-base" : "text-xs sm:text-sm")}>
-            <span>{t('invoice.advancePaid')}</span>
-            <span>-{settings.currency} {(order.advancePayment || 0).toLocaleString()}</span>
+            <span>Total Paid</span>
+            <span>-{settings.currency} {totalPaid.toLocaleString()}</span>
           </div>
           <div className={cn("flex justify-between font-black text-slate-900 pt-3 border-t border-slate-200", isCapture ? "text-2xl" : "text-base sm:text-xl")}>
             <span>{t('invoice.balanceDue')}</span>
-            <span className="text-brand-primary">{settings.currency} {(order.price - (order.advancePayment || 0)).toLocaleString()}</span>
+            <span className="text-brand-primary">{settings.currency} {balanceDue.toLocaleString()}</span>
           </div>
         </div>
       </div>
