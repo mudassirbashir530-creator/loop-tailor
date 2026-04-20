@@ -10,11 +10,12 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, ArrowRight, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebook, Scissors, Calendar, CreditCard, Hash, Loader2, CheckCircle2, Trash2, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebook, Scissors, Calendar, CreditCard, Hash, Loader2, CheckCircle2, Trash2, User, Ruler } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { getAllMeasurementCategories } from '../lib/measurements';
+import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
 import { toast } from 'sonner';
 
 export default function CustomerDetails() {
@@ -24,6 +25,8 @@ export default function CustomerDetails() {
   const { settings } = useShop();
   const navigate = useNavigate();
   
+  const { templates } = useMeasurementTemplates();
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female' | 'kids'>('male');
   const [customer, setCustomer] = useState<any>(null);
   const [measurements, setMeasurements] = useState<any>({});
   const [savingMeasurements, setSavingMeasurements] = useState(false);
@@ -215,6 +218,10 @@ export default function CustomerDetails() {
 
   if (!customer) return null;
 
+  const activeOrdersCount = orders.filter(o => 
+    [ORDER_STATUS.PENDING, ORDER_STATUS.STITCHING, ORDER_STATUS.READY].includes(o.status)
+  ).length;
+
   return (
     <div className="space-y-10 pb-20">
       <motion.div 
@@ -234,6 +241,11 @@ export default function CustomerDetails() {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">{customer.name}</h1>
+              {activeOrdersCount > 0 && (
+                <span className="bg-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full">
+                  {activeOrdersCount} {activeOrdersCount === 1 ? 'Active Order' : 'Active Orders'}
+                </span>
+              )}
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -491,6 +503,17 @@ export default function CustomerDetails() {
                 {t('customerDetails.measurements')}
               </CardTitle>
               <div className="flex items-center gap-4">
+                <div className="flex bg-gray-200/50 p-1 rounded-xl">
+                  {(['male', 'female', 'kids'] as const).map(g => (
+                    <button
+                      key={g}
+                      onClick={() => setSelectedGender(g)}
+                      className={cn("px-4 py-1.5 rounded-lg text-xs font-bold capitalize transition-all", selectedGender === g ? "bg-white shadow-neu-sm text-brand-primary" : "text-slate-500")}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
                 <AnimatePresence>
                   {saveSuccess && (
                     <motion.span 
@@ -515,47 +538,90 @@ export default function CustomerDetails() {
             </CardHeader>
             <CardContent className="p-8 pt-8">
               <form className="space-y-12">
-                {getAllMeasurementCategories().map((category, index) => (
-                  <div key={category.id} className="space-y-8">
-                    <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary font-black text-sm">
-                        {String(index + 1).padStart(2, '0')}
-                      </div>
-                      <h3 className="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">
-                        {isRTL ? category.titleUr : category.titleEn}
-                      </h3>
-                      <div className="flex-1 h-px bg-gray-200/50"></div>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                      {category.items.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                          <div key={item.id} className="space-y-2 group">
-                            <label className={cn("text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
-                              <Icon className="h-3 w-3" />
-                              {isRTL ? item.ur : item.en}
-                            </label>
-                            <div className="relative">
-                              <Input 
-                                type="number" 
-                                step="0.25"
-                                placeholder="0.00"
-                                value={measurements[item.id] || ''} 
-                                onChange={e => {
-                                  const val = e.target.value === '' ? '' : Number(e.target.value);
-                                  setMeasurements({...measurements, [item.id]: val});
-                                }} 
-                                className={cn("h-12 rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-black transition-all text-slate-900", isRTL ? "pr-3 pl-8" : "pl-3 pr-8")}
-                              />
-                              <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400", isRTL ? "left-4" : "right-4")}>IN</span>
+                {(() => {
+                  const customTemplate = templates.find(t => t.gender === selectedGender && t.isDefault) || templates.find(t => t.gender === selectedGender);
+                  
+                  if (customTemplate) {
+                    return (
+                      <div className="space-y-8">
+                        <div className="flex items-center gap-4">
+                          <h3 className="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">
+                            {isRTL ? customTemplate.nameUr || customTemplate.nameEn : customTemplate.nameEn}
+                          </h3>
+                          <div className="flex-1 h-px bg-gray-200/50"></div>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                          {customTemplate.fields.sort((a, b) => a.order - b.order).map((field) => (
+                            <div key={field.id} className="space-y-2 group">
+                              <label className={cn("text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
+                                <Ruler className="h-3 w-3" />
+                                {isRTL ? field.labelUr || field.labelEn : field.labelEn}
+                              </label>
+                              <div className="relative">
+                                <Input 
+                                  type="number" 
+                                  step="0.25"
+                                  placeholder="0.00"
+                                  value={measurements[field.id] || ''} 
+                                  onChange={e => {
+                                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                                    setMeasurements({...measurements, [field.id]: val});
+                                  }} 
+                                  className={cn("h-12 rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-black transition-all text-slate-900", isRTL ? "pr-3 pl-8" : "pl-3 pr-8")}
+                                />
+                                <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] uppercase font-black text-slate-400", isRTL ? "left-4" : "right-4")}>
+                                  {customTemplate.unit === 'cm' ? 'CM' : 'IN'}
+                                </span>
+                              </div>
                             </div>
-                            <p className={cn("text-[9px] text-slate-400 font-medium", isRTL ? "mr-1" : "ml-1")}>{item.desc}</p>
-                          </div>
-                        );
-                      })}
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return getAllMeasurementCategories().map((category, index) => (
+                    <div key={category.id} className="space-y-8">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary font-black text-sm">
+                          {String(index + 1).padStart(2, '0')}
+                        </div>
+                        <h3 className="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">
+                          {isRTL ? category.titleUr : category.titleEn}
+                        </h3>
+                        <div className="flex-1 h-px bg-gray-200/50"></div>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                        {category.items.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <div key={item.id} className="space-y-2 group">
+                              <label className={cn("text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
+                                <Icon className="h-3 w-3" />
+                                {isRTL ? item.ur : item.en}
+                              </label>
+                              <div className="relative">
+                                <Input 
+                                  type="number" 
+                                  step="0.25"
+                                  placeholder="0.00"
+                                  value={measurements[item.id] || ''} 
+                                  onChange={e => {
+                                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                                    setMeasurements({...measurements, [item.id]: val});
+                                  }} 
+                                  className={cn("h-12 rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-black transition-all text-slate-900", isRTL ? "pr-3 pl-8" : "pl-3 pr-8")}
+                                />
+                                <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400", isRTL ? "left-4" : "right-4")}>IN</span>
+                              </div>
+                              <p className={cn("text-[9px] text-slate-400 font-medium", isRTL ? "mr-1" : "ml-1")}>{item.desc}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ));
+                })()}
               </form>
             </CardContent>
           </Card>

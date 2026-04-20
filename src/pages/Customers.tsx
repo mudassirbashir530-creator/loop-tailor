@@ -2,22 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, where, getDocs, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { collection, query, getDocs, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Search, Plus, User, Phone, MapPin, Notebook, ArrowRight, Loader2, UserPlus, X } from 'lucide-react';
+import { Search, Plus, User, Phone, MapPin, Notebook, ArrowRight, Loader2, UserPlus, X, Filter } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
+import { ORDER_STATUS } from '../lib/config';
 
 export default function Customers() {
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<any[]>([]);
+  const [ordersPerCustomer, setOrdersPerCustomer] = useState<Record<string, { active: number, total: number }>>({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterTab, setFilterTab] = useState<'all' | 'active' | 'inactive'>('all');
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', address: '', notes: '' });
@@ -26,17 +29,38 @@ export default function Customers() {
     if (!user) return;
     
     setLoading(true);
-    const q = query(collection(db, 'shops', user.uid, 'customers'));
-    const unsubscribe = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-      setCustomers(data.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
+    let customersData: any[] = [];
+    
+    const unsubscribeCustomers = onSnapshot(collection(db, 'shops', user.uid, 'customers'), (snap) => {
+      customersData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+      setCustomers(customersData);
       setLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'customers');
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    const unsubscribeOrders = onSnapshot(collection(db, 'shops', user.uid, 'orders'), (snap) => {
+      const counts: Record<string, { active: number, total: number }> = {};
+      snap.forEach(doc => {
+        const order = doc.data();
+        if (order.customerId) {
+          if (!counts[order.customerId]) counts[order.customerId] = { active: 0, total: 0 };
+          counts[order.customerId].total += 1;
+          if ([ORDER_STATUS.PENDING, ORDER_STATUS.STITCHING, ORDER_STATUS.READY].includes(order.status)) {
+            counts[order.customerId].active += 1;
+          }
+        }
+      });
+      setOrdersPerCustomer(counts);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'orders');
+    });
+
+    return () => {
+      unsubscribeCustomers();
+      unsubscribeOrders();
+    };
   }, [user]);
 
   const handleAddCustomer = async (e: React.FormEvent) => {
@@ -57,10 +81,26 @@ export default function Customers() {
     }
   };
 
-  const filteredCustomers = customers.filter(c => 
-    c.phone.includes(searchTerm) || 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCustomers = customers
+    .filter(c => {
+      const matchesSearch = c.phone.includes(searchTerm) || c.name.toLowerCase().includes(searchTerm.toLowerCase());
+      if (!matchesSearch) return false;
+      
+      const activeCount = ordersPerCustomer[c.id]?.active || 0;
+      if (filterTab === 'active' && activeCount === 0) return false;
+      if (filterTab === 'inactive' && activeCount > 0) return false;
+      
+      return true;
+    })
+    .sort((a, b) => {
+      const aActive = ordersPerCustomer[a.id]?.active || 0;
+      const bActive = ordersPerCustomer[b.id]?.active || 0;
+      
+      if (aActive > 0 && bActive === 0) return -1;
+      if (bActive > 0 && aActive === 0) return 1;
+      
+      return (a.name || '').localeCompare(b.name || '');
+    });
 
   return (
     <div className="space-y-10">
@@ -186,6 +226,42 @@ export default function Customers() {
         )}
       </AnimatePresence>
 
+      <div className="flex bg-gray-100 shadow-neu-inner p-1.5 rounded-2xl w-fit">
+        <button
+          onClick={() => setFilterTab('all')}
+          className={cn(
+            "px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
+            filterTab === 'all' 
+              ? "bg-white shadow-neu-sm text-brand-primary" 
+              : "text-slate-500 hover:text-slate-700"
+          )}
+        >
+          All Clients
+        </button>
+        <button
+          onClick={() => setFilterTab('active')}
+          className={cn(
+            "px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
+            filterTab === 'active' 
+              ? "bg-white shadow-neu-sm text-brand-primary" 
+              : "text-slate-500 hover:text-slate-700"
+          )}
+        >
+          Active
+        </button>
+        <button
+          onClick={() => setFilterTab('inactive')}
+          className={cn(
+            "px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
+            filterTab === 'inactive' 
+              ? "bg-white shadow-neu-sm text-brand-primary" 
+              : "text-slate-500 hover:text-slate-700"
+          )}
+        >
+          Inactive
+        </button>
+      </div>
+
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 space-y-4">
           <Loader2 className="h-12 w-12 text-brand-primary animate-spin" />
@@ -234,12 +310,26 @@ export default function Customers() {
                           {customer.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="space-y-1">
-                          <h3 className="text-lg font-black text-slate-900 group-hover:text-brand-primary transition-colors line-clamp-1">
-                            {customer.name}
-                          </h3>
-                          <div className="flex items-center text-slate-500 font-bold text-sm">
-                            <Phone className="h-3.5 w-3.5 mr-1.5 text-brand-primary" />
-                            {customer.phone}
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-black text-slate-900 group-hover:text-brand-primary transition-colors line-clamp-1">
+                              {customer.name}
+                            </h3>
+                            {ordersPerCustomer[customer.id]?.active > 0 && (
+                              <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                Active
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center text-slate-500 font-bold text-sm">
+                              <Phone className="h-3.5 w-3.5 mr-1 text-brand-primary" />
+                              {customer.phone}
+                            </div>
+                            {ordersPerCustomer[customer.id]?.total > 0 && (
+                              <div className="bg-brand-primary/10 text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                {ordersPerCustomer[customer.id].total} {ordersPerCustomer[customer.id].total === 1 ? 'order' : 'orders'}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

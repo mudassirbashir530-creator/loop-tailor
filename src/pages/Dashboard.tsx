@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Users, Scissors, CheckCircle, Clock, Plus, ArrowRight, Calendar, TrendingUp, Search, Hash, FileText, UserCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { format, addDays, isAfter, isBefore, isThisMonth } from 'date-fns';
+import { format, addDays, isAfter, isBefore, isThisMonth, subMonths, isSameMonth } from 'date-fns';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useStaff } from '../hooks/useStaff';
@@ -44,10 +45,16 @@ export default function Dashboard() {
   
   const [stats, setStats] = useState({
     customers: 0,
+    newCustomersThisMonth: 0,
     activeOrders: 0,
     completedOrders: 0,
     pendingPayments: 0,
     totalRevenue: 0,
+    totalCollected: 0,
+    totalPending: 0,
+    thisMonthRevenue: 0,
+    ordersThisMonth: 0,
+    ordersLastMonth: 0,
   });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [upcomingDeliveries, setUpcomingDeliveries] = useState<any[]>([]);
@@ -124,7 +131,15 @@ export default function Dashboard() {
     let isFirstLoad = true;
 
     const unsubscribeCustomers = onSnapshot(collection(db, 'shops', user.uid, 'customers'), (customersSnap) => {
-      setStats(prev => ({ ...prev, customers: customersSnap.size }));
+      let newCust = 0;
+      customersSnap.forEach(doc => {
+        const data = doc.data();
+        if (data.createdAt) {
+          const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+          if (isThisMonth(createdAtDate)) newCust++;
+        }
+      });
+      setStats(prev => ({ ...prev, customers: customersSnap.size, newCustomersThisMonth: newCust }));
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'dashboard_customers');
     });
@@ -134,9 +149,15 @@ export default function Dashboard() {
       let completed = 0;
       let pendingPay = 0;
       let revenue = 0;
+      let totalCol = 0;
+      let totalPend = 0;
+      let monthRev = 0;
+      let ordersThisMo = 0;
+      let ordersLastMo = 0;
       const allOrders: any[] = [];
       const upcoming: any[] = [];
       const today = new Date();
+      const lastMonthDate = subMonths(today, 1);
       const nextWeek = addDays(today, 7);
 
       ordersSnap.forEach((doc) => {
@@ -144,9 +165,30 @@ export default function Dashboard() {
         const order = { id: doc.id, ...data };
         allOrders.push(order);
 
+        const orderPrice = data.price || 0;
+        const advance = data.advancePayment || 0;
+        const paymentsSum = (data.payments || []).reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
+        let paidAmount = 0;
+        if (data.paymentStatus === 'Paid') {
+          paidAmount = orderPrice;
+        } else {
+          paidAmount = advance + paymentsSum;
+        }
+
+        totalCol += paidAmount;
+        totalPend += Math.max(0, orderPrice - paidAmount);
+
+        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now());
+        if (isThisMonth(createdAt)) {
+          monthRev += paidAmount;
+          ordersThisMo++;
+        } else if (isSameMonth(createdAt, lastMonthDate)) {
+          ordersLastMo++;
+        }
+
         if (data.status === ORDER_STATUS.DELIVERED) {
           completed++;
-          revenue += data.price;
+          revenue += orderPrice;
         } else {
           active++;
           const deliveryDate = new Date(data.deliveryDate);
@@ -155,8 +197,8 @@ export default function Dashboard() {
           }
         }
         
-        if (data.price > (data.advancePayment || 0) && data.status !== ORDER_STATUS.DELIVERED) {
-          pendingPay += (data.price - (data.advancePayment || 0));
+        if (orderPrice > advance && data.status !== ORDER_STATUS.DELIVERED) {
+          pendingPay += (orderPrice - advance);
         }
       });
 
@@ -180,6 +222,11 @@ export default function Dashboard() {
         completedOrders: completed,
         pendingPayments: pendingPay,
         totalRevenue: revenue,
+        totalCollected: totalCol,
+        totalPending: totalPend,
+        thisMonthRevenue: monthRev,
+        ordersThisMonth: ordersThisMo,
+        ordersLastMonth: ordersLastMo,
       }));
       setRecentOrders(recent);
       setUpcomingDeliveries(upcoming);
@@ -204,6 +251,55 @@ export default function Dashboard() {
     // Optional: Render a skeleton or just let the empty state show.
     // For maximum perceived performance, we render the shell immediately.
   }
+
+  const revenueChartData = React.useMemo(() => {
+    const data = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = subMonths(now, i);
+      const monthOrders = allOrders.filter(o => 
+        o.status === ORDER_STATUS.DELIVERED && 
+        isSameMonth(o.updatedAt?.toDate ? o.updatedAt.toDate() : new Date(o.updatedAt || o.createdAt), monthDate)
+      );
+      const revenue = monthOrders.reduce((sum, o) => sum + (o.price || 0), 0);
+      data.push({
+        name: format(monthDate, 'MMM'),
+        revenue
+      });
+    }
+    return data;
+  }, [allOrders]);
+
+  const pieChartData = React.useMemo(() => {
+    const counts = {
+      [ORDER_STATUS.PENDING]: 0,
+      [ORDER_STATUS.STITCHING]: 0,
+      [ORDER_STATUS.READY]: 0,
+      [ORDER_STATUS.DELIVERED]: 0,
+    };
+    allOrders.forEach(o => {
+      if (counts[o.status] !== undefined) counts[o.status]++;
+    });
+    return [
+      { name: 'Pending', value: counts[ORDER_STATUS.PENDING], color: '#f59e0b' },
+      { name: 'Stitching', value: counts[ORDER_STATUS.STITCHING], color: '#f97316' },
+      { name: 'Ready', value: counts[ORDER_STATUS.READY], color: '#3b82f6' },
+      { name: 'Delivered', value: counts[ORDER_STATUS.DELIVERED], color: '#10b981' },
+    ].filter(d => d.value > 0);
+  }, [allOrders]);
+
+  const topDressTypesData = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    allOrders.forEach(o => {
+      if (o.dressType) {
+        counts[o.dressType] = (counts[o.dressType] || 0) + 1;
+      }
+    });
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }, [allOrders]);
 
   return (
     <motion.div 
@@ -270,6 +366,137 @@ export default function Dashboard() {
             </Card>
           </motion.div>
         ))}
+      </div>
+
+      {/* Quick Stats Row */}
+      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] p-6 flex flex-col justify-center items-center text-center">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Average Order Value</div>
+          <div className="text-3xl font-black text-brand-primary">{formatCurrency(stats.completedOrders > 0 ? stats.totalRevenue / stats.completedOrders : 0)}</div>
+          <div className="text-xs font-bold text-slate-400 mt-2">Based on delivered orders</div>
+        </Card>
+        <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] p-6 flex flex-col justify-center items-center text-center">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Orders Growth</div>
+          <div className="text-3xl font-black text-slate-900">
+            {stats.ordersThisMonth} <span className="text-sm font-bold text-slate-500">vs {stats.ordersLastMonth}</span>
+          </div>
+          {stats.ordersLastMonth > 0 && (
+            <div className={`text-[10px] font-black uppercase tracking-widest mt-2 ${stats.ordersThisMonth >= stats.ordersLastMonth ? 'text-emerald-500' : 'text-rose-500'}`}>
+              {Math.round(((stats.ordersThisMonth - stats.ordersLastMonth) / stats.ordersLastMonth) * 100)}% {stats.ordersThisMonth >= stats.ordersLastMonth ? 'Increase' : 'Decrease'}
+            </div>
+          )}
+        </Card>
+        <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] p-6 flex flex-col justify-center items-center text-center">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">New Customers</div>
+          <div className="text-3xl font-black text-slate-900">{stats.newCustomersThisMonth}</div>
+          <div className="text-xs font-bold text-slate-400 mt-2">Added this month</div>
+        </Card>
+      </motion.div>
+
+      {/* Comprehensive Analytics Data Visualization */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Revenue Chart */}
+        <motion.div variants={itemVariants} className="lg:col-span-2">
+          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] h-full overflow-hidden flex flex-col">
+            <CardHeader className="p-6 pb-2 border-b border-gray-200/50">
+              <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-brand-primary" />
+                Revenue (Last 6 Months)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 flex-1 min-h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={revenueChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} tickFormatter={(value) => `${value}`} />
+                  <RechartsTooltip 
+                    cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }}
+                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', padding: '12px' }}
+                    formatter={(value: any) => [formatCurrency(value as number), 'Revenue']}
+                  />
+                  <Bar dataKey="revenue" fill="#6366f1" radius={[6, 6, 0, 0]} barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Order Status & Payment Summary */}
+        <motion.div variants={itemVariants} className="space-y-6 flex flex-col">
+          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] p-6 min-h-[300px] flex flex-col">
+            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-brand-primary" />
+              Order Status
+            </h3>
+            <div className="flex-1 relative min-h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip 
+                    itemStyle={{ fontWeight: 'bold' }}
+                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
+             <div className="p-6 space-y-4">
+                <div>
+                  <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Collected</div>
+                  <div className="text-2xl font-black text-brand-primary line-clamp-1">{formatCurrency(stats.totalCollected)}</div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <div className="text-[10px] font-black uppercase text-amber-500 tracking-widest">Pending</div>
+                    <div className="text-lg font-bold text-slate-900 line-clamp-1">{formatCurrency(stats.totalPending)}</div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">This Month</div>
+                    <div className="text-lg font-bold text-slate-900 line-clamp-1">{formatCurrency(stats.thisMonthRevenue)}</div>
+                  </div>
+                </div>
+             </div>
+          </Card>
+        </motion.div>
+
+        {/* Top Dress Types */}
+        <motion.div variants={itemVariants} className="lg:col-span-3">
+          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] p-6 h-[300px] flex flex-col">
+            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <Scissors className="h-5 w-5 text-brand-primary" />
+              Top Dress Types
+            </h3>
+            <div className="flex-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topDressTypesData} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+                  <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#1e293b', fontWeight: 600 }} width={120} />
+                  <RechartsTooltip 
+                    cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }}
+                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={24} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </motion.div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">

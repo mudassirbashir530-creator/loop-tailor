@@ -12,6 +12,7 @@ import { Input } from '../components/ui/input';
 import { ArrowLeft, ArrowRight, Save, Hash, MapPin, Ruler, Loader2, Search, User, Phone, Check, Upload, X, Scissors, Calendar, CreditCard, Notebook, ChevronDown, Plus, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getMeasurementCategoriesForDress } from '../lib/measurements';
+import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
 import { cn } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/config';
 import { TemplateSelector, SaveTemplateButton } from '../components/OrderTemplates';
@@ -28,6 +29,7 @@ export default function QuickOrder() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const templateHook = useOrderTemplates(user?.uid);
+  const { templates: measurementTemplates } = useMeasurementTemplates();
   const [preGeneratedToken, setPreGeneratedToken] = useState('');
   const [gender, setGender] = useState('male');
   const [showDressDropdown, setShowDressDropdown] = useState(false);
@@ -706,54 +708,109 @@ export default function QuickOrder() {
                   <Ruler className="h-5 w-5 text-brand-primary" />
                   {t('quickOrder.measurements')}
                 </CardTitle>
-                <p className="text-sm text-slate-500 mt-2">
-                  {selectedCustomerId ? t('quickOrder.measurementsLoaded') : t('quickOrder.measurementsNew')}
-                </p>
+                {selectedCustomerId ? (
+                  <div className="flex items-center gap-2 bg-emerald-100/50 text-emerald-600 px-3 py-2 rounded-xl text-sm font-bold border border-emerald-200 w-fit mt-3">
+                    <Check className="h-4 w-4" />
+                    Loaded from customer profile. Editing here updates their profile.
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 bg-blue-100/50 text-blue-600 px-3 py-2 rounded-xl text-sm font-bold border border-blue-200 w-fit mt-3">
+                    <User className="h-4 w-4" />
+                    These measurements will be saved to the customer's profile.
+                  </div>
+                )}
               </CardHeader>
               <CardContent className="p-4 sm:p-6 space-y-8">
                 
-                {getMeasurementCategoriesForDress(orderData.dressType).map((category, index) => (
-                  <div key={category.id} className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="h-8 w-8 rounded-xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary font-black text-xs">
-                        {String(index + 1).padStart(2, '0')}
-                      </div>
-                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">
-                        {isRTL ? category.titleUr : category.titleEn}
-                      </h3>
-                      <div className="flex-1 h-px bg-gray-200/50"></div>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
-                      {category.items.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                          <div key={item.id} className="space-y-1.5 group">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
-                              <Icon className="h-3 w-3" />
-                              {isRTL ? item.ur : item.en}
-                            </label>
-                            <div className="relative">
-                              <Input 
-                                type="number" 
-                                step="0.25"
-                                value={measurements[item.id] || ''} 
-                                onChange={e => {
-                                  const val = e.target.value === '' ? '' : Number(e.target.value);
-                                  setMeasurements({...measurements, [item.id]: val});
-                                }}
-                                placeholder="0.00"
-                                className={cn("rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 transition-all h-12 text-base sm:text-sm font-bold", isRTL ? "pr-3 pl-8 text-right" : "pl-3 pr-8")}
-                                dir="ltr"
-                              />
-                              <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400", isRTL ? "left-3" : "right-3")}>{t('quickOrder.in')}</span>
-                            </div>
-                            <p className="text-[9px] text-slate-400 font-medium">{item.desc}</p>
+                {(() => {
+                  const customTemplate = measurementTemplates.find(t => t.gender === gender && t.isDefault) || measurementTemplates.find(t => t.gender === gender);
+                  
+                  if (customTemplate) {
+                    return (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                          <div className="h-8 w-8 rounded-xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary font-black text-xs">
+                            01
                           </div>
-                        );
-                      })}
+                          <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">
+                            {isRTL ? customTemplate.nameUr || customTemplate.nameEn : customTemplate.nameEn}
+                          </h3>
+                          <div className="flex-1 h-px bg-gray-200/50"></div>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
+                          {customTemplate.fields.sort((a,b) => a.order - b.order).map((field) => (
+                            <div key={field.id} className="space-y-1.5 group">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
+                                <Ruler className="h-3 w-3" />
+                                {isRTL ? field.labelUr || field.labelEn : field.labelEn}
+                              </label>
+                              <div className="relative">
+                                <Input 
+                                  type="number" 
+                                  step="0.25"
+                                  value={measurements[field.id] || ''} 
+                                  onChange={e => {
+                                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                                    setMeasurements({...measurements, [field.id]: val});
+                                  }}
+                                  placeholder="0.00"
+                                  className={cn("rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 transition-all h-12 text-base sm:text-sm font-bold", isRTL ? "pr-3 pl-8 text-right" : "pl-3 pr-8")}
+                                  dir="ltr"
+                                />
+                                <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] uppercase font-black text-slate-400", isRTL ? "left-3" : "right-3")}>
+                                  {customTemplate.unit === 'cm' ? 'CM' : 'IN'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return getMeasurementCategoriesForDress(orderData.dressType).map((category, index) => (
+                    <div key={category.id} className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="h-8 w-8 rounded-xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary font-black text-xs">
+                          {String(index + 1).padStart(2, '0')}
+                        </div>
+                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">
+                          {isRTL ? category.titleUr : category.titleEn}
+                        </h3>
+                        <div className="flex-1 h-px bg-gray-200/50"></div>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
+                        {category.items.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <div key={item.id} className="space-y-1.5 group">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
+                                <Icon className="h-3 w-3" />
+                                {isRTL ? item.ur : item.en}
+                              </label>
+                              <div className="relative">
+                                <Input 
+                                  type="number" 
+                                  step="0.25"
+                                  value={measurements[item.id] || ''} 
+                                  onChange={e => {
+                                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                                    setMeasurements({...measurements, [item.id]: val});
+                                  }}
+                                  placeholder="0.00"
+                                  className={cn("rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 transition-all h-12 text-base sm:text-sm font-bold", isRTL ? "pr-3 pl-8 text-right" : "pl-3 pr-8")}
+                                  dir="ltr"
+                                />
+                                <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400", isRTL ? "left-3" : "right-3")}>{t('quickOrder.in')}</span>
+                              </div>
+                              <p className="text-[9px] text-slate-400 font-medium">{item.desc}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ));
+                })()}
 
               </CardContent>
             </Card>

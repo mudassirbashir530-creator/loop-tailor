@@ -128,6 +128,34 @@
       },
       "required": ["shopId", "tokenId", "customerName", "dressType", "status", "price", "createdAt", "updatedAt"]
     },
+    "MeasurementTemplate": {
+      "title": "MeasurementTemplate",
+      "description": "Customizable measurement template for a shop.",
+      "type": "object",
+      "properties": {
+        "nameEn": { "type": "string" },
+        "nameUr": { "type": "string" },
+        "unit": { "type": "string", "enum": ["inch", "cm"] },
+        "gender": { "type": "string", "enum": ["male", "female", "kids"] },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "labelEn": { "type": "string" },
+              "labelUr": { "type": "string" },
+              "icon": { "type": "string" },
+              "order": { "type": "number" }
+            }
+          }
+        },
+        "isDefault": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["nameEn", "fields", "createdAt"]
+    },
     "User": {
       "title": "User",
       "description": "User profile and role information.",
@@ -213,6 +241,10 @@
     "/shops/{shopId}/measurements/{measurementId}": {
       "schema": { "$ref": "#/entities/Measurement" },
       "description": "Stores customer measurements for a specific shop. Document ID is usually the customerId."
+    },
+    "/shops/{shopId}/measurementTemplates/{templateId}": {
+      "schema": { "$ref": "#/entities/MeasurementTemplate" },
+      "description": "Stores customizable measurement templates per shop."
     },
     "/shops/{shopId}/orders/{orderId}": {
       "schema": { "$ref": "#/entities/Order" },

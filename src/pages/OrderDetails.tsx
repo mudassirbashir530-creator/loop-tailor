@@ -369,33 +369,34 @@ export default function OrderDetails() {
 
           {/* Measurements Card */}
           <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-transparent border-b border-gray-200/50 p-6">
+            <CardHeader className="bg-transparent border-b border-gray-200/50 p-6 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Ruler className="h-5 w-5 text-brand-primary" />
                 {t('orderDetails.measurements')}
               </CardTitle>
+              <Button
+                variant="ghost"
+                onClick={() => navigate(`/dashboard/customers/${order.customerId}#measurements`)}
+                className="bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-brand-primary rounded-xl h-9 text-xs font-bold border-none"
+              >
+                {t('orderDetails.edit')}
+              </Button>
             </CardHeader>
             <CardContent className="p-6">
+              <div className="mb-6 p-4 bg-brand-primary/10 rounded-2xl border border-brand-primary/20 flex items-start gap-3">
+                <Ruler className="h-5 w-5 text-brand-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-brand-primary">Historical Snapshot</p>
+                  <p className="text-xs text-brand-primary/80 mt-1">To update measurements, go to Customer Profile. The measurements shown below are a static record from when the order was placed.</p>
+                </div>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                 {order.measurements && Object.entries(order.measurements).map(([key, value]: [string, any]) => (
                   <div key={key} className="bg-gray-100 shadow-neu-pressed-sm p-4 rounded-2xl border-none">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">
                       {getMeasurementName(key, isRTL)}
                     </span>
-                    {isEditing ? (
-                      <Input 
-                        type="number"
-                        step="0.1"
-                        value={editData.measurements[key]}
-                        onChange={(e) => setEditData({
-                          ...editData, 
-                          measurements: { ...editData.measurements, [key]: e.target.value }
-                        })}
-                        className="h-10 text-sm font-bold bg-gray-100 shadow-neu-sm border-none"
-                      />
-                    ) : (
-                      <span className="text-xl font-black text-slate-900">{value}"</span>
-                    )}
+                    <span className="text-xl font-black text-slate-900">{value}"</span>
                   </div>
                 ))}
               </div>

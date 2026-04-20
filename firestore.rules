@@ -123,6 +123,12 @@ service cloud.firestore {
              (data.updatedAt is string || data.updatedAt is timestamp);
     }
 
+    function isValidMeasurementTemplate(data) {
+      return data.nameEn is string &&
+             data.fields is list &&
+             (data.createdAt is string || data.createdAt is timestamp);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -186,6 +192,13 @@ service cloud.firestore {
         allow read: if isOwner(shopId);
         allow create: if isOwner(shopId) && isValidMeasurement(request.resource.data, shopId);
         allow update: if isOwner(shopId) && isValidMeasurement(request.resource.data, shopId);
+        allow delete: if isOwner(shopId);
+      }
+
+      match /measurementTemplates/{templateId} {
+        allow read: if isOwner(shopId);
+        allow create: if isOwner(shopId) && isValidMeasurementTemplate(request.resource.data);
+        allow update: if isOwner(shopId) && isValidMeasurementTemplate(request.resource.data);
         allow delete: if isOwner(shopId);
       }
 

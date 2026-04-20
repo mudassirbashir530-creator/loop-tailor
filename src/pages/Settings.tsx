@@ -11,6 +11,7 @@ import { Edit2, Save, X, Upload, Image as ImageIcon, Loader2, Store, Phone, MapP
 import { cn } from '../lib/utils';
 import { useOrderTemplates } from '../hooks/useOrderTemplates';
 import { toast } from 'sonner';
+import { MeasurementTemplatesManager } from '../components/MeasurementTemplatesManager';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -394,6 +395,8 @@ export default function Settings() {
           </p>
         </CardContent>
       </Card>
+
+      <MeasurementTemplatesManager />
     </div>
   );
 }
