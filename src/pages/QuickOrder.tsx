@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
-import { db, storage, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
+import { db, storage, handleFirestoreError, OperationType, generateTokenId, withRetry } from '../lib/firebase';
 import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, getDocs, limit, getDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -180,117 +180,120 @@ export default function QuickOrder() {
     
     setIsSubmitting(true);
     try {
-      // 1. Generate Token ID
-      const tokenId = preGeneratedToken || await generateTokenId(user.uid);
+      await withRetry(async () => {
+        // 1. Generate Token ID
+        const tokenId = preGeneratedToken || await generateTokenId(user.uid);
 
-      // 2. Check for existing customer by phone or selected ID
-      let customerId = selectedCustomerId;
-      
-      if (!customerId && customerData.phone) {
-        const q = query(
-          collection(db, 'shops', user.uid, 'customers'), 
-          where('phone', '==', customerData.phone),
-          limit(1)
-        );
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-          customerId = snap.docs[0].id;
+        // 2. Check for existing customer by phone or selected ID
+        let customerId = selectedCustomerId;
+        
+        if (!customerId && customerData.phone) {
+          const q = query(
+            collection(db, 'shops', user.uid, 'customers'), 
+            where('phone', '==', customerData.phone),
+            limit(1)
+          );
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            customerId = snap.docs[0].id;
+          }
         }
-      }
 
-      if (customerId) {
-        // Update existing customer name/address if changed
-        await updateDoc(doc(db, 'shops', user.uid, 'customers', customerId), {
-          name: customerData.name,
-          address: customerData.address,
-          updatedAt: serverTimestamp()
-        });
-      } else {
-        // Create new customer
-        const customerRef = await addDoc(collection(db, 'shops', user.uid, 'customers'), {
-          ...customerData,
+        if (customerId) {
+          // Update existing customer name/address if changed
+          await updateDoc(doc(db, 'shops', user.uid, 'customers', customerId), {
+            name: customerData.name,
+            address: customerData.address,
+            shopId: user.uid,
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          // Create new customer
+          const customerRef = await addDoc(collection(db, 'shops', user.uid, 'customers'), {
+            ...customerData,
+            shopId: user.uid,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+          customerId = customerRef.id;
+        }
+
+        // Save/Update Measurements
+        if (Object.keys(measurements).length > 0) {
+          await setDoc(doc(db, 'shops', user.uid, 'measurements', customerId), {
+            ...measurements,
+            shopId: user.uid,
+            customerId: customerId,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        }
+
+        const price = Number(orderData.price || 0);
+        const advanceTotal = Number(orderData.advancePayment || 0);
+        let paymentStatus = 'Unpaid';
+        if (advanceTotal > 0) {
+          paymentStatus = advanceTotal >= price ? 'Paid' : 'Partial';
+        }
+
+        const initialPayments = advanceTotal > 0 ? [{
+          amount: advanceTotal,
+          date: new Date().toISOString(),
+          method: 'Cash',
+          note: 'Advance Payment'
+        }] : [];
+
+        // 3. Create Order
+        const orderRef = await addDoc(collection(db, 'shops', user.uid, 'orders'), {
           shopId: user.uid,
+          tokenId,
+          customerId,
+          customerName: customerData.name,
+          phone: customerData.phone,
+          gender: gender,
+          dressType: orderData.dressType,
+          deliveryDate: new Date(orderData.deliveryDate).toISOString(),
+          status: ORDER_STATUS.PENDING,
+          price: price,
+          advancePayment: advanceTotal,
+          paymentStatus: paymentStatus,
+          payments: initialPayments,
+          assignedWorkerId: orderData.assignedWorkerId || '',
+          quantity: Number(orderData.quantity),
+          rackLocation: orderData.rackLocation,
+          notes: orderData.notes,
+          measurements: Object.fromEntries(
+            Object.entries(measurements).map(([k, v]) => [k, Number(v) || 0])
+          ),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
-        customerId = customerRef.id;
-      }
 
-      // Save/Update Measurements
-      if (Object.keys(measurements).length > 0) {
-        await setDoc(doc(db, 'shops', user.uid, 'measurements', customerId), {
-          ...measurements,
-          shopId: user.uid,
-          customerId: customerId,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-      }
+        // 4. Upload Files (BETA - Disabled for now)
+        let referencePhotoUrl = '';
+        let sampleDesignUrl = '';
 
-      const price = Number(orderData.price || 0);
-      const advanceTotal = Number(orderData.advancePayment || 0);
-      let paymentStatus = 'Unpaid';
-      if (advanceTotal > 0) {
-        paymentStatus = advanceTotal >= price ? 'Paid' : 'Partial';
-      }
+        /* BETA: Image upload is disabled
+        if (referencePhoto) {
+          const photoRef = ref(storage, `orders/${orderRef.id}/reference_${referencePhoto.name}`);
+          await uploadBytes(photoRef, referencePhoto);
+          referencePhotoUrl = await getDownloadURL(photoRef);
+        }
 
-      const initialPayments = advanceTotal > 0 ? [{
-        amount: advanceTotal,
-        date: new Date().toISOString(),
-        method: 'Cash',
-        note: 'Advance Payment'
-      }] : [];
+        if (sampleDesign) {
+          const designRef = ref(storage, `orders/${orderRef.id}/sample_${sampleDesign.name}`);
+          await uploadBytes(designRef, sampleDesign);
+          sampleDesignUrl = await getDownloadURL(designRef);
+        }
 
-      // 3. Create Order
-      const orderRef = await addDoc(collection(db, 'shops', user.uid, 'orders'), {
-        shopId: user.uid,
-        tokenId,
-        customerId,
-        customerName: customerData.name,
-        phone: customerData.phone,
-        gender: gender,
-        dressType: orderData.dressType,
-        deliveryDate: new Date(orderData.deliveryDate).toISOString(),
-        status: ORDER_STATUS.PENDING,
-        price: price,
-        advancePayment: advanceTotal,
-        paymentStatus: paymentStatus,
-        payments: initialPayments,
-        assignedWorkerId: orderData.assignedWorkerId || '',
-        quantity: Number(orderData.quantity),
-        rackLocation: orderData.rackLocation,
-        notes: orderData.notes,
-        measurements: Object.fromEntries(
-          Object.entries(measurements).map(([k, v]) => [k, Number(v) || 0])
-        ),
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
+        if (referencePhotoUrl || sampleDesignUrl) {
+          await updateDoc(orderRef, { referencePhotoUrl, sampleDesignUrl });
+        }
+        */
 
-      // 4. Upload Files (BETA - Disabled for now)
-      let referencePhotoUrl = '';
-      let sampleDesignUrl = '';
-
-      /* BETA: Image upload is disabled
-      if (referencePhoto) {
-        const photoRef = ref(storage, `orders/${orderRef.id}/reference_${referencePhoto.name}`);
-        await uploadBytes(photoRef, referencePhoto);
-        referencePhotoUrl = await getDownloadURL(photoRef);
-      }
-
-      if (sampleDesign) {
-        const designRef = ref(storage, `orders/${orderRef.id}/sample_${sampleDesign.name}`);
-        await uploadBytes(designRef, sampleDesign);
-        sampleDesignUrl = await getDownloadURL(designRef);
-      }
-
-      if (referencePhotoUrl || sampleDesignUrl) {
-        await updateDoc(orderRef, { referencePhotoUrl, sampleDesignUrl });
-      }
-      */
-
-      // 5. Navigate to orders list
-      toast.success(t('quickOrder.orderCreated') || 'Order created successfully!');
-      navigate(`/dashboard/orders`);
+        // 5. Navigate to orders list
+        toast.success(t('quickOrder.orderCreated') || 'Order created successfully!');
+        navigate(`/dashboard/orders`);
+      }, 2); // Pass maxRetries as 2
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'quick_order');
     } finally {

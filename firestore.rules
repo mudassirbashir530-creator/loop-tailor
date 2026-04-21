@@ -72,35 +72,36 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidShop(data) {
-      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+      return (!('name' in data) || (data.name is string && data.name.size() > 0 && data.name.size() <= 100)) &&
              (!('phone' in data) || (data.phone is string && data.phone.size() <= 50)) &&
              (!('address' in data) || (data.address is string && data.address.size() <= 200)) &&
              (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 1000)) &&
              (!('invoiceFooter' in data) || (data.invoiceFooter is string && data.invoiceFooter.size() <= 500)) &&
              (!('enableWhatsappNotifications' in data) || data.enableWhatsappNotifications is bool) &&
-             (data.createdAt is string || data.createdAt is timestamp);
+             (!('uiTheme' in data) || data.uiTheme is string) &&
+             (!('createdAt' in data) || (data.createdAt is string || data.createdAt is timestamp));
     }
 
     function isValidStaff(data) {
-      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+      return (!('name' in data) || (data.name is string && data.name.size() > 0 && data.name.size() <= 100)) &&
              (!('phone' in data) || (data.phone is string && data.phone.size() <= 50)) &&
-             data.role in ['stitcher', 'cutter', 'presser'] &&
-             (data.createdAt is string || data.createdAt is timestamp);
+             (!('role' in data) || data.role in ['stitcher', 'cutter', 'presser']) &&
+             (!('createdAt' in data) || (data.createdAt is string || data.createdAt is timestamp));
     }
 
     function isValidCustomer(data, shopId) {
-      return data.shopId == shopId &&
-             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
-             data.phone is string && data.phone.size() > 0 && data.phone.size() <= 50 &&
+      return (!('shopId' in data) || data.shopId == shopId) &&
+             (!('name' in data) || (data.name is string && data.name.size() > 0 && data.name.size() <= 100)) &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() > 0 && data.phone.size() <= 50)) &&
              (!('address' in data) || (data.address is string && data.address.size() <= 200)) &&
              (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000)) &&
-             (data.createdAt is string || data.createdAt is timestamp);
+             (!('createdAt' in data) || (data.createdAt is string || data.createdAt is timestamp));
     }
 
     function isValidMeasurement(data, shopId) {
-      return data.shopId == shopId &&
-             data.customerId is string &&
-             (data.updatedAt is string || data.updatedAt is timestamp);
+      return (!('shopId' in data) || data.shopId == shopId) &&
+             (!('customerId' in data) || data.customerId is string) &&
+             (!('updatedAt' in data) || (data.updatedAt is string || data.updatedAt is timestamp));
     }
 
     function isValidOrder(data, shopId) {

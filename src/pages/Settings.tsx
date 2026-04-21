@@ -45,8 +45,12 @@ export default function Settings() {
     if (!user) return;
     setSaving(true);
     try {
-      await setDoc(doc(db, 'shops', user.uid), editData, { merge: true });
-      setShop(editData);
+      const payload = {
+        ...editData,
+        name: editData.name || shop.name, // Ensure name is always included
+      };
+      await setDoc(doc(db, 'shops', user.uid), payload, { merge: true });
+      setShop(payload);
       setIsEditing(false);
       toast.success(t('settings.settingsSaved') || 'Settings saved successfully');
     } catch (error) {

@@ -80,14 +80,45 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   console.error('Firestore Error: ', JSON.stringify(errInfo));
   
   let errorMessage = 'An unexpected error occurred.';
-  if (errInfo.error.includes('Missing or insufficient permissions')) {
-    errorMessage = 'You do not have permission to perform this action.';
+  const errorStr = errInfo.error.toLowerCase();
+  
+  if (errorStr.includes('missing or insufficient permissions')) {
+    errorMessage = 'Permission denied: Please check your account settings and verify you have access to this action.';
+  } else if (errorStr.includes('not found') || errorStr.includes('no document to update')) {
+    errorMessage = 'Record not found. Please refresh the page and try again.';
+  } else if (errorStr.includes('offline') || errorStr.includes('unavailable') || errorStr.includes('network error')) {
+    errorMessage = 'No internet connection. Please check your network and try again.';
   } else {
     errorMessage = errInfo.error;
   }
   toast.error(errorMessage);
   
   throw new Error(JSON.stringify(errInfo));
+}
+
+export async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 1
+): Promise<T> {
+  let attempt = 0;
+  while (attempt <= maxRetries) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      const errorStr = String(error?.message || error).toLowerCase();
+      const isTransient = errorStr.includes('offline') || errorStr.includes('unavailable') || errorStr.includes('network error');
+      
+      if (isTransient && attempt < maxRetries) {
+        attempt++;
+        const delayMs = attempt * 1000;
+        console.warn(`Transient error detected. Retrying operation in ${delayMs}ms (Attempt ${attempt}/${maxRetries})...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error('Operation failed after retries.');
 }
 
 /**

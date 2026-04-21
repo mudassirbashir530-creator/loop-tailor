@@ -132,9 +132,10 @@ export default function CustomerDetails() {
     try {
       await updateDoc(doc(db, 'shops', user.uid, 'customers', id), {
         ...editCustomerData,
+        shopId: user.uid,
         updatedAt: serverTimestamp()
       });
-      setCustomer({ ...customer, ...editCustomerData });
+      setCustomer({ ...customer, ...editCustomerData, shopId: user.uid });
       setIsEditingCustomer(false);
       toast.success(t('customerDetails.customerUpdated') || 'Customer updated successfully');
     } catch (error) {

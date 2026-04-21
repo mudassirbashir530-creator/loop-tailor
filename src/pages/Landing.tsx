@@ -563,8 +563,14 @@ export default function Landing() {
               <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">{t('landing.cta.subtitle')}</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link to="/signup" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto h-16 px-12 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-white text-lg font-bold shadow-2xl shadow-brand-primary/30">
-                    {t('landing.cta.button')}
+                  <Button size="lg" className="group relative overflow-hidden w-full sm:w-auto h-16 px-12 rounded-2xl bg-[#005c58] hover:bg-[#006f6a] border border-[#007a75] text-white text-lg font-bold shadow-[0_0_40px_rgba(0,111,106,0.5)] transition-all duration-300">
+                    <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-150%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(150%)]">
+                      <div className="relative h-full w-8 bg-white/20" />
+                    </div>
+                    <span className="relative flex items-center gap-2">
+                      {t('landing.cta.button')}
+                      <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                    </span>
                   </Button>
                 </Link>
               </div>
