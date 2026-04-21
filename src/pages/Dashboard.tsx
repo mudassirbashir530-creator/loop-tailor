@@ -11,7 +11,7 @@ import { Users, Scissors, CheckCircle, Clock, Plus, ArrowRight, Calendar, Trendi
 import { Link, useNavigate } from 'react-router-dom';
 import { format, addDays, isAfter, isBefore, isThisMonth, subMonths, isSameMonth } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useStaff } from '../hooks/useStaff';
 
@@ -248,8 +248,72 @@ export default function Dashboard() {
   }, [user]);
 
   if (loading && !stats.customers) {
-    // Optional: Render a skeleton or just let the empty state show.
-    // For maximum perceived performance, we render the shell immediately.
+    return (
+      <div className="space-y-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-gray-100 shadow-neu-sm rounded-3xl animate-pulse"></div>)}
+        </div>
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <div className="h-96 bg-gray-100 shadow-neu-sm rounded-3xl animate-pulse"></div>
+            <div className="h-80 bg-gray-100 shadow-neu-sm rounded-3xl animate-pulse"></div>
+          </div>
+          <div className="space-y-8">
+            <div className="h-48 bg-gray-100 shadow-neu-sm rounded-3xl animate-pulse"></div>
+            <div className="h-96 bg-gray-100 shadow-neu-sm rounded-3xl animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const hasData = allOrders.length > 0 || stats.customers > 0;
+
+  if (!loading && !hasData) {
+    return (
+      <div className="space-y-8">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">{t('dashboard.title')}</h1>
+          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">{t('dashboard.subtitle')}</p>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="py-24 px-4 text-center bg-gray-100 shadow-neu-pressed-sm rounded-[3rem] flex flex-col items-center space-y-6"
+        >
+          <div className="w-64 max-w-full opaciy-80">
+            <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="100" y="50" width="200" height="150" rx="20" fill="white" stroke="#e2e8f0" strokeWidth="8"/>
+              <rect x="140" y="90" width="120" height="20" rx="10" fill="#f1f5f9"/>
+              <rect x="140" y="130" width="80" height="20" rx="10" fill="#f1f5f9"/>
+              <circle cx="200" cy="180" r="60" stroke="#004643" strokeWidth="12" strokeDasharray="15 15" opacity="0.1"/>
+              <path d="M180 180L220 180" stroke="#004643" strokeWidth="12" strokeLinecap="round" opacity="0.2"/>
+              <path d="M200 160L200 200" stroke="#004643" strokeWidth="12" strokeLinecap="round" opacity="0.2"/>
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-slate-900">Your dashboard is empty</h3>
+            <p className="text-slate-500 font-medium mt-2 max-w-sm mx-auto">
+              Start by adding your first customer or creating a new order to see your metrics come to life.
+            </p>
+          </div>
+          <div className="flex gap-4 mt-4">
+            <Button 
+              onClick={() => navigate('/dashboard/orders/new')}
+              className="rounded-xl h-14 px-8 font-bold bg-brand-primary shadow-lg text-white"
+            >
+              <Plus className="h-5 w-5 mr-no-rtl ml-auto-rtl mr-2" />
+              Create Order
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
   }
 
   const revenueChartData = React.useMemo(() => {

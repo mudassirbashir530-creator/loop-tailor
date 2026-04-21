@@ -5,7 +5,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Plus, Search, Loader2, Users, Scissors, Pocket, UserCircle, Edit2, Trash2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 

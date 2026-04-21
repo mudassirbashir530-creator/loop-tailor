@@ -11,7 +11,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getMeasurementName } from '../lib/measurements';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';

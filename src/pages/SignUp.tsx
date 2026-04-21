@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Scissors, Mail, Lock, User, ArrowRight, ArrowLeft, Loader2, CheckCircle, Star, Shield, Zap, BadgeCheck, Globe, Camera, MapPin, Store, X, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';

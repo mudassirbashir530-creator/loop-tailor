@@ -1,6 +1,6 @@
 import React from 'react';
 import PublicLayout from '../components/PublicLayout';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Smartphone, WifiOff, Zap, Download } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 

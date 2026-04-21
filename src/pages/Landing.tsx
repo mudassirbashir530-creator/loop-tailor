@@ -40,7 +40,7 @@ import {
   Globe
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const containerVariants = {
   hidden: { opacity: 0 },

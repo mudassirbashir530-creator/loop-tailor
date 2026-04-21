@@ -328,3 +328,32 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes glow-green {
+  0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+}
+
+@keyframes flash-red {
+  0%, 100% { border-color: rgba(239, 68, 68, 0.2); }
+  50% { border-color: rgba(239, 68, 68, 0.8); }
+}
+
+.animate-pulse-opacity {
+  animation: pulse-opacity 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-glow-green {
+  animation: glow-green 2s infinite;
+}
+
+.animate-flash-red {
+  animation: flash-red 2s infinite;
+  border-width: 2px;
+  border-style: solid;
+}

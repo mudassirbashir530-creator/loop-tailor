@@ -38,6 +38,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast: "cn-toast",
+          default: "shadow-neu-sm bg-white rounded-2xl border-none font-bold",
+          error: "bg-red-50 text-red-600 border-none shadow-neu-sm rounded-2xl font-bold animate-flash-red",
+          success: "bg-emerald-50 text-emerald-600 border-none shadow-neu-sm rounded-2xl font-bold animate-glow-green",
         },
       }}
       {...props}

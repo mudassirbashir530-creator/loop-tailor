@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useMeasurementTemplates, MeasurementTemplate, MeasurementField } from '../hooks/useMeasurementTemplates';
 import { Plus, Trash2, Edit2, Check, X, GripVertical, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
 export function MeasurementTemplatesManager() {

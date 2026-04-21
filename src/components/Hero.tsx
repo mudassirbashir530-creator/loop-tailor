@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { ArrowRight, Sparkles, Scissors, TrendingUp, Users, CheckCircle, Camera, LayoutDashboard, Zap } from 'lucide-react';

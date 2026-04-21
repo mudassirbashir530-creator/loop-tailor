@@ -12,7 +12,7 @@ import Layout from './components/Layout';
 import OfflineIndicator from './components/OfflineIndicator';
 import InstallPrompt from './components/InstallPrompt';
 import UpdateNotification from './components/UpdateNotification';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Scissors } from 'lucide-react';
 
 // Eager load critical components

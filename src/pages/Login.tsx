@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Scissors, Mail, Lock, ArrowRight, ArrowLeft, Loader2, CheckCircle, Smartphone, Shield, Zap, Globe } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';

@@ -8,7 +8,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Search, Plus, User, Phone, MapPin, Notebook, ArrowRight, Loader2, UserPlus, X, Filter } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { ORDER_STATUS } from '../lib/config';
@@ -264,8 +264,12 @@ export default function Customers() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 space-y-4">
-          <Loader2 className="h-12 w-12 text-brand-primary animate-spin" />
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Accessing directory...</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-5xl">
+             {[1, 2, 3, 4, 5, 6].map((i) => (
+               <div key={i} className="h-32 bg-gray-100 shadow-neu-sm rounded-[2.5rem] animate-pulse"></div>
+             ))}
+          </div>
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mt-8">Accessing directory...</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -274,20 +278,25 @@ export default function Customers() {
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="col-span-full p-16 text-center bg-gray-100 shadow-neu-pressed-sm rounded-[2.5rem] flex flex-col items-center space-y-4"
+                className="col-span-full py-16 px-4 text-center bg-gray-100 shadow-neu-pressed-sm rounded-[3rem] flex flex-col items-center space-y-6"
               >
-                <div className="h-16 w-16 bg-gray-100 shadow-neu-sm rounded-2xl flex items-center justify-center text-slate-400">
-                  <User className="h-8 w-8" />
+                <div className="w-64 max-w-full opaciy-80">
+                  <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="200" cy="120" r="40" fill="#f1f5f9" stroke="#e2e8f0" strokeWidth="8"/>
+                    <path d="M120 250C120 205.817 155.817 170 200 170C244.183 170 280 205.817 280 250" fill="#f1f5f9" stroke="#e2e8f0" strokeWidth="8"/>
+                    <circle cx="200" cy="150" r="100" stroke="#004643" strokeWidth="12" strokeDasharray="20 20" opacity="0.1"/>
+                    <path d="M260 100V140M240 120H280" stroke="#004643" strokeWidth="12" strokeLinecap="round" opacity="0.2"/>
+                  </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">{t('customers.noCustomers')}</h3>
-                  <p className="text-slate-500 font-medium">{t('customers.trySearching')}</p>
+                  <h3 className="text-2xl font-bold text-slate-900">{t('customers.noCustomers')}</h3>
+                  <p className="text-slate-500 font-medium mt-2">{t('customers.trySearching')}</p>
                 </div>
                 <Button 
                   onClick={() => setIsAdding(true)}
-                  variant="outline"
-                  className="rounded-xl font-bold bg-gray-100 shadow-neu-sm border-none text-brand-primary hover:shadow-neu-pressed-sm mt-4"
+                  className="rounded-xl h-14 px-8 font-bold bg-brand-primary shadow-lg text-white mt-4"
                 >
+                  <Plus className="h-5 w-5 mr-no-rtl ml-auto-rtl mr-2" />
                   {t('customers.addCustomer')}
                 </Button>
               </motion.div>

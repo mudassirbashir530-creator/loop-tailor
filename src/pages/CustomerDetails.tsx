@@ -12,7 +12,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ArrowLeft, ArrowRight, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebook, Scissors, Calendar, CreditCard, Hash, Loader2, CheckCircle2, Trash2, User, Ruler } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { getAllMeasurementCategories } from '../lib/measurements';
 import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';

@@ -1,6 +1,6 @@
 import React from 'react';
 import PublicLayout from '../components/PublicLayout';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 interface LegalProps {
   title: string;

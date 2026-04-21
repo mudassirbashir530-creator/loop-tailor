@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, isBefore, startOfDay } from 'date-fns';
-import { Plus, Search, Loader2, Filter, Package, MapPin, Calendar, CheckCircle2, Clock, Hash, Scissors, ArrowRight, AlertCircle, ChevronDown, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Plus, Search, Loader2, Filter, Package, MapPin, Calendar, CheckCircle2, Clock, Hash, Scissors, ArrowRight, AlertCircle, ChevronDown, X, LayoutGrid, List } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn, isOrderOverdue } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/config';
 import { toast } from 'sonner';
@@ -34,6 +34,7 @@ export default function Orders() {
   const [dateFilter, setDateFilter] = useState('All Time');
   const [showOverdue, setShowOverdue] = useState(false);
   const [sortBy, setSortBy] = useState('Newest First');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   useEffect(() => {
     if (!user) return;
@@ -303,6 +304,28 @@ export default function Orders() {
               <option value="Price Low-High">Price Low-High</option>
             </select>
           </div>
+          
+          {/* View Toggle */}
+          <div className="flex bg-gray-100 shadow-neu-sm rounded-xl p-1">
+            <button
+              onClick={() => setViewMode('list')}
+              className={cn(
+                "p-2 rounded-lg transition-all",
+                viewMode === 'list' ? "bg-gray-100 shadow-neu-pressed-sm text-brand-primary" : "text-slate-500 hover:text-brand-primary"
+              )}
+            >
+              <List className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={cn(
+                "p-2 rounded-lg transition-all",
+                viewMode === 'kanban' ? "bg-gray-100 shadow-neu-pressed-sm text-brand-primary" : "text-slate-500 hover:text-brand-primary"
+              )}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Filter Summary Bar */}
@@ -336,78 +359,94 @@ export default function Orders() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 space-y-4">
-          <Loader2 className="h-12 w-12 text-brand-primary animate-spin" />
+          <div className="flex gap-4">
+               <div className="w-64 h-80 bg-gray-100 shadow-neu-sm rounded-[2.5rem] animate-pulse"></div>
+               <div className="w-64 h-80 bg-gray-100 shadow-neu-sm rounded-[2.5rem] animate-pulse"></div>
+               <div className="w-64 h-80 bg-gray-100 shadow-neu-sm rounded-[2.5rem] animate-pulse"></div>
+          </div>
           <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{t('orders.loading')}</p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          <AnimatePresence mode="popLayout">
-            {filteredOrders.length === 0 ? (
+        <>
+          {filteredOrders.length === 0 ? (
+            <AnimatePresence mode="wait">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="col-span-full p-16 text-center bg-gray-100 shadow-neu-pressed-sm rounded-[2.5rem] flex flex-col items-center space-y-4 border-none"
+                className="col-span-full py-16 px-4 md:px-8 text-center bg-gray-100 shadow-neu-pressed-sm rounded-[3rem] flex flex-col items-center space-y-6 border-none"
               >
-                <div className="h-16 w-16 bg-gray-100 shadow-neu-sm rounded-2xl flex items-center justify-center text-slate-400">
-                  <Package className="h-8 w-8" />
+                <div className="w-64 max-w-full opaciy-80">
+                  <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="75" y="50" width="250" height="200" rx="30" fill="white" stroke="#e2e8f0" strokeWidth="8"/>
+                    <rect x="120" y="90" width="160" height="20" rx="10" fill="#f1f5f9"/>
+                    <rect x="120" y="130" width="100" height="20" rx="10" fill="#f1f5f9"/>
+                    <rect x="120" y="170" width="140" height="20" rx="10" fill="#f1f5f9"/>
+                    <circle cx="200" cy="150" r="80" stroke="#004643" strokeWidth="12" strokeDasharray="20 20" opacity="0.1"/>
+                    <path d="M200 110L240 190H160L200 110Z" fill="#004643" opacity="0.2"/>
+                  </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">{t('orders.noOrders')}</h3>
-                  <p className="text-slate-500 font-medium">
-                    {filter === 'All' ? t('orders.startFirstOrder') : t('orders.noOrdersFound').replace('{{status}}', t(`orders.${filter.toLowerCase()}`))}
+                  <h3 className="text-2xl font-bold text-slate-900">{t('orders.noOrders')}</h3>
+                  <p className="text-slate-500 font-medium mt-2 max-w-sm mx-auto">
+                    {filter === 'All' ? "There are no orders matching your current filters. Try clearing them or start a new order." : t('orders.noOrdersFound').replace('{{status}}', t(`orders.${filter.toLowerCase()}`))}
                   </p>
                 </div>
                 <Button 
                   onClick={() => navigate('/dashboard/orders/new')}
-                  variant="outline"
-                  className="rounded-xl font-bold bg-gray-100 shadow-neu-sm border-none text-brand-primary hover:shadow-neu-pressed-sm mt-4"
+                  className="rounded-xl h-14 px-8 font-bold bg-brand-primary shadow-lg text-white mt-4"
                 >
+                  <Plus className="h-5 w-5 mr-no-rtl ml-auto-rtl mr-2" />
                   {t('orders.createOrder')}
                 </Button>
               </motion.div>
-            ) : (
-              filteredOrders.map((order, index) => {
-                const overdue = isOverdue(order.deliveryDate, order.status);
-                return (
-                  <motion.div
-                    key={order.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Card className={cn(
-                      "border-none shadow-neu rounded-[2.5rem] overflow-hidden hover:-translate-y-1 transition-all group",
-                      overdue ? "bg-red-50/50" : "bg-gray-100"
-                    )}>
-                      <CardHeader className="p-7 pb-4 flex flex-row items-start justify-between space-y-0">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <div className={cn(
-                              "p-2 rounded-xl shadow-neu-pressed-sm",
-                              overdue ? "bg-red-100 text-red-600" : "bg-gray-100 text-brand-primary"
-                            )}>
-                              <Hash className="h-4 w-4" />
+            </AnimatePresence>
+          ) : viewMode === 'list' ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <AnimatePresence mode="popLayout">
+                {filteredOrders.map((order, index) => {
+                  const overdue = isOverdue(order.deliveryDate, order.status);
+                  return (
+                    <motion.div
+                      key={order.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Card className={cn(
+                        "border-none shadow-neu rounded-[2.5rem] overflow-hidden hover:-translate-y-1 transition-all group",
+                        overdue ? "bg-red-50/50 animate-flash-red" : "bg-gray-100",
+                        order.status === ORDER_STATUS.READY ? "animate-glow-green" : ""
+                      )}>
+                        <CardHeader className="p-7 pb-4 flex flex-row items-start justify-between space-y-0">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <div className={cn(
+                                "p-2 rounded-xl shadow-neu-pressed-sm",
+                                overdue ? "bg-red-100 text-red-600" : "bg-gray-100 text-brand-primary"
+                              )}>
+                                <Hash className="h-4 w-4" />
+                              </div>
+                              <span className="text-xl font-black text-slate-900">{order.tokenId || '---'}</span>
+                              {overdue && (
+                                <span className="flex items-center gap-1 px-3 py-1 bg-red-100 shadow-neu-pressed-sm text-red-600 text-[10px] font-black rounded-xl uppercase tracking-wider animate-pulse">
+                                  <AlertCircle className="h-3 w-3" />
+                                  Overdue
+                                </span>
+                              )}
                             </div>
-                            <span className="text-xl font-black text-slate-900">{order.tokenId || '---'}</span>
-                            {overdue && (
-                              <span className="flex items-center gap-1 px-3 py-1 bg-gray-100 shadow-neu-pressed-sm text-red-600 text-[10px] font-black rounded-xl uppercase tracking-wider">
-                                <AlertCircle className="h-3 w-3" />
-                                Overdue
-                              </span>
-                            )}
+                            <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-brand-primary transition-colors line-clamp-1 mt-2">
+                              {order.customerName}
+                            </CardTitle>
                           </div>
-                          <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-brand-primary transition-colors line-clamp-1 mt-2">
-                            {order.customerName}
-                          </CardTitle>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <span className={cn(
-                            "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-neu-pressed-sm",
-                            getStatusColor(order.status)
-                          )}>
-                            {t(`orders.${order.status.toLowerCase()}`)}
-                          </span>
+                          <div className="flex flex-col items-end gap-2">
+                            <span className={cn(
+                              "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-neu-pressed-sm",
+                              getStatusColor(order.status),
+                              order.status === ORDER_STATUS.STITCHING ? "animate-pulse-opacity" : ""
+                            )}>
+                              {t(`orders.${order.status.toLowerCase()}`)}
+                            </span>
                           <span className={cn(
                             "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-neu-sm",
                             (!order.paymentStatus || order.paymentStatus === 'Unpaid') ? "bg-red-50 text-rose-500" :
@@ -507,10 +546,71 @@ export default function Orders() {
                     </Card>
                   </motion.div>
                 );
-              })
-            )}
-          </AnimatePresence>
-        </div>
+              })}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <div className="flex overflow-x-auto pb-8 gap-6 pt-4 snap-x pr-8">
+              {[ORDER_STATUS.PENDING, ORDER_STATUS.STITCHING, ORDER_STATUS.READY, ORDER_STATUS.DELIVERED].map(columnStatus => (
+                <div key={columnStatus} className="min-w-[320px] max-w-[320px] bg-gray-100/50 px-3 py-6 rounded-[2.5rem] mt-2 snap-center">
+                  <div className="flex items-center justify-between px-3 mb-6">
+                    <h3 className="font-bold text-slate-700 capitalize flex items-center gap-2">
+                      <span className={cn(
+                        "w-3 h-3 rounded-full",
+                        columnStatus === ORDER_STATUS.PENDING && "bg-slate-500",
+                        columnStatus === ORDER_STATUS.STITCHING && "bg-blue-500 animate-pulse",
+                        columnStatus === ORDER_STATUS.READY && "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]",
+                        columnStatus === ORDER_STATUS.DELIVERED && "bg-emerald-600"
+                      )} />
+                      {columnStatus.toLowerCase()}
+                    </h3>
+                    <span className="bg-gray-100 shadow-neu-pressed-sm text-xs font-black px-3 py-1 rounded-full text-slate-500">
+                      {filteredOrders.filter(o => o.status === columnStatus).length}
+                    </span>
+                  </div>
+                  <div className="space-y-4">
+                    {filteredOrders.filter(o => o.status === columnStatus).map(order => {
+                      const overdue = isOverdue(order.deliveryDate, order.status);
+                      return (
+                        <div key={order.id} className={cn(
+                          "bg-gray-100 shadow-neu p-5 rounded-3xl group cursor-pointer transition-all hover:scale-[1.02]",
+                          overdue && "animate-flash-red"
+                        )}
+                        onClick={() => navigate(`/dashboard/orders/${order.id}`)}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="font-black text-brand-primary">#{order.tokenId}</span>
+                            {overdue && <AlertCircle className="h-4 w-4 text-red-500" />}
+                          </div>
+                          <h4 className="font-bold text-slate-900 group-hover:text-brand-primary">{order.customerName}</h4>
+                          <p className="text-xs text-slate-500 mb-4">{order.dressType}</p>
+                          <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
+                            <div className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(new Date(order.deliveryDate), 'MMM dd')}</div>
+                            {columnStatus !== ORDER_STATUS.DELIVERED && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const nextStatus = columnStatus === ORDER_STATUS.PENDING ? ORDER_STATUS.STITCHING : 
+                                                       columnStatus === ORDER_STATUS.STITCHING ? ORDER_STATUS.READY : ORDER_STATUS.DELIVERED;
+                                    updateStatus(order.id, nextStatus);
+                                  }}
+                                  className="h-8 px-3 rounded-lg bg-white shadow-sm text-brand-primary hover:bg-gray-50 border border-gray-100"
+                                >
+                                  Move <ArrowRight className="h-3 w-3 ml-1" />
+                                </Button>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

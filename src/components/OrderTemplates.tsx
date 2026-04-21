@@ -3,7 +3,7 @@ import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Bookmark, BookmarkCheck, X, Scissors, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../contexts/LanguageContext';
 import { UseOrderTemplatesReturn } from '../hooks/useOrderTemplates';
 import { cn } from '../lib/utils';

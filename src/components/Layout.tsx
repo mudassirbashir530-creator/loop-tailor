@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Scissors, Users, LayoutDashboard, Settings, LogOut, FileText, UserCircle, Globe } from 'lucide-react';
+import { Scissors, Users, LayoutDashboard, Settings, LogOut, FileText, UserCircle, Globe, Plus } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import MobileBottomNav from './MobileBottomNav';
 import { db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -15,6 +15,7 @@ export default function Layout() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [shop, setShop] = useState({ name: '', phone: '', address: '' });
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) return;
@@ -156,6 +157,17 @@ export default function Layout() {
             </motion.div>
           </AnimatePresence>
         </div>
+        {/* Floating Action Button (FAB) */}
+        <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/dashboard/orders/new')}
+          className="fixed bottom-24 right-6 lg:bottom-10 lg:right-10 h-16 w-16 bg-brand-primary text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center z-50 lg:hidden"
+        >
+          <Plus className="h-8 w-8" />
+        </motion.button>
       </main>
     </div>
   );
