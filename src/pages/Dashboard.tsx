@@ -43,8 +43,11 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
   
-  type DashboardTab = string;
-  const dashboardTabs: DashboardTab[] = [t('dashboard.recentOrders'), t('dashboard.upcomingDeliveries')];
+  type DashboardTab = 'recent' | 'upcoming';
+  const dashboardTabs: { id: DashboardTab; label: string }[] = [
+    { id: 'recent', label: t('dashboard.recentOrders') },
+    { id: 'upcoming', label: t('dashboard.upcomingDeliveries') }
+  ];
   
   const [stats, setStats] = useState({
     customers: 0,
@@ -63,7 +66,7 @@ export default function Dashboard() {
   const [upcomingDeliveries, setUpcomingDeliveries] = useState<any[]>([]);
   const [allOrders, setAllOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<DashboardTab>(dashboardTabs[0]);
+  const [activeTab, setActiveTab] = useState<DashboardTab>('recent');
   const [searchToken, setSearchToken] = useState('');
   const [searchError, setSearchError] = useState('');
   const { staff } = useStaff();
@@ -82,7 +85,7 @@ export default function Dashboard() {
       return;
     }
     e.preventDefault();
-    setActiveTab(dashboardTabs[newIndex]);
+    setActiveTab(dashboardTabs[newIndex].id);
     const tabElement = document.getElementById(`dashboard-tab-${newIndex}`);
     if (tabElement) tabElement.focus();
   };
@@ -597,26 +600,26 @@ export default function Dashboard() {
                 >
                   {dashboardTabs.map((tab, index) => (
                     <button
-                      key={tab}
+                      key={tab.id}
                       id={`dashboard-tab-${index}`}
                       role="tab"
-                      aria-selected={activeTab === tab}
+                      aria-selected={activeTab === tab.id}
                       aria-controls={`dashboard-tabpanel-${index}`}
-                      tabIndex={activeTab === tab ? 0 : -1}
-                      onClick={() => setActiveTab(tab)}
+                      tabIndex={activeTab === tab.id ? 0 : -1}
+                      onClick={() => setActiveTab(tab.id)}
                       onKeyDown={(e) => handleTabKeyDown(e, index)}
                       className={cn(
                         "px-5 py-2 rounded-lg text-sm font-bold transition-all duration-300 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary",
-                        activeTab === tab 
+                        activeTab === tab.id 
                           ? "text-brand-primary shadow-neu-sm bg-gray-100" 
                           : "text-slate-500 hover:text-brand-primary"
                       )}
                     >
-                      {tab}
+                      {tab.label}
                     </button>
                   ))}
                 </div>
-                {activeTab === t('dashboard.recentOrders') ? (
+                {activeTab === 'recent' ? (
                   <Button variant="ghost" size="sm" asChild className="rounded-xl hover:shadow-neu-pressed-sm bg-gray-100 shadow-neu-sm text-brand-primary font-bold h-10 px-4 transition-all">
                     <Link to="/dashboard/orders" className="flex items-center">
                       {t('dashboard.viewAll')} <ArrowRight className={cn("h-4 w-4", isRTL ? "mr-2 rotate-180" : "ml-2")} />
@@ -633,16 +636,16 @@ export default function Dashboard() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
-                  id={`dashboard-tabpanel-${dashboardTabs.indexOf(activeTab)}`}
+                  id={`dashboard-tabpanel-${dashboardTabs.findIndex((t) => t.id === activeTab)}`}
                   role="tabpanel"
-                  aria-labelledby={`dashboard-tab-${dashboardTabs.indexOf(activeTab)}`}
+                  aria-labelledby={`dashboard-tab-${dashboardTabs.findIndex((t) => t.id === activeTab)}`}
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
                   transition={{ duration: 0.2 }}
                   className="space-y-2"
                 >
-                  {activeTab === t('dashboard.recentOrders') ? (
+                  {activeTab === 'recent' ? (
                     recentOrders.length === 0 ? (
                       <div className="p-12 text-center text-slate-500 text-sm font-medium">{t('dashboard.noRecentOrders')}</div>
                     ) : (

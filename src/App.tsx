@@ -22,17 +22,17 @@ import SignUp from './pages/SignUp';
 import ForgotPassword from './pages/ForgotPassword';
 
 // Lazy load other pages
-const Dashboard = React.lazy(() => import('./pages/Dashboard'));
-const Customers = React.lazy(() => import('./pages/Customers'));
-const CustomerDetails = React.lazy(() => import('./pages/CustomerDetails'));
-const Orders = React.lazy(() => import('./pages/Orders'));
-const QuickOrder = React.lazy(() => import('./pages/QuickOrder'));
-const OrderDetails = React.lazy(() => import('./pages/OrderDetails'));
-const Invoice = React.lazy(() => import('./pages/Invoice'));
-const Invoices = React.lazy(() => import('./pages/Invoices'));
-const Staff = React.lazy(() => import('./pages/Staff'));
-const Settings = React.lazy(() => import('./pages/Settings'));
-const Notifications = React.lazy(() => import('./pages/Notifications'));
+import Dashboard from './pages/Dashboard';
+import Customers from './pages/Customers';
+import CustomerDetails from './pages/CustomerDetails';
+import Orders from './pages/Orders';
+import QuickOrder from './pages/QuickOrder';
+import OrderDetails from './pages/OrderDetails';
+import Invoice from './pages/Invoice';
+import Invoices from './pages/Invoices';
+import Staff from './pages/Staff';
+import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
 
 // Public Pages
 const About = React.lazy(() => import('./pages/About'));
