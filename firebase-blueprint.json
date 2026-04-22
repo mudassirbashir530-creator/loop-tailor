@@ -156,6 +156,21 @@
       },
       "required": ["nameEn", "fields", "createdAt"]
     },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notifications for overdue orders, status changes, etc.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "description": "Type of notification (e.g. order_overdue, order_ready)" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "orderId": { "type": "string" },
+        "customerId": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "title", "message", "read", "createdAt"]
+    },
     "User": {
       "title": "User",
       "description": "User profile and role information.",
@@ -249,6 +264,10 @@
     "/shops/{shopId}/orders/{orderId}": {
       "schema": { "$ref": "#/entities/Order" },
       "description": "Stores tailoring orders for a specific shop."
+    },
+    "/shops/{shopId}/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "Stores user notifications for a specific shop."
     }
   }
 }

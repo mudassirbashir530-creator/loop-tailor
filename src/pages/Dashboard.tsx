@@ -14,6 +14,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useStaff } from '../hooks/useStaff';
+import { useNotifications } from '../hooks/useNotifications';
+import { doc, updateDoc } from 'firebase/firestore';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -39,6 +41,7 @@ export default function Dashboard() {
   const { t, isRTL } = useLanguage();
   const { settings } = useShop();
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
   
   type DashboardTab = string;
   const dashboardTabs: DashboardTab[] = [t('dashboard.recentOrders'), t('dashboard.upcomingDeliveries')];
@@ -235,6 +238,25 @@ export default function Dashboard() {
       if (isFirstLoad) {
         setLoading(false);
         isFirstLoad = false;
+
+        // Check for overdue orders and trigger notifications
+        allOrders.forEach(order => {
+          if (order.status !== ORDER_STATUS.DELIVERED && isOrderOverdue(order.deliveryDate)) {
+            const todayStr = format(new Date(), 'yyyy-MM-dd');
+            if (order.lastNotifiedDate !== todayStr) {
+               addNotification({
+                  type: 'order_overdue',
+                  title: 'Order Overdue!',
+                  message: `Order #${order.tokenId} for ${order.customerName} is overdue!`,
+                  orderId: order.id,
+                  customerId: order.customerId
+               });
+               updateDoc(doc(db, 'shops', user.uid, 'orders', order.id), {
+                  lastNotifiedDate: todayStr
+               }).catch(console.error);
+            }
+          }
+        });
       }
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'dashboard_orders');

@@ -8,14 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, isBefore, startOfDay } from 'date-fns';
-import { Plus, Search, Loader2, Filter, Package, MapPin, Calendar, CheckCircle2, Clock, Hash, Scissors, ArrowRight, AlertCircle, ChevronDown, X, LayoutGrid, List } from 'lucide-react';
+import { Plus, Search, Loader2, Filter, Package, MapPin, Calendar, CheckCircle2, Hash, Scissors, ArrowRight, AlertCircle, ChevronDown, X, LayoutGrid, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, isOrderOverdue } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/config';
 import { toast } from 'sonner';
-import { sendWhatsappNotification } from '../lib/notifications';
+import { sendOrderReadyMessage } from '../lib/whatsapp';
 import { useStaff } from '../hooks/useStaff';
 import { User } from 'lucide-react';
+import { useNotifications } from '../hooks/useNotifications';
 
 export default function Orders() {
   const { user } = useAuth();
@@ -23,6 +24,7 @@ export default function Orders() {
   const { settings } = useShop();
   const navigate = useNavigate();
   const { staff } = useStaff();
+  const { addNotification } = useNotifications();
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -65,19 +67,43 @@ export default function Orders() {
       });
       toast.success(t('orders.statusUpdated') || 'Status updated successfully');
 
-      // Send WhatsApp Notification if configured and status is Ready/Delivered
-      if (settings.enableWhatsappNotifications && (newStatus === ORDER_STATUS.READY || newStatus === ORDER_STATUS.DELIVERED)) {
-        const order = orders.find(o => o.id === orderId);
-        if (order && order.phone) {
-          await sendWhatsappNotification({
-            to: order.phone,
-            customerName: order.customerName,
-            dressType: order.dressType || 'Suit',
-            token: order.tokenId,
-            shopName: settings.name || 'Loop Tailor',
-            status: newStatus,
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        if (newStatus === ORDER_STATUS.STITCHING) {
+          addNotification({
+            type: 'order_started',
+            title: 'Order Started',
+            message: `Order #${order.tokenId} for ${order.customerName} is now being stitched.`,
             orderId: order.id,
-            shopId: user!.uid
+            customerId: order.customerId
+          });
+        } else if (newStatus === ORDER_STATUS.READY) {
+          addNotification({
+            type: 'order_ready',
+            title: 'Order Ready',
+            message: `${order.customerName}'s suit is ready for pickup or delivery.`,
+            orderId: order.id,
+            customerId: order.customerId
+          });
+          
+          // Trigger Push Notification
+          fetch('/api/notify/push', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              shopId: user?.uid,
+              title: "🎉 Order Ready!",
+              body: `${order.customerName} ka suit tayar hai - #${order.tokenId}`,
+              orderId: order.id
+            })
+          }).catch(console.error);
+        } else if (newStatus === ORDER_STATUS.DELIVERED) {
+          addNotification({
+            type: 'order_delivered',
+            title: 'Order Delivered',
+            message: `Order #${order.tokenId} was delivered to ${order.customerName}.`,
+            orderId: order.id,
+            customerId: order.customerId
           });
         }
       }
@@ -516,15 +542,39 @@ export default function Orders() {
                               </Button>
                             )}
                             {order.status === ORDER_STATUS.READY && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                onClick={() => updateStatus(order.id, ORDER_STATUS.DELIVERED)}
-                                className="text-emerald-600 hover:text-emerald-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
-                              >
-                                <CheckCircle2 className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
-                                {t('orders.deliver')}
-                              </Button>
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (order.phone) {
+                                      sendOrderReadyMessage(
+                                        order.customerName, 
+                                        order.dressType || 'Suit', 
+                                        order.tokenId, 
+                                        settings?.name || 'Loop Tailor', 
+                                        order.phone,
+                                        settings?.messageTemplates
+                                      );
+                                    } else {
+                                      toast.error("Customer phone number is missing.");
+                                    }
+                                  }}
+                                  className="text-white bg-[#25D366] hover:bg-[#20bd5a] shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
+                                >
+                                  Notify Customer
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={() => updateStatus(order.id, ORDER_STATUS.DELIVERED)}
+                                  className="text-emerald-600 hover:text-emerald-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
+                                >
+                                  <CheckCircle2 className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
+                                  {t('orders.deliver')}
+                                </Button>
+                              </>
                             )}
                             {order.status === ORDER_STATUS.DELIVERED && (
                               <div className="bg-gray-100 shadow-neu-pressed-sm text-emerald-600 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5">

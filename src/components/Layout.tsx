@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MobileBottomNav from './MobileBottomNav';
 import { db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import NotificationBell from './NotificationBell';
 
 export default function Layout() {
   const { logOut, user } = useAuth();
@@ -53,6 +54,7 @@ export default function Layout() {
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-gray-100 shadow-neu-sm flex items-center justify-between px-4 z-30">
         <span className="text-lg font-display font-bold text-brand-primary">Loop Tailor</span>
         <div className="flex items-center gap-3">
+          <NotificationBell />
           <button 
             onClick={toggleLanguage}
             className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 shadow-neu-sm text-slate-600 hover:shadow-neu-pressed-sm transition-all"
@@ -80,18 +82,21 @@ export default function Layout() {
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-72 bg-gray-100 flex-col z-20 shadow-neu">
-        <Link to="/dashboard" className="h-24 flex items-center px-8 cursor-pointer mb-4">
-          <motion.div 
-            whileHover={{ rotate: 180 }}
-            transition={{ duration: 0.5 }}
-            className={cn("bg-gray-100 p-3 rounded-2xl shadow-neu-sm", isRTL ? "ml-4" : "mr-4")}
-          >
-            <Scissors className="h-6 w-6 text-brand-primary" />
-          </motion.div>
-          <span className="text-2xl font-display font-black tracking-tight text-brand-primary">
-            Loop Tailor
-          </span>
-        </Link>
+        <div className="h-24 flex items-center justify-between px-6 mb-4">
+          <Link to="/dashboard" className="flex items-center cursor-pointer">
+            <motion.div 
+              whileHover={{ rotate: 180 }}
+              transition={{ duration: 0.5 }}
+              className={cn("bg-gray-100 p-3 rounded-2xl shadow-neu-sm", isRTL ? "ml-3" : "mr-3")}
+            >
+              <Scissors className="h-6 w-6 text-brand-primary" />
+            </motion.div>
+            <span className="text-xl font-display font-black tracking-tight text-brand-primary">
+              Loop Tailor
+            </span>
+          </Link>
+          <NotificationBell />
+        </div>
         
         <nav className="flex-1 px-6 py-4 space-y-4">
           {navItems.map((item) => {

@@ -130,6 +130,16 @@ service cloud.firestore {
              (data.createdAt is string || data.createdAt is timestamp);
     }
 
+    function isValidNotification(data) {
+      return (!('type' in data) || data.type is string) &&
+             (!('title' in data) || data.title is string) &&
+             (!('message' in data) || data.message is string) &&
+             (!('orderId' in data) || data.orderId is string) &&
+             (!('customerId' in data) || data.customerId is string) &&
+             (!('read' in data) || data.read is bool) &&
+             (!('createdAt' in data) || (data.createdAt is string || data.createdAt is timestamp));
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -207,6 +217,13 @@ service cloud.firestore {
         allow read: if isOwner(shopId);
         allow create: if isOwner(shopId) && isValidOrder(request.resource.data, shopId);
         allow update: if isOwner(shopId) && isValidOrder(request.resource.data, shopId);
+        allow delete: if isOwner(shopId);
+      }
+
+      match /notifications/{notificationId} {
+        allow read: if isOwner(shopId);
+        allow create: if isOwner(shopId) && isValidNotification(request.resource.data);
+        allow update: if isOwner(shopId) && isValidNotification(request.resource.data);
         allow delete: if isOwner(shopId);
       }
     }

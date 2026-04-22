@@ -4,7 +4,6 @@ import path from "path";
 import crypto from "crypto";
 import admin from "firebase-admin";
 import nodemailer from "nodemailer";
-import twilio from "twilio";
 
 // Initialize Firebase Admin (requires GOOGLE_APPLICATION_CREDENTIALS in production)
 try {
@@ -24,20 +23,6 @@ try {
 const db = admin.firestore();
 
 let transporter: nodemailer.Transporter | null = null;
-let twilioClient: twilio.Twilio | null = null;
-
-function getTwilioClient() {
-  if (twilioClient) return twilioClient;
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  
-  if (accountSid && authToken) {
-    twilioClient = twilio(accountSid, authToken);
-  } else {
-    console.warn("Twilio credentials missing. WhatsApp notifications will be disabled.");
-  }
-  return twilioClient;
-}
 
 async function getTransporter() {
   if (transporter) return transporter;
@@ -283,66 +268,80 @@ async function startServer() {
     }
   });
 
-  /**
-   * Twilio WhatsApp Notification Endpoint
-   */
-  app.post("/api/notify/whatsapp", async (req, res) => {
+  app.post("/api/notify/push", async (req, res) => {
     try {
-      const { to, customerName, dressType, token, shopName, status, orderId, shopId } = req.body;
-
-      if (!to || !customerName || !status) {
-        return res.status(400).json({ error: "Missing required notification fields" });
+      const { shopId, title, body, orderId } = req.body;
+      
+      if (!shopId || !title || !body) {
+        return res.status(400).json({ error: "Missing required fields" });
       }
 
-      const client = getTwilioClient();
-      if (!client) {
-        return res.status(503).json({ error: "Twilio is not configured on this server" });
+      // Check if we have Firebase credentials initialized
+      if (!admin.apps.length) {
+         return res.status(500).json({ error: "Firebase Admin is not configured" });
       }
 
-      // Format phone number to E.164. Twilio requires 'whatsapp:+1234567890' format.
-      // Assuming 'to' comes in some format, we strip non-digits. Let's assume user provides country code.
-      const digitsOnly = to.replace(/\\D/g, "");
-      // Very basic formatting assumption: if missing '+', prepend it. 
-      // For WhatsApp sandbox, the 'to' number needs to have joined the sandbox.
-      const formattedTo = `whatsapp:+${digitsOnly}`;
-      const fromNumber = process.env.TWILIO_WHATSAPP_FROM || "whatsapp:+14155238886"; // Default Twilio Sandbox number
-
-      let messageBody = "";
-      if (status === "Ready") {
-        messageBody = `Assalam o Alaikum ${customerName}!\nAap ka suit ${dressType} tayar ho gaya hai.\nToken: ${token} - ${shopName}`;
-      } else if (status === "Delivered") {
-        messageBody = `Shukriya ${customerName}!\nOrder #${token} deliver ho gaya. - ${shopName}`;
-      } else {
-        return res.status(400).json({ error: "Unsupported notification status" });
+      const tokensRef = db.collection('shops').doc(shopId).collection('fcmTokens');
+      const tokensSnap = await tokensRef.get();
+      
+      if (tokensSnap.empty) {
+        return res.json({ success: true, message: "No tokens registered for this shop" });
       }
 
-      const message = await client.messages.create({
-        body: messageBody,
-        from: fromNumber,
-        to: formattedTo,
+      const tokens: string[] = [];
+      tokensSnap.forEach(doc => {
+        if (doc.data().token) {
+          tokens.push(doc.data().token);
+        }
       });
 
-      // Log notification to Firestore if orderId and shopId are provided
-      if (orderId && shopId) {
-        try {
-          await db.collection("shops").doc(shopId).collection("orders").doc(orderId).update({
-            notificationLogs: admin.firestore.FieldValue.arrayUnion({
-              type: 'whatsapp',
-              status,
-              sentAt: admin.firestore.Timestamp.now(),
-              messageSid: message.sid,
-              to: formattedTo
-            })
+      if (tokens.length === 0) {
+        return res.json({ success: true, message: "No valid tokens found" });
+      }
+
+      const message = {
+        notification: {
+          title,
+          body
+        },
+        data: {
+          orderId: orderId || "",
+          route: orderId ? `/dashboard/orders/${orderId}` : "/dashboard"
+        },
+        tokens
+      };
+
+      const response = await admin.messaging().sendEachForMulticast(message);
+      
+      // Cleanup expired/invalid tokens
+      if (response.failureCount > 0) {
+        const failedTokens: string[] = [];
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            failedTokens.push(tokens[idx]);
+          }
+        });
+        
+        // Remove failed tokens from Firestore
+        if (failedTokens.length > 0) {
+          const batch = db.batch();
+          tokensSnap.forEach(doc => {
+            if (failedTokens.includes(doc.data().token)) {
+              batch.delete(doc.ref);
+            }
           });
-        } catch (dbError) {
-          console.error("Failed to log notification to order:", dbError);
+          await batch.commit().catch(console.error);
         }
       }
 
-      res.status(200).json({ success: true, messageSid: message.sid });
+      return res.json({ 
+        success: true, 
+        successCount: response.successCount,
+        failureCount: response.failureCount
+      });
     } catch (error) {
-      console.error("Twilio WhatsApp error:", error);
-      res.status(500).json({ error: "Failed to send WhatsApp notification" });
+      console.error("Error sending push notification:", error);
+      return res.status(500).json({ error: "Failed to send notification" });
     }
   });
 

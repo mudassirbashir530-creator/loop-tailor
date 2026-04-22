@@ -32,6 +32,7 @@ const Invoice = React.lazy(() => import('./pages/Invoice'));
 const Invoices = React.lazy(() => import('./pages/Invoices'));
 const Staff = React.lazy(() => import('./pages/Staff'));
 const Settings = React.lazy(() => import('./pages/Settings'));
+const Notifications = React.lazy(() => import('./pages/Notifications'));
 
 // Public Pages
 const About = React.lazy(() => import('./pages/About'));
@@ -246,6 +247,7 @@ export default function App() {
                 <Route path="invoices" element={<Invoices />} />
                 <Route path="staff" element={<Staff />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="notifications" element={<Notifications />} />
               </Route>
 
               {/* Admin Routes */}

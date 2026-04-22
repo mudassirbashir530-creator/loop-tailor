@@ -13,11 +13,30 @@ import { useOrderTemplates } from '../hooks/useOrderTemplates';
 import { toast } from 'sonner';
 import { MeasurementTemplatesManager } from '../components/MeasurementTemplatesManager';
 
+export interface ShopSettings {
+  name: string;
+  phone: string;
+  address: string;
+  logoUrl: string;
+  invoiceFooter: string;
+  uiTheme: 'neumorphic' | 'minimalist' | 'elegant';
+  enableWhatsappNotifications: boolean;
+  messageTemplates?: {
+    orderReady?: string;
+    delivered?: string;
+    paymentReminder?: string;
+  };
+}
+
+import { usePushNotifications } from '../hooks/usePushNotifications';
+import { Bell } from 'lucide-react';
+
 export default function Settings() {
   const { user } = useAuth();
   const { t, isRTL, language, setLanguage } = useLanguage();
-  const [shop, setShop] = useState<{name: string, phone: string, address: string, logoUrl: string, invoiceFooter: string, uiTheme: 'neumorphic' | 'minimalist' | 'elegant', enableWhatsappNotifications: boolean}>({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic', enableWhatsappNotifications: false });
-  const [editData, setEditData] = useState<{name: string, phone: string, address: string, logoUrl: string, invoiceFooter: string, uiTheme: 'neumorphic' | 'minimalist' | 'elegant', enableWhatsappNotifications: boolean}>({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic', enableWhatsappNotifications: false });
+  const { permission, token, isLoading, requestPermission } = usePushNotifications();
+  const [shop, setShop] = useState<ShopSettings>({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic', enableWhatsappNotifications: false });
+  const [editData, setEditData] = useState<ShopSettings>({ name: '', phone: '', address: '', logoUrl: '', invoiceFooter: '', uiTheme: 'neumorphic', enableWhatsappNotifications: false });
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -188,20 +207,96 @@ export default function Settings() {
                     <Input value={editData.invoiceFooter || ''} onChange={e => setEditData({...editData, invoiceFooter: e.target.value})} placeholder="Thank you for your business!" className={cn(isRTL ? "pr-12" : "pl-12")} />
                   </div>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-100 shadow-neu-sm rounded-2xl">
-                  <div>
-                    <label className="text-sm font-bold block text-brand-primary">WhatsApp Notifications</label>
-                    <p className="text-xs text-slate-500 mt-1">Send automatic updates to customers when orders are ready or delivered.</p>
+                <div className="flex flex-col gap-4 p-4 bg-gray-100 shadow-neu-sm rounded-2xl">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-bold block text-[#25D366]">WhatsApp Templates</label>
+                      <p className="text-xs text-slate-500 mt-1">Customize the messages sent to your customers.</p>
+                    </div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer" 
-                      checked={editData.enableWhatsappNotifications || false}
-                      onChange={(e) => setEditData({...editData, enableWhatsappNotifications: e.target.checked})}
-                    />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-neu-pressed-sm"></div>
-                  </label>
+                  <div className="space-y-4 pt-2 border-t border-gray-200/50">
+                    <div>
+                      <label className="text-xs font-bold mb-1 block">"Order Ready" Message</label>
+                      <p className="text-[10px] text-slate-500 mb-2">Variables: {'{customerName}'}, {'{tokenId}'}, {'{dressType}'}, {'{shopName}'}</p>
+                      <textarea 
+                        value={editData.messageTemplates?.orderReady || `السلام علیکم *{customerName}* صاحب! 🎉\n\nآپ کا سوٹ تیار ہو گیا ہے۔\n\n📋 *Order Details:*\n• Token: #{tokenId}\n• Dress: {dressType}\n• Shop: {shopName}\n\nبراہ کرم جلد تشریف لائیں۔\nشکریہ 🙏`}
+                        onChange={(e) => setEditData({...editData, messageTemplates: {...editData.messageTemplates, orderReady: e.target.value}})}
+                        className="w-full h-32 p-3 text-sm rounded-xl bg-white shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-[#25D366]/20 outline-none"
+                        dir="auto"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold mb-1 block">"Order Delivered" Message</label>
+                      <p className="text-[10px] text-slate-500 mb-2">Variables: {'{customerName}'}, {'{tokenId}'}, {'{shopName}'}</p>
+                      <textarea 
+                        value={editData.messageTemplates?.delivered || `شکریہ *{customerName}* صاحب! \nOrder #{tokenId} deliver ہو گیا۔ \nدوبارہ تشریف لائیں! - {shopName}`}
+                        onChange={(e) => setEditData({...editData, messageTemplates: {...editData.messageTemplates, delivered: e.target.value}})}
+                        className="w-full h-20 p-3 text-sm rounded-xl bg-white shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-[#25D366]/20 outline-none"
+                        dir="auto"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold mb-1 block">"Payment Reminder" Message</label>
+                      <p className="text-[10px] text-slate-500 mb-2">Variables: {'{customerName}'}, {'{balance}'}, {'{shopName}'}</p>
+                      <textarea 
+                        value={editData.messageTemplates?.paymentReminder || `*{customerName}* صاحب، \nآپ کا بقایا *PKR {balance}* ہے۔ \n- {shopName}`}
+                        onChange={(e) => setEditData({...editData, messageTemplates: {...editData.messageTemplates, paymentReminder: e.target.value}})}
+                        className="w-full h-20 p-3 text-sm rounded-xl bg-white shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-[#25D366]/20 outline-none"
+                        dir="auto"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-4 p-4 bg-gray-100 shadow-neu-sm rounded-2xl border-t border-gray-200/50 mt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-bold block text-brand-primary flex items-center gap-2">
+                        <Bell className="h-4 w-4" /> 
+                        Browser Push Notifications
+                      </label>
+                      <p className="text-xs text-slate-500 mt-1">Get desktop/mobile alerts when orders are ready.</p>
+                      <p className="text-xs mt-1 font-medium">
+                        Status: {
+                          permission === 'granted' ? <span className="text-emerald-500">Enabled ✅</span> : 
+                          permission === 'denied' ? <span className="text-rose-500">Blocked ❌</span> : 
+                          <span className="text-amber-500">Not Requested</span>
+                        }
+                      </p>
+                    </div>
+                    {permission !== 'granted' && (
+                      <Button 
+                        type="button"
+                        onClick={requestPermission} 
+                        disabled={isLoading || permission === 'denied'}
+                        className="bg-brand-primary text-white shadow-neu-sm hover:shadow-neu-pressed-sm rounded-xl h-10 px-4 font-bold border-none"
+                      >
+                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enable'}
+                      </Button>
+                    )}
+                  </div>
+                  {permission === 'granted' && window.location.hostname.includes('localhost') && (
+                    <div className="pt-2">
+                       <Button 
+                          type="button"
+                          onClick={() => {
+                            // Test local notification since we might not have full FCM backend tested
+                            if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+                              navigator.serviceWorker.ready.then(registration => {
+                                registration.showNotification('Test Notification', {
+                                  body: 'This is a test push notification from Loop Tailor.',
+                                  icon: '/icon-192x192.svg'
+                                });
+                              });
+                            }
+                          }}
+                          variant="outline"
+                          className="w-full text-xs bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm rounded-xl h-9 border-none font-bold text-slate-500"
+                       >
+                         Send Test Notification
+                       </Button>
+                    </div>
+                  )}
                 </div>
               </div>
 

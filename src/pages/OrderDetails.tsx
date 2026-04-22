@@ -15,8 +15,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getMeasurementName } from '../lib/measurements';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
-import { sendWhatsappNotification } from '../lib/notifications';
+import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage } from '../lib/whatsapp';
 import { useStaff } from '../hooks/useStaff';
+import { MessageCircle } from 'lucide-react';
 
 export default function OrderDetails() {
   const { id } = useParams();
@@ -33,6 +34,8 @@ export default function OrderDetails() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'Cash', note: '' });
+  const [customWaMessage, setCustomWaMessage] = useState('');
+  const [showCustomWa, setShowCustomWa] = useState(false);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -86,21 +89,6 @@ export default function OrderDetails() {
         updatedAt: serverTimestamp() 
       });
       toast.success(t('orderDetails.statusUpdated') || 'Status updated successfully');
-
-      if (settings.enableWhatsappNotifications && (newStatus === ORDER_STATUS.READY || newStatus === ORDER_STATUS.DELIVERED)) {
-        if (order && order.phone) {
-          await sendWhatsappNotification({
-            to: order.phone,
-            customerName: order.customerName,
-            dressType: order.dressType || 'Suit',
-            token: order.tokenId,
-            shopName: settings.name || 'Loop Tailor',
-            status: newStatus,
-            orderId: order.id,
-            shopId: user.uid
-          });
-        }
-      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
     }
@@ -520,6 +508,80 @@ export default function OrderDetails() {
                   {t('orderDetails.viewFullInvoice')}
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* WhatsApp Communications Card */}
+          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="bg-transparent border-b border-gray-200/50 p-6">
+              <CardTitle className="text-lg font-bold text-[#25D366] flex items-center gap-2">
+                <MessageCircle className="h-5 w-5" />
+                WhatsApp Messages
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              {!order.phone ? (
+                <div className="text-sm font-bold text-slate-500 bg-gray-100 shadow-neu-pressed-sm p-4 rounded-xl text-center">
+                  Customer phone missing
+                </div>
+              ) : (
+                <>
+                  <Button 
+                    onClick={() => sendOrderReadyMessage(order.customerName, order.dressType || 'Suit', order.tokenId, settings?.name || 'Loop Tailor', order.phone, settings?.messageTemplates)}
+                    className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-2xl h-12 shadow-neu-sm border-none flex justify-center items-center gap-2"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Send "Order Ready"
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => sendPaymentReminderMessage(order.customerName, balanceDue.toString(), settings?.name || 'Loop Tailor', order.phone, settings?.messageTemplates)}
+                    className="w-full bg-gray-100 hover:bg-gray-50 text-slate-700 font-bold rounded-2xl h-12 shadow-neu-sm hover:shadow-neu-pressed-sm border-none flex justify-center items-center gap-2"
+                  >
+                    <CreditCard className="h-4 w-4" /> Payment Reminder
+                  </Button>
+
+                  {showCustomWa ? (
+                    <div className="pt-4 border-t border-gray-200/50 space-y-3">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Custom Message</span>
+                      <textarea
+                        value={customWaMessage}
+                        onChange={(e) => setCustomWaMessage(e.target.value)}
+                        placeholder="Write a custom message for WhatsApp..."
+                        className="w-full p-4 rounded-xl resize-none bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-0 text-sm font-medium text-slate-700 outline-none"
+                        rows={3}
+                      />
+                      <div className="flex gap-3">
+                        <Button
+                          variant="ghost" 
+                          onClick={() => setShowCustomWa(false)}
+                          className="flex-1 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm rounded-xl h-10 border-none text-slate-500 font-bold"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            sendWhatsAppMessage(order.phone, customWaMessage);
+                            setShowCustomWa(false);
+                            setCustomWaMessage('');
+                          }}
+                          className="flex-1 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl h-10 shadow-neu-sm border-none font-bold"
+                          disabled={!customWaMessage.trim()}
+                        >
+                          Send WhatsApp
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button 
+                      variant="ghost"
+                      onClick={() => setShowCustomWa(true)}
+                      className="w-full text-brand-primary font-bold rounded-2xl h-12 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none flex justify-center items-center gap-2"
+                    >
+                      <Edit2 className="h-4 w-4" /> Custom Message
+                    </Button>
+                  )}
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -19,6 +19,7 @@ import { TemplateSelector, SaveTemplateButton } from '../components/OrderTemplat
 import { useOrderTemplates } from '../hooks/useOrderTemplates';
 import { useStaff } from '../hooks/useStaff';
 import { toast } from 'sonner';
+import { useNotifications } from '../hooks/useNotifications';
 
 export default function QuickOrder() {
   const { user } = useAuth();
@@ -26,6 +27,7 @@ export default function QuickOrder() {
   const { settings } = useShop();
   const navigate = useNavigate();
   const { staff } = useStaff();
+  const { addNotification } = useNotifications();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const templateHook = useOrderTemplates(user?.uid);
@@ -268,7 +270,26 @@ export default function QuickOrder() {
           updatedAt: serverTimestamp()
         });
 
-        // 4. Upload Files (BETA - Disabled for now)
+        // 4. Notifications
+        addNotification({
+          type: 'new_order',
+          title: 'New Order',
+          message: `New order #${tokenId} created for ${customerData.name}.`,
+          orderId: orderRef.id,
+          customerId: customerId
+        });
+
+        if (price > advanceTotal) {
+          addNotification({
+            type: 'payment_pending',
+            title: 'Payment Pending',
+            message: `PKR ${price - advanceTotal} is pending from ${customerData.name} for order #${tokenId}.`,
+            orderId: orderRef.id,
+            customerId: customerId
+          });
+        }
+
+        // 5. Upload Files (BETA - Disabled for now)
         let referencePhotoUrl = '';
         let sampleDesignUrl = '';
 
