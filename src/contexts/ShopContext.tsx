@@ -13,6 +13,11 @@ interface ShopSettings {
   currency: string;
   uiTheme: 'neumorphic' | 'minimalist' | 'elegant';
   enableWhatsappNotifications?: boolean;
+  messageTemplates?: {
+    orderReady?: string;
+    delivered?: string;
+    paymentReminder?: string;
+  };
 }
 
 interface ShopContextType {
@@ -28,6 +33,7 @@ const defaultSettings: ShopSettings = {
   invoiceFooter: '',
   currency: APP_CONFIG.defaultCurrency,
   uiTheme: 'neumorphic',
+  enableWhatsappNotifications: false,
 };
 
 const ShopContext = createContext<ShopContextType>({
@@ -61,6 +67,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
           currency: data.currency || APP_CONFIG.defaultCurrency,
           uiTheme: data.uiTheme || 'neumorphic',
           enableWhatsappNotifications: !!data.enableWhatsappNotifications,
+          messageTemplates: data.messageTemplates || undefined,
         });
       }
       setLoading(false);

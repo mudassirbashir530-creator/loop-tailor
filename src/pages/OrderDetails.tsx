@@ -106,17 +106,23 @@ export default function OrderDetails() {
       // In case status was changed directly in the edit modal to Ready or Delivered
       if (editData.status !== order.status) {
         if (settings.enableWhatsappNotifications && (editData.status === ORDER_STATUS.READY || editData.status === ORDER_STATUS.DELIVERED)) {
-          if (editData.phone || order.phone) {
-            await sendWhatsappNotification({
-              to: editData.phone || order.phone,
-              customerName: editData.customerName || order.customerName,
-              dressType: editData.dressType || order.dressType || 'Suit',
-              token: order.tokenId,
-              shopName: settings.name || 'Loop Tailor',
-              status: editData.status,
-              orderId: order.id,
-              shopId: user.uid
-            });
+          const phoneNumber = editData.phone || order.phone;
+          if (phoneNumber) {
+            if (editData.status === ORDER_STATUS.READY) {
+               sendOrderReadyMessage(
+                  editData.customerName || order.customerName,
+                  editData.dressType || order.dressType || 'Suit',
+                  order.tokenId,
+                  settings.name || 'Loop Tailor',
+                  phoneNumber,
+                  settings.messageTemplates
+               );
+            } else if (editData.status === ORDER_STATUS.DELIVERED) {
+               sendWhatsAppMessage(
+                  phoneNumber,
+                  settings.messageTemplates?.delivered || `شکریہ *${editData.customerName || order.customerName}* صاحب! \nOrder #${order.tokenId} deliver ہو گیا۔ \nدوبارہ تشریف لائیں! - ${settings.name || 'Loop Tailor'}`
+               );
+            }
           }
         }
       }

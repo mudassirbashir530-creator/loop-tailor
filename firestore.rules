@@ -226,6 +226,14 @@ service cloud.firestore {
         allow update: if isOwner(shopId) && isValidNotification(request.resource.data);
         allow delete: if isOwner(shopId);
       }
+
+      match /orderTemplates/{templateId} {
+        allow read, write: if isOwner(shopId);
+      }
+
+      match /fcmTokens/{tokenId} {
+        allow read, write: if isOwner(shopId);
+      }
     }
   }
 }
