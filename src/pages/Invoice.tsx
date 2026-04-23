@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
 import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2, MessageCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
@@ -26,36 +26,77 @@ export default function Invoice() {
   const [customer, setCustomer] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const handleSnapshotError = (error: unknown, path: string) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Invoice snapshot error at ${path}:`, message);
+    setLoadError(message);
+    if (message.toLowerCase().includes('missing or insufficient permissions')) {
+      toast.error('Permission denied: Please verify your account access and try again.');
+      return;
+    }
+    toast.error(message);
+  };
 
   useEffect(() => {
     if (!user || !id) return;
-    
+    setLoadError(null);
+    setOrder(null);
+    setCustomer(null);
+
     const unsubOrder = onSnapshot(doc(db, 'shops', user.uid, 'orders', id), (orderSnap) => {
       if (!orderSnap.exists() || orderSnap.data().shopId !== user.uid) {
         navigate('/dashboard/orders');
         return;
       }
       setOrder({ id: orderSnap.id, ...orderSnap.data() });
-    }, (error) => handleFirestoreError(error, OperationType.GET, `invoice/${id}`));
-
-    const unsubShop = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
-      if (shopSnap.exists()) setShop(shopSnap.data());
-    }, (error) => handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`));
+    }, (error) => handleSnapshotError(error, `shops/${user.uid}/orders/${id}`));
 
     return () => {
       unsubOrder();
-      unsubShop();
     };
   }, [user, id, navigate]);
 
   useEffect(() => {
-    if (!user || !order?.customerId) return;
+    if (!user) return;
+
+    const unsubShop = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
+      if (shopSnap.exists()) {
+        setShop(shopSnap.data());
+      }
+    }, (error) => handleSnapshotError(error, `shops/${user.uid}`));
+
+    return () => {
+      unsubShop();
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!order?.customerId) {
+      setCustomer(null);
+      return;
+    }
+    if (!user) return;
+
     const unsubCustomer = onSnapshot(doc(db, 'shops', user.uid, 'customers', order.customerId), (custSnap) => {
       if (custSnap.exists()) setCustomer(custSnap.data());
-    }, (error) => handleFirestoreError(error, OperationType.GET, `customers/${order.customerId}`));
+      else setCustomer(null);
+    }, (error) => handleSnapshotError(error, `shops/${user.uid}/customers/${order.customerId}`));
 
     return () => unsubCustomer();
   }, [user, order?.customerId]);
+
+  if (loadError) {
+    return (
+      <div className="p-8 space-y-4">
+        <p className="text-red-600 font-semibold">{loadError}</p>
+        <Button variant="outline" onClick={() => navigate('/dashboard/orders')}>
+          {t('invoice.back')}
+        </Button>
+      </div>
+    );
+  }
 
   if (!order || !shop || !customer) return <div className="p-8">{t('invoice.loading')}</div>;
 
