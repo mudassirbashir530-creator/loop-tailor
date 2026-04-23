@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
 import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2, MessageCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
@@ -29,7 +29,7 @@ export default function Invoice() {
 
   useEffect(() => {
     if (!user || !id) return;
-    
+
     const unsubOrder = onSnapshot(doc(db, 'shops', user.uid, 'orders', id), (orderSnap) => {
       if (!orderSnap.exists() || orderSnap.data().shopId !== user.uid) {
         navigate('/dashboard/orders');
@@ -38,20 +38,35 @@ export default function Invoice() {
       setOrder({ id: orderSnap.id, ...orderSnap.data() });
     }, (error) => handleFirestoreError(error, OperationType.GET, `invoice/${id}`));
 
-    const unsubShop = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
-      if (shopSnap.exists()) setShop(shopSnap.data());
-    }, (error) => handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`));
-
     return () => {
       unsubOrder();
-      unsubShop();
     };
   }, [user, id, navigate]);
 
   useEffect(() => {
-    if (!user || !order?.customerId) return;
+    if (!user) return;
+
+    const unsubShop = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
+      if (shopSnap.exists()) {
+        setShop(shopSnap.data());
+      }
+    }, (error) => handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`));
+
+    return () => {
+      unsubShop();
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!order?.customerId) {
+      setCustomer(null);
+      return;
+    }
+    if (!user) return;
+
     const unsubCustomer = onSnapshot(doc(db, 'shops', user.uid, 'customers', order.customerId), (custSnap) => {
       if (custSnap.exists()) setCustomer(custSnap.data());
+      else setCustomer(null);
     }, (error) => handleFirestoreError(error, OperationType.GET, `customers/${order.customerId}`));
 
     return () => unsubCustomer();
