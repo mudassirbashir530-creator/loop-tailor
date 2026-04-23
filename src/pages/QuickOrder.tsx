@@ -762,7 +762,7 @@ export default function QuickOrder() {
                           <div className="flex-1 h-px bg-gray-200/50"></div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
-                          {customTemplate.fields.sort((a,b) => a.order - b.order).map((field) => (
+                          {[...customTemplate.fields].sort((a,b) => a.order - b.order).map((field) => (
                             <div key={field.id} className="space-y-1.5 group">
                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors">
                                 <Ruler className="h-3 w-3" />

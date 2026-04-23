@@ -231,6 +231,13 @@ service cloud.firestore {
         allow read, write: if isOwner(shopId);
       }
 
+      match /payments/{paymentId} {
+        allow read: if isOwner(shopId);
+        allow create: if isOwner(shopId);
+        allow update: if isOwner(shopId);
+        allow delete: if isOwner(shopId);
+      }
+
       match /fcmTokens/{tokenId} {
         allow read, write: if isOwner(shopId);
       }

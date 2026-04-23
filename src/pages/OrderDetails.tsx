@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
 import { ORDER_STATUS } from '../lib/config';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, collection, query, where, addDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -34,6 +34,7 @@ export default function OrderDetails() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'Cash', note: '' });
+  const [paymentsList, setPaymentsList] = useState<any[]>([]);
   const [customWaMessage, setCustomWaMessage] = useState('');
   const [showCustomWa, setShowCustomWa] = useState(false);
 
@@ -62,9 +63,20 @@ export default function OrderDetails() {
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`));
 
+    const qPayments = query(collection(db, 'shops', user.uid, 'payments'), where('orderId', '==', id));
+    const unsubPayments = onSnapshot(qPayments, (paymentsSnap) => {
+      const pData = paymentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPaymentsList(pData.sort((a: any, b: any) => {
+        const dateA = a.date?.seconds ? new Date(a.date.seconds * 1000) : new Date(a.date || 0);
+        const dateB = b.date?.seconds ? new Date(b.date.seconds * 1000) : new Date(b.date || 0);
+        return dateB.getTime() - dateA.getTime();
+      }));
+    }, (error) => handleFirestoreError(error, OperationType.GET, `payments for order ${id}`));
+
     return () => {
       unsubOrder();
       unsubShop();
+      unsubPayments();
     };
   }, [user, id]);
 
@@ -131,7 +143,7 @@ export default function OrderDetails() {
     }
   };
 
-  const totalPaid = (order?.payments || []).reduce((sum: number, p: any) => sum + Number(p.amount), 0) + Number(order?.advancePayment || 0);
+  const totalPaid = paymentsList.reduce((sum: number, p: any) => sum + Number(p.amount), 0) + Number(order?.advancePayment || 0);
   const balanceDue = Math.max(0, Number(order?.price || 0) - totalPaid);
 
   const handleRecordPayment = async () => {
@@ -145,23 +157,32 @@ export default function OrderDetails() {
       return;
     }
 
-    const newPayment = {
-      amount,
-      date: new Date().toISOString(),
-      method: paymentForm.method,
-      note: paymentForm.note
-    };
-
-    const newPayments = [...(order.payments || []), newPayment];
-    const newTotalPaid = totalPaid + amount;
-    const newPaymentStatus = newTotalPaid >= order.price ? 'Paid' : 'Partial';
-
     try {
+      await addDoc(collection(db, 'shops', user!.uid, 'payments'), {
+        orderId: id,
+        amount,
+        method: paymentForm.method,
+        note: paymentForm.note,
+        date: serverTimestamp()
+      });
+
+      const newTotalPaid = totalPaid + amount;
+      const newPaymentStatus = newTotalPaid >= order.price ? 'Paid' : 'Partial';
+      
+      const newPaymentLog = {
+        amount,
+        date: new Date().toISOString(),
+        method: paymentForm.method,
+        note: paymentForm.note
+      };
+      const newPayments = [...(order.payments || []), newPaymentLog];
+
       await updateDoc(doc(db, 'shops', user!.uid, 'orders', id!), {
         payments: newPayments,
         paymentStatus: newPaymentStatus,
         updatedAt: serverTimestamp()
       });
+      
       toast.success('Payment recorded successfully');
       setIsPaymentModalOpen(false);
       setPaymentForm({ amount: '', method: 'Cash', note: '' });

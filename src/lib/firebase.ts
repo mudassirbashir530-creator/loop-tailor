@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, runTransaction, enableIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, doc, runTransaction, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -16,17 +16,10 @@ const config = {
 
 const app = initializeApp(config);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-
-// Enable offline persistence for Firestore (IndexedDB)
-enableIndexedDbPersistence(db).catch((err) => {
-  if (err.code == 'failed-precondition') {
-    console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-  } else if (err.code == 'unimplemented') {
-    console.warn('The current browser does not support all of the features required to enable persistence.');
-  }
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
 });
+export const storage = getStorage(app);
 
 import { toast } from 'sonner';
 
@@ -160,6 +153,10 @@ export async function generateTokenId(shopId: string): Promise<string> {
     return newTokenId;
   } catch (error) {
     console.error("Error generating token ID:", error);
-    throw new Error("Failed to generate a unique order ID. Please try again.");
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const randomFallback = Math.floor(now.getTime() % 10000).toString().padStart(4, '0');
+    return `LT-${year}${month}-${randomFallback}`;
   }
 }

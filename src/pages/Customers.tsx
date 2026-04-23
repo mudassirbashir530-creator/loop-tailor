@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
@@ -81,26 +81,28 @@ export default function Customers() {
     }
   };
 
-  const filteredCustomers = customers
-    .filter(c => {
-      const matchesSearch = c.phone.includes(searchTerm) || c.name.toLowerCase().includes(searchTerm.toLowerCase());
-      if (!matchesSearch) return false;
-      
-      const activeCount = ordersPerCustomer[c.id]?.active || 0;
-      if (filterTab === 'active' && activeCount === 0) return false;
-      if (filterTab === 'inactive' && activeCount > 0) return false;
-      
-      return true;
-    })
-    .sort((a, b) => {
-      const aActive = ordersPerCustomer[a.id]?.active || 0;
-      const bActive = ordersPerCustomer[b.id]?.active || 0;
-      
-      if (aActive > 0 && bActive === 0) return -1;
-      if (bActive > 0 && aActive === 0) return 1;
-      
-      return (a.name || '').localeCompare(b.name || '');
-    });
+  const filteredCustomers = useMemo(() => {
+    return customers
+      .filter(c => {
+        const matchesSearch = c.phone.includes(searchTerm) || c.name.toLowerCase().includes(searchTerm.toLowerCase());
+        if (!matchesSearch) return false;
+        
+        const activeCount = ordersPerCustomer[c.id]?.active || 0;
+        if (filterTab === 'active' && activeCount === 0) return false;
+        if (filterTab === 'inactive' && activeCount > 0) return false;
+        
+        return true;
+      })
+      .sort((a, b) => {
+        const aActive = ordersPerCustomer[a.id]?.active || 0;
+        const bActive = ordersPerCustomer[b.id]?.active || 0;
+        
+        if (aActive > 0 && bActive === 0) return -1;
+        if (bActive > 0 && aActive === 0) return 1;
+        
+        return (a.name || '').localeCompare(b.name || '');
+      });
+  }, [customers, searchTerm, filterTab, ordersPerCustomer]);
 
   return (
     <div className="space-y-10">

@@ -552,7 +552,7 @@ export default function CustomerDetails() {
                           <div className="flex-1 h-px bg-gray-200/50"></div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                          {customTemplate.fields.sort((a, b) => a.order - b.order).map((field) => (
+                          {[...customTemplate.fields].sort((a, b) => a.order - b.order).map((field) => (
                             <div key={field.id} className="space-y-2 group">
                               <label className={cn("text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
                                 <Ruler className="h-3 w-3" />

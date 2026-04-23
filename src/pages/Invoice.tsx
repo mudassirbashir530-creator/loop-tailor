@@ -30,17 +30,12 @@ export default function Invoice() {
   useEffect(() => {
     if (!user || !id) return;
     
-    const unsubOrder = onSnapshot(doc(db, 'shops', user.uid, 'orders', id), async (orderSnap) => {
+    const unsubOrder = onSnapshot(doc(db, 'shops', user.uid, 'orders', id), (orderSnap) => {
       if (!orderSnap.exists() || orderSnap.data().shopId !== user.uid) {
         navigate('/dashboard/orders');
         return;
       }
-      const orderData = orderSnap.data();
-      setOrder({ id: orderSnap.id, ...orderData });
-
-      // Fetch customer once order is loaded
-      const custSnap = await getDoc(doc(db, 'shops', user.uid, 'customers', orderData.customerId));
-      if (custSnap.exists()) setCustomer(custSnap.data());
+      setOrder({ id: orderSnap.id, ...orderSnap.data() });
     }, (error) => handleFirestoreError(error, OperationType.GET, `invoice/${id}`));
 
     const unsubShop = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
@@ -52,6 +47,15 @@ export default function Invoice() {
       unsubShop();
     };
   }, [user, id, navigate]);
+
+  useEffect(() => {
+    if (!user || !order?.customerId) return;
+    const unsubCustomer = onSnapshot(doc(db, 'shops', user.uid, 'customers', order.customerId), (custSnap) => {
+      if (custSnap.exists()) setCustomer(custSnap.data());
+    }, (error) => handleFirestoreError(error, OperationType.GET, `customers/${order.customerId}`));
+
+    return () => unsubCustomer();
+  }, [user, order?.customerId]);
 
   if (!order || !shop || !customer) return <div className="p-8">{t('invoice.loading')}</div>;
 

@@ -1,9 +1,14 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   children?: ReactNode;
+}
+
+interface InnerProps extends Props {
+  navigate: ReturnType<typeof useNavigate>;
 }
 
 interface State {
@@ -11,7 +16,7 @@ interface State {
   error: Error | null;
 }
 
-export class ErrorBoundary extends React.Component<Props, State> {
+class ErrorBoundaryInner extends React.Component<InnerProps, State> {
   public state: State = {
     hasError: false,
     error: null
@@ -27,7 +32,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   private handleReset = () => {
     this.setState({ hasError: false, error: null });
-    window.location.reload();
+    this.props.navigate('/', { replace: true });
   };
 
   public render() {
@@ -80,4 +85,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
     return this.props.children;
   }
+}
+
+export function ErrorBoundary({ children }: Props) {
+  const navigate = useNavigate();
+  return <ErrorBoundaryInner navigate={navigate}>{children}</ErrorBoundaryInner>;
 }

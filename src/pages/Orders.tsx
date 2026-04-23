@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
@@ -127,60 +127,62 @@ export default function Orders() {
     return isOrderOverdue(deliveryDate);
   };
 
-  const uniqueDressTypes = Array.from(new Set(orders.map(o => o.dressType))).filter(Boolean);
+  const uniqueDressTypes = useMemo(() => Array.from(new Set(orders.map(o => o.dressType))).filter(Boolean), [orders]);
 
-  const filteredOrders = orders.filter(order => {
-    const matchesStatus = filter === 'All' || order.status === filter;
-    const matchesGender = genderFilter === 'All' || order.gender === genderFilter;
-    const matchesDressType = dressTypeFilter === 'All' || order.dressType === dressTypeFilter;
-    
-    let matchesDate = true;
-    if (dateFilter !== 'All Time' && order.createdAt) {
-      const orderDate = order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt || 0);
-      const today = new Date();
-      if (dateFilter === 'Today') {
-        matchesDate = orderDate.toDateString() === today.toDateString();
-      } else if (dateFilter === 'This Week') {
-        const weekAgo = new Date(today.setDate(today.getDate() - 7));
-        matchesDate = orderDate >= weekAgo;
-      } else if (dateFilter === 'This Month') {
-        matchesDate = orderDate.getMonth() === today.getMonth() && orderDate.getFullYear() === today.getFullYear();
-      }
-    }
-
-    let matchesOverdue = true;
-    if (showOverdue) {
-      matchesOverdue = isOverdue(order.deliveryDate, order.status);
-    }
-
-    const matchesSearch = 
-      (order.tokenId && order.tokenId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.dressType.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredOrders = useMemo(() => {
+    const filtered = orders.filter(order => {
+      const matchesStatus = filter === 'All' || order.status === filter;
+      const matchesGender = genderFilter === 'All' || order.gender === genderFilter;
+      const matchesDressType = dressTypeFilter === 'All' || order.dressType === dressTypeFilter;
       
-    return matchesStatus && matchesGender && matchesDressType && matchesDate && matchesOverdue && matchesSearch;
-  });
+      let matchesDate = true;
+      if (dateFilter !== 'All Time' && order.createdAt) {
+        const orderDate = order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt || 0);
+        const today = new Date();
+        if (dateFilter === 'Today') {
+          matchesDate = orderDate.toDateString() === today.toDateString();
+        } else if (dateFilter === 'This Week') {
+          const weekAgo = new Date(today.setDate(today.getDate() - 7));
+          matchesDate = orderDate >= weekAgo;
+        } else if (dateFilter === 'This Month') {
+          matchesDate = orderDate.getMonth() === today.getMonth() && orderDate.getFullYear() === today.getFullYear();
+        }
+      }
 
-  filteredOrders.sort((a, b) => {
-    if (sortBy === 'Newest First') {
-      const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
-      const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
-      return dateB.getTime() - dateA.getTime();
-    } else if (sortBy === 'Oldest First') {
-      const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
-      const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
-      return dateA.getTime() - dateB.getTime();
-    } else if (sortBy === 'Delivery Date') {
-      const dateA = new Date(a.deliveryDate || 0);
-      const dateB = new Date(b.deliveryDate || 0);
-      return dateA.getTime() - dateB.getTime();
-    } else if (sortBy === 'Price High-Low') {
-      return (b.price || 0) - (a.price || 0);
-    } else if (sortBy === 'Price Low-High') {
-      return (a.price || 0) - (b.price || 0);
-    }
-    return 0;
-  });
+      let matchesOverdue = true;
+      if (showOverdue) {
+        matchesOverdue = isOverdue(order.deliveryDate, order.status);
+      }
+
+      const matchesSearch = 
+        (order.tokenId && order.tokenId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.dressType.toLowerCase().includes(searchTerm.toLowerCase());
+        
+      return matchesStatus && matchesGender && matchesDressType && matchesDate && matchesOverdue && matchesSearch;
+    });
+
+    return filtered.sort((a, b) => {
+      if (sortBy === 'Newest First') {
+        const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
+        const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
+      } else if (sortBy === 'Oldest First') {
+        const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
+        const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
+        return dateA.getTime() - dateB.getTime();
+      } else if (sortBy === 'Delivery Date') {
+        const dateA = new Date(a.deliveryDate || 0);
+        const dateB = new Date(b.deliveryDate || 0);
+        return dateA.getTime() - dateB.getTime();
+      } else if (sortBy === 'Price High-Low') {
+        return (b.price || 0) - (a.price || 0);
+      } else if (sortBy === 'Price Low-High') {
+        return (a.price || 0) - (b.price || 0);
+      }
+      return 0;
+    });
+  }, [orders, filter, genderFilter, dressTypeFilter, dateFilter, showOverdue, searchTerm, sortBy]);
 
   const activeFilterCount = (filter !== 'All' ? 1 : 0) + 
                             (genderFilter !== 'All' ? 1 : 0) + 
