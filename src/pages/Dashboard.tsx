@@ -272,6 +272,55 @@ export default function Dashboard() {
     };
   }, [user]);
 
+  const revenueChartData = React.useMemo(() => {
+    const data = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = subMonths(now, i);
+      const monthOrders = allOrders.filter(o => 
+        o.status === ORDER_STATUS.DELIVERED && 
+        isSameMonth(o.updatedAt?.toDate ? o.updatedAt.toDate() : new Date(o.updatedAt || o.createdAt), monthDate)
+      );
+      const revenue = monthOrders.reduce((sum, o) => sum + (o.price || 0), 0);
+      data.push({
+        name: format(monthDate, 'MMM'),
+        revenue
+      });
+    }
+    return data;
+  }, [allOrders]);
+
+  const pieChartData = React.useMemo(() => {
+    const counts = {
+      [ORDER_STATUS.PENDING]: 0,
+      [ORDER_STATUS.STITCHING]: 0,
+      [ORDER_STATUS.READY]: 0,
+      [ORDER_STATUS.DELIVERED]: 0,
+    };
+    allOrders.forEach(o => {
+      if (counts[o.status] !== undefined) counts[o.status]++;
+    });
+    return [
+      { name: 'Pending', value: counts[ORDER_STATUS.PENDING], color: '#f59e0b' },
+      { name: 'Stitching', value: counts[ORDER_STATUS.STITCHING], color: '#f97316' },
+      { name: 'Ready', value: counts[ORDER_STATUS.READY], color: '#3b82f6' },
+      { name: 'Delivered', value: counts[ORDER_STATUS.DELIVERED], color: '#10b981' },
+    ].filter(d => d.value > 0);
+  }, [allOrders]);
+
+  const topDressTypesData = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    allOrders.forEach(o => {
+      if (o.dressType) {
+        counts[o.dressType] = (counts[o.dressType] || 0) + 1;
+      }
+    });
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }, [allOrders]);
+
   if (loading && !stats.customers) {
     return (
       <div className="space-y-8">
@@ -340,55 +389,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  const revenueChartData = React.useMemo(() => {
-    const data = [];
-    const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const monthDate = subMonths(now, i);
-      const monthOrders = allOrders.filter(o => 
-        o.status === ORDER_STATUS.DELIVERED && 
-        isSameMonth(o.updatedAt?.toDate ? o.updatedAt.toDate() : new Date(o.updatedAt || o.createdAt), monthDate)
-      );
-      const revenue = monthOrders.reduce((sum, o) => sum + (o.price || 0), 0);
-      data.push({
-        name: format(monthDate, 'MMM'),
-        revenue
-      });
-    }
-    return data;
-  }, [allOrders]);
-
-  const pieChartData = React.useMemo(() => {
-    const counts = {
-      [ORDER_STATUS.PENDING]: 0,
-      [ORDER_STATUS.STITCHING]: 0,
-      [ORDER_STATUS.READY]: 0,
-      [ORDER_STATUS.DELIVERED]: 0,
-    };
-    allOrders.forEach(o => {
-      if (counts[o.status] !== undefined) counts[o.status]++;
-    });
-    return [
-      { name: 'Pending', value: counts[ORDER_STATUS.PENDING], color: '#f59e0b' },
-      { name: 'Stitching', value: counts[ORDER_STATUS.STITCHING], color: '#f97316' },
-      { name: 'Ready', value: counts[ORDER_STATUS.READY], color: '#3b82f6' },
-      { name: 'Delivered', value: counts[ORDER_STATUS.DELIVERED], color: '#10b981' },
-    ].filter(d => d.value > 0);
-  }, [allOrders]);
-
-  const topDressTypesData = React.useMemo(() => {
-    const counts: Record<string, number> = {};
-    allOrders.forEach(o => {
-      if (o.dressType) {
-        counts[o.dressType] = (counts[o.dressType] || 0) + 1;
-      }
-    });
-    return Object.entries(counts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  }, [allOrders]);
 
   return (
     <motion.div 
