@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { doc, runTransaction, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { doc, runTransaction, getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -16,9 +16,7 @@ const config = {
 
 const app = initializeApp(config);
 export const auth = getAuth(app);
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-});
+export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 import { toast } from 'sonner';
