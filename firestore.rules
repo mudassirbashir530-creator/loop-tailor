@@ -1,57 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    //
-    // Collection: shops
-    // Document ID: {shopId} (User UID)
-    // Fields:
-    //   - name: string (required, 1-100 chars)
-    //   - phone: string (optional, < 50 chars)
-    //   - address: string (optional, < 200 chars)
-    //   - logoUrl: string (optional, < 1000 chars)
-    //   - invoiceFooter: string (optional, < 500 chars)
-    //   - createdAt: string (required, ISO 8601)
-    //
-    // Subcollection: shops/{shopId}/customers
-    // Document ID: {customerId}
-    // Fields:
-    //   - name: string (required, 1-100 chars)
-    //   - phone: string (required, 1-50 chars)
-    //   - address: string (optional, < 200 chars)
-    //   - notes: string (optional, < 1000 chars)
-    //   - createdAt: string (required, ISO 8601)
-    //
-    // Subcollection: shops/{shopId}/measurements
-    // Document ID: {measurementId} (usually same as customerId)
-    // Fields:
-    //   - customerId: string (required)
-    //   - kameezShoulder: number (optional)
-    //   ... other measurement fields (optional numbers)
-    //   - updatedAt: string (required, ISO 8601)
-    //
-    // Subcollection: shops/{shopId}/orders
-    // Document ID: {orderId}
-    // Fields:
-    //   - customerId: string (required)
-    //   - customerName: string (required)
-    //   - dressType: string (required)
-    //   - status: string (required, enum: ["Pending", "Stitching", "Ready", "Delivered"])
-    //   - price: number (required)
-    //   - advancePayment: number (optional)
-    //   - referencePhotoUrl: string (optional)
-    //   - sampleDesignUrl: string (optional)
-    //   - createdAt: string (required, ISO 8601)
-    //   - updatedAt: string (required, ISO 8601)
-    //
-    // ===============================================================
-
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
     
     function isAuthenticated() {
       return request.auth != null;
@@ -61,118 +10,13 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == shopId;
     }
 
-    function isAdmin() {
-      return isAuthenticated() && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-        (request.auth.token.email == "mudassirbashir530@gmail.com" && request.auth.token.email_verified == true));
-    }
-
-    // ===============================================================
-    // Domain Validators
-    // ===============================================================
-
-    function isValidShop(data) {
-      return (!('name' in data) || (data.name is string && data.name.size() > 0 && data.name.size() <= 100)) &&
-             (!('phone' in data) || (data.phone is string && data.phone.size() <= 50)) &&
-             (!('address' in data) || (data.address is string && data.address.size() <= 200)) &&
-             (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 1000)) &&
-             (!('invoiceFooter' in data) || (data.invoiceFooter is string && data.invoiceFooter.size() <= 500)) &&
-             (!('enableWhatsappNotifications' in data) || data.enableWhatsappNotifications is bool) &&
-             (!('uiTheme' in data) || data.uiTheme is string) &&
-             (!('createdAt' in data) || (data.createdAt is string || data.createdAt is timestamp));
-    }
-
-    function isValidStaff(data) {
-      return (!('name' in data) || (data.name is string && data.name.size() > 0 && data.name.size() <= 100)) &&
-             (!('phone' in data) || (data.phone is string && data.phone.size() <= 50)) &&
-             (!('role' in data) || data.role in ['stitcher', 'cutter', 'presser']) &&
-             (!('createdAt' in data) || (data.createdAt is string || data.createdAt is timestamp));
-    }
-
-    function isValidCustomer(data, shopId) {
-      return (!('shopId' in data) || data.shopId == shopId) &&
-             (!('name' in data) || (data.name is string && data.name.size() > 0 && data.name.size() <= 100)) &&
-             (!('phone' in data) || (data.phone is string && data.phone.size() > 0 && data.phone.size() <= 50)) &&
-             (!('address' in data) || (data.address is string && data.address.size() <= 200)) &&
-             (!('notes' in data) || (data.notes is string && data.notes.size() <= 1000)) &&
-             (!('createdAt' in data) || (data.createdAt is string || data.createdAt is timestamp));
-    }
-
-    function isValidMeasurement(data, shopId) {
-      return (!('shopId' in data) || data.shopId == shopId) &&
-             (!('customerId' in data) || data.customerId is string) &&
-             (!('updatedAt' in data) || (data.updatedAt is string || data.updatedAt is timestamp));
-    }
-
-    function isValidOrder(data, shopId) {
-      return data.shopId == shopId &&
-             data.tokenId is string &&
-             data.customerName is string &&
-             data.dressType is string &&
-             data.status in ["Pending", "Stitching", "Ready", "Delivered"] &&
-             data.price is number &&
-             (!('phone' in data) || data.phone is string) &&
-             (!('quantity' in data) || data.quantity is number) &&
-             (!('rackLocation' in data) || data.rackLocation is string) &&
-             (!('measurements' in data) || data.measurements is map) &&
-             (!('notificationLogs' in data) || data.notificationLogs is list) &&
-             (!('assignedWorkerId' in data) || data.assignedWorkerId is string) &&
-             (!('advancePayment' in data) || data.advancePayment is number) &&
-             (!('paymentStatus' in data) || data.paymentStatus in ["Unpaid", "Partial", "Paid"]) &&
-             (!('payments' in data) || data.payments is list) &&
-             (data.createdAt is string || data.createdAt is timestamp) &&
-             (data.updatedAt is string || data.updatedAt is timestamp);
-    }
-
-    function isValidMeasurementTemplate(data) {
-      return data.nameEn is string &&
-             data.fields is list &&
-             (data.createdAt is string || data.createdAt is timestamp);
-    }
-
-    function isValidNotification(data) {
-      return (!('type' in data) || data.type is string) &&
-             (!('title' in data) || data.title is string) &&
-             (!('message' in data) || data.message is string) &&
-             (!('orderId' in data) || data.orderId is string) &&
-             (!('customerId' in data) || data.customerId is string) &&
-             (!('read' in data) || data.read is bool) &&
-             (!('createdAt' in data) || (data.createdAt is string || data.createdAt is timestamp));
-    }
-
-    // ===============================================================
-    // Rules
-    // ===============================================================
-
     match /users/{userId} {
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      allow create: if isAuthenticated() && request.auth.uid == userId && (request.resource.data.role == 'user' || isAdmin());
-      allow update: if isAuthenticated() && request.auth.uid == userId && (request.resource.data.role == resource.data.role || isAdmin());
-      allow delete: if isAdmin();
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
     match /articles/{articleId} {
-      allow read: if resource.data.status == 'published' || isAdmin();
-      allow write: if isAdmin();
-    }
-
-    match /social_posts/{postId} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
-    }
-
-    match /media_library/{mediaId} {
-      allow read: if true; // Public read access for media
-      allow write: if isAdmin();
-    }
-
-    match /password_resets/{document} {
-      allow read, write: if false; // Only backend (Admin SDK) can access
-    }
-
-    match /contact_messages/{messageId} {
-      allow read: if isAdmin();
-      allow write: if false; // Only backend (Admin SDK) can write
+      allow read: if resource.data.status == 'published';
+      allow write: if isAuthenticated();
     }
 
     match /counters/{shopId} {
@@ -180,65 +24,18 @@ service cloud.firestore {
     }
 
     match /shops/{shopId} {
-      allow read: if isOwner(shopId);
-      allow create: if isOwner(shopId) && isValidShop(request.resource.data);
-      allow update: if isOwner(shopId) && isValidShop(request.resource.data);
-      allow delete: if false;
+      allow read, write: if isOwner(shopId);
 
       match /customers/{customerId} {
-        allow read: if isOwner(shopId);
-        allow create: if isOwner(shopId) && isValidCustomer(request.resource.data, shopId);
-        allow update: if isOwner(shopId) && isValidCustomer(request.resource.data, shopId);
-        allow delete: if isOwner(shopId);
-      }
-
-      match /staff/{staffId} {
-        allow read: if isOwner(shopId);
-        allow create: if isOwner(shopId) && isValidStaff(request.resource.data);
-        allow update: if isOwner(shopId) && isValidStaff(request.resource.data);
-        allow delete: if isOwner(shopId);
-      }
-
-      match /measurements/{measurementId} {
-        allow read: if isOwner(shopId);
-        allow create: if isOwner(shopId) && isValidMeasurement(request.resource.data, shopId);
-        allow update: if isOwner(shopId) && isValidMeasurement(request.resource.data, shopId);
-        allow delete: if isOwner(shopId);
-      }
-
-      match /measurementTemplates/{templateId} {
-        allow read: if isOwner(shopId);
-        allow create: if isOwner(shopId) && isValidMeasurementTemplate(request.resource.data);
-        allow update: if isOwner(shopId) && isValidMeasurementTemplate(request.resource.data);
-        allow delete: if isOwner(shopId);
-      }
-
-      match /orders/{orderId} {
-        allow read: if isOwner(shopId);
-        allow create: if isOwner(shopId) && isValidOrder(request.resource.data, shopId);
-        allow update: if isOwner(shopId) && isValidOrder(request.resource.data, shopId);
-        allow delete: if isOwner(shopId);
-      }
-
-      match /notifications/{notificationId} {
-        allow read: if isOwner(shopId);
-        allow create: if isOwner(shopId) && isValidNotification(request.resource.data);
-        allow update: if isOwner(shopId) && isValidNotification(request.resource.data);
-        allow delete: if isOwner(shopId);
-      }
-
-      match /orderTemplates/{templateId} {
         allow read, write: if isOwner(shopId);
       }
-
-      match /payments/{paymentId} {
-        allow read: if isOwner(shopId);
-        allow create: if isOwner(shopId);
-        allow update: if isOwner(shopId);
-        allow delete: if isOwner(shopId);
+      match /measurements/{measurementId} {
+        allow read, write: if isOwner(shopId);
       }
-
-      match /fcmTokens/{tokenId} {
+      match /orders/{orderId} {
+        allow read, write: if isOwner(shopId);
+      }
+      match /orderTemplates/{templateId} {
         allow read, write: if isOwner(shopId);
       }
     }
