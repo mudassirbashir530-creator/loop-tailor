@@ -16,7 +16,8 @@ export default function About() {
         
         <div className="grid md:grid-cols-2 gap-16 items-center mb-20">
           <div className="rounded-3xl h-96 w-full overflow-hidden shadow-2xl">
-             <img src="https://drive.google.com/thumbnail?id=16BkHKtmUCYOZyTwglOXXR2Qa09nDjffL&sz=w1920" alt="Loop Tailor App Interface" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+             {/* TODO: Replace with a proper-hosted image */}
+             <img src="https://picsum.photos/1920/1080" alt="Loop Tailor App Interface" className="w-full h-full object-cover" />
           </div>
           <div>
             <h2 className="text-3xl font-display font-bold mb-6 text-slate-900">Our Mission: Digitizing Tailoring Businesses</h2>
