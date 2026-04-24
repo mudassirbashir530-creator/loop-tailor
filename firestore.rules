@@ -176,8 +176,7 @@ service cloud.firestore {
     }
 
     match /counters/{shopId} {
-      allow get, list: if isOwner(shopId);
-      allow create, update, delete: if isOwner(shopId);
+      allow read, write: if isOwner(shopId);
     }
 
     match /shops/{shopId} {
@@ -187,7 +186,7 @@ service cloud.firestore {
       allow delete: if false;
 
       match /customers/{customerId} {
-        allow get, list: if isOwner(shopId);
+        allow read: if isOwner(shopId);
         allow create: if isOwner(shopId) && isValidCustomer(request.resource.data, shopId);
         allow update: if isOwner(shopId) && isValidCustomer(request.resource.data, shopId);
         allow delete: if isOwner(shopId);
