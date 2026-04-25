@@ -101,6 +101,28 @@ export default function OrderDetails() {
         updatedAt: serverTimestamp() 
       });
       toast.success(t('orderDetails.statusUpdated') || 'Status updated successfully');
+
+      if (newStatus === ORDER_STATUS.DELIVERED && order.assignedStaffId) {
+        const staffMember = staff.find(s => s.id === order.assignedStaffId);
+        if (staffMember) {
+          try {
+            await addDoc(collection(db, 'shops', user.uid, 'payroll'), {
+              staffId: staffMember.id,
+              staffName: staffMember.name,
+              orderId: id,
+              tokenId: order.tokenId,
+              customerName: order.customerName,
+              orderPrice: Number(order.price || 0),
+              paymentAmount: staffMember.salaryType === 'per-order' ? Number(staffMember.salaryAmount || 0) : 0,
+              paidStatus: 'pending',
+              createdAt: serverTimestamp()
+            });
+          } catch (payrollError) {
+            console.error('Error creating payroll entry:', payrollError);
+            toast.error('Failed to create payroll entry');
+          }
+        }
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
     }
@@ -322,13 +344,20 @@ export default function OrderDetails() {
                 </div>
                 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Assigned Worker</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Assigned Staff</span>
                   <div className="flex items-center gap-3 text-slate-900 mt-2">
                     <User className="h-4 w-4 text-brand-primary" />
                     {isEditing ? (
                       <select
-                        value={editData.assignedWorkerId || ''}
-                        onChange={(e) => setEditData({...editData, assignedWorkerId: e.target.value})}
+                        value={editData.assignedStaffId || ''}
+                        onChange={(e) => {
+                          const selectedStaff = staff.find(s => s.id === e.target.value);
+                          setEditData({
+                            ...editData, 
+                            assignedStaffId: e.target.value,
+                            assignedStaffName: selectedStaff ? selectedStaff.name : ''
+                          });
+                        }}
                         className="h-10 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                       >
                         <option value="">Unassigned</option>
@@ -337,9 +366,9 @@ export default function OrderDetails() {
                         ))}
                       </select>
                     ) : (
-                      <span className="font-bold">
-                        {order.assignedWorkerId 
-                          ? staff.find(w => w.id === order.assignedWorkerId)?.name || 'Unknown'
+                      <span className="font-bold flex items-center gap-1">
+                        {order.assignedStaffId 
+                          ? <><span className="text-brand-primary">👤</span> {staff.find(w => w.id === order.assignedStaffId)?.name || order.assignedStaffName || 'Unknown'}</>
                           : 'Unassigned'}
                       </span>
                     )}

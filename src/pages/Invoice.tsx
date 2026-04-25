@@ -181,13 +181,22 @@ export default function Invoice() {
         await navigator.share(shareData);
       } else {
         // Fallback: Download the PNG and open WhatsApp
-        handleDownloadImage();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Invoice_${order.id.slice(-6).toUpperCase()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        const message = encodeURIComponent(`Invoice for ${customer.name} - Balance Due: ${settings.currency} ${balanceDue}`);
         
         if (customer?.phone) {
           const cleanPhone = customer.phone.replace(/[^\d+]/g, '').replace('+', '');
-          window.open(`https://wa.me/${cleanPhone}`, '_blank');
+          window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
         } else {
-          window.open(`https://wa.me/`, '_blank');
+          window.open(`https://wa.me/?text=${message}`, '_blank');
         }
       }
     } catch (error) {
@@ -332,8 +341,13 @@ export default function Invoice() {
       </div>
 
       {/* Off-screen Invoice for Capture */}
-      <div className="fixed top-0 left-0 -z-50 opacity-0 pointer-events-none w-[800px] overflow-hidden">
-        <div ref={invoiceRef} className={cn("bg-gray-100 p-12", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
+      <div style={{ position: 'absolute', left: '-9999px', top: '0' }} aria-hidden="true">
+        <div 
+          ref={invoiceRef} 
+          className={cn(isRTL && "text-[1.2rem]")}
+          style={{ backgroundColor: '#ffffff', padding: '48px', width: '800px' }}
+          dir={isRTL ? "rtl" : "ltr"}
+        >
           {renderInvoiceContent(true)}
         </div>
       </div>

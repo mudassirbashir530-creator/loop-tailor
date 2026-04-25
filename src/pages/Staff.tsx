@@ -1,28 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStaff, StaffMember } from '../hooks/useStaff';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import { collection, query, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Plus, Search, Loader2, Users, Scissors, Pocket, UserCircle, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Loader2, Users, Scissors, Pocket, UserCircle, Edit2, Trash2, Shield, DollarSign, Wallet, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 
 export default function Staff() {
+  const { user } = useAuth();
   const { t, isRTL } = useLanguage();
   const { staff, loading, addStaff, updateStaff, deleteStaff } = useStaff();
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   
-  const [formData, setFormData] = useState<{name: string; phone: string; role: 'stitcher' | 'cutter' | 'presser'}>({
+  const [formData, setFormData] = useState<Omit<StaffMember, 'id' | 'createdAt' | 'shopId'>>({
     name: '',
     phone: '',
-    role: 'stitcher',
+    role: 'Cutter',
+    salaryType: 'fixed',
+    salaryAmount: 0,
   });
 
   const [saving, setSaving] = useState(false);
+  const [payrollEntries, setPayrollEntries] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = onSnapshot(collection(db, 'shops', user.uid, 'payroll'), (snap) => {
+      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPayrollEntries(data);
+    }, (error) => handleFirestoreError(error, OperationType.GET, 'payroll'));
+    
+    return () => unsubscribe();
+  }, [user]);
+
+  const handleMarkAsPaid = async (payrollId: string) => {
+    if (!user) return;
+    try {
+      await updateDoc(doc(db, 'shops', user.uid, 'payroll', payrollId), {
+        paidStatus: 'paid',
+        paidAt: serverTimestamp()
+      });
+      toast.success('Marked as paid');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `payroll/${payrollId}`);
+    }
+  };
 
   const filteredStaff = staff.filter(s => 
     s.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -32,23 +62,38 @@ export default function Staff() {
   const handleOpenModal = (member?: StaffMember) => {
     if (member) {
       setEditingStaff(member);
-      setFormData({ name: member.name, phone: member.phone || '', role: member.role });
+      setFormData({ 
+        name: member.name, 
+        phone: member.phone || '', 
+        role: member.role,
+        salaryType: member.salaryType || 'fixed',
+        salaryAmount: member.salaryAmount || 0
+      });
     } else {
       setEditingStaff(null);
-      setFormData({ name: '', phone: '', role: 'stitcher' });
+      setFormData({ name: '', phone: '', role: 'Cutter', salaryType: 'fixed', salaryAmount: 0 });
     }
     setIsModalOpen(true);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name || !formData.phone) {
+      toast.error('Name and Phone are required.');
+      return;
+    }
     setSaving(true);
     try {
+      const dataToSave = {
+        ...formData,
+        salaryAmount: Number(formData.salaryAmount)
+      };
+
       if (editingStaff) {
-        await updateStaff(editingStaff.id, formData);
+        await updateStaff(editingStaff.id, dataToSave);
         toast.success("Staff updated successfully");
       } else {
-        await addStaff(formData);
+        await addStaff(dataToSave);
         toast.success("Staff added successfully");
       }
       setIsModalOpen(false);
@@ -61,19 +106,24 @@ export default function Staff() {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to remove this staff member?")) {
-      await deleteStaff(id);
-      toast.success("Staff removed");
+      try {
+        await deleteStaff(id);
+        toast.success("Staff removed");
+      } catch (error) {
+        toast.error("Failed to delete staff");
+      }
     }
   };
 
-  const roleIcons = {
-    stitcher: Scissors,
-    cutter: Pocket,
-    presser: UserCircle // fallback
+  const roleIcons: Record<string, any> = {
+    Stitcher: Scissors,
+    Cutter: Pocket,
+    Finisher: Shield,
+    Other: UserCircle 
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto px-4 sm:px-0">
+    <div className={cn("space-y-6 sm:space-y-8 max-w-7xl mx-auto px-4 sm:px-0", isRTL && "text-right")} dir={isRTL ? "rtl" : "ltr"}>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Team & Staff</h1>
@@ -154,10 +204,63 @@ export default function Staff() {
                         </div>
                       </div>
                       
-                      <div className="pt-4 border-t border-gray-200/50 mt-4">
-                        <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Phone</div>
-                        <div className="text-sm font-medium text-slate-900">{member.phone || 'N/A'}</div>
+                      <div className="pt-4 border-t border-gray-200/50 mt-4 grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Phone</div>
+                          <div className="text-sm font-medium text-slate-900">{member.phone || 'N/A'}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Salary / Rate</div>
+                          <div className="text-sm font-medium text-slate-900 flex items-center gap-1">
+                            <DollarSign className="h-3.5 w-3.5 text-brand-primary" />
+                            {member.salaryAmount} <span className="text-xs text-slate-500">({member.salaryType === 'fixed' ? 'Monthly' : 'Per Order'})</span>
+                          </div>
+                        </div>
                       </div>
+                      
+                      {/* Payroll Summary Snippet */}
+                      {(() => {
+                        const memberPayroll = payrollEntries.filter(p => p.staffId === member.id);
+                        const totalEarned = memberPayroll.reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
+                        const totalPaid = memberPayroll.filter(p => p.paidStatus === 'paid').reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
+                        const pendingEntries = memberPayroll.filter(p => p.paidStatus === 'pending');
+                        const totalPending = totalEarned - totalPaid;
+                        
+                        return (
+                          <div className="pt-4 border-t border-gray-200/50 mt-4 grid grid-cols-2 gap-4 bg-gray-100 min-h-[60px]">
+                             <div>
+                               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Earned</div>
+                               <div className="text-sm font-black text-slate-900">{totalEarned}</div>
+                             </div>
+                             <div>
+                               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Pending Pay</div>
+                               <div className={cn("text-sm font-black", totalPending > 0 ? "text-amber-600" : "text-slate-900")}>{totalPending}</div>
+                             </div>
+                             {pendingEntries.length > 0 && (
+                               <div className="col-span-2 space-y-2 mt-2">
+                                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pending Payouts ({pendingEntries.length})</div>
+                                 <div className="space-y-2 max-h-32 overflow-y-auto">
+                                   {pendingEntries.map(entry => (
+                                      <div key={entry.id} className="flex items-center justify-between p-2 rounded-xl bg-white shadow-neu-sm border border-gray-200/50">
+                                        <div>
+                                          <div className="text-xs font-bold text-slate-900">Order #{entry.tokenId}</div>
+                                          <div className="text-[10px] text-brand-primary font-bold">Amt: {entry.paymentAmount}</div>
+                                        </div>
+                                        <Button
+                                          size="sm"
+                                          onClick={() => handleMarkAsPaid(entry.id)}
+                                          className="h-7 text-[10px] px-3 font-black rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 shadow-neu-sm"
+                                        >
+                                          Mark Paid
+                                        </Button>
+                                      </div>
+                                   ))}
+                                 </div>
+                               </div>
+                             )}
+                          </div>
+                         );
+                      })()}
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -200,6 +303,7 @@ export default function Staff() {
                 <div>
                   <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 block">Phone</label>
                   <Input 
+                    required
                     value={formData.phone} 
                     onChange={e => setFormData({...formData, phone: e.target.value})}
                     placeholder="Phone number"
@@ -213,10 +317,34 @@ export default function Staff() {
                     onChange={(e) => setFormData({...formData, role: e.target.value as any})}
                     className="h-12 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
                   >
-                    <option value="stitcher">Stitcher</option>
-                    <option value="cutter">Cutter</option>
-                    <option value="presser">Presser</option>
+                    <option value="Cutter">Cutter</option>
+                    <option value="Stitcher">Stitcher</option>
+                    <option value="Finisher">Finisher</option>
+                    <option value="Other">Other</option>
                   </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 block">Salary Type</label>
+                  <select
+                    value={formData.salaryType}
+                    onChange={(e) => setFormData({...formData, salaryType: e.target.value as any})}
+                    className="h-12 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                  >
+                    <option value="fixed">Fixed Monthly</option>
+                    <option value="per-order">Per Order</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 block">Salary / Rate Amount</label>
+                  <Input 
+                    type="number"
+                    min="0"
+                    required
+                    value={formData.salaryAmount} 
+                    onChange={e => setFormData({...formData, salaryAmount: Number(e.target.value)})}
+                    placeholder="0"
+                    className="h-12 rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 font-bold focus:ring-2 focus:ring-brand-primary/20"
+                  />
                 </div>
                 
                 <div className="pt-4 flex gap-3">
@@ -241,7 +369,7 @@ export default function Staff() {
                     type="button" 
                     variant="ghost" 
                     onClick={() => handleDelete(editingStaff.id)}
-                    className="w-full mt-2 h-12 rounded-xl text-rose-500 font-black hover:bg-rose-50 hover:text-rose-600 border-none"
+                    className="w-full mt-2 h-12 rounded-xl text-rose-500 font-black hover:bg-rose-50 hover:text-rose-600 border-none justify-center items-center flex"
                   >
                     <Trash2 className="h-4 w-4 mr-2" /> Remove Staff Member
                   </Button>

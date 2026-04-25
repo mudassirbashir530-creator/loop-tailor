@@ -30,9 +30,11 @@ import QuickOrder from './pages/QuickOrder';
 import OrderDetails from './pages/OrderDetails';
 import Invoice from './pages/Invoice';
 import Invoices from './pages/Invoices';
-import Staff from './pages/Staff';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
+
+const Staff = React.lazy(() => import('./pages/Staff'));
+const PaymentReminders = React.lazy(() => import('./pages/PaymentReminders'));
 
 // Public Pages
 const About = React.lazy(() => import('./pages/About'));
@@ -91,31 +93,11 @@ import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from './components/ui/sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-function ThemeManager() {
-  const { settings } = useShop();
-  
-  React.useEffect(() => {
-    if (settings.uiTheme === 'minimalist') {
-      document.body.classList.add('theme-minimalist');
-      document.body.classList.remove('theme-neumorphic', 'theme-elegant');
-    } else if (settings.uiTheme === 'elegant') {
-      document.body.classList.add('theme-elegant');
-      document.body.classList.remove('theme-neumorphic', 'theme-minimalist');
-    } else {
-      document.body.classList.add('theme-neumorphic');
-      document.body.classList.remove('theme-minimalist', 'theme-elegant');
-    }
-  }, [settings.uiTheme]);
-
-  return null;
-}
-
 export default function App() {
   return (
     <HelmetProvider>
       <AuthProvider>
         <ShopProvider>
-          <ThemeManager />
           <LanguageProvider>
             <OfflineIndicator />
             <InstallPrompt />
@@ -245,6 +227,7 @@ export default function App() {
                 <Route path="orders/:id" element={<OrderDetails />} />
                 <Route path="orders/:id/invoice" element={<Invoice />} />
                 <Route path="invoices" element={<Invoices />} />
+                <Route path="reminders" element={<PaymentReminders />} />
                 <Route path="staff" element={<Staff />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="notifications" element={<Notifications />} />

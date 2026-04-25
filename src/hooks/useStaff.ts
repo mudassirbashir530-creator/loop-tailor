@@ -7,7 +7,10 @@ export interface StaffMember {
   id: string;
   name: string;
   phone: string;
-  role: 'stitcher' | 'cutter' | 'presser';
+  role: 'Cutter' | 'Stitcher' | 'Finisher' | 'Other';
+  salaryType: 'fixed' | 'per-order';
+  salaryAmount: number;
+  shopId?: string;
   createdAt?: any;
 }
 
@@ -39,11 +42,12 @@ export function useStaff() {
     return () => unsubscribe();
   }, [user]);
 
-  const addStaff = async (data: Omit<StaffMember, 'id' | 'createdAt'>) => {
+  const addStaff = async (data: Omit<StaffMember, 'id' | 'createdAt' | 'shopId'>) => {
     if (!user) return null;
     try {
       const docRef = await addDoc(collection(db, 'shops', user.uid, 'staff'), {
         ...data,
+        shopId: user.uid,
         createdAt: serverTimestamp()
       });
       return docRef.id;

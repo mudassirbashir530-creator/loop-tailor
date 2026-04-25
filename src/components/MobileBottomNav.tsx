@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Plus, FileText, Scissors, Menu, X, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Plus, FileText, Scissors, Menu, X, Settings, UserCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -18,8 +18,7 @@ export default function MobileBottomNav() {
   ];
 
   const moreMenuSecondaryItems = [
-    { name: 'Invoices', path: '/dashboard/invoices', icon: FileText },
-    { name: 'Staff', path: '/dashboard/staff', icon: Users },
+    { name: 'Staff', path: '/dashboard/staff', icon: UserCheck },
     { name: 'Settings', path: '/dashboard/settings', icon: Settings },
   ];
 

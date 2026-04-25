@@ -157,7 +157,8 @@ export default function QuickOrder() {
     quantity: string;
     rackLocation: string;
     notes: string;
-    assignedWorkerId: string;
+    assignedStaffId: string;
+    assignedStaffName: string;
   }>({
     dressType: 'Shalwar Kameez',
     deliveryDate: '',
@@ -166,7 +167,8 @@ export default function QuickOrder() {
     quantity: '1',
     rackLocation: '',
     notes: '',
-    assignedWorkerId: ''
+    assignedStaffId: '',
+    assignedStaffName: ''
   });
 
   // File Uploads
@@ -259,7 +261,8 @@ export default function QuickOrder() {
           advancePayment: advanceTotal,
           paymentStatus: paymentStatus,
           payments: initialPayments,
-          assignedWorkerId: orderData.assignedWorkerId || '',
+          assignedStaffId: orderData.assignedStaffId || '',
+          assignedStaffName: orderData.assignedStaffName || '',
           quantity: Number(orderData.quantity),
           rackLocation: orderData.rackLocation,
           notes: orderData.notes,
@@ -269,6 +272,8 @@ export default function QuickOrder() {
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
+
+        generateTokenId(user.uid).then(setPreGeneratedToken).catch(console.error);
 
         // 4. Notifications
         addNotification({
@@ -623,13 +628,20 @@ export default function QuickOrder() {
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                      <Scissors className="h-3 w-3" /> Assign Worker
+                      <Scissors className="h-3 w-3" /> Assign Staff
                     </label>
                     <div className="relative">
                       <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
                       <select
-                        value={orderData.assignedWorkerId}
-                        onChange={(e) => setOrderData({...orderData, assignedWorkerId: e.target.value})}
+                        value={orderData.assignedStaffId}
+                        onChange={(e) => {
+                          const selectedStaff = staff.find(s => s.id === e.target.value);
+                          setOrderData({
+                            ...orderData, 
+                            assignedStaffId: e.target.value,
+                            assignedStaffName: selectedStaff ? selectedStaff.name : ''
+                          });
+                        }}
                         className={cn("w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 transition-all h-12 text-base font-medium appearance-none", isRTL ? "pr-12 text-right" : "pl-12")}
                       >
                         <option value="">Unassigned</option>

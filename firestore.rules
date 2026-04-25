@@ -94,6 +94,8 @@ service cloud.firestore {
          && (!data.keys().hasAll(['measurements']) || data.measurements is map)
          && (!data.keys().hasAll(['notificationLogs']) || (data.notificationLogs is list && data.notificationLogs.size() <= 100))
          && (!data.keys().hasAll(['assignedWorkerId']) || data.assignedWorkerId is string)
+         && (!data.keys().hasAll(['assignedStaffId']) || data.assignedStaffId is string)
+         && (!data.keys().hasAll(['assignedStaffName']) || data.assignedStaffName is string)
          && (!data.keys().hasAll(['quantity']) || data.quantity is number)
          && (!data.keys().hasAll(['rackLocation']) || data.rackLocation is string)
          && (!data.keys().hasAll(['notes']) || data.notes is string)
@@ -199,6 +201,10 @@ service cloud.firestore {
       }
       
       match /staff/{staffId} {
+        allow read, write: if isOwner(shopId);
+      }
+
+      match /payroll/{payrollId} {
         allow read, write: if isOwner(shopId);
       }
     }

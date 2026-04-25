@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, onSnapshot, addDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
@@ -105,6 +105,27 @@ export default function Orders() {
             orderId: order.id,
             customerId: order.customerId
           });
+          
+          if (order.assignedStaffId) {
+            const staffMember = staff.find(s => s.id === order.assignedStaffId);
+            if (staffMember) {
+              try {
+                await addDoc(collection(db, 'shops', user.uid, 'payroll'), {
+                  staffId: staffMember.id,
+                  staffName: staffMember.name,
+                  orderId: order.id,
+                  tokenId: order.tokenId,
+                  customerName: order.customerName,
+                  orderPrice: Number(order.price || 0),
+                  paymentAmount: staffMember.salaryType === 'per-order' ? Number(staffMember.salaryAmount || 0) : 0,
+                  paidStatus: 'pending',
+                  createdAt: serverTimestamp()
+                });
+              } catch (payrollError) {
+                console.error('Error creating payroll entry:', payrollError);
+              }
+            }
+          }
         }
       }
     } catch (error) {
@@ -501,11 +522,11 @@ export default function Orders() {
                           </div>
                           <div className="space-y-1.5 col-span-2">
                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                              <User className="h-3.5 w-3.5 text-brand-primary" /> Assigned Worker
+                              <User className="h-3.5 w-3.5 text-brand-primary" /> Assigned Staff
                             </span>
-                            <p className="font-bold text-slate-900">
-                              {order.assignedWorkerId 
-                                ? staff.find(w => w.id === order.assignedWorkerId)?.name || 'Unknown'
+                            <p className="font-bold text-slate-900 flex items-center gap-1">
+                              {order.assignedStaffId 
+                                ? <><span className="text-brand-primary">👤</span> {staff.find(w => w.id === order.assignedStaffId)?.name || order.assignedStaffName || 'Unknown'}</>
                                 : 'Unassigned'}
                             </p>
                           </div>

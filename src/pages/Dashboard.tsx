@@ -116,7 +116,7 @@ export default function Dashboard() {
     try {
       const q = query(
         collection(db, 'shops', user.uid, 'orders'), 
-        where('tokenId', '==', searchToken.trim())
+        where('tokenId', '==', searchToken.trim().toUpperCase())
       );
       const snap = await getDocs(q);
       

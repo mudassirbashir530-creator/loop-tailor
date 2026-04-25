@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Scissors, Users, LayoutDashboard, Settings, LogOut, FileText, UserCircle, Globe, Plus } from 'lucide-react';
+import { Scissors, Users, LayoutDashboard, Settings, LogOut, FileText, UserCircle, Globe, Plus, UserCheck, BellRing } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import MobileBottomNav from './MobileBottomNav';
@@ -37,8 +37,9 @@ export default function Layout() {
   const navItems = [
     { name: t('layout.dashboard'), path: '/dashboard', icon: LayoutDashboard },
     { name: t('layout.customers'), path: '/dashboard/customers', icon: Users },
+    { name: t('layout.staff') || 'Staff', path: '/dashboard/staff', icon: UserCheck },
     { name: t('layout.orders'), path: '/dashboard/orders', icon: FileText },
-    { name: "Staff", path: '/dashboard/staff', icon: UserCircle },
+    { name: 'Reminders', path: '/dashboard/reminders', icon: BellRing },
     { name: t('layout.settings'), path: '/dashboard/settings', icon: Settings },
   ];
 
