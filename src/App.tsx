@@ -89,6 +89,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return user ? <>{children}</> : <Navigate to="/login" />;
 }
 
+import HelpButton from './components/HelpButton';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from './components/ui/sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -103,7 +104,8 @@ export default function App() {
             <InstallPrompt />
             <UpdateNotification />
             <Router>
-            <Suspense fallback={<LoadingFallback />}>
+              <HelpButton />
+              <Suspense fallback={<LoadingFallback />}>
               <ErrorBoundary>
                 <Routes>
                   <Route path="/" element={<Landing />} />

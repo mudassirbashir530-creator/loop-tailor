@@ -11,11 +11,14 @@ import { Users, Scissors, CheckCircle, Clock, Plus, ArrowRight, Calendar, Trendi
 import { Link, useNavigate } from 'react-router-dom';
 import { format, addDays, isAfter, isBefore, isThisMonth, subMonths, isSameMonth } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn, isOrderOverdue } from '../lib/utils';
 import { useStaff } from '../hooks/useStaff';
 import { useNotifications } from '../hooks/useNotifications';
 import { doc, updateDoc } from 'firebase/firestore';
+
+import QuickSetupChecklist from '../components/QuickSetupChecklist';
+import OnboardingTour from '../components/OnboardingTour';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -391,52 +394,56 @@ export default function Dashboard() {
   }
 
   return (
-    <motion.div 
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className={cn("space-y-10", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
-    >
-      <motion.div variants={itemVariants} className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">
-            {t('dashboard.welcome')}, <span className="text-brand-primary">{user?.displayName?.split(' ')[0] || 'Tailor'}</span>
-          </h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Here's what's happening today.</p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-          {/* Token Search Bar */}
-          <motion.form 
-            onSubmit={handleTokenSearch} 
-            className="relative group w-full sm:w-96"
-            whileHover={{ scale: 1.02 }}
-            whileFocus={{ scale: 1.02 }}
-          >
-            <div className={cn("absolute top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-5" : "left-5")}>
-              <Hash className="h-5 w-5" />
-            </div>
-            <input 
-              type="text"
-              placeholder={t('dashboard.searchPlaceholder')}
-              value={searchToken}
-              onChange={(e) => setSearchToken(e.target.value)}
-              className={cn("w-full h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none text-base font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all", isRTL ? "pr-14 pl-14" : "pl-14 pr-14")}
-            />
-            <button 
-              type="submit"
-              className={cn("absolute top-2 h-10 w-10 rounded-xl bg-gray-100 shadow-neu-sm text-brand-primary flex items-center justify-center hover:shadow-neu-pressed-sm transition-all", isRTL ? "left-2" : "right-2")}
+    <>
+      <OnboardingTour />
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className={cn("space-y-10", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
+      >
+        <motion.div variants={itemVariants} className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">
+              {t('dashboard.welcome')}, <span className="text-brand-primary">{user?.displayName?.split(' ')[0] || 'Tailor'}</span>
+            </h1>
+            <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Here's what's happening today.</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+            {/* Token Search Bar */}
+            <motion.form 
+              onSubmit={handleTokenSearch} 
+              className="relative group w-full sm:w-96"
+              whileHover={{ scale: 1.02 }}
+              whileFocus={{ scale: 1.02 }}
             >
-              <Search className="h-5 w-5" />
-            </button>
-            {searchError && (
-              <p className={cn("absolute -bottom-6 text-[10px] font-bold text-red-500 uppercase tracking-wider", isRTL ? "right-2" : "left-2")}>{searchError}</p>
-            )}
-          </motion.form>
-        </div>
-      </motion.div>
+              <div className={cn("absolute top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-5" : "left-5")}>
+                <Hash className="h-5 w-5" />
+              </div>
+              <input 
+                type="text"
+                placeholder={t('dashboard.searchPlaceholder')}
+                value={searchToken}
+                onChange={(e) => setSearchToken(e.target.value)}
+                className={cn("w-full h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none text-base font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all", isRTL ? "pr-14 pl-14" : "pl-14 pr-14")}
+              />
+              <button 
+                type="submit"
+                className={cn("absolute top-2 h-10 w-10 rounded-xl bg-gray-100 shadow-neu-sm text-brand-primary flex items-center justify-center hover:shadow-neu-pressed-sm transition-all", isRTL ? "left-2" : "right-2")}
+              >
+                <Search className="h-5 w-5" />
+              </button>
+              {searchError && (
+                <p className={cn("absolute -bottom-6 text-[10px] font-bold text-red-500 uppercase tracking-wider", isRTL ? "right-2" : "left-2")}>{searchError}</p>
+              )}
+            </motion.form>
+          </div>
+        </motion.div>
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <QuickSetupChecklist />
+
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-brand-primary" },
           { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-brand-primary" },
@@ -794,5 +801,6 @@ export default function Dashboard() {
         </motion.div>
       </div>
     </motion.div>
+    </>
   );
 }
