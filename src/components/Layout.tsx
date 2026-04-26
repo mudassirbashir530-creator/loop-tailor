@@ -125,15 +125,20 @@ export default function Layout() {
         </nav>
 
         <div className="p-6 space-y-4">
-          <button
-            onClick={toggleLanguage}
-            className="flex items-center w-full px-5 py-4 rounded-2xl text-sm font-bold text-slate-500 hover:shadow-neu-sm hover:text-brand-primary transition-all duration-300 group"
-          >
-            <div className={cn("p-2 rounded-xl group-hover:shadow-neu-sm transition-all duration-300", isRTL ? "ml-4" : "mr-4")}>
-              <Globe className="h-5 w-5 text-slate-400 group-hover:text-brand-primary transition-colors" />
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleLanguage}
+              className="flex-1 flex items-center px-5 py-4 rounded-2xl text-sm font-bold text-slate-500 hover:shadow-neu-sm hover:text-brand-primary transition-all duration-300 group"
+            >
+              <div className={cn("p-2 rounded-xl group-hover:shadow-neu-sm transition-all duration-300", isRTL ? "ml-4" : "mr-4")}>
+                <Globe className="h-5 w-5 text-slate-400 group-hover:text-brand-primary transition-colors" />
+              </div>
+              {language === 'en' ? 'اردو' : 'English'}
+            </button>
+            <div className="flex-shrink-0">
+              <NotificationBell />
             </div>
-            {language === 'en' ? 'اردو' : 'English'}
-          </button>
+          </div>
           <button
             onClick={logOut}
             className="flex items-center w-full px-5 py-4 rounded-2xl text-sm font-bold text-slate-500 hover:shadow-neu-sm hover:text-red-600 transition-all duration-300 group"

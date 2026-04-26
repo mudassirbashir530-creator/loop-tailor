@@ -1,4 +1,24 @@
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from './firebase';
 import { toast } from "sonner";
+
+export async function createNotification(shopId: string, data: {
+  title: string;
+  message: string;
+  type: 'order_status' | 'payment' | 'system';
+  orderId?: string;
+}) {
+  if (!shopId) return;
+  try {
+    await addDoc(collection(db, 'shops', shopId, 'notifications'), {
+      ...data,
+      read: false,
+      createdAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error('Failed to create notification:', error);
+  }
+}
 
 export async function sendWhatsappNotification(params: {
   to: string;

@@ -16,6 +16,7 @@ import { getMeasurementName } from '../lib/measurements';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage } from '../lib/whatsapp';
+import { createNotification } from '../lib/notifications';
 import { useStaff } from '../hooks/useStaff';
 import { MessageCircle } from 'lucide-react';
 import { OrderTimeline } from '../components/OrderTimeline';
@@ -105,6 +106,13 @@ export default function OrderDetails() {
         updatedAt: serverTimestamp() 
       });
       toast.success(t('orderDetails.statusUpdated') || 'Status updated successfully');
+
+      await createNotification(user.uid, {
+        title: "Order Status Updated",
+        message: `${order.customerName}'s ${order.dressType} is now ${newStatus}`,
+        type: 'order_status',
+        orderId: order.id
+      });
 
       if (newStatus === ORDER_STATUS.DELIVERED && order.assignedStaffId) {
         const staffMember = staff.find(s => s.id === order.assignedStaffId);

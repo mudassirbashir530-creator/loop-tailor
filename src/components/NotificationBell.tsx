@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, CheckCircle2, Clock, FileText, X, Trash2 } from 'lucide-react';
+import { Bell, CheckCircle2, Clock, FileText, X, Trash2, Scissors, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications, AppNotification } from '../hooks/useNotifications';
 import { useNavigate } from 'react-router-dom';
@@ -38,14 +38,18 @@ export default function NotificationBell() {
     switch (type) {
       case 'order_overdue':
       case 'payment_pending':
-        return <Clock className="h-4 w-4 text-rose-500" />;
+      case 'payment':
+        return <CreditCard className="h-4 w-4 text-emerald-500" />;
       case 'order_ready':
       case 'order_delivered':
         return <CheckCircle2 className="h-4 w-4 text-[#25D366]" />;
+      case 'order_status':
       case 'new_order':
       case 'order_started':
+        return <Scissors className="h-4 w-4 text-brand-primary" />;
+      case 'system':
       default:
-        return <FileText className="h-4 w-4 text-brand-primary" />;
+        return <Bell className="h-4 w-4 text-amber-500" />;
     }
   };
 
