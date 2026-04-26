@@ -203,8 +203,47 @@ export default function QuickOrder() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Multi-step state
+  const [currentStep, setCurrentStep] = useState(1);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [serviceType, setServiceType] = useState('Standard');
+
+  useEffect(() => {
+    const daysToAdd = serviceType === 'Premium' ? 1 : serviceType === 'Express' ? 2 : 6;
+    const date = new Date();
+    date.setDate(date.getDate() + daysToAdd);
+    setOrderData(prev => ({ ...prev, deliveryDate: date.toISOString().split('T')[0] }));
+  }, [serviceType]);
+
+  const validateStep = (step: number) => {
+    const errors: Record<string, string> = {};
+    if (step === 1) {
+      if (!customerData.name.trim()) errors.name = 'Customer name is required';
+      if (!customerData.phone.trim()) errors.phone = 'Phone number is required';
+    } else if (step === 2) {
+      if (!orderData.dressType.trim()) errors.dressType = 'Dress type is required';
+      if (!orderData.deliveryDate.trim()) errors.deliveryDate = 'Delivery date is required';
+      if (!orderData.price) errors.price = 'Price is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const handleBack = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setCurrentStep(prev => prev - 1);
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!validateStep(4)) return;
     if (!user) return;
     
     setIsSubmitting(true);
@@ -293,6 +332,7 @@ export default function QuickOrder() {
           phone: customerData.phone,
           gender: gender,
           dressType: orderData.dressType,
+          serviceType: serviceType,
           deliveryDate: new Date(orderData.deliveryDate).toISOString(),
           status: ORDER_STATUS.PENDING,
           price: price,
@@ -400,10 +440,36 @@ export default function QuickOrder() {
         setGender={setGender}
       />
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column: Customer & Basic Order Info */}
-          <div className="lg:col-span-2 space-y-8">
+      {/* Steps Indicator */}
+      <div className="mb-4 sm:mb-8 mt-2 px-4 sm:px-10">
+        <div className="flex items-center justify-between relative">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 rounded-full z-0"></div>
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-brand-primary rounded-full z-0 transition-all duration-300" style={{ width: `${((currentStep - 1) / 3) * 100}%` }}></div>
+          
+          {[1, 2, 3, 4].map((step) => (
+             <div key={step} className="flex flex-col items-center relative z-10 bg-gray-100 p-1 rounded-full">
+                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-black text-sm transition-colors shadow-neu-sm", currentStep > step ? "bg-emerald-500 text-white" : currentStep === step ? "bg-brand-primary text-white" : "bg-gray-100 text-slate-500")}>
+                   {currentStep > step ? <Check className="w-5 h-5"/> : step}
+                </div>
+                <div className={cn("absolute -bottom-6 w-32 text-center text-[10px] font-black uppercase tracking-wider hidden sm:block", currentStep >= step ? "text-slate-800" : "text-slate-400")}>
+                  {step === 1 ? 'Customer Info' : step === 2 ? 'Order Details' : step === 3 ? 'Measurements' : 'Review'}
+                </div>
+             </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-gray-100 rounded-[2rem] p-4 sm:p-8 shadow-neu mt-8 sm:mt-12">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {currentStep === 1 && (
+            <div className="space-y-8">
             <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
               <CardHeader className="bg-transparent border-b border-gray-200/50 p-4 sm:p-6">
                 <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -471,7 +537,7 @@ export default function QuickOrder() {
                   </AnimatePresence>
                 </div>
 
-                <div className="space-y-1.5">
+                  <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.customerName')}</label>
                   <div className="relative">
                     <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
@@ -486,6 +552,7 @@ export default function QuickOrder() {
                       className={cn("rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 transition-all h-12 text-base font-medium", isRTL ? "pr-12" : "pl-12")}
                     />
                   </div>
+                  {validationErrors.name && <p className="text-red-500 text-xs font-bold mt-1 pl-1">{validationErrors.name}</p>}
                   <div className="grid grid-cols-3 gap-3 mt-4">
                     {['male', 'female', 'kids'].map(g => (
                       <button
@@ -518,6 +585,7 @@ export default function QuickOrder() {
                       dir="ltr"
                     />
                   </div>
+                  {validationErrors.phone && <p className="text-red-500 text-xs font-bold mt-1 pl-1">{validationErrors.phone}</p>}
                 </div>
                 <div className="sm:col-span-2 space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.address')}</label>
@@ -533,7 +601,17 @@ export default function QuickOrder() {
                 </div>
               </CardContent>
             </Card>
+            
+            <div className="flex justify-end pt-4">
+              <Button type="button" onClick={handleNext} className="h-12 px-8 rounded-xl bg-brand-primary text-white font-black shadow-neu hover:shadow-neu-pressed transition-all">
+                Next <ArrowRight className={cn("h-5 w-5", isRTL ? "mr-2" : "ml-2")} />
+              </Button>
+            </div>
+            </div>
+            )}
 
+            {currentStep === 2 && (
+            <div className="space-y-8">
             <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
               <CardHeader className="bg-transparent border-b border-gray-200/50 p-4 sm:p-6">
                 <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -601,7 +679,26 @@ export default function QuickOrder() {
                         </motion.div>
                       )}
                     </AnimatePresence>
+                    {validationErrors.dressType && <p className="text-red-500 text-xs font-bold mt-1 pl-1">{validationErrors.dressType}</p>}
                   </div>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Service Type</label>
+                    <div className="relative">
+                      <Tag className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
+                      <select
+                        value={serviceType}
+                        onChange={(e) => setServiceType(e.target.value)}
+                        className={cn("w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 transition-all h-12 text-base font-medium appearance-none", isRTL ? "pr-12 text-right" : "pl-12")}
+                      >
+                        <option value="Standard">Standard (5-7 days)</option>
+                        <option value="Express">Express (2-3 days)</option>
+                        <option value="Premium">Premium (1 day)</option>
+                      </select>
+                      <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none", isRTL ? "left-4" : "right-4")} />
+                    </div>
+                  </div>
+
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.deliveryDate')}</label>
                     <div className="relative">
@@ -614,6 +711,7 @@ export default function QuickOrder() {
                         className={cn("rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 transition-all h-12 text-base font-medium", isRTL ? "pr-12 text-right" : "pl-12")}
                       />
                     </div>
+                    {validationErrors.deliveryDate && <p className="text-red-500 text-xs font-bold mt-1 pl-1">{validationErrors.deliveryDate}</p>}
                   </div>
                 </div>
 
@@ -646,6 +744,7 @@ export default function QuickOrder() {
                         dir="ltr"
                       />
                     </div>
+                    {validationErrors.price && <p className="text-red-500 text-xs font-bold mt-1 pl-1">{validationErrors.price}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('quickOrder.advance')} ({settings.currency})</label>
@@ -772,10 +871,20 @@ export default function QuickOrder() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+            
+            <div className="flex justify-between pt-4">
+              <Button type="button" variant="ghost" onClick={handleBack} className="h-12 px-6 rounded-xl text-slate-500 font-bold hover:bg-gray-200/50">
+                <ArrowLeft className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> Back
+              </Button>
+              <Button type="button" onClick={handleNext} className="h-12 px-8 rounded-xl bg-brand-primary text-white font-black shadow-neu hover:shadow-neu-pressed transition-all">
+                Next <ArrowRight className={cn("h-5 w-5", isRTL ? "mr-2" : "ml-2")} />
+              </Button>
+            </div>
+            </div>
+            )}
 
-          {/* Right Column: Measurements */}
-          <div className="space-y-8">
+            {currentStep === 3 && (
+            <div className="space-y-8">
             <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
               <CardHeader className="bg-transparent border-b border-gray-200/50 p-4 sm:p-6">
                 <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -921,20 +1030,166 @@ export default function QuickOrder() {
                 currentMeasurements={measurements} 
                 currentGender={gender} 
               />
+              <div className="flex justify-between pt-4">
+                <Button type="button" variant="ghost" onClick={handleBack} className="h-12 px-6 rounded-xl text-slate-500 font-bold hover:bg-gray-200/50">
+                  <ArrowLeft className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> Back
+                </Button>
+                <Button type="button" onClick={handleNext} className="h-12 px-8 rounded-xl bg-brand-primary text-white font-black shadow-neu hover:shadow-neu-pressed transition-all">
+                  Next <ArrowRight className={cn("h-5 w-5", isRTL ? "mr-2" : "ml-2")} />
+                </Button>
+              </div>
+            </div>
+            </div>
+            )}
+
+            {currentStep === 4 && (
+            <div className="space-y-8">
+            <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-transparent border-b border-gray-200/50 p-4 sm:p-6 flex flex-row items-center justify-between">
+                <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Check className="h-5 w-5 text-emerald-500" />
+                  Review & Confirm
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-6 space-y-8">
+                {/* Customer Summary */}
+                <div className="space-y-3 relative group">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <User className="h-3 w-3" /> Customer Info
+                    </h3>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(1)} className="text-brand-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
+                  </div>
+                  <div className="bg-white/50 rounded-xl p-4 space-y-2">
+                    <div className="font-bold text-slate-900">{customerData.name}</div>
+                    <div className="text-sm text-slate-600 flex items-center gap-2"><Phone className="h-3 w-3" /> {customerData.phone}</div>
+                    {customerData.address && <div className="text-sm text-slate-600 flex items-center gap-2"><MapPin className="h-3 w-3" /> {customerData.address}</div>}
+                  </div>
+                </div>
+
+                {/* Order Summary */}
+                <div className="space-y-3 relative group">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <Scissors className="h-3 w-3" /> Order Details
+                    </h3>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(2)} className="text-brand-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
+                  </div>
+                  <div className="bg-white/50 rounded-xl p-4 grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Dress Type</div>
+                      <div className="font-bold text-slate-900">{orderData.dressType}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Quantity</div>
+                      <div className="font-bold text-slate-900">{orderData.quantity}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Gender</div>
+                      <div className="font-bold text-slate-900 capitalize">{gender}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Assigned To</div>
+                      <div className="font-bold text-slate-900">{orderData.assignedStaffName || 'Unassigned'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-emerald-500">Estimated Delivery</div>
+                      <div className="font-bold text-emerald-600 flex items-center gap-1.5"><Calendar className="h-3 w-3" /> {new Date(orderData.deliveryDate).toLocaleDateString()}</div>
+                    </div>
+                    {orderData.rackLocation && (
+                      <div>
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Rack</div>
+                        <div className="font-bold text-slate-900">{orderData.rackLocation}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Price Summary */}
+                <div className="space-y-3 relative group">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <CreditCard className="h-3 w-3" /> Payment Info
+                    </h3>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(2)} className="text-brand-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
+                  </div>
+                  <div className="bg-white/50 rounded-xl p-4 grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Total</div>
+                      <div className="font-black text-slate-900">{settings.currency}{orderData.price || "0"}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Advance</div>
+                      <div className="font-black text-emerald-600">{settings.currency}{orderData.advancePayment || "0"}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Balance</div>
+                      <div className="font-black text-red-500">{settings.currency}{Number(orderData.price || 0) - Number(orderData.advancePayment || 0)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Measurements Summary */}
+                <div className="space-y-3 relative group">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <Ruler className="h-3 w-3" /> Measurements Summary
+                    </h3>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(3)} className="text-brand-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
+                  </div>
+                  <div className="bg-white/50 rounded-xl p-4">
+                    <p className="text-sm font-bold text-slate-600 leading-relaxed">
+                      {Object.entries(measurements)
+                        .filter(([_, val]) => val && Number(val) > 0)
+                        .map(([key, val]) => {
+                          const capKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+                          return `${capKey}: ${val}`;
+                        })
+                        .join(", ")}
+                      {Object.keys(measurements).length === 0 && <span className="text-slate-400 italic">No measurements entered</span>}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Notes Summar */}
+                {orderData.notes && (
+                  <div className="space-y-3 relative group">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <Notebook className="h-3 w-3" /> Notes
+                      </h3>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(2)} className="text-brand-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
+                    </div>
+                    <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
+                      <p className="text-sm font-bold text-amber-800">{orderData.notes}</p>
+                    </div>
+                  </div>
+                )}
+                
+              </CardContent>
+            </Card>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between pt-4 mb-4">
+                <Button type="button" variant="ghost" onClick={handleBack} className="h-12 px-6 rounded-xl text-slate-500 font-bold hover:bg-gray-200/50">
+                  <ArrowLeft className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> Back
+                </Button>
+              </div>
               <Button 
-                type="submit" 
+                type="button" 
+                onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="rounded-2xl h-14 text-lg font-bold bg-gray-100 shadow-neu-sm text-brand-primary hover:shadow-neu-pressed-sm w-full transition-all active:scale-95 disabled:opacity-70 border-none"
+                className="rounded-2xl h-14 text-lg font-bold bg-emerald-500 hover:bg-emerald-600 shadow-neu text-white w-full transition-all active:scale-95 disabled:opacity-70 border-none flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className={cn("h-5 w-5 animate-spin", isRTL ? "ml-2" : "mr-2")} />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                     {t('quickOrder.processing')}
                   </>
                 ) : (
                   <>
-                    <Save className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
-                    {t('quickOrder.saveOrder')}
+                    <Check className="h-6 w-6" />
+                    Complete & Save Order
                   </>
                 )}
               </Button>
@@ -942,14 +1197,16 @@ export default function QuickOrder() {
                 type="button" 
                 variant="ghost" 
                 onClick={() => navigate(-1)}
-                className="rounded-2xl h-12 w-full font-bold bg-gray-100 shadow-neu-sm text-slate-500 hover:text-brand-primary hover:shadow-neu-pressed-sm border-none"
+                className="rounded-2xl h-12 w-full font-bold bg-gray-100 shadow-neu-sm text-slate-500 hover:text-brand-primary hover:shadow-neu-pressed-sm border-none mt-2"
               >
                 {t('quickOrder.cancel')}
               </Button>
             </div>
-          </div>
-        </div>
-      </form>
+            </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 }
