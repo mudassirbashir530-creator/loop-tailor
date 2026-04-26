@@ -111,29 +111,7 @@ export default function QuickOrder() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelectCustomer = async (customer: any) => {
-    setCustomerData({
-      name: customer.name,
-      phone: customer.phone,
-      address: customer.address || '',
-      notes: customer.notes || ''
-    });
-    setSelectedCustomerId(customer.id);
-    setSearchQuery(customer.name);
-    setShowDropdown(false);
 
-    // Fetch measurements
-    try {
-      const measSnap = await getDoc(doc(db, 'shops', user.uid, 'measurements', customer.id));
-      if (measSnap.exists()) {
-        setMeasurements(measSnap.data());
-      } else {
-        setMeasurements({});
-      }
-    } catch (error) {
-      console.error("Error fetching measurements", error);
-    }
-  };
 
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -177,6 +155,53 @@ export default function QuickOrder() {
 
   // Measurements
   const [measurements, setMeasurements] = useState<any>({});
+  const [measurementSets, setMeasurementSets] = useState<Record<string, any>>({});
+  const [selectedMeasurementSet, setSelectedMeasurementSet] = useState('');
+
+  const handleSelectCustomer = async (customer: any) => {
+    setCustomerData({
+      name: customer.name,
+      phone: customer.phone,
+      address: customer.address || '',
+      notes: customer.notes || ''
+    });
+    setSelectedCustomerId(customer.id);
+    setSearchQuery(customer.name);
+    setShowDropdown(false);
+
+    // Fetch measurements
+    try {
+      const qMeas = query(collection(db, 'shops', user!.uid, 'measurements'), where('customerId', '==', customer.id));
+      const measSnap = await getDocs(qMeas);
+      const loadedSets: Record<string, any> = {};
+      measSnap.docs.forEach((d) => {
+        const docId = d.id;
+        const data = d.data();
+        if (docId === customer.id) {
+          loadedSets['Shalwar Kameez'] = data;
+        } else {
+          const parts = docId.split('__');
+          if (parts.length === 2 && parts[0] === customer.id) {
+            loadedSets[parts[1]] = data;
+          }
+        }
+      });
+      setMeasurementSets(loadedSets);
+      
+      const setNames = Object.keys(loadedSets);
+      if (setNames.length > 0) {
+         // Auto-select 'Shalwar Kameez' or the first available set
+         const defaultSet = setNames.includes('Shalwar Kameez') ? 'Shalwar Kameez' : setNames[0];
+         setSelectedMeasurementSet(defaultSet);
+         setMeasurements(loadedSets[defaultSet] || {});
+      } else {
+         setSelectedMeasurementSet('');
+         setMeasurements({});
+      }
+    } catch (error) {
+      console.error("Error fetching measurements", error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,12 +249,25 @@ export default function QuickOrder() {
 
         // Save/Update Measurements
         if (Object.keys(measurements).length > 0) {
-          await setDoc(doc(db, 'shops', user.uid, 'measurements', customerId), {
+          const setName = selectedMeasurementSet || 'Shalwar Kameez';
+          const docId = `${customerId}__${setName}`;
+          await setDoc(doc(db, 'shops', user.uid, 'measurements', docId), {
             ...measurements,
             shopId: user.uid,
             customerId: customerId,
+            setName: setName,
             updatedAt: serverTimestamp()
           }, { merge: true });
+
+          // Backward compatibility for Shalwar Kameez
+          if (setName === 'Shalwar Kameez') {
+             await setDoc(doc(db, 'shops', user.uid, 'measurements', customerId), {
+                ...measurements,
+                shopId: user.uid,
+                customerId: customerId,
+                updatedAt: serverTimestamp()
+             }, { merge: true });
+          }
         }
 
         const price = Number(orderData.price || 0);
@@ -745,9 +783,34 @@ export default function QuickOrder() {
                   {t('quickOrder.measurements')}
                 </CardTitle>
                 {selectedCustomerId ? (
-                  <div className="flex items-center gap-2 bg-emerald-100/50 text-emerald-600 px-3 py-2 rounded-xl text-sm font-bold border border-emerald-200 w-fit mt-3">
-                    <Check className="h-4 w-4" />
-                    Loaded from customer profile. Editing here updates their profile.
+                  <div className="space-y-4 mt-4">
+                    {Object.keys(measurementSets).length > 0 && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                          <Scissors className="h-3 w-3" /> Use measurements from:
+                        </label>
+                        <div className="relative">
+                          <select
+                            value={selectedMeasurementSet}
+                            onChange={(e) => {
+                              setSelectedMeasurementSet(e.target.value);
+                              setMeasurements(measurementSets[e.target.value] || {});
+                            }}
+                            className={cn("w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 transition-all h-10 text-sm font-bold appearance-none", isRTL ? "pr-10 text-right" : "pl-4 pr-10")}
+                          >
+                            <option value="">-- Choose Set --</option>
+                            {Object.keys(measurementSets).map(setName => (
+                              <option key={setName} value={setName}>{setName}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none", isRTL ? "left-4" : "right-4")} />
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 bg-emerald-100/50 text-emerald-600 px-3 py-2 rounded-xl text-sm font-bold border border-emerald-200 w-fit">
+                      <Check className="h-4 w-4" />
+                      {selectedMeasurementSet ? `📐 ${selectedMeasurementSet} measurements loaded. Editing updates their profile.` : 'Loaded from customer profile. Editing here updates their profile.'}
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 bg-blue-100/50 text-blue-600 px-3 py-2 rounded-xl text-sm font-bold border border-blue-200 w-fit mt-3">

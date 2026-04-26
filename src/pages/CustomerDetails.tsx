@@ -14,7 +14,7 @@ import { ArrowLeft, ArrowRight, Plus, Save, Upload, Edit, X, FileText, Phone, Ma
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
-import { getAllMeasurementCategories } from '../lib/measurements';
+import { getAllMeasurementCategories, MEASUREMENT_SETS } from '../lib/measurements';
 import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
 import { toast } from 'sonner';
 
@@ -41,8 +41,14 @@ export default function CustomerDetails() {
   
   const [isEditingCustomer, setIsEditingCustomer] = useState(false);
   const [isDeletingCustomer, setIsDeletingCustomer] = useState(false);
-  const [editCustomerData, setEditCustomerData] = useState({ name: '', phone: '', address: '', notes: '' });
+  const [editCustomerData, setEditCustomerData] = useState({ name: '', phone: '', address: '', notes: '', stylePreferences: '', emergencyPhone: '' });
   const [loading, setLoading] = useState(true);
+
+  // New states for measurement sets
+  const [activeSet, setActiveSet] = useState('Shalwar Kameez');
+  const [measurementSets, setMeasurementSets] = useState<Record<string, any>>({});
+  const [isAddingSet, setIsAddingSet] = useState(false);
+  const [newSetName, setNewSetName] = useState('');
 
   useEffect(() => {
     if (!user || !id) return;
@@ -56,18 +62,41 @@ export default function CustomerDetails() {
           name: custSnap.data().name || '',
           phone: custSnap.data().phone || '',
           address: custSnap.data().address || '',
-          notes: custSnap.data().notes || ''
+          notes: custSnap.data().notes || '',
+          stylePreferences: custSnap.data().stylePreferences || '',
+          emergencyPhone: custSnap.data().emergencyPhone || ''
         });
       } else {
         navigate('/dashboard/customers');
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, `customers/${id}`));
 
-    const unsubMeasurements = onSnapshot(doc(db, 'shops', user.uid, 'measurements', id), (measSnap) => {
-      if (measSnap.exists()) {
-        setMeasurements(measSnap.data());
-      }
-    }, (error) => handleFirestoreError(error, OperationType.GET, `measurements/${id}`));
+    const qMeasurements = query(collection(db, 'shops', user.uid, 'measurements'), where('customerId', '==', id));
+    const unsubMeasurements = onSnapshot(qMeasurements, (measSnap) => {
+      const loadedSets: Record<string, any> = {};
+      measSnap.docs.forEach((d) => {
+        const docId = d.id;
+        const data = d.data();
+        if (docId === id) {
+          // Legacy measurements
+          loadedSets['Shalwar Kameez'] = data;
+        } else {
+          const parts = docId.split('__');
+          if (parts.length === 2 && parts[0] === id) {
+            loadedSets[parts[1]] = data;
+          }
+        }
+      });
+      setMeasurementSets(loadedSets);
+      
+      // Update local measurements if it matches the current active set, OR if it's the first load
+      setMeasurements(prev => {
+        // We just always override with the fresh DB data for the active set. 
+        // Note: if user is typing while db syncs, they might lose a keystroke if another device saves.
+        // It's acceptable for this simple app.
+        return loadedSets[activeSet] || {};
+      });
+    }, (error) => handleFirestoreError(error, OperationType.GET, `measurements`));
 
     const q = query(collection(db, 'shops', user.uid, 'orders'), where('customerId', '==', id));
     const unsubOrders = onSnapshot(q, (ordSnap) => {
@@ -110,20 +139,56 @@ export default function CustomerDetails() {
     setSavingMeasurements(true);
     setSaveSuccess(false);
     try {
-      await setDoc(doc(db, 'shops', user.uid, 'measurements', id), {
-        ...measurements,
+      const docId = `${id}__${activeSet}`;
+      await setDoc(doc(db, 'shops', user.uid, 'measurements', docId), {
+        ...measurements, // Save current state
         shopId: user.uid,
         customerId: id,
+        setName: activeSet,
         updatedAt: serverTimestamp()
       }, { merge: true });
+
+      if (activeSet === 'Shalwar Kameez') {
+         await setDoc(doc(db, 'shops', user.uid, 'measurements', id), {
+            ...measurements,
+            shopId: user.uid,
+            customerId: id,
+            updatedAt: serverTimestamp()
+         }, { merge: true });
+      }
+
       setSaveSuccess(true);
       toast.success(t('customerDetails.measurementsSaved') || 'Measurements saved successfully');
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `measurements/${id}`);
+      handleFirestoreError(error, OperationType.UPDATE, `measurements/${id}__${activeSet}`);
     } finally {
       setSavingMeasurements(false);
     }
+  };
+
+  const handleDeleteSet = async (setName: string) => {
+    if (!user || !id) return;
+    if (!window.confirm(`Are you sure you want to delete the ${setName} measurements?`)) return;
+    try {
+      if (setName === 'Shalwar Kameez') {
+        const legacyRef = doc(db, 'shops', user.uid, 'measurements', id);
+        await deleteDoc(legacyRef);
+      }
+      const newRef = doc(db, 'shops', user.uid, 'measurements', `${id}__${setName}`);
+      await deleteDoc(newRef);
+      toast.success('Measurement set deleted');
+      if (activeSet === setName) setActiveSet('Shalwar Kameez');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `measurements/${id}__${setName}`);
+    }
+  };
+
+  const handleAddSet = () => {
+    if (!newSetName.trim()) return;
+    setActiveSet(newSetName.trim());
+    setIsAddingSet(false);
+    setNewSetName('');
   };
 
   const handleUpdateCustomer = async (e: React.FormEvent) => {
@@ -270,6 +335,12 @@ export default function CustomerDetails() {
                 <Phone className={cn("h-4 w-4 text-slate-400", isRTL ? "ml-2" : "mr-2")} />
                 {customer.phone}
               </div>
+              {customer.emergencyPhone && (
+                <div className="flex items-center text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg cursor-pointer" onClick={() => window.open(`https://wa.me/${customer.emergencyPhone.replace(/[^\d+]/g, '')}`, '_blank')}>
+                  <Phone className={cn("h-3 w-3", isRTL ? "ml-1" : "mr-1")} />
+                  {customer.emergencyPhone}
+                </div>
+              )}
               {customer.address && (
                 <div className="flex items-center">
                   <MapPin className={cn("h-4 w-4 text-slate-400", isRTL ? "ml-2" : "mr-2")} />
@@ -350,6 +421,29 @@ export default function CustomerDetails() {
                         value={editCustomerData.notes} 
                         onChange={e => setEditCustomerData({...editCustomerData, notes: e.target.value})} 
                         className={cn("w-full min-h-[100px] px-4 py-4 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all focus:outline-none text-slate-900", isRTL ? "pr-12" : "pl-12")}
+                      />
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>Style Preferences</label>
+                    <div className="relative">
+                      <Scissors className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
+                      <Input 
+                        placeholder="e.g., Prefers slim fit, likes embroidery on collar, avoid synthetic fabric"
+                        value={editCustomerData.stylePreferences || ''} 
+                        onChange={e => setEditCustomerData({...editCustomerData, stylePreferences: e.target.value})} 
+                        className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all text-slate-900", isRTL ? "pr-12" : "pl-12")}
+                      />
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>Emergency / WhatsApp Contact</label>
+                    <div className="relative">
+                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-500 z-10", isRTL ? "right-4" : "left-4")} />
+                      <Input 
+                        value={editCustomerData.emergencyPhone || ''} 
+                        onChange={e => setEditCustomerData({...editCustomerData, emergencyPhone: e.target.value})} 
+                        className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all text-slate-900", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
@@ -538,6 +632,58 @@ export default function CustomerDetails() {
               </div>
             </CardHeader>
             <CardContent className="p-8 pt-8">
+              <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2 custom-scrollbar">
+                {Array.from(new Set([...MEASUREMENT_SETS, ...Object.keys(measurementSets)])).map(setName => (
+                  <div key={setName} className="flex relative group shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => { setActiveSet(setName); setMeasurements(measurementSets[setName] || {}); }}
+                      className={cn("px-5 py-2.5 font-bold text-sm rounded-xl whitespace-nowrap transition-all", activeSet === setName ? "bg-brand-primary text-white shadow-neu-sm" : "bg-gray-100 text-slate-500 shadow-neu-sm hover:shadow-neu-pressed-sm")}
+                    >
+                      {setName}
+                    </button>
+                    {activeSet === setName && setName !== 'Shalwar Kameez' && (
+                      <button type="button" onClick={() => handleDeleteSet(setName)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-neu-sm">
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                
+                {isAddingSet ? (
+                  <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl shadow-neu-pressed-sm pl-3 shrink-0">
+                    <Input 
+                      autoFocus 
+                      value={newSetName} 
+                      onChange={e => setNewSetName(e.target.value)} 
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddSet(); } }} 
+                      className="h-9 w-32 border-none bg-transparent focus:ring-0 text-sm font-bold shadow-none" 
+                      placeholder="Set Name..." 
+                    />
+                    <Button size="sm" onClick={handleAddSet} className="h-9 rounded-lg bg-brand-primary text-white px-3 border-none hover:bg-brand-primary/90"><CheckCircle2 className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => setIsAddingSet(false)} className="h-9 rounded-lg text-slate-500 px-2 border-none"><X className="h-4 w-4" /></Button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setIsAddingSet(true)} className="px-4 py-2.5 font-bold text-sm bg-gray-100 text-slate-500 hover:text-brand-primary rounded-xl shadow-neu-sm hover:shadow-neu-pressed-sm transition-all flex items-center whitespace-nowrap shrink-0">
+                    <Plus className="h-4 w-4 mr-1" /> Add Set
+                  </button>
+                )}
+              </div>
+
+              {(() => {
+                 const currentSetData = measurementSets[activeSet] || {};
+                 const updatedAt = currentSetData?.updatedAt?.toDate ? currentSetData.updatedAt.toDate() : (currentSetData?.updatedAt ? new Date(currentSetData.updatedAt) : null);
+                 if (updatedAt && (Date.now() - updatedAt.getTime() > 1000 * 60 * 60 * 24 * 30 * 6)) {
+                    return (
+                      <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-xl flex items-center gap-3">
+                        <span className="text-xl">⚠️</span>
+                        <div className="text-sm font-bold">Measurements may be outdated - last updated {format(updatedAt, 'MMM dd, yyyy')}</div>
+                      </div>
+                    )
+                 }
+                 return null;
+              })()}
+
               <form className="space-y-12">
                 {(() => {
                   const customTemplate = templates.find(t => t.gender === selectedGender && t.isDefault) || templates.find(t => t.gender === selectedGender);
@@ -624,6 +770,19 @@ export default function CustomerDetails() {
                   ));
                 })()}
               </form>
+              
+              {(() => {
+                 const currentSetData = measurementSets[activeSet] || {};
+                 const updatedAt = currentSetData?.updatedAt?.toDate ? currentSetData.updatedAt.toDate() : (currentSetData?.updatedAt ? new Date(currentSetData.updatedAt) : null);
+                 if (updatedAt) {
+                    return (
+                      <div className="mt-8 pt-6 border-t border-gray-200/50 flex justify-end">
+                        <p className="text-xs font-bold text-slate-400">Last updated: {format(updatedAt, 'MMM dd, yyyy h:mm a')}</p>
+                      </div>
+                    )
+                 }
+                 return null;
+              })()}
             </CardContent>
           </Card>
         </div>
@@ -697,18 +856,31 @@ export default function CustomerDetails() {
             </CardContent>
           </Card>
 
-          {customer.notes && (
+          {(customer.notes || customer.stylePreferences) && (
             <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
               <CardHeader className="p-8 pb-4 border-b border-gray-200/50">
                 <CardTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
                   <Notebook className="h-5 w-5 text-brand-primary" />
-                  {t('customerDetails.clientNotes')}
+                  Profile Details
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8 pt-6">
-                <p className="text-sm font-bold text-slate-700 leading-relaxed bg-gray-100 shadow-neu-pressed-sm p-4 rounded-2xl">
-                  {customer.notes}
-                </p>
+              <CardContent className="p-8 pt-6 space-y-6">
+                {customer.stylePreferences && (
+                  <div>
+                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5"><span className="text-amber-500">✨</span> Style Preferences</h4>
+                    <p className="text-sm font-bold text-slate-700 leading-relaxed bg-gray-100 shadow-neu-pressed-sm p-4 rounded-2xl">
+                      {customer.stylePreferences}
+                    </p>
+                  </div>
+                )}
+                {customer.notes && (
+                  <div>
+                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">Client Notes</h4>
+                    <p className="text-sm font-bold text-slate-700 leading-relaxed bg-gray-100 shadow-neu-pressed-sm p-4 rounded-2xl">
+                      {customer.notes}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

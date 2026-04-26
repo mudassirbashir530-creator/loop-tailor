@@ -113,7 +113,7 @@ export default function PaymentReminders() {
     const balance = price - advance;
     
     // Assalam o Alaikum {customerName}! Aapka {dressType} tayyar hai. Total: {currency}{price} | Advance: {currency}{advance} | Baaki: {currency}{balance}. Please contact us. - {shopName}
-    const message = `Assalam o Alaikum ${order.customerName}! Aapka ${order.dressType} tayyar hai. Total: ${settings.currency}${price} | Advance: ${settings.currency}${advance} | Baaki: ${settings.currency}${balance}. Please contact us. - ${settings.shopName}`;
+    const message = `Assalam o Alaikum ${order.customerName}! Aapka ${order.dressType} tayyar hai. Total: ${settings.currency}${price} | Advance: ${settings.currency}${advance} | Baaki: ${settings.currency}${balance}. Please contact us. - ${settings.name}`;
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   };
 

@@ -1,5 +1,7 @@
 import { ArrowLeftRight, ArrowUpDown, Maximize2, Minimize2, CircleDashed, Ruler, Scissors, User, Activity } from 'lucide-react';
 
+export const MEASUREMENT_SETS = ['Shalwar Kameez', 'Formal Suit', 'Casual Shirt', 'Wedding Sherwani', 'Custom'];
+
 export const KAMEEZ_MEASUREMENTS = [
   { id: 'kameezShoulder', en: 'Shoulder', ur: 'کندھا', icon: ArrowLeftRight, desc: 'Shoulder to shoulder' },
   { id: 'kameezChest', en: 'Chest', ur: 'چھاتی', icon: Maximize2, desc: 'Full circumference' },
