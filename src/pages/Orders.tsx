@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, isBefore, startOfDay } from 'date-fns';
-import { Plus, Search, Loader2, Filter, Package, MapPin, Calendar, CheckCircle2, Hash, Scissors, ArrowRight, AlertCircle, ChevronDown, X, LayoutGrid, List } from 'lucide-react';
+import { Plus, Search, Loader2, Filter, Package, MapPin, Calendar, CheckCircle2, Hash, Scissors, ArrowRight, AlertCircle, ChevronDown, X, LayoutGrid, List, Layers, CheckSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, isOrderOverdue } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/config';
@@ -61,13 +61,18 @@ export default function Orders() {
 
   const updateStatus = async (orderId: string, newStatus: string) => {
     try {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      const history = { ...(order.statusHistory || {}) };
+      history[newStatus] = new Date().toISOString();
+
       await updateDoc(doc(db, 'shops', user!.uid, 'orders', orderId), { 
         status: newStatus, 
+        statusHistory: history,
         updatedAt: serverTimestamp() 
       });
       toast.success(t('orders.statusUpdated') || 'Status updated successfully');
 
-      const order = orders.find(o => o.id === orderId);
       if (order) {
         if (newStatus === ORDER_STATUS.STITCHING) {
           addNotification({
@@ -257,7 +262,7 @@ export default function Orders() {
       <div className="flex flex-col gap-6">
         {/* Status Filters */}
         <div className="flex flex-wrap gap-4">
-          {['All', ORDER_STATUS.PENDING, ORDER_STATUS.STITCHING, ORDER_STATUS.READY, ORDER_STATUS.DELIVERED].map((status) => (
+          {['All', ORDER_STATUS.PENDING, ORDER_STATUS.CUTTING, ORDER_STATUS.STITCHING, ORDER_STATUS.QC, ORDER_STATUS.READY, ORDER_STATUS.DELIVERED].map((status) => (
             <Button
               key={status}
               variant="ghost"
@@ -477,6 +482,11 @@ export default function Orders() {
                                 <Hash className="h-4 w-4" />
                               </div>
                               <span className="text-xl font-black text-slate-900">{order.tokenId || '---'}</span>
+                              {order.deliveryType === 'Home Delivery' ? (
+                                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md ml-2"><span className="hidden sm:inline">Home Delivery</span></span>
+                              ) : order.deliveryType === 'Self Pickup' ? (
+                                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md ml-2"><span className="hidden sm:inline">Self Pickup</span></span>
+                              ) : null}
                               {overdue && (
                                 <span className="flex items-center gap-1 px-3 py-1 bg-red-100 shadow-neu-pressed-sm text-red-600 text-[10px] font-black rounded-xl uppercase tracking-wider animate-pulse">
                                   <AlertCircle className="h-3 w-3" />
@@ -546,14 +556,36 @@ export default function Orders() {
                               <Button 
                                 size="sm" 
                                 variant="ghost"
-                                onClick={() => updateStatus(order.id, ORDER_STATUS.STITCHING)}
+                                onClick={() => updateStatus(order.id, ORDER_STATUS.CUTTING)}
                                 className="text-amber-600 hover:text-amber-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
                               >
                                 <Scissors className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
-                                {t('orders.start')}
+                                Start Cutting
+                              </Button>
+                            )}
+                            {order.status === ORDER_STATUS.CUTTING && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => updateStatus(order.id, ORDER_STATUS.STITCHING)}
+                                className="text-blue-600 hover:text-blue-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
+                              >
+                                <Layers className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
+                                Start Stitching
                               </Button>
                             )}
                             {order.status === ORDER_STATUS.STITCHING && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => updateStatus(order.id, ORDER_STATUS.QC)}
+                                className="text-purple-600 hover:text-purple-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
+                              >
+                                <CheckSquare className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
+                                Quality Check
+                              </Button>
+                            )}
+                            {order.status === ORDER_STATUS.QC && (
                               <Button 
                                 size="sm" 
                                 variant="ghost"
@@ -561,7 +593,7 @@ export default function Orders() {
                                 className="text-blue-600 hover:text-blue-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
                               >
                                 <Package className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
-                                {t('orders.ready')}
+                                Mark Ready
                               </Button>
                             )}
                             {order.status === ORDER_STATUS.READY && (
@@ -624,7 +656,7 @@ export default function Orders() {
             </div>
           ) : (
             <div className="flex overflow-x-auto pb-8 gap-6 pt-4 snap-x pr-8">
-              {[ORDER_STATUS.PENDING, ORDER_STATUS.STITCHING, ORDER_STATUS.READY, ORDER_STATUS.DELIVERED].map(columnStatus => (
+              {[ORDER_STATUS.PENDING, ORDER_STATUS.CUTTING, ORDER_STATUS.STITCHING, ORDER_STATUS.QC, ORDER_STATUS.READY, ORDER_STATUS.DELIVERED].map(columnStatus => (
                 <div key={columnStatus} className="min-w-[320px] max-w-[320px] bg-gray-100/50 px-3 py-6 rounded-[2.5rem] mt-2 snap-center">
                   <div className="flex items-center justify-between px-3 mb-6">
                     <h3 className="font-bold text-slate-700 capitalize flex items-center gap-2">
@@ -665,8 +697,10 @@ export default function Orders() {
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    const nextStatus = columnStatus === ORDER_STATUS.PENDING ? ORDER_STATUS.STITCHING : 
-                                                       columnStatus === ORDER_STATUS.STITCHING ? ORDER_STATUS.READY : ORDER_STATUS.DELIVERED;
+                                    const nextStatus = columnStatus === ORDER_STATUS.PENDING ? ORDER_STATUS.CUTTING : 
+                                                       columnStatus === ORDER_STATUS.CUTTING ? ORDER_STATUS.STITCHING :
+                                                       columnStatus === ORDER_STATUS.STITCHING ? ORDER_STATUS.QC :
+                                                       columnStatus === ORDER_STATUS.QC ? ORDER_STATUS.READY : ORDER_STATUS.DELIVERED;
                                     updateStatus(order.id, nextStatus);
                                   }}
                                   className="h-8 px-3 rounded-lg bg-white shadow-sm text-brand-primary hover:bg-gray-50 border border-gray-100"

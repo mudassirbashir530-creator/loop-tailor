@@ -9,7 +9,7 @@ import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, collect
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMeasurementName } from '../lib/measurements';
@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage } from '../lib/whatsapp';
 import { useStaff } from '../hooks/useStaff';
 import { MessageCircle } from 'lucide-react';
+import { OrderTimeline } from '../components/OrderTimeline';
 
 export default function OrderDetails() {
   const { id } = useParams();
@@ -96,8 +97,11 @@ export default function OrderDetails() {
 
   const handleUpdateStatus = async (newStatus: string) => {
     try {
+      const history = { ...(order.statusHistory || {}) };
+      history[newStatus] = new Date().toISOString();
       await updateDoc(doc(db, 'shops', user.uid, 'orders', id!), { 
         status: newStatus, 
+        statusHistory: history,
         updatedAt: serverTimestamp() 
       });
       toast.success(t('orderDetails.statusUpdated') || 'Status updated successfully');
@@ -130,8 +134,13 @@ export default function OrderDetails() {
 
   const handleSaveEdit = async () => {
     try {
+      const history = { ...(order.statusHistory || {}) };
+      if (editData.status !== order.status) {
+        history[editData.status] = new Date().toISOString();
+      }
       await updateDoc(doc(db, 'shops', user.uid, 'orders', id!), {
         ...editData,
+        statusHistory: history,
         updatedAt: serverTimestamp()
       });
       setIsEditing(false);
@@ -248,9 +257,14 @@ export default function OrderDetails() {
             {isRTL ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
           </Button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('orderDetails.token')}</span>
               <span className="text-2xl font-black text-brand-primary">#{order.tokenId}</span>
+              {order.deliveryType === 'Home Delivery' ? (
+                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md ml-2"><Home className="w-3 h-3"/> Home Delivery</span>
+              ) : order.deliveryType === 'Self Pickup' ? (
+                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md ml-2"><Store className="w-3 h-3"/> Self Pickup</span>
+              ) : null}
             </div>
             <h1 className="text-xl font-bold text-slate-900">{order.customerName}</h1>
           </div>
@@ -295,6 +309,8 @@ export default function OrderDetails() {
         </div>
       </div>
 
+      <OrderTimeline currentStatus={order.status} statusHistory={order.statusHistory || {}} />
+
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Main Info Card */}
@@ -336,9 +352,29 @@ export default function OrderDetails() {
                       className="h-12 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-base sm:text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:opacity-100 disabled:shadow-neu-sm"
                     >
                       <option value={ORDER_STATUS.PENDING}>{t('orderDetails.pending')}</option>
+                      <option value={ORDER_STATUS.CUTTING}>{t('orders.cutting', 'Cutting')}</option>
                       <option value={ORDER_STATUS.STITCHING}>{t('orderDetails.stitching')}</option>
+                      <option value={ORDER_STATUS.QC}>{t('orders.qc', 'Quality Check')}</option>
                       <option value={ORDER_STATUS.READY}>{t('orderDetails.ready')}</option>
                       <option value={ORDER_STATUS.DELIVERED}>{t('orderDetails.delivered')}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Delivery Type</span>
+                  <div className="mt-2">
+                    <select 
+                      disabled={!isEditing || order.status !== ORDER_STATUS.PENDING}
+                      value={isEditing ? (editData.deliveryType || 'Self Pickup') : (order.deliveryType || 'Self Pickup')}
+                      onChange={(e) => setEditData({...editData, deliveryType: e.target.value})}
+                      className={cn(
+                        "h-12 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-base sm:text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20",
+                        (!isEditing || order.status !== ORDER_STATUS.PENDING) ? "opacity-100 shadow-neu-sm" : ""
+                      )}
+                    >
+                      <option value="Self Pickup">🏪 Self Pickup</option>
+                      <option value="Home Delivery">🏠 Home Delivery</option>
                     </select>
                   </div>
                 </div>
@@ -535,10 +571,13 @@ export default function OrderDetails() {
                       "text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-neu-sm",
                       order.status === ORDER_STATUS.DELIVERED ? "bg-gray-100 text-emerald-600" :
                       order.status === ORDER_STATUS.READY ? "bg-gray-100 text-blue-600" :
-                      "bg-gray-100 text-amber-600"
+                      (order.status === ORDER_STATUS.QC || order.status === ORDER_STATUS.CUTTING || order.status === ORDER_STATUS.STITCHING) ? "bg-gray-100 text-amber-600" :
+                      "bg-gray-100 text-slate-600"
                     )}>
                       {order.status === ORDER_STATUS.PENDING ? t('orderDetails.pending') :
+                       order.status === ORDER_STATUS.CUTTING ? t('orders.cutting', 'Cutting') :
                        order.status === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
+                       order.status === ORDER_STATUS.QC ? t('orders.qc', 'Quality Check') :
                        order.status === ORDER_STATUS.READY ? t('orderDetails.ready') :
                        order.status === ORDER_STATUS.DELIVERED ? t('orderDetails.delivered') : order.status}
                     </span>
