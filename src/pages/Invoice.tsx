@@ -4,14 +4,23 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
-import { ArrowLeft, ArrowRight, Printer, Download, Share2, Edit2, MessageCircle, FileText } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Download, Share2, Edit2, MessageCircle, FileText, Save, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
+
+const toDate = (val: any) => {
+  if (!val) return new Date();
+  if (val?.toDate) return val.toDate();
+  if (val?.seconds) return new Date(val.seconds * 1000);
+  return new Date(val);
+};
+
+const safeNum = (val: any) => Number(val) || 0;
 
 export default function Invoice() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +35,13 @@ export default function Invoice() {
   const [customer, setCustomer] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    shopName: '',
+    invoiceFooter: '',
+    balanceDueOverride: ''
+  });
 
   useEffect(() => {
     if (!user || !id) return;
@@ -39,7 +55,11 @@ export default function Invoice() {
     }, (error) => handleFirestoreError(error, OperationType.GET, `invoice/${id}`));
 
     const unsubShop = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
-      if (shopSnap.exists()) setShop(shopSnap.data());
+      if (shopSnap.exists()) {
+        const data = shopSnap.data();
+        setShop(data);
+        setEditData(prev => ({ ...prev, shopName: data.name || '', invoiceFooter: data.invoiceFooter || '' }));
+      }
     }, (error) => handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`));
 
     return () => {
@@ -57,23 +77,24 @@ export default function Invoice() {
     return () => unsubCustomer();
   }, [user, order?.customerId]);
 
-  if (!order || !shop || !customer) return <div className="p-8">{t('invoice.loading')}</div>;
+  if (!order || !shop || !customer) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div></div>;
 
-  const totalPaid = (order?.payments || []).reduce((sum: number, p: any) => sum + Number(p.amount), 0) + Number(order?.advancePayment || 0);
-  const balanceDue = Math.max(0, Number(order?.price || 0) - totalPaid);
-
-  const handlePrint = () => {
-    window.print();
-  };
+  const totalPaid = (order?.payments || []).reduce((sum: number, p: any) => sum + safeNum(p.amount), 0) + safeNum(order?.advancePayment);
+  const calculatedBalanceDue = Math.max(0, safeNum(order?.price) - totalPaid);
+  const displayBalanceDue = editData.balanceDueOverride !== '' ? safeNum(editData.balanceDueOverride) : calculatedBalanceDue;
 
   const generateCanvas = async () => {
     if (!invoiceRef.current) return null;
     try {
+      const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+      await wait(100);
+      
       const canvas = await html2canvas(invoiceRef.current, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
+        logging: false
       });
       return canvas;
     } catch (error) {
@@ -106,7 +127,7 @@ export default function Invoice() {
       });
       
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save(`Invoice_${order.id.slice(-6).toUpperCase()}.pdf`);
+      pdf.save(`Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.pdf`);
       toast.success("PDF downloaded successfully");
     } catch (error) {
       console.error('Error downloading PDF:', error);
@@ -125,7 +146,7 @@ export default function Invoice() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Invoice_${order.id.slice(-6).toUpperCase()}.png`;
+      a.download = `Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -145,21 +166,20 @@ export default function Invoice() {
       const blob = await generatePNGBlob();
       if (!blob) throw new Error("Failed to generate image");
       
-      const file = new File([blob], `Invoice_${order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
+      const file = new File([blob], `Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
       const shareData = {
-        title: `${t('invoice.invoice')} - ${shop.name}`,
+        title: `Invoice - ${editData.shopName || shop.name}`,
         files: [file]
       };
 
       if (navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
       } else {
-        // Fallback: Download the PNG
         handleDownloadImage();
       }
     } catch (error) {
       console.error('Error sharing invoice:', error);
-      toast.error(t('invoice.shareError'));
+      toast.error(t('invoice.shareError') || 'Share failed');
     } finally {
       setIsSharing(false);
     }
@@ -171,37 +191,42 @@ export default function Invoice() {
       const blob = await generatePNGBlob();
       if (!blob) throw new Error("Failed to generate image");
       
-      const file = new File([blob], `Invoice_${order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
+      const file = new File([blob], `Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
+      
+      const messageText = `السلام علیکم *${customer.name}* صاحب! 🎉\nآپ کا آرڈر تیار ہو گیا ہے۔\n📋 Token: #${order.tokenId || order.id.slice(-6).toUpperCase()}\n👗 Dress: ${order.dressType}\n💰 Total: PKR ${safeNum(order.price)}\n✅ Paid: PKR ${totalPaid}\n🔴 Balance: PKR ${displayBalanceDue}\nبراہ کرم جلد تشریف لائیں 🙏\n${editData.shopName || shop.name}`;
+      
       const shareData = {
-        title: `${t('invoice.invoice')} - ${shop.name}`,
+        title: `Invoice - ${editData.shopName || shop.name}`,
+        text: messageText,
         files: [file]
       };
 
+      // Try native share first (mobile)
       if (navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
       } else {
-        // Fallback: Download the PNG and open WhatsApp
+        // Fallback for desktop: download image and open WA web
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Invoice_${order.id.slice(-6).toUpperCase()}.png`;
+        a.download = `Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.png`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        const message = encodeURIComponent(`Invoice for ${customer.name} - Balance Due: ${settings.currency} ${balanceDue}`);
+        const encodedMessage = encodeURIComponent(messageText);
         
         if (customer?.phone) {
-          const cleanPhone = customer.phone.replace(/[^\d+]/g, '').replace('+', '');
-          window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+          const cleanPhone = customer.phone.replace(/[^\d+]/g, '').replace(/^\+/, '');
+          window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
         } else {
-          window.open(`https://wa.me/?text=${message}`, '_blank');
+          window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
         }
       }
     } catch (error) {
       console.error('Error sharing to WhatsApp:', error);
-      toast.error(t('invoice.shareError'));
+      toast.error(t('invoice.shareError') || 'Share failed');
     } finally {
       setIsGenerating(false);
     }
@@ -209,101 +234,125 @@ export default function Invoice() {
 
   const renderInvoiceContent = (isCapture = false) => (
     <>
-      {/* Header Section */}
       <div className={cn("flex flex-row justify-between items-start border-b border-slate-100 gap-4", isCapture ? "pb-8 mb-8" : "pb-5 mb-5")}>
         <div className="flex items-center gap-3">
           {shop.logoUrl && <img src={shop.logoUrl} alt="Shop Logo" crossOrigin="anonymous" className={cn("object-contain rounded-xl bg-gray-100 shadow-neu-pressed-sm p-1", isCapture ? "h-20 w-20" : "h-10 w-10 sm:h-16 sm:w-16")} />}
           <div>
-            <h1 className={cn("font-black text-slate-900 leading-tight tracking-tight", isCapture ? "text-4xl" : "text-xl sm:text-3xl")}>{shop.name}</h1>
+            {isEditing && !isCapture ? (
+              <input 
+                type="text" 
+                value={editData.shopName} 
+                onChange={(e) => setEditData({...editData, shopName: e.target.value})}
+                className={cn("font-black text-slate-900 leading-tight tracking-tight bg-white border rounded px-2 w-full", isCapture ? "text-4xl" : "text-xl sm:text-3xl")}
+              />
+            ) : (
+              <h1 className={cn("font-black text-slate-900 leading-tight tracking-tight", isCapture ? "text-4xl" : "text-xl sm:text-3xl")}>{editData.shopName || shop.name}</h1>
+            )}
             <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg mt-1" : "text-xs sm:text-base")}>{shop.phone}</p>
           </div>
         </div>
         <div className={cn(isRTL ? "text-left" : "text-right")}>
-          <h2 className={cn("font-black text-brand-primary tracking-tighter uppercase", isCapture ? "text-3xl" : "text-base sm:text-2xl")}>{t('invoice.invoice')}</h2>
-          <p className={cn("font-bold text-slate-400 mt-1", isCapture ? "text-lg" : "text-xs sm:text-base")}>#{order.id.slice(-6).toUpperCase()}</p>
+          <h2 className={cn("font-black text-brand-primary tracking-tighter uppercase", isCapture ? "text-3xl" : "text-base sm:text-2xl")}>{t('invoice.invoice') || 'INVOICE'}</h2>
+          <p className={cn("font-bold text-slate-400 mt-1", isCapture ? "text-lg" : "text-xs sm:text-base")}>#{order.tokenId || order.id.slice(-6).toUpperCase()}</p>
         </div>
       </div>
 
-      {/* Info Grid */}
       <div className={cn("grid grid-cols-2 gap-4", isCapture ? "mb-10" : "mb-6 sm:mb-8")}>
         <div className="space-y-1">
-          <h3 className={cn("font-black text-slate-400 uppercase tracking-widest", isCapture ? "text-sm" : "text-xs sm:text-sm")}>{t('invoice.billTo')}</h3>
+          <h3 className={cn("font-black text-slate-400 uppercase tracking-widest", isCapture ? "text-sm" : "text-xs sm:text-sm")}>{t('invoice.billTo') || 'BILL TO'}</h3>
           <p className={cn("font-bold text-slate-900 leading-tight", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{customer.name}</p>
           <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base truncate max-w-[140px] sm:max-w-none")}>{customer.phone}</p>
         </div>
         <div className={cn("space-y-1", isRTL ? "text-left" : "text-right")}>
-          <h3 className={cn("font-black text-slate-400 uppercase tracking-widest", isCapture ? "text-sm" : "text-xs sm:text-sm")}>{t('invoice.delivery')}</h3>
-          <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{format(new Date(order.deliveryDate), 'MMM dd, yyyy')}</p>
-          <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base")}>{t('invoice.issued')}: {format(new Date(), 'MMM dd')}</p>
+          <h3 className={cn("font-black text-slate-400 uppercase tracking-widest", isCapture ? "text-sm" : "text-xs sm:text-sm")}>{t('invoice.delivery') || 'DOCUMENT DATE'}</h3>
+          <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{format(toDate(order.deliveryDate), 'MMM dd, yyyy')}</p>
+          <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base")}>Issued: {format(new Date(), 'MMM dd, yyyy')}</p>
         </div>
       </div>
 
-      {/* Items Table - Compact */}
       <div className={cn("border-y border-gray-200/50 py-2", isCapture ? "mb-10" : "mb-6 sm:mb-8")}>
         <div className={cn("flex justify-between items-center py-2 font-black text-slate-400 uppercase tracking-widest px-1", isCapture ? "text-sm" : "text-xs sm:text-sm")}>
-          <span>{t('invoice.description')}</span>
-          <span>{t('invoice.amount')}</span>
+          <span>{t('invoice.description') || 'DESCRIPTION'}</span>
+          <span>{t('invoice.amount') || 'AMOUNT'}</span>
         </div>
         <div className="flex justify-between items-center py-3 px-1">
           <div>
             <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{order.dressType}</p>
-            <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base")}>{t('invoice.customTailoring')}</p>
+            <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base")}>{t('invoice.customTailoring') || 'Custom Tailoring'}</p>
           </div>
-          <p className={cn("font-black text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{settings.currency} {order.price.toLocaleString()}</p>
+          <p className={cn("font-black text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{settings.currency} {safeNum(order.price).toLocaleString()}</p>
         </div>
       </div>
 
-      {/* Payment History */}
-      {((order.payments && order.payments.length > 0) || Number(order.advancePayment) > 0) && (
+      {((order.payments && order.payments.length > 0) || safeNum(order.advancePayment) > 0) && (
         <div className={cn("mb-6 sm:mb-8", isCapture ? "mx-1" : "")}>
           <h3 className={cn("font-black text-slate-400 uppercase tracking-widest px-1 mb-2", isCapture ? "text-sm" : "text-xs sm:text-sm")}>Payment History</h3>
           <div className="bg-gray-100 shadow-neu-pressed-sm rounded-2xl border-none p-4 divide-y divide-gray-200/50">
-            {Number(order.advancePayment) > 0 && (
+            {safeNum(order.advancePayment) > 0 && (
               <div className="py-2 flex justify-between items-center text-sm font-bold text-slate-700">
                 <div className="flex flex-col">
-                  <span>{format(new Date(order.createdAt), 'MMM dd, yyyy')}</span>
+                  <span>{format(toDate(order.createdAt), 'MMM dd, yyyy')}</span>
                   <span className="text-xs text-slate-500 font-medium">Initial Advance</span>
                 </div>
-                <span className="text-emerald-600">+{settings.currency} {Number(order.advancePayment).toLocaleString()}</span>
+                <span className="text-emerald-600">+{settings.currency} {safeNum(order.advancePayment).toLocaleString()}</span>
               </div>
             )}
             {(order.payments || []).map((payment: any, index: number) => (
               <div key={index} className="py-2 flex justify-between items-center text-sm font-bold text-slate-700">
                 <div className="flex flex-col">
-                  <span>{format(new Date(payment.date), 'MMM dd, yyyy')}</span>
+                  <span>{format(toDate(payment.date), 'MMM dd, yyyy')}</span>
                   <span className="text-xs text-slate-500 font-medium">{payment.method} {payment.note && `- ${payment.note}`}</span>
                 </div>
-                <span className="text-emerald-600">+{settings.currency} {Number(payment.amount).toLocaleString()}</span>
+                <span className="text-emerald-600">+{settings.currency} {safeNum(payment.amount).toLocaleString()}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Totals Section */}
       <div className={cn("flex", isCapture ? "mb-12" : "mb-6 sm:mb-10", isRTL ? "justify-start" : "justify-end")}>
         <div className={cn("space-y-3 bg-gray-100 shadow-neu-pressed-sm rounded-2xl border-none", isCapture ? "w-96 p-6" : "w-full sm:w-72 p-4")}>
           <div className={cn("flex justify-between font-bold text-slate-500", isCapture ? "text-base" : "text-xs sm:text-sm")}>
-            <span>{t('invoice.subtotal')}</span>
-            <span>{settings.currency} {order.price.toLocaleString()}</span>
+            <span>{t('invoice.subtotal') || 'Subtotal'}</span>
+            <span>{settings.currency} {safeNum(order.price).toLocaleString()}</span>
           </div>
           <div className={cn("flex justify-between font-bold text-emerald-600", isCapture ? "text-base" : "text-xs sm:text-sm")}>
             <span>Total Paid</span>
             <span>-{settings.currency} {totalPaid.toLocaleString()}</span>
           </div>
-          <div className={cn("flex justify-between font-black text-slate-900 pt-3 border-t border-slate-200", isCapture ? "text-2xl" : "text-base sm:text-xl")}>
-            <span>{t('invoice.balanceDue')}</span>
-            <span className="text-brand-primary">{settings.currency} {balanceDue.toLocaleString()}</span>
+          <div className={cn("flex justify-between items-center font-black text-slate-900 pt-3 border-t border-slate-200", isCapture ? "text-2xl" : "text-base sm:text-xl")}>
+            <span>{t('invoice.balanceDue') || 'Balance Due'}</span>
+            {isEditing && !isCapture ? (
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-medium">{settings.currency}</span>
+                <input 
+                  type="number" 
+                  value={editData.balanceDueOverride} 
+                  onChange={(e) => setEditData({...editData, balanceDueOverride: e.target.value})}
+                  placeholder={calculatedBalanceDue.toString()}
+                  className="w-20 text-right bg-white border rounded px-2"
+                />
+              </div>
+            ) : (
+              <span className="text-brand-primary">{settings.currency} {displayBalanceDue.toLocaleString()}</span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Footer */}
       <div className="text-center space-y-2 pt-8 border-t border-slate-100">
-        <p className={cn("font-bold text-slate-400 uppercase tracking-widest", isCapture ? "text-base" : "text-xs sm:text-sm")}>{t('invoice.thankYou')}</p>
-        <p className={cn("font-medium text-slate-500 italic", isCapture ? "text-lg" : "text-sm sm:text-base")}>
-          "{shop.invoiceFooter || t('invoice.defaultFooter')}"
-        </p>
+        <p className={cn("font-bold text-slate-400 uppercase tracking-widest", isCapture ? "text-base" : "text-xs sm:text-sm")}>{t('invoice.thankYou') || 'THANK YOU!'}</p>
+        {isEditing && !isCapture ? (
+          <textarea 
+            value={editData.invoiceFooter} 
+            onChange={(e) => setEditData({...editData, invoiceFooter: e.target.value})}
+            className={cn("font-medium text-slate-500 italic bg-white border rounded px-2 py-1 w-full text-center resize-none", isCapture ? "text-lg h-24" : "text-sm sm:text-base h-16")}
+          />
+        ) : (
+          <p className={cn("font-medium text-slate-500 italic", isCapture ? "text-lg" : "text-sm sm:text-base")}>
+            "{editData.invoiceFooter || shop.invoiceFooter || 'We appreciate your business'}"
+          </p>
+        )}
         <div className={cn("pt-4 flex justify-center gap-4 text-slate-300 font-medium", isCapture ? "text-sm" : "text-xs")}>
           <span>{shop.address}</span>
         </div>
@@ -312,40 +361,50 @@ export default function Invoice() {
   );
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 px-2 sm:px-0 pb-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 print:hidden">
-        <Button variant="ghost" onClick={() => navigate('/dashboard/orders')} className="-ml-2 h-8 text-slate-500 hover:text-slate-900">
-          {isRTL ? <ArrowRight className="h-4 w-4 ml-1.5" /> : <ArrowLeft className="h-4 w-4 mr-1.5" />} {t('invoice.back')}
+    <div className="max-w-3xl mx-auto space-y-6 px-4 sm:px-0 pb-10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
+        <Button variant="ghost" onClick={() => navigate('/dashboard/orders')} className="h-10 text-slate-500 hover:text-slate-900 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none rounded-xl">
+          {isRTL ? <ArrowRight className="h-4 w-4 ml-2" /> : <ArrowLeft className="h-4 w-4 mr-2" />} Back to Orders
         </Button>
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/orders/${id}`)} className="flex-1 sm:flex-none rounded-xl h-9">
-            <Edit2 className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {t('invoice.edit')}
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          {isEditing ? (
+            <Button variant="ghost" onClick={() => setIsEditing(false)} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-pressed text-brand-primary border-none font-bold">
+              <Save className="h-4 w-4 mr-2" /> Save Edit
+            </Button>
+          ) : (
+            <Button variant="ghost" onClick={() => setIsEditing(true)} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-bold text-slate-700">
+              <Edit2 className="h-4 w-4 mr-2" /> Edit Invoice
+            </Button>
+          )}
+          
+          <Button variant="ghost" onClick={handleWhatsAppShare} disabled={isGenerating} className="rounded-xl h-10 px-4 bg-[#25D366] text-white hover:bg-[#128C7E] shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-black flex-1 sm:flex-none">
+            <MessageCircle className="h-4 w-4 mr-2" /> {isGenerating ? 'Wait...' : 'WhatsApp'}
           </Button>
-          <Button variant="outline" size="sm" onClick={handleShare} disabled={isSharing} className="flex-1 sm:flex-none rounded-xl h-9">
-            <Share2 className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isSharing ? '...' : t('invoice.share')}
+          
+          <Button variant="ghost" onClick={handleShare} disabled={isSharing} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-bold text-slate-700">
+            <Share2 className="h-4 w-4 mr-2" /> {isSharing ? '...' : 'Share'}
           </Button>
-          <Button variant="outline" size="sm" onClick={handleWhatsAppShare} disabled={isGenerating} className="flex-1 sm:flex-none rounded-xl h-9 bg-[#25D366] text-white hover:bg-[#128C7E] border-none">
-            <MessageCircle className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> {isGenerating ? '...' : 'WhatsApp'}
+          
+          <Button variant="ghost" onClick={handleDownloadPDF} disabled={isGenerating} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-bold text-slate-700">
+            <FileText className="h-4 w-4 mr-2" /> PDF
           </Button>
-          <Button variant="outline" size="sm" onClick={handleDownloadPDF} disabled={isGenerating} className="flex-1 sm:flex-none rounded-xl h-9">
-            <FileText className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> PDF
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleDownloadImage} disabled={isGenerating} className="flex-1 sm:flex-none rounded-xl h-9">
-            <Download className={cn("h-3.5 w-3.5", isRTL ? "ml-1.5" : "mr-1.5")} /> Image
+
+          <Button variant="ghost" onClick={handleDownloadImage} disabled={isGenerating} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-bold text-slate-700">
+            <ImageIcon className="h-4 w-4 mr-2" /> Save PNG
           </Button>
         </div>
       </div>
 
-      <div className={cn("bg-gray-100 p-5 sm:p-10 rounded-[2.5rem] shadow-neu border-none print:shadow-none print:border-none print:p-0 overflow-hidden", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
+      <div className={cn("bg-gray-100 p-6 sm:p-10 rounded-[2.5rem] shadow-neu border-none print:shadow-none print:border-none print:p-0 overflow-hidden", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
         {renderInvoiceContent(false)}
       </div>
 
-      {/* Off-screen Invoice for Capture */}
-      <div style={{ position: 'absolute', left: '-9999px', top: '0' }} aria-hidden="true">
+      {/* Off-screen high-quality invoice for html2canvas */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '0', zIndex: -100 }} aria-hidden="true">
         <div 
           ref={invoiceRef} 
           className={cn(isRTL && "text-[1.2rem]")}
-          style={{ backgroundColor: '#ffffff', padding: '48px', width: '800px' }}
+          style={{ backgroundColor: '#F3F4F6', padding: '64px', width: '800px', borderRadius: '40px' }}
           dir={isRTL ? "rtl" : "ltr"}
         >
           {renderInvoiceContent(true)}
