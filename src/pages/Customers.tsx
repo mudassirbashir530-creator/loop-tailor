@@ -105,35 +105,32 @@ export default function Customers() {
   }, [customers, searchTerm, filterTab, ordersPerCustomer]);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-6"
+        className="hero-section flex flex-col md:flex-row md:items-end justify-between gap-6"
       >
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">{t('customers.title')}</h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">{t('customers.subtitle')}</p>
+        <div className="z-10 relative">
+          <h1 className="hero-title">{t('customers.title')}</h1>
+          <p className="text-[rgba(255,255,255,0.7)] text-sm sm:text-base mt-2 font-medium">{t('customers.subtitle')}</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-4 items-center w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-4 items-center w-full md:w-auto z-10 relative">
           <div className="relative w-full sm:w-80 group">
             <input
               type="text"
               placeholder={t('customers.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={cn("w-full h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none text-base font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
+              className={cn("w-full h-[48px] rounded-[14px] bg-white/10 border-none text-white focus:outline-none focus:ring-2 focus:ring-[#D4AA45] transition-all placeholder:text-[rgba(255,255,255,0.5)]", isRTL ? "pr-[44px] pl-4" : "pl-[44px] pr-4")}
             />
-            <div className={cn("absolute top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")}>
+            <div className={cn("absolute top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.5)] group-focus-within:text-white transition-colors", isRTL ? "right-4" : "left-4")}>
               <Search className="h-5 w-5" />
             </div>
           </div>
           <Button 
             onClick={() => setIsAdding(!isAdding)} 
-            className={cn(
-              "w-full sm:w-auto h-14 rounded-2xl transition-all hover:scale-105 active:scale-95 px-8 font-black text-base border-none",
-              isAdding ? "bg-gray-100 shadow-neu-pressed-sm text-slate-600" : "bg-gray-100 shadow-neu-sm text-brand-primary hover:shadow-neu-pressed-sm"
-            )}
+            className="btn-primary w-full sm:w-auto flex items-center h-[48px] px-6 shrink-0"
           >
             {isAdding ? <X className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <UserPlus className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
             {isAdding ? t('customers.cancel') : t('customers.addCustomer')}
@@ -149,93 +146,93 @@ export default function Customers() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden mb-8">
-              <CardHeader className="p-8 pb-4">
-                <CardTitle className="text-2xl font-black text-brand-primary">{t('customers.newProfile')}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 pt-0">
+            <div className="card mb-6">
+              <div className="p-6 border-b border-[#EEF1ED]">
+                <h2 className="section-title">{t('customers.newProfile')}</h2>
+              </div>
+              <div className="p-6">
                 <form onSubmit={handleAddCustomer} className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.fullName')}</label>
+                    <label className={cn("text-xs font-black text-[#8A9E94] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.fullName')}</label>
                     <div className="relative group">
-                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#8A9E94] group-focus-within:text-[#1A4A3A] transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={newCustomer.name} 
                         onChange={e => setNewCustomer({...newCustomer, name: e.target.value})} 
                         placeholder="e.g. Muhammad Ahmed" 
-                        className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold text-slate-700 transition-all", isRTL ? "pr-12" : "pl-12")}
+                        className={cn("input-field", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.phone')}</label>
+                    <label className={cn("text-xs font-black text-[#8A9E94] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.phone')}</label>
                     <div className="relative group">
-                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#8A9E94] group-focus-within:text-[#1A4A3A] transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={newCustomer.phone} 
                         onChange={e => setNewCustomer({...newCustomer, phone: e.target.value})} 
                         placeholder="e.g. 0300 1234567" 
-                        className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold text-slate-700 transition-all", isRTL ? "pr-12" : "pl-12")}
+                        className={cn("input-field", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.address')}</label>
+                    <label className={cn("text-xs font-black text-[#8A9E94] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.address')}</label>
                     <div className="relative group">
-                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#8A9E94] group-focus-within:text-[#1A4A3A] transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         value={newCustomer.address} 
                         onChange={e => setNewCustomer({...newCustomer, address: e.target.value})} 
                         placeholder="e.g. House #123, Street 4, Lahore" 
-                        className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold text-slate-700 transition-all", isRTL ? "pr-12" : "pl-12")}
+                        className={cn("input-field", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.notes')}</label>
+                    <label className={cn("text-xs font-black text-[#8A9E94] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.notes')}</label>
                     <div className="relative group">
-                      <Notebook className={cn("absolute top-4 h-5 w-5 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <Notebook className={cn("absolute top-4 h-5 w-5 text-[#8A9E94] group-focus-within:text-[#1A4A3A] transition-colors", isRTL ? "right-4" : "left-4")} />
                       <textarea 
                         value={newCustomer.notes} 
                         onChange={e => setNewCustomer({...newCustomer, notes: e.target.value})} 
                         placeholder="Specific preferences, fit styles, etc." 
-                        className={cn("w-full min-h-[120px] py-4 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold text-slate-700 transition-all focus:outline-none", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
+                        className={cn("input-field min-h-[120px] py-4 resize-none", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
                       />
                     </div>
                   </div>
-                  <div className="md:col-span-2 flex justify-end gap-4 mt-4">
+                  <div className="md:col-span-2 flex justify-end gap-4 mt-2">
                     <Button 
                       type="button" 
                       variant="ghost" 
                       onClick={() => setIsAdding(false)}
-                      className="h-14 px-8 rounded-2xl font-bold text-slate-500 hover:text-slate-700 hover:bg-transparent"
+                      className="btn-secondary px-8"
                     >
                       {t('customers.discard')}
                     </Button>
                     <Button 
                       type="submit"
-                      className="h-14 px-10 rounded-2xl bg-gray-100 shadow-neu-sm text-brand-primary hover:shadow-neu-pressed-sm font-black text-base transition-all hover:scale-105 active:scale-95 border-none"
+                      className="btn-primary px-10"
                     >
                       {t('customers.save')}
                     </Button>
                   </div>
                 </form>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex bg-gray-100 shadow-neu-inner p-1.5 rounded-2xl w-fit">
+      <div className="flex bg-white rounded-full p-1.5 shadow-[0_2px_10px_rgba(26,74,58,0.04)] w-fit border border-[#EEF1ED]">
         <button
           onClick={() => setFilterTab('all')}
           className={cn(
-            "px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
+            "px-6 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
             filterTab === 'all' 
-              ? "bg-white shadow-neu-sm text-brand-primary" 
-              : "text-slate-500 hover:text-slate-700"
+              ? "bg-[#1A4A3A] text-white" 
+              : "text-[#8A9E94] hover:text-[#1A4A3A]"
           )}
         >
           All Clients
@@ -243,10 +240,10 @@ export default function Customers() {
         <button
           onClick={() => setFilterTab('active')}
           className={cn(
-            "px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
+            "px-6 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
             filterTab === 'active' 
-              ? "bg-white shadow-neu-sm text-brand-primary" 
-              : "text-slate-500 hover:text-slate-700"
+              ? "bg-[#1A4A3A] text-white" 
+              : "text-[#8A9E94] hover:text-[#1A4A3A]"
           )}
         >
           Active
@@ -254,10 +251,10 @@ export default function Customers() {
         <button
           onClick={() => setFilterTab('inactive')}
           className={cn(
-            "px-6 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap",
+            "px-6 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
             filterTab === 'inactive' 
-              ? "bg-white shadow-neu-sm text-brand-primary" 
-              : "text-slate-500 hover:text-slate-700"
+              ? "bg-[#1A4A3A] text-white" 
+              : "text-[#8A9E94] hover:text-[#1A4A3A]"
           )}
         >
           Inactive
@@ -266,37 +263,34 @@ export default function Customers() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 space-y-4">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-5xl">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
              {[1, 2, 3, 4, 5, 6].map((i) => (
-               <div key={i} className="h-32 bg-gray-100 shadow-neu-sm rounded-[2.5rem] animate-pulse"></div>
+               <div key={i} className="h-32 bg-[#F2F4F0] rounded-[20px] animate-pulse"></div>
              ))}
           </div>
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mt-8">Accessing directory...</p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredCustomers.length === 0 ? (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="col-span-full py-16 px-4 text-center bg-gray-100 shadow-neu-pressed-sm rounded-[3rem] flex flex-col items-center space-y-6"
+                className="col-span-full py-16 px-4 text-center bg-white rounded-[24px] shadow-[0_2px_12px_rgba(26,74,58,0.04)] border border-[#EEF1ED] flex flex-col items-center space-y-6"
               >
                 <div className="w-64 max-w-full opaciy-80">
                   <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="200" cy="120" r="40" fill="#f1f5f9" stroke="#e2e8f0" strokeWidth="8"/>
-                    <path d="M120 250C120 205.817 155.817 170 200 170C244.183 170 280 205.817 280 250" fill="#f1f5f9" stroke="#e2e8f0" strokeWidth="8"/>
-                    <circle cx="200" cy="150" r="100" stroke="#004643" strokeWidth="12" strokeDasharray="20 20" opacity="0.1"/>
-                    <path d="M260 100V140M240 120H280" stroke="#004643" strokeWidth="12" strokeLinecap="round" opacity="0.2"/>
+                    <circle cx="200" cy="120" r="40" fill="#F2F4F0" stroke="#EEF1ED" strokeWidth="8"/>
+                    <path d="M120 250C120 205.817 155.817 170 200 170C244.183 170 280 205.817 280 250" fill="#F2F4F0" stroke="#EEF1ED" strokeWidth="8"/>
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-slate-900">{t('customers.noCustomers')}</h3>
-                  <p className="text-slate-500 font-medium mt-2">{t('customers.trySearching')}</p>
+                  <h3 className="text-xl font-bold text-[#111C17]">{t('customers.noCustomers')}</h3>
+                  <p className="text-[#8A9E94] font-medium mt-1">{t('customers.trySearching')}</p>
                 </div>
                 <Button 
                   onClick={() => setIsAdding(true)}
-                  className="rounded-xl h-14 px-8 font-bold bg-brand-primary shadow-lg text-white mt-4"
+                  className="btn-primary mt-4"
                 >
                   <Plus className="h-5 w-5 mr-no-rtl ml-auto-rtl mr-2" />
                   {t('customers.addCustomer')}
@@ -311,44 +305,41 @@ export default function Customers() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card 
-                    className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden hover:-translate-y-1 transition-all group cursor-pointer"
+                  <div 
+                    className="card p-5 flex items-center justify-between hover:shadow-[0_8px_30px_rgba(26,74,58,0.08)] hover:-translate-y-1 transition-all group cursor-pointer"
                     onClick={() => navigate(`/dashboard/customers/${customer.id}`)}
                   >
-                    <CardContent className="p-7 flex items-center justify-between">
-                      <div className="flex items-center gap-5">
-                        <div className="h-16 w-16 rounded-[1.5rem] bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary font-black text-2xl group-hover:shadow-neu-sm transition-all duration-300">
-                          {customer.name.charAt(0).toUpperCase()}
+                    <div className="flex items-center gap-4">
+                      <div className="h-14 w-14 rounded-[14px] bg-[#F2F4F0] flex items-center justify-center text-[#1A4A3A] font-black text-xl group-hover:bg-[#1A4A3A] group-hover:text-white transition-colors duration-300">
+                        {customer.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-bold text-[#111C17] group-hover:text-[#1A4A3A] transition-colors line-clamp-1">
+                            {customer.name}
+                          </h3>
                         </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-black text-slate-900 group-hover:text-brand-primary transition-colors line-clamp-1">
-                              {customer.name}
-                            </h3>
-                            {ordersPerCustomer[customer.id]?.active > 0 && (
-                              <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
-                                Active
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center text-slate-500 font-bold text-sm">
-                              <Phone className="h-3.5 w-3.5 mr-1 text-brand-primary" />
-                              {customer.phone}
-                            </div>
-                            {ordersPerCustomer[customer.id]?.total > 0 && (
-                              <div className="bg-brand-primary/10 text-brand-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                {ordersPerCustomer[customer.id].total} {ordersPerCustomer[customer.id].total === 1 ? 'order' : 'orders'}
-                              </div>
-                            )}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center text-[#8A9E94] font-medium text-sm">
+                            <Phone className="h-3.5 w-3.5 mr-1" />
+                            {customer.phone}
                           </div>
                         </div>
                       </div>
-                      <div className="h-10 w-10 rounded-xl bg-gray-100 shadow-neu-sm flex items-center justify-center text-brand-primary group-hover:shadow-neu-pressed-sm transition-all">
-                        <ArrowRight className="h-5 w-5" />
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                       {ordersPerCustomer[customer.id]?.total > 0 && (
+                          <div className="badge badge-info whitespace-nowrap">
+                            {ordersPerCustomer[customer.id].total} {ordersPerCustomer[customer.id].total === 1 ? 'order' : 'orders'}
+                          </div>
+                       )}
+                       {ordersPerCustomer[customer.id]?.active > 0 && (
+                          <div className="badge badge-success whitespace-nowrap">
+                            Active
+                          </div>
+                        )}
+                    </div>
+                  </div>
                 </motion.div>
               ))
             )}

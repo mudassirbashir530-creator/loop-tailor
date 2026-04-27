@@ -400,342 +400,237 @@ export default function Dashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className={cn("space-y-10", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
+        className={cn("", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
       >
-        <motion.div variants={itemVariants} className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">
-              {t('dashboard.welcome')}, <span className="text-brand-primary">{user?.displayName?.split(' ')[0] || 'Tailor'}</span>
+        <motion.div variants={itemVariants} className="welcome-section flex flex-col pt-10 px-8 pb-14">
+          <div className="z-10 relative">
+            <div className="greeting-text">{t('dashboard.welcome')}</div>
+            <h1 className="welcome-name">
+              Hello, <span className="highlight">{user?.displayName?.split(' ')[0] || 'Tailor'}</span>
             </h1>
-            <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">Here's what's happening today.</p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-            {/* Token Search Bar */}
-            <motion.form 
-              onSubmit={handleTokenSearch} 
-              className="relative group w-full sm:w-96"
-              whileHover={{ scale: 1.02 }}
-              whileFocus={{ scale: 1.02 }}
-            >
-              <div className={cn("absolute top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-5" : "left-5")}>
-                <Hash className="h-5 w-5" />
-              </div>
-              <input 
-                type="text"
-                placeholder={t('dashboard.searchPlaceholder')}
-                value={searchToken}
-                onChange={(e) => setSearchToken(e.target.value)}
-                className={cn("w-full h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none text-base font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all", isRTL ? "pr-14 pl-14" : "pl-14 pr-14")}
-              />
-              <button 
-                type="submit"
-                className={cn("absolute top-2 h-10 w-10 rounded-xl bg-gray-100 shadow-neu-sm text-brand-primary flex items-center justify-center hover:shadow-neu-pressed-sm transition-all", isRTL ? "left-2" : "right-2")}
-              >
-                <Search className="h-5 w-5" />
-              </button>
-              {searchError && (
-                <p className={cn("absolute -bottom-6 text-[10px] font-bold text-red-500 uppercase tracking-wider", isRTL ? "right-2" : "left-2")}>{searchError}</p>
-              )}
-            </motion.form>
           </div>
         </motion.div>
 
-        <QuickSetupChecklist />
+        {/* Token Search Bar floats over hero */}
+        <div className="search-container">
+          <form 
+            onSubmit={handleTokenSearch} 
+            className="flex items-center gap-3 relative"
+          >
+            <div className="text-[#8A9E94]">
+              <Search className="h-5 w-5" />
+            </div>
+            <input 
+              type="text"
+              placeholder={t('dashboard.searchPlaceholder')}
+              value={searchToken}
+              onChange={(e) => setSearchToken(e.target.value)}
+              className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-[#111C17] font-medium"
+              style={{ boxShadow: 'none' }}
+            />
+            <button 
+              type="submit"
+              className="px-4 py-2 bg-[#1A4A3A] text-white rounded-lg text-sm font-bold shadow-[0_4px_12px_rgba(26,74,58,0.2)]"
+            >
+              Search
+            </button>
+            {searchError && (
+              <p className="absolute -bottom-6 left-0 text-[10px] font-bold text-[#DC2626] uppercase tracking-wider">{searchError}</p>
+            )}
+          </form>
+        </div>
 
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="px-5 mt-6">
+          <QuickSetupChecklist />
+        </div>
+
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4 px-5 mt-6">
         {[
-          { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-brand-primary" },
-          { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-brand-primary" },
-          { label: t('dashboard.pendingPayments'), value: formatCurrency(stats.pendingPayments), icon: Clock, color: "text-brand-primary" },
-          { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-brand-primary" },
+          { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-[#1A4A3A]", bg: "bg-[#EDF0EC]" },
+          { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-[#1A4A3A]", bg: "bg-[#EDF0EC]" },
+          { label: t('dashboard.pendingPayments'), value: formatCurrency(stats.pendingPayments), icon: Clock, color: "text-[#1A4A3A]", bg: "bg-[#EDF0EC]" },
+          { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-[#D4AA45]", bg: "bg-[#112D23]", dark: true },
         ].map((stat, idx) => (
           <motion.div key={idx} variants={itemVariants}>
-            <Card className="border-none shadow-neu bg-gray-100 rounded-2xl p-6 flex items-center gap-5 hover:-translate-y-1 transition-transform duration-300">
-              <div className="bg-gray-100 shadow-neu-pressed-sm p-4 rounded-xl flex items-center justify-center">
-                <stat.icon className={`h-6 w-6 ${stat.color}`} />
+            <div className={cn("stat-card", stat.dark ? "dark-variant" : "")}>
+              <div className={cn("stat-icon-box", stat.bg)}>
+                <stat.icon className={`h-[22px] w-[22px] ${stat.color}`} />
               </div>
-              <div>
-                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">{stat.label}</div>
-                <div className="text-2xl font-black text-slate-900 tracking-tight mt-1">{stat.value}</div>
+              <div className="flex flex-col">
+                <div className={cn("text-[11px] font-semibold uppercase tracking-wider mb-1", stat.dark ? "text-[rgba(255,255,255,0.7)]" : "text-[#8A9E94]")}>{stat.label}</div>
+                <div className={cn("stat-number text-xl md:text-2xl", stat.dark ? "text-white" : "text-[#111C17]")}>{stat.value}</div>
               </div>
-            </Card>
+            </div>
           </motion.div>
         ))}
-      </div>
+        </div>
 
-      {/* Quick Stats Row */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] p-6 flex flex-col justify-center items-center text-center">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Average Order Value</div>
-          <div className="text-3xl font-black text-brand-primary">{formatCurrency(stats.completedOrders > 0 ? stats.totalRevenue / stats.completedOrders : 0)}</div>
-          <div className="text-xs font-bold text-slate-400 mt-2">Based on delivered orders</div>
-        </Card>
-        <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] p-6 flex flex-col justify-center items-center text-center">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Orders Growth</div>
-          <div className="text-3xl font-black text-slate-900">
-            {stats.ordersThisMonth} <span className="text-sm font-bold text-slate-500">vs {stats.ordersLastMonth}</span>
+        {/* Comprehensive Analytics Data Visualization */}
+        <div className="chart-container">
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp className="h-5 w-5 text-[#1A4A3A]" />
+            <h2 className="section-title">Revenue (Last 6 Months)</h2>
           </div>
-          {stats.ordersLastMonth > 0 && (
-            <div className={`text-[10px] font-black uppercase tracking-widest mt-2 ${stats.ordersThisMonth >= stats.ordersLastMonth ? 'text-emerald-500' : 'text-rose-500'}`}>
-              {Math.round(((stats.ordersThisMonth - stats.ordersLastMonth) / stats.ordersLastMonth) * 100)}% {stats.ordersThisMonth >= stats.ordersLastMonth ? 'Increase' : 'Decrease'}
-            </div>
-          )}
-        </Card>
-        <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] p-6 flex flex-col justify-center items-center text-center">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">New Customers</div>
-          <div className="text-3xl font-black text-slate-900">{stats.newCustomersThisMonth}</div>
-          <div className="text-xs font-bold text-slate-400 mt-2">Added this month</div>
-        </Card>
-      </motion.div>
-
-      {/* Comprehensive Analytics Data Visualization */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Chart */}
-        <motion.div variants={itemVariants} className="lg:col-span-2">
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] h-full overflow-hidden flex flex-col">
-            <CardHeader className="p-6 pb-2 border-b border-gray-200/50">
-              <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-brand-primary" />
-                Revenue (Last 6 Months)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 flex-1 min-h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} tickFormatter={(value) => `${value}`} />
-                  <RechartsTooltip 
-                    cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }}
-                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)', padding: '12px' }}
-                    formatter={(value: any) => [formatCurrency(value as number), 'Revenue']}
-                  />
-                  <Bar dataKey="revenue" fill="#6366f1" radius={[6, 6, 0, 0]} barSize={40} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Order Status & Payment Summary */}
-        <motion.div variants={itemVariants} className="space-y-6 flex flex-col">
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] p-6 min-h-[300px] flex flex-col">
-            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <FileText className="h-5 w-5 text-brand-primary" />
-              Order Status
-            </h3>
-            <div className="flex-1 relative min-h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieChartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {pieChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip 
-                    itemStyle={{ fontWeight: 'bold' }}
-                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
-             <div className="p-6 space-y-4">
-                <div>
-                  <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Total Collected</div>
-                  <div className="text-2xl font-black text-brand-primary line-clamp-1">{formatCurrency(stats.totalCollected)}</div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <div className="text-[10px] font-black uppercase text-amber-500 tracking-widest">Pending</div>
-                    <div className="text-lg font-bold text-slate-900 line-clamp-1">{formatCurrency(stats.totalPending)}</div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">This Month</div>
-                    <div className="text-lg font-bold text-slate-900 line-clamp-1">{formatCurrency(stats.thisMonthRevenue)}</div>
-                  </div>
-                </div>
-             </div>
-          </Card>
-        </motion.div>
-
-        {/* Top Dress Types */}
-        <motion.div variants={itemVariants} className="lg:col-span-3">
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] p-6 h-[300px] flex flex-col">
-            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Scissors className="h-5 w-5 text-brand-primary" />
-              Top Dress Types
-            </h3>
-            <div className="flex-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topDressTypesData} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
-                  <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#1e293b', fontWeight: 600 }} width={120} />
-                  <RechartsTooltip 
-                    cursor={{ fill: 'rgba(0,0,0,0.05)', radius: 8 }}
-                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                  />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={24} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </motion.div>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        <motion.div variants={itemVariants} className="lg:col-span-2">
-          <Card className="border-none shadow-neu bg-gray-100 overflow-hidden rounded-3xl">
-            <CardHeader className="p-6 pb-4 border-b border-gray-200/50">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div 
-                  className="flex p-1.5 bg-gray-100 shadow-neu-pressed-sm rounded-xl w-fit"
-                  role="tablist"
-                  aria-label="Dashboard views"
+          <div className="h-[260px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={revenueChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#EEF1ED" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#8A9E94', fontWeight: 600 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#8A9E94', fontWeight: 600 }} tickFormatter={(value) => `${value}`} />
+                <RechartsTooltip 
+                  cursor={{ fill: '#F2F4F0', radius: 8 }}
+                  contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 8px 32px rgba(26,74,58,0.12)', padding: '12px' }}
+                  formatter={(value: any) => [formatCurrency(value as number), 'Revenue']}
+                />
+                <Bar 
+                  dataKey="revenue" 
+                  radius={[6, 6, 0, 0]} 
+                  barSize={32}
+                  fill="#1A4A3A" 
+                  className="chart-bar outline-none border-none"
                 >
-                  {dashboardTabs.map((tab, index) => (
-                    <button
-                      key={tab.id}
-                      id={`dashboard-tab-${index}`}
-                      role="tab"
-                      aria-selected={activeTab === tab.id}
-                      aria-controls={`dashboard-tabpanel-${index}`}
-                      tabIndex={activeTab === tab.id ? 0 : -1}
-                      onClick={() => setActiveTab(tab.id)}
-                      onKeyDown={(e) => handleTabKeyDown(e, index)}
-                      className={cn(
-                        "px-5 py-2 rounded-lg text-sm font-bold transition-all duration-300 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary",
-                        activeTab === tab.id 
-                          ? "text-brand-primary shadow-neu-sm bg-gray-100" 
-                          : "text-slate-500 hover:text-brand-primary"
-                      )}
-                    >
-                      {tab.label}
-                    </button>
+                  {revenueChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} className={index === revenueChartData.length - 1 ? 'current-month' : 'has-data'} />
                   ))}
-                </div>
-                {activeTab === 'recent' ? (
-                  <Button variant="ghost" size="sm" asChild className="rounded-xl hover:shadow-neu-pressed-sm bg-gray-100 shadow-neu-sm text-brand-primary font-bold h-10 px-4 transition-all">
-                    <Link to="/dashboard/orders" className="flex items-center">
-                      {t('dashboard.viewAll')} <ArrowRight className={cn("h-4 w-4", isRTL ? "mr-2 rotate-180" : "ml-2")} />
-                    </Link>
-                  </Button>
-                ) : (
-                  <div className="bg-gray-100 shadow-neu-pressed-sm p-2.5 rounded-xl">
-                    <Calendar className="h-5 w-5 text-brand-primary" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6 px-5 mt-6">
+          <motion.div variants={itemVariants} className="lg:col-span-2">
+            <div className="card overflow-hidden">
+              <div className="p-5 border-b border-[#EEF1ED]">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div 
+                    className="flex p-1 bg-[#F2F4F0] rounded-[16px] w-fit"
+                    role="tablist"
+                    aria-label="Dashboard views"
+                  >
+                    {dashboardTabs.map((tab, index) => (
+                      <button
+                        key={tab.id}
+                        id={`dashboard-tab-${index}`}
+                        role="tab"
+                        aria-selected={activeTab === tab.id}
+                        aria-controls={`dashboard-tabpanel-${index}`}
+                        tabIndex={activeTab === tab.id ? 0 : -1}
+                        onClick={() => setActiveTab(tab.id)}
+                        onKeyDown={(e) => handleTabKeyDown(e, index)}
+                        className={cn(
+                          "px-5 py-2 rounded-[14px] text-sm font-bold transition-all duration-300 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A4A3A]",
+                          activeTab === tab.id 
+                            ? "text-[#1A4A3A] bg-white shadow-[0_2px_8px_rgba(26,74,58,0.08)]" 
+                            : "text-[#8A9E94] hover:text-[#1A4A3A]"
+                        )}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
                   </div>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="p-2">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  id={`dashboard-tabpanel-${dashboardTabs.findIndex((t) => t.id === activeTab)}`}
-                  role="tabpanel"
-                  aria-labelledby={`dashboard-tab-${dashboardTabs.findIndex((t) => t.id === activeTab)}`}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-2"
-                >
                   {activeTab === 'recent' ? (
-                    recentOrders.length === 0 ? (
-                      <div className="p-12 text-center text-slate-500 text-sm font-medium">{t('dashboard.noRecentOrders')}</div>
-                    ) : (
-                      recentOrders.map((order, idx) => (
-                        <motion.div 
-                          key={order.id} 
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: idx * 0.05 }}
-                          className="p-4 sm:p-5 flex items-center justify-between bg-gray-100 rounded-2xl hover:shadow-neu-pressed-sm transition-all cursor-pointer group"
-                          onClick={() => navigate(`/dashboard/orders/${order.id}`)}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-xl bg-gray-100 shadow-neu-sm flex items-center justify-center text-brand-primary group-hover:shadow-neu-pressed-sm transition-all">
-                              <Scissors className="h-5 w-5" />
-                            </div>
-                            <div>
-                              <div className="font-bold text-slate-900 group-hover:text-brand-primary transition-colors">{order.customerName}</div>
-                              <div className="text-xs font-medium text-slate-500 mt-0.5">{order.dressType} • {formatDate(order.createdAt)}</div>
-                            </div>
-                          </div>
-                          <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
-                            <div className="text-base font-black text-slate-900">{formatCurrency(order.price)}</div>
-                            <div className="flex flex-col items-end gap-1 mt-1">
-                              <div className={`text-[11px] font-bold uppercase tracking-wider ${
-                                order.status === ORDER_STATUS.DELIVERED ? 'text-emerald-600' : 'text-amber-600'
-                              }`}>{t(`orders.${order.status.toLowerCase()}`)}</div>
-                              <span className={cn(
-                                "text-[9px] font-black uppercase tracking-widest",
-                                (!order.paymentStatus || order.paymentStatus === 'Unpaid') ? "text-rose-500" :
-                                order.paymentStatus === 'Partial' ? "text-blue-500" :
-                                "text-emerald-500"
-                              )}>
-                                {order.paymentStatus || 'Unpaid'}
-                              </span>
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))
-                    )
+                    <Button variant="ghost" size="sm" asChild className="rounded-[14px] bg-[#EDF0EC] text-[#1A4A3A] font-bold h-10 px-4 transition-all hover:bg-[#DDE3DC]">
+                      <Link to="/dashboard/orders" className="flex items-center">
+                        {t('dashboard.viewAll')} <ArrowRight className={cn("h-4 w-4", isRTL ? "mr-2 rotate-180" : "ml-2")} />
+                      </Link>
+                    </Button>
                   ) : (
-                    upcomingDeliveries.length === 0 ? (
-                      <div className="p-12 text-center text-slate-500 text-sm font-medium">{t('dashboard.noUpcomingDeliveries')}</div>
-                    ) : (
-                      upcomingDeliveries.map((order, idx) => (
-                        <motion.div 
-                          key={order.id} 
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: idx * 0.05 }}
-                          className="p-4 sm:p-5 flex items-center justify-between bg-gray-100 rounded-2xl hover:shadow-neu-pressed-sm transition-all group cursor-pointer"
-                          onClick={() => navigate(`/dashboard/orders/${order.id}`)}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-xl bg-gray-100 shadow-neu-sm flex items-center justify-center text-brand-primary font-black text-lg group-hover:shadow-neu-pressed-sm transition-all">
-                              {order.customerName.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className="font-bold text-slate-900 group-hover:text-brand-primary transition-colors">{order.customerName}</div>
-                              <div className="text-xs font-medium text-slate-500 mt-0.5 flex items-center">
-                                <Clock className={cn("h-3.5 w-3.5 text-brand-primary", isRTL ? "ml-1" : "mr-1")} />
-                                {t('dashboard.due')}: {format(new Date(order.deliveryDate), 'MMM dd, yyyy')}
+                    <div className="bg-[#EDF0EC] p-2.5 rounded-[14px]">
+                      <Calendar className="h-5 w-5 text-[#1A4A3A]" />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="p-3">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    id={`dashboard-tabpanel-${dashboardTabs.findIndex((t) => t.id === activeTab)}`}
+                    role="tabpanel"
+                    aria-labelledby={`dashboard-tab-${dashboardTabs.findIndex((t) => t.id === activeTab)}`}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-2"
+                  >
+                    {activeTab === 'recent' ? (
+                      recentOrders.length === 0 ? (
+                        <div className="p-12 text-center text-[#8A9E94] text-sm font-medium">{t('dashboard.noRecentOrders')}</div>
+                      ) : (
+                        recentOrders.map((order, idx) => (
+                          <motion.div 
+                            key={order.id} 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="p-4 flex items-center justify-between bg-[#F2F4F0] rounded-[16px] hover:bg-[#EDF0EC] transition-all cursor-pointer group"
+                            onClick={() => navigate(`/dashboard/orders/${order.id}`)}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-[14px] bg-white flex items-center justify-center text-[#1A4A3A] shadow-sm">
+                                <Scissors className="h-5 w-5" />
+                              </div>
+                              <div>
+                                <div className="font-bold text-[#111C17]">{order.customerName}</div>
+                                <div className="text-[12px] font-medium text-[#4A5E54] mt-0.5">{order.dressType} • {formatDate(order.createdAt)}</div>
                               </div>
                             </div>
-                          </div>
-                          <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-9 px-4 rounded-xl bg-gray-100 shadow-neu-sm border-none text-brand-primary font-bold hover:shadow-neu-pressed-sm transition-all"
-                            >
-                              {t('dashboard.details')}
-                            </Button>
-                          </div>
-                        </motion.div>
-                      ))
-                    )
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </CardContent>
-          </Card>
-        </motion.div>
+                            <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
+                              <div className="text-base font-black text-[#111C17]">{formatCurrency(order.price)}</div>
+                              <div className="flex flex-col items-end gap-1 mt-1">
+                                <div className={`badge ${
+                                  order.status === ORDER_STATUS.DELIVERED ? 'badge-success' : 'badge-warning'
+                                }`}>{t(`orders.${order.status.toLowerCase()}`)}</div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))
+                      )
+                    ) : (
+                      upcomingDeliveries.length === 0 ? (
+                        <div className="p-12 text-center text-[#8A9E94] text-sm font-medium">{t('dashboard.noUpcomingDeliveries')}</div>
+                      ) : (
+                        upcomingDeliveries.map((order, idx) => (
+                          <motion.div 
+                            key={order.id} 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="p-4 flex items-center justify-between bg-[#F2F4F0] rounded-[16px] hover:bg-[#EDF0EC] transition-all group cursor-pointer"
+                            onClick={() => navigate(`/dashboard/orders/${order.id}`)}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-[14px] bg-[#1A4A3A] text-white flex items-center justify-center font-black text-lg shadow-sm">
+                                {order.customerName.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-bold text-[#111C17]">{order.customerName}</div>
+                                <div className="text-[12px] font-medium text-[#4A5E54] mt-0.5 flex items-center">
+                                  <Clock className={cn("h-3.5 w-3.5 text-[#1A4A3A]", isRTL ? "ml-1" : "mr-1")} />
+                                  {t('dashboard.due')}: {format(new Date(order.deliveryDate), 'MMM dd, yyyy')}
+                                </div>
+                              </div>
+                            </div>
+                            <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-9 px-4 rounded-[12px] bg-white border-[#DDE3DC] text-[#1A4A3A] font-bold"
+                              >
+                                {t('dashboard.details')}
+                              </Button>
+                            </div>
+                          </motion.div>
+                        ))
+                      )
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+          </motion.div>
 
         {/* Third column / right side widgets */}
         <motion.div variants={itemVariants} className="lg:col-span-1 space-y-6">

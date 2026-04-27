@@ -360,9 +360,9 @@ export default function OrderDetails() {
                       className="h-12 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-base sm:text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:opacity-100 disabled:shadow-neu-sm"
                     >
                       <option value={ORDER_STATUS.PENDING}>{t('orderDetails.pending')}</option>
-                      <option value={ORDER_STATUS.CUTTING}>{t('orders.cutting', 'Cutting')}</option>
+                      <option value={ORDER_STATUS.CUTTING}>{t('orders.cutting')}</option>
                       <option value={ORDER_STATUS.STITCHING}>{t('orderDetails.stitching')}</option>
-                      <option value={ORDER_STATUS.QC}>{t('orders.qc', 'Quality Check')}</option>
+                      <option value={ORDER_STATUS.QC}>{t('orders.qc')}</option>
                       <option value={ORDER_STATUS.READY}>{t('orderDetails.ready')}</option>
                       <option value={ORDER_STATUS.DELIVERED}>{t('orderDetails.delivered')}</option>
                     </select>
@@ -583,9 +583,9 @@ export default function OrderDetails() {
                       "bg-gray-100 text-slate-600"
                     )}>
                       {order.status === ORDER_STATUS.PENDING ? t('orderDetails.pending') :
-                       order.status === ORDER_STATUS.CUTTING ? t('orders.cutting', 'Cutting') :
+                       order.status === ORDER_STATUS.CUTTING ? t('orders.cutting') :
                        order.status === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
-                       order.status === ORDER_STATUS.QC ? t('orders.qc', 'Quality Check') :
+                       order.status === ORDER_STATUS.QC ? t('orders.qc') :
                        order.status === ORDER_STATUS.READY ? t('orderDetails.ready') :
                        order.status === ORDER_STATUS.DELIVERED ? t('orderDetails.delivered') : order.status}
                     </span>

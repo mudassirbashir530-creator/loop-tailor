@@ -24,7 +24,7 @@ export default function MobileBottomNav() {
 
   return (
     <>
-      <div className="bottom-nav lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-[#EEF1ED] z-50 flex items-center justify-around px-3 pb-[18px] pt-[10px] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bottom-nav z-50 flex items-end justify-around">
         {mainNavItems.map((item) => {
           const Icon = item.icon;
           
@@ -36,7 +36,7 @@ export default function MobileBottomNav() {
                   setIsMoreOpen(false);
                   navigate(item.path!);
                 }}
-                className="fab-btn w-[52px] h-[52px] rounded-[16px] bg-brand-primary flex items-center justify-center text-white -mt-3 shadow-[0_8px_24px_rgba(26,74,58,0.35)] border-[3px] border-[#F2F4F0] transition-all"
+                className="fab-btn"
               >
                 <Icon className="h-7 w-7" />
               </button>
@@ -50,13 +50,12 @@ export default function MobileBottomNav() {
                 key={item.name}
                 onClick={() => setIsMoreOpen(!isMoreOpen)}
                 className={cn(
-                  "nav-item flex flex-col items-center gap-1 p-2 transition-colors",
-                  isActive && "active",
-                  isActive ? "text-brand-primary" : "text-slate-400"
+                  "nav-item transition-colors",
+                  isActive ? "active" : ""
                 )}
               >
-                <Icon className="h-6 w-6" />
-                <span className="nav-label text-[10px] font-bold uppercase tracking-wider">{item.name}</span>
+                <Icon className={cn("h-6 w-6 nav-icon", isActive ? "" : "text-slate-400")} />
+                <span className={cn("text-[10px] font-medium nav-label", isActive ? "" : "text-slate-500")}>{item.name}</span>
               </button>
             );
           }
@@ -69,13 +68,12 @@ export default function MobileBottomNav() {
               to={item.path!}
               onClick={() => setIsMoreOpen(false)}
               className={cn(
-                "nav-item flex flex-col items-center gap-1 p-2 transition-colors",
-                isActive && "active",
-                isActive ? "text-brand-primary" : "text-slate-400"
+                "nav-item transition-colors",
+                isActive ? "active" : ""
               )}
             >
-              <Icon className="nav-icon h-6 w-6" />
-              <span className="nav-label text-[10px] font-bold uppercase tracking-wider">{item.name}</span>
+              <Icon className={cn("h-6 w-6 nav-icon", isActive ? "" : "text-slate-400")} />
+              <span className={cn("text-[10px] font-medium nav-label", isActive ? "" : "text-slate-500")}>{item.name}</span>
             </Link>
           );
         })}
@@ -96,7 +94,7 @@ export default function MobileBottomNav() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="bottom-sheet w-full max-w-sm bg-white rounded-t-[24px] shadow-[0_-8px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden relative z-50 mb-20"
+              className="w-full max-w-sm bg-gray-100 rounded-t-3xl shadow-neu flex flex-col overflow-hidden relative z-50 mb-20"
             >
               <div className="p-4 flex items-center justify-between border-b border-gray-200/50">
                 <span className="font-bold text-slate-700">More Options</span>
