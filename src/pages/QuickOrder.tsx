@@ -560,13 +560,12 @@ export default function QuickOrder() {
                         type="button"
                         onClick={() => setGender(g)}
                         className={cn(
-                          "h-12 rounded-xl font-bold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all border-none text-xs sm:text-sm",
+                          "category-btn h-12 rounded-[14px] font-semibold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all border-[1.5px] text-xs sm:text-sm",
                           gender === g 
-                            ? "bg-gray-100 shadow-neu-pressed text-brand-primary" 
-                            : "bg-gray-100 shadow-neu-sm text-slate-500 hover:text-brand-primary hover:shadow-neu-pressed-sm"
+                            ? "selected bg-brand-primary border-brand-primary text-white shadow-[0_4px_12px_rgba(26,74,58,0.25)]" 
+                            : "bg-transparent border-[#DDE3DC] text-[#4A5E54] hover:text-brand-primary"
                         )}
                       >
-                        <span>{g === 'male' ? '👨' : g === 'female' ? '👩' : '👶'}</span>
                         <span className="hidden sm:inline">{g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Kids'}</span>
                         <span className="sm:hidden text-[10px] leading-none">{g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Kids'}</span>
                       </button>

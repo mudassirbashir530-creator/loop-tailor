@@ -50,25 +50,25 @@ export default function Layout() {
   };
 
   return (
-    <div className={cn("flex h-screen bg-gray-100 text-slate-900 font-sans overflow-hidden", isRTL ? "font-urdu" : "")}>
+    <div className={cn("flex h-screen bg-[#F2F4F0] text-slate-900 font-sans overflow-hidden", isRTL ? "font-urdu" : "")}>
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-gray-100 shadow-neu-sm flex items-center justify-between px-4 z-30">
-        <span className="text-lg font-display font-bold text-brand-primary">Loop Tailor</span>
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-[#EEF1ED] shadow-[0_1px_0_rgba(0,0,0,0.04)] flex items-center justify-between px-5 z-30">
+        <span className="text-[20px] font-display font-bold text-brand-primary tracking-[0.3px]">Loop Tailor</span>
         <div className="flex items-center gap-3">
           <NotificationBell />
           <button 
             onClick={toggleLanguage}
-            className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 shadow-neu-sm text-slate-600 hover:shadow-neu-pressed-sm transition-all"
+            className="flex items-center justify-center h-10 w-10 rounded-full bg-[#EDF0EC] border border-[#DDE3DC] text-slate-600 transition-all"
           >
             <Globe className="h-4 w-4" />
           </button>
           <div className="relative">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 shadow-neu-sm text-brand-primary font-bold text-lg hover:shadow-neu-pressed-sm transition-all">
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center justify-center h-10 w-10 rounded-full bg-brand-primary text-[#D4AA45] border-[2.5px] border-[#B8922A] font-bold text-lg transition-all">
               {userInitial}
             </button>
             {isMenuOpen && (
-              <div className={cn("absolute mt-4 w-64 bg-gray-100 rounded-2xl shadow-neu border-none py-4 z-50", isRTL ? "left-0" : "right-0")}>
-                <div className="px-6 pb-4 mb-2 shadow-neu-pressed-sm mx-4 rounded-xl p-4 bg-gray-100">
+              <div className={cn("absolute mt-4 w-64 bg-white rounded-[20px] shadow-[0_8px_32px_rgba(26,74,58,0.12)] border border-[#EEF1ED] py-4 z-50", isRTL ? "left-0" : "right-0")}>
+                <div className="px-6 pb-4 mb-2 mx-4 rounded-[14px] p-4 bg-[#EDF0EC] border border-[#EEF1ED]">
                   <div className="font-bold text-lg truncate text-brand-primary">{shop.name || t('layout.myShop')}</div>
                   <div className="text-sm text-slate-500 truncate">{shop.address || t('layout.noAddress')}</div>
                   <div className="text-sm text-slate-500 truncate">{shop.phone || t('layout.noPhone')}</div>
@@ -82,13 +82,13 @@ export default function Layout() {
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-72 bg-gray-100 flex-col z-20 shadow-neu">
+      <aside className="hidden lg:flex w-72 bg-white flex-col z-20 border-r border-[#EEF1ED] shadow-[0_4px_16px_rgba(26,74,58,0.10)]">
         <div className="h-24 flex items-center justify-between px-6 mb-4">
           <Link to="/dashboard" className="flex items-center cursor-pointer">
             <motion.div 
               whileHover={{ rotate: 180 }}
               transition={{ duration: 0.5 }}
-              className={cn("bg-gray-100 p-3 rounded-2xl shadow-neu-sm", isRTL ? "ml-3" : "mr-3")}
+              className={cn("bg-[#EDF0EC] p-3 rounded-[14px] border border-[#DDE3DC]", isRTL ? "ml-3" : "mr-3")}
             >
               <Scissors className="h-6 w-6 text-brand-primary" />
             </motion.div>
@@ -154,7 +154,7 @@ export default function Layout() {
       <MobileBottomNav />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-gray-100 relative pb-20 pt-16 lg:pt-0 lg:pb-0">
+      <main className="flex-1 overflow-auto bg-[#F2F4F0] relative pb-20 pt-16 lg:pt-0 lg:pb-0">
         <div className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto min-h-full">
           <AnimatePresence mode="wait">
             <motion.div
@@ -175,7 +175,7 @@ export default function Layout() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => navigate('/dashboard/orders/new')}
-          className="fixed bottom-24 right-6 lg:bottom-10 lg:right-10 h-16 w-16 bg-brand-primary text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center z-50 lg:hidden"
+          className="fixed bottom-24 right-6 lg:bottom-10 lg:right-10 h-[52px] w-[52px] bg-brand-primary text-white rounded-[16px] shadow-[0_8px_24px_rgba(26,74,58,0.35)] border-[3px] border-[#F2F4F0] flex items-center justify-center z-50 lg:hidden"
         >
           <Plus className="h-8 w-8" />
         </motion.button>
