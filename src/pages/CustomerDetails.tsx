@@ -4,9 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
 import { ORDER_STATUS } from '../lib/config';
-import { db, storage, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
 import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -17,6 +16,7 @@ import { cn } from '../lib/utils';
 import { getAllMeasurementCategories, MEASUREMENT_SETS } from '../lib/measurements';
 import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
 import { toast } from 'sonner';
+import { uploadImageFile } from '../lib/apiHelpers';
 
 export default function CustomerDetails() {
   const { id } = useParams<{ id: string }>();
@@ -233,23 +233,22 @@ export default function CustomerDetails() {
         updatedAt: serverTimestamp()
       });
 
-      /* BETA: Image upload is disabled
+      // Upload optional order images to Cloudinary via backend.
       if (referencePhoto) {
-        const photoRef = ref(storage, `orders/${orderRef.id}/reference_${referencePhoto.name}`);
-        await uploadBytes(photoRef, referencePhoto);
-        referencePhotoUrl = await getDownloadURL(photoRef);
+        const { url, error } = await uploadImageFile(referencePhoto);
+        if (error) throw new Error(error);
+        referencePhotoUrl = url || '';
       }
 
       if (sampleDesign) {
-        const designRef = ref(storage, `orders/${orderRef.id}/sample_${sampleDesign.name}`);
-        await uploadBytes(designRef, sampleDesign);
-        sampleDesignUrl = await getDownloadURL(designRef);
+        const { url, error } = await uploadImageFile(sampleDesign);
+        if (error) throw new Error(error);
+        sampleDesignUrl = url || '';
       }
 
       if (referencePhotoUrl || sampleDesignUrl) {
         await updateDoc(orderRef, { referencePhotoUrl, sampleDesignUrl });
       }
-      */
 
       setIsAddingOrder(false);
       setNewOrder({ dressType: 'Shalwar Kameez', deliveryDate: '', price: '', advancePayment: '' });

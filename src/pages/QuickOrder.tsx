@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
-import { db, storage, handleFirestoreError, OperationType, generateTokenId, withRetry } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType, generateTokenId, withRetry } from '../lib/firebase';
 import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, getDocs, limit, getDoc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -20,6 +19,7 @@ import { useOrderTemplates } from '../hooks/useOrderTemplates';
 import { useStaff } from '../hooks/useStaff';
 import { toast } from 'sonner';
 import { useNotifications } from '../hooks/useNotifications';
+import { uploadImageFile } from '../lib/apiHelpers';
 
 export default function QuickOrder() {
   const { user } = useAuth();
@@ -372,27 +372,25 @@ export default function QuickOrder() {
           });
         }
 
-        // 5. Upload Files (BETA - Disabled for now)
+        // 5. Upload files through backend -> Cloudinary and store only URLs.
         let referencePhotoUrl = '';
         let sampleDesignUrl = '';
 
-        /* BETA: Image upload is disabled
         if (referencePhoto) {
-          const photoRef = ref(storage, `orders/${orderRef.id}/reference_${referencePhoto.name}`);
-          await uploadBytes(photoRef, referencePhoto);
-          referencePhotoUrl = await getDownloadURL(photoRef);
+          const { url, error } = await uploadImageFile(referencePhoto);
+          if (error) throw new Error(error);
+          referencePhotoUrl = url || '';
         }
 
         if (sampleDesign) {
-          const designRef = ref(storage, `orders/${orderRef.id}/sample_${sampleDesign.name}`);
-          await uploadBytes(designRef, sampleDesign);
-          sampleDesignUrl = await getDownloadURL(designRef);
+          const { url, error } = await uploadImageFile(sampleDesign);
+          if (error) throw new Error(error);
+          sampleDesignUrl = url || '';
         }
 
         if (referencePhotoUrl || sampleDesignUrl) {
           await updateDoc(orderRef, { referencePhotoUrl, sampleDesignUrl });
         }
-        */
 
         // 5. Navigate to orders list
         toast.success(t('quickOrder.orderCreated') || 'Order created successfully!');
