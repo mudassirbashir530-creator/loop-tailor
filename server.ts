@@ -4,6 +4,10 @@ import path from "path";
 import crypto from "crypto";
 import admin from "firebase-admin";
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+// Load environment variables from .env in local/dev environments.
+dotenv.config();
 
 // Initialize Firebase Admin (requires GOOGLE_APPLICATION_CREDENTIALS in production)
 try {
@@ -23,6 +27,8 @@ try {
 const db = admin.firestore();
 
 let transporter: nodemailer.Transporter | null = null;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 async function getTransporter() {
   if (transporter) return transporter;
@@ -59,6 +65,81 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+
+  /**
+   * Uploads image to Cloudinary through backend only.
+   * Input format:
+   * {
+   *   fileData: "data:image/png;base64,...",
+   *   fileName: "my-image.png",
+   *   mimeType: "image/png"
+   * }
+   */
+  app.post("/api/upload", async (req, res) => {
+    try {
+      const { fileData, fileName, mimeType } = req.body || {};
+
+      if (!fileData || typeof fileData !== "string") {
+        return res.status(400).json({ error: "Image file is required." });
+      }
+      if (!mimeType || !ALLOWED_IMAGE_MIME.has(mimeType)) {
+        return res.status(400).json({ error: "Invalid file format. Use JPG, PNG, or WEBP." });
+      }
+      if (!fileData.startsWith("data:")) {
+        return res.status(400).json({ error: "Invalid image payload." });
+      }
+
+      // Size guard before remote upload.
+      const base64Part = fileData.includes(",") ? fileData.split(",")[1] : "";
+      const sizeBytes = Buffer.byteLength(base64Part, "base64");
+      if (sizeBytes > MAX_IMAGE_BYTES) {
+        return res.status(413).json({ error: "File too large. Max size is 5MB." });
+      }
+
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+      const apiKey = process.env.CLOUDINARY_API_KEY;
+      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+      if (!cloudName || !apiKey || !apiSecret) {
+        return res.status(500).json({ error: "Cloudinary is not configured on server." });
+      }
+
+      const timestamp = Math.floor(Date.now() / 1000);
+      const folder = "loop-tailor";
+      const eager = "q_auto,f_auto";
+      const publicId = `${(fileName || "upload").toString().replace(/[^a-zA-Z0-9-_]/g, "_")}_${Date.now()}`;
+
+      // Cloudinary signed upload signature.
+      // Signature string format: key=value&key=value... + api_secret
+      const toSign = `eager=${eager}&folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
+      const signature = crypto.createHash("sha1").update(toSign).digest("hex");
+
+      const formData = new URLSearchParams();
+      formData.set("file", fileData);
+      formData.set("api_key", apiKey);
+      formData.set("timestamp", String(timestamp));
+      formData.set("folder", folder);
+      formData.set("public_id", publicId);
+      formData.set("eager", eager);
+      formData.set("signature", signature);
+
+      const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString(),
+      });
+
+      const data = await uploadResponse.json().catch(() => null);
+      if (!uploadResponse.ok || !data?.secure_url) {
+        console.error("Cloudinary upload failed:", data);
+        return res.status(502).json({ error: "Image upload failed. Please try again." });
+      }
+
+      return res.status(200).json({ url: data.secure_url });
+    } catch (error) {
+      console.error("Unexpected upload error:", error);
+      return res.status(500).json({ error: "Network/server error while uploading image." });
+    }
+  });
 
   // API routes FIRST
   app.get("/api/health", (req, res) => {
