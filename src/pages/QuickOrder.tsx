@@ -452,7 +452,7 @@ export default function QuickOrder() {
                    {currentStep > step ? <Check className="w-5 h-5"/> : step}
                 </div>
                 <div className={cn("absolute -bottom-6 w-32 text-center text-[10px] font-bold uppercase tracking-wider hidden sm:block", currentStep >= step ? "text-[#1A4A3A]" : "text-[#8A9E94]")}>
-                  {step === 1 ? 'Customer Info' : step === 2 ? 'Order Details' : step === 3 ? 'Measurements' : 'Review'}
+                  {step === 1 ? 'Step 1: Customer' : step === 2 ? 'Step 2: Order Info' : step === 3 ? 'Step 3: Sizes' : 'Step 4: Check & Save'}
                 </div>
              </div>
           ))}
