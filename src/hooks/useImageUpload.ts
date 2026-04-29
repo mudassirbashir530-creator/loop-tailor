@@ -85,38 +85,37 @@ export function useImageUpload(): UseImageUploadReturn {
     setProgress(0);
 
     try {
-      // Create FormData to send the file to our backend
+      // Create FormData to send the file
       const formData = new FormData();
       formData.append('image', file);
 
-      // Simulate some progress since fetch doesn't support upload progress natively easily
-      const progressInterval = setInterval(() => {
-        setProgress(p => Math.min(p + 10, 90));
-      }, 300);
+      setProgress(50); // Show some progress while uploading
 
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
 
-      clearInterval(progressInterval);
-      setProgress(100);
+      setProgress(90); // Almost done
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to upload image");
+        let errorMessage = 'Failed to upload image';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If response is not JSON
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
-      if (data.url) {
-        setUploadedUrl(data.url);
-        setUploading(false);
-        return data.url;
-      } else {
-        throw new Error("Invalid response from server");
-      }
+      
+      setUploadedUrl(data.url);
+      setUploading(false);
+      setProgress(100);
+      return data.url;
     } catch (err: any) {
-      console.error("Upload error:", err);
       setError(err.message || 'Upload failed');
       setUploading(false);
       return null;

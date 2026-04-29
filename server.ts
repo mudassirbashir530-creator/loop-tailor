@@ -6,31 +6,33 @@ import admin from "firebase-admin";
 import nodemailer from "nodemailer";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
-import "dotenv/config";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'LoopTailor',
+  api_key: process.env.CLOUDINARY_API_KEY || '822749848441664',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'gqIlc11KOB1o8pcAC6a-qAMUQZA'
 });
 
-// Configure Multer for memory storage
+// Configure Multer
+const storage = multer.memoryStorage();
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Only allow images
-    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png" || file.mimetype === "image/webp") {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type. Only JPG, PNG, and WEBP are allowed."));
+      cb(new Error('Invalid file type. Only JPG, PNG, and WEBP are allowed.'));
     }
-  },
+  }
 });
-
 
 // Initialize Firebase Admin (requires GOOGLE_APPLICATION_CREDENTIALS in production)
 try {
@@ -95,50 +97,27 @@ async function startServer() {
   /**
    * Upload image to Cloudinary
    */
-  app.post("/api/upload", upload.single("image"), (req, res) => {
+  app.post("/api/upload", upload.single("image"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
       }
 
-      // Upload to Cloudinary using upload_stream
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: "loop-tailor",
-          fetch_format: "auto",
-          quality: "auto",
-        },
-        (error, result) => {
-          if (error) {
-            console.error("Cloudinary upload error:", error);
-            return res.status(500).json({ error: "Failed to upload image" });
-          }
-          if (!result) {
-             return res.status(500).json({ error: "Upload resulted in undefined response" });
-          }
-          // Return the secure URL to the frontend
-          res.status(200).json({ url: result.secure_url });
-        }
-      );
+      // Convert buffer to base64
+      const b64 = Buffer.from(req.file.buffer).toString("base64");
+      const dataURI = `data:${req.file.mimetype};base64,${b64}`;
 
-      uploadStream.end(req.file.buffer);
-    } catch (error) {
-      console.error("Upload error:", error);
-      res.status(500).json({ error: "Internal server error during upload" });
-    }
-  });
+      const uploadResult = await cloudinary.uploader.upload(dataURI, {
+        resource_type: "auto",
+        fetch_format: "auto",
+        quality: "auto",
+      });
 
-  // Global Error Handler for Multer
-  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    if (err instanceof multer.MulterError) {
-      if (err.code === "LIMIT_FILE_SIZE") {
-        return res.status(400).json({ error: "File too large. Maximum size is 5MB." });
-      }
-      return res.status(400).json({ error: err.message });
-    } else if (err) {
-      return res.status(400).json({ error: err.message });
+      res.status(200).json({ url: uploadResult.secure_url });
+    } catch (error: any) {
+      console.error("Cloudinary upload error:", error);
+      res.status(500).json({ error: error.message || "Failed to upload image" });
     }
-    next();
   });
 
   /**

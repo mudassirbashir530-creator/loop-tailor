@@ -3,25 +3,23 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, Plus, FileText, Scissors, Menu, X, Settings, UserCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLanguage } from '../contexts/LanguageContext';
 
 export default function MobileBottomNav() {
-  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   const mainNavItems = [
-    { name: t('layout.dashboard'), path: '/dashboard', icon: LayoutDashboard },
-    { name: t('layout.customers'), path: '/dashboard/customers', icon: Users },
-    { name: t('layout.new'), path: '/dashboard/orders/new', icon: Plus, isAction: true },
-    { name: t('layout.orders'), path: '/dashboard/orders', icon: Scissors },
-    { name: t('layout.more'), isMore: true, icon: Menu },
+    { name: 'Home', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Clients', path: '/dashboard/customers', icon: Users },
+    { name: 'New', path: '/dashboard/orders/new', icon: Plus, isAction: true },
+    { name: 'Orders', path: '/dashboard/orders', icon: Scissors },
+    { name: 'More', isMore: true, icon: Menu },
   ];
 
   const moreMenuSecondaryItems = [
-    { name: t('layout.staff'), path: '/dashboard/staff', icon: UserCheck },
-    { name: t('layout.settings'), path: '/dashboard/settings', icon: Settings },
+    { name: 'Staff', path: '/dashboard/staff', icon: UserCheck },
+    { name: 'Settings', path: '/dashboard/settings', icon: Settings },
   ];
 
   return (

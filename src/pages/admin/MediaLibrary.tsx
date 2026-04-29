@@ -48,57 +48,49 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect }) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Client-side validation
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB.');
-      return;
-    }
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error('Invalid file type. Use JPG, PNG, or WEBP.');
-      return;
-    }
-
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to upload image");
-      }
-
-      const data = await response.json();
-      if (!data.url) throw new Error("Invalid response from server");
-
       const fileId = Date.now().toString();
+      const storageRef = ref(storage, `media/${fileId}_${file.name}`);
+      
+      /* BETA: Image upload is disabled
+      // Upload to Firebase Storage
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
       
       const mediaData = {
-        url: data.url,
+        url: downloadURL,
         name: file.name,
         size: file.size,
         type: file.type,
         createdAt: serverTimestamp(),
-        // Since we are not using Firebase Storage anymore, we can just save a placeholder
-        storagePath: `cloudinary/${fileId}_${file.name}`
+        storagePath: storageRef.fullPath
       };
 
       await setDoc(doc(db, 'media_library', fileId), mediaData);
-      toast.success("Image uploaded successfully!");
+      */
+      
+      // Use local preview instead
+      const downloadURL = URL.createObjectURL(file);
+      const mediaData = {
+        id: fileId,
+        url: downloadURL,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        createdAt: new Date(),
+        storagePath: `local/${fileId}_${file.name}`
+      };
+      
+      setMedia(prev => [mediaData as any, ...prev]);
       
       // Refresh media list
       fetchMedia();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Upload error:", error);
-      toast.error(error.message || "Failed to upload image.");
+      toast.error("Failed to upload image. Please check your Firebase Storage settings.");
     } finally {
       setUploading(false);
-      if (e.target) e.target.value = '';
     }
   };
 

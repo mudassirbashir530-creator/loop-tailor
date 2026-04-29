@@ -150,49 +150,12 @@ export default function QuickOrder() {
   });
 
   // File Uploads
-  const [referencePhoto, setReferencePhoto] = useState<string | null>(null);
-  const [sampleDesign, setSampleDesign] = useState<string | null>(null);
-  const [isUploadingRef, setIsUploadingRef] = useState(false);
-  const [isUploadingSample, setIsUploadingSample] = useState(false);
+  const [referencePhoto, setReferencePhoto] = useState<File | null>(null);
+  const [sampleDesign, setSampleDesign] = useState<File | null>(null);
 
   // Measurements
   const [measurements, setMeasurements] = useState<any>({});
   const [measurementSets, setMeasurementSets] = useState<Record<string, any>>({});
-
-  const handleFileUpload = async (file: File | null, setUrl: (url: string | null) => void, setLoading: (loading: boolean) => void) => {
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB.');
-      return;
-    }
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error('Invalid file type. Use JPG, PNG, or WEBP.');
-      return;
-    }
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!response.ok) {
-        throw new Error("Failed to upload image");
-      }
-      const data = await response.json();
-      if (data.url) {
-        setUrl(data.url);
-      } else {
-        throw new Error("Invalid response from server");
-      }
-    } catch (error: any) {
-      console.error('Error uploading image:', error);
-      toast.error(error.message || 'Failed to upload image.');
-    } finally {
-      setLoading(false);
-    }
-  };
   const [selectedMeasurementSet, setSelectedMeasurementSet] = useState('');
 
   const handleSelectCustomer = async (customer: any) => {
@@ -384,8 +347,6 @@ export default function QuickOrder() {
           measurements: Object.fromEntries(
             Object.entries(measurements).map(([k, v]) => [k, Number(v) || 0])
           ),
-          referencePhotoUrl: referencePhoto || null,
-          sampleDesignUrl: sampleDesign || null,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
@@ -410,6 +371,28 @@ export default function QuickOrder() {
             customerId: customerId
           });
         }
+
+        // 5. Upload Files (BETA - Disabled for now)
+        let referencePhotoUrl = '';
+        let sampleDesignUrl = '';
+
+        /* BETA: Image upload is disabled
+        if (referencePhoto) {
+          const photoRef = ref(storage, `orders/${orderRef.id}/reference_${referencePhoto.name}`);
+          await uploadBytes(photoRef, referencePhoto);
+          referencePhotoUrl = await getDownloadURL(photoRef);
+        }
+
+        if (sampleDesign) {
+          const designRef = ref(storage, `orders/${orderRef.id}/sample_${sampleDesign.name}`);
+          await uploadBytes(designRef, sampleDesign);
+          sampleDesignUrl = await getDownloadURL(designRef);
+        }
+
+        if (referencePhotoUrl || sampleDesignUrl) {
+          await updateDoc(orderRef, { referencePhotoUrl, sampleDesignUrl });
+        }
+        */
 
         // 5. Navigate to orders list
         toast.success(t('quickOrder.orderCreated') || 'Order created successfully!');
@@ -469,7 +452,7 @@ export default function QuickOrder() {
                    {currentStep > step ? <Check className="w-5 h-5"/> : step}
                 </div>
                 <div className={cn("absolute -bottom-6 w-32 text-center text-[10px] font-bold uppercase tracking-wider hidden sm:block", currentStep >= step ? "text-[#1A4A3A]" : "text-[#8A9E94]")}>
-                  {step === 1 ? 'Step 1: Customer' : step === 2 ? 'Step 2: Order Info' : step === 3 ? 'Step 3: Sizes' : 'Step 4: Check & Save'}
+                  {step === 1 ? 'Customer Info' : step === 2 ? 'Order Details' : step === 3 ? 'Measurements' : 'Review'}
                 </div>
              </div>
           ))}
@@ -843,7 +826,7 @@ export default function QuickOrder() {
                     <div className="relative">
                       {referencePhoto ? (
                         <div className="relative h-32 w-full rounded-[12px] bg-[#F2F4F0] overflow-hidden group">
-                          <img src={referencePhoto} alt="Reference" className="w-full h-full object-cover" />
+                          <img src={URL.createObjectURL(referencePhoto)} alt="Reference" className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-[#111C17]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <Button type="button" variant="destructive" size="sm" onClick={() => setReferencePhoto(null)} className="h-[32px] rounded-[8px] bg-[#DC2626] font-bold">
                               <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
@@ -852,9 +835,9 @@ export default function QuickOrder() {
                         </div>
                       ) : (
                         <label className="flex flex-col items-center justify-center h-32 w-full rounded-[12px] bg-[#F2F4F0] hover:bg-[#EEF1ED] transition-all cursor-pointer border border-dashed border-[#8A9E94]/30">
-                          {isUploadingRef ? <Loader2 className="h-6 w-6 text-[#1A4A3A] mb-2 animate-spin" /> : <Upload className="h-6 w-6 text-[#1A4A3A] mb-2" />}
+                          <Upload className="h-6 w-6 text-[#1A4A3A] mb-2" />
                           <span className="text-sm font-bold text-[#8A9E94]">{t('quickOrder.clickToUpload')}</span>
-                          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={isUploadingRef || isSubmitting} onChange={e => handleFileUpload(e.target.files?.[0] || null, setReferencePhoto, setIsUploadingRef)} />
+                          <input type="file" accept="image/*" className="hidden" onChange={e => setReferencePhoto(e.target.files?.[0] || null)} />
                         </label>
                       )}
                     </div>
@@ -868,7 +851,7 @@ export default function QuickOrder() {
                     <div className="relative">
                       {sampleDesign ? (
                         <div className="relative h-32 w-full rounded-[12px] bg-[#F2F4F0] overflow-hidden group">
-                          <img src={sampleDesign} alt="Sample" className="w-full h-full object-cover" />
+                          <img src={URL.createObjectURL(sampleDesign)} alt="Sample" className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-[#111C17]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <Button type="button" variant="destructive" size="sm" onClick={() => setSampleDesign(null)} className="h-[32px] rounded-[8px] bg-[#DC2626] font-bold">
                               <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
@@ -877,9 +860,9 @@ export default function QuickOrder() {
                         </div>
                       ) : (
                         <label className="flex flex-col items-center justify-center h-32 w-full rounded-[12px] bg-[#F2F4F0] hover:bg-[#EEF1ED] transition-all cursor-pointer border border-dashed border-[#8A9E94]/30">
-                          {isUploadingSample ? <Loader2 className="h-6 w-6 text-[#1A4A3A] mb-2 animate-spin" /> : <Upload className="h-6 w-6 text-[#1A4A3A] mb-2" />}
+                          <Upload className="h-6 w-6 text-[#1A4A3A] mb-2" />
                           <span className="text-sm font-bold text-[#8A9E94]">{t('quickOrder.clickToUpload')}</span>
-                          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={isUploadingSample || isSubmitting} onChange={e => handleFileUpload(e.target.files?.[0] || null, setSampleDesign, setIsUploadingSample)} />
+                          <input type="file" accept="image/*" className="hidden" onChange={e => setSampleDesign(e.target.files?.[0] || null)} />
                         </label>
                       )}
                     </div>
@@ -907,7 +890,6 @@ export default function QuickOrder() {
                   <span className="h-2 w-2 bg-[#D4AA45] rounded-full shadow-sm"></span>
                   {t('quickOrder.measurements')}
                 </h2>
-
                 {selectedCustomerId ? (
                   <div className="space-y-4 mt-4">
                     {Object.keys(measurementSets).length > 0 && (
