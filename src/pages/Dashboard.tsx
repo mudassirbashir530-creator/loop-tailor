@@ -417,7 +417,7 @@ export default function Dashboard() {
             onSubmit={handleTokenSearch} 
             className="flex items-center gap-3 relative"
           >
-            <div className="text-[#8A9E94]">
+            <div className="text-[#64748B]">
               <Search className="h-5 w-5" />
             </div>
             <input 
@@ -425,12 +425,12 @@ export default function Dashboard() {
               placeholder={t('dashboard.searchPlaceholder')}
               value={searchToken}
               onChange={(e) => setSearchToken(e.target.value)}
-              className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-[#111C17] font-medium"
+              className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-[#0F172A] font-medium"
               style={{ boxShadow: 'none' }}
             />
             <button 
               type="submit"
-              className="px-4 py-2 bg-[#1A4A3A] text-white rounded-lg text-sm font-bold shadow-[0_4px_12px_rgba(26,74,58,0.2)]"
+              className="px-4 py-2 bg-[#1B2B5E] text-white rounded-lg text-sm font-bold shadow-[0_4px_12px_rgba(27, 43, 94,0.2)]"
             >
               Search
             </button>
@@ -446,10 +446,10 @@ export default function Dashboard() {
 
         <div className="grid gap-4 grid-cols-2 md:grid-cols-4 px-5 mt-6">
         {[
-          { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-[#1A4A3A]", bg: "bg-[#EDF0EC]" },
-          { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-[#1A4A3A]", bg: "bg-[#EDF0EC]" },
-          { label: t('dashboard.pendingPayments'), value: formatCurrency(stats.pendingPayments), icon: Clock, color: "text-[#1A4A3A]", bg: "bg-[#EDF0EC]" },
-          { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-[#D4AA45]", bg: "bg-[#112D23]", dark: true },
+          { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-[#1B2B5E]", bg: "bg-[#F1F5F9]" },
+          { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-[#1B2B5E]", bg: "bg-[#F1F5F9]" },
+          { label: t('dashboard.pendingPayments'), value: formatCurrency(stats.pendingPayments), icon: Clock, color: "text-[#1B2B5E]", bg: "bg-[#F1F5F9]" },
+          { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-[#60A5FA]", bg: "bg-[#0E1736]", dark: true },
         ].map((stat, idx) => (
           <motion.div key={idx} variants={itemVariants}>
             <div className={cn("stat-card", stat.dark ? "dark-variant" : "")}>
@@ -457,8 +457,8 @@ export default function Dashboard() {
                 <stat.icon className={`h-[22px] w-[22px] ${stat.color}`} />
               </div>
               <div className="flex flex-col">
-                <div className={cn("text-[11px] font-semibold uppercase tracking-wider mb-1", stat.dark ? "text-[rgba(255,255,255,0.7)]" : "text-[#8A9E94]")}>{stat.label}</div>
-                <div className={cn("stat-number text-xl md:text-2xl", stat.dark ? "text-white" : "text-[#111C17]")}>{stat.value}</div>
+                <div className={cn("text-[11px] font-semibold uppercase tracking-wider mb-1", stat.dark ? "text-[rgba(255,255,255,0.7)]" : "text-[#64748B]")}>{stat.label}</div>
+                <div className={cn("stat-number text-xl md:text-2xl", stat.dark ? "text-white" : "text-[#0F172A]")}>{stat.value}</div>
               </div>
             </div>
           </motion.div>
@@ -468,25 +468,25 @@ export default function Dashboard() {
         {/* Comprehensive Analytics Data Visualization */}
         <div className="chart-container">
           <div className="flex items-center gap-2 mb-6">
-            <TrendingUp className="h-5 w-5 text-[#1A4A3A]" />
+            <TrendingUp className="h-5 w-5 text-[#1B2B5E]" />
             <h2 className="section-title">Revenue (Last 6 Months)</h2>
           </div>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={revenueChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#EEF1ED" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#8A9E94', fontWeight: 600 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#8A9E94', fontWeight: 600 }} tickFormatter={(value) => `${value}`} />
+                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#F8FAFC" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B', fontWeight: 600 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B', fontWeight: 600 }} tickFormatter={(value) => `${value}`} />
                 <RechartsTooltip 
-                  cursor={{ fill: '#F2F4F0', radius: 8 }}
-                  contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 8px 32px rgba(26,74,58,0.12)', padding: '12px' }}
+                  cursor={{ fill: '#F5F7FA', radius: 8 }}
+                  contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 8px 32px rgba(27, 43, 94,0.12)', padding: '12px' }}
                   formatter={(value: any) => [formatCurrency(value as number), 'Revenue']}
                 />
                 <Bar 
                   dataKey="revenue" 
                   radius={[6, 6, 0, 0]} 
                   barSize={32}
-                  fill="#1A4A3A" 
+                  fill="#1B2B5E" 
                   className="chart-bar outline-none border-none"
                 >
                   {revenueChartData.map((entry, index) => (
@@ -501,10 +501,10 @@ export default function Dashboard() {
         <div className="grid lg:grid-cols-3 gap-6 px-5 mt-6">
           <motion.div variants={itemVariants} className="lg:col-span-2">
             <div className="card overflow-hidden">
-              <div className="p-5 border-b border-[#EEF1ED]">
+              <div className="p-5 border-b border-[#F8FAFC]">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div 
-                    className="flex p-1 bg-[#F2F4F0] rounded-[16px] w-fit"
+                    className="flex p-1 bg-[#F5F7FA] rounded-[16px] w-fit"
                     role="tablist"
                     aria-label="Dashboard views"
                   >
@@ -519,10 +519,10 @@ export default function Dashboard() {
                         onClick={() => setActiveTab(tab.id)}
                         onKeyDown={(e) => handleTabKeyDown(e, index)}
                         className={cn(
-                          "px-5 py-2 rounded-[14px] text-sm font-bold transition-all duration-300 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A4A3A]",
+                          "px-5 py-2 rounded-[14px] text-sm font-bold transition-all duration-300 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1B2B5E]",
                           activeTab === tab.id 
-                            ? "text-[#1A4A3A] bg-white shadow-[0_2px_8px_rgba(26,74,58,0.08)]" 
-                            : "text-[#8A9E94] hover:text-[#1A4A3A]"
+                            ? "text-[#1B2B5E] bg-white shadow-[0_2px_8px_rgba(27, 43, 94,0.08)]" 
+                            : "text-[#64748B] hover:text-[#1B2B5E]"
                         )}
                       >
                         {tab.label}
@@ -530,14 +530,14 @@ export default function Dashboard() {
                     ))}
                   </div>
                   {activeTab === 'recent' ? (
-                    <Button variant="ghost" size="sm" asChild className="rounded-[14px] bg-[#EDF0EC] text-[#1A4A3A] font-bold h-10 px-4 transition-all hover:bg-[#DDE3DC]">
+                    <Button variant="ghost" size="sm" asChild className="rounded-[14px] bg-[#F1F5F9] text-[#1B2B5E] font-bold h-10 px-4 transition-all hover:bg-[#E2E8F0]">
                       <Link to="/dashboard/orders" className="flex items-center">
                         {t('dashboard.viewAll')} <ArrowRight className={cn("h-4 w-4", isRTL ? "mr-2 rotate-180" : "ml-2")} />
                       </Link>
                     </Button>
                   ) : (
-                    <div className="bg-[#EDF0EC] p-2.5 rounded-[14px]">
-                      <Calendar className="h-5 w-5 text-[#1A4A3A]" />
+                    <div className="bg-[#F1F5F9] p-2.5 rounded-[14px]">
+                      <Calendar className="h-5 w-5 text-[#1B2B5E]" />
                     </div>
                   )}
                 </div>
@@ -557,7 +557,7 @@ export default function Dashboard() {
                   >
                     {activeTab === 'recent' ? (
                       recentOrders.length === 0 ? (
-                        <div className="p-12 text-center text-[#8A9E94] text-sm font-medium">{t('dashboard.noRecentOrders')}</div>
+                        <div className="p-12 text-center text-[#64748B] text-sm font-medium">{t('dashboard.noRecentOrders')}</div>
                       ) : (
                         recentOrders.map((order, idx) => (
                           <motion.div 
@@ -565,20 +565,20 @@ export default function Dashboard() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="p-4 flex items-center justify-between bg-[#F2F4F0] rounded-[16px] hover:bg-[#EDF0EC] transition-all cursor-pointer group"
+                            className="p-4 flex items-center justify-between bg-[#F5F7FA] rounded-[16px] hover:bg-[#F1F5F9] transition-all cursor-pointer group"
                             onClick={() => navigate(`/dashboard/orders/${order.id}`)}
                           >
                             <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-[14px] bg-white flex items-center justify-center text-[#1A4A3A] shadow-sm">
+                              <div className="h-12 w-12 rounded-[14px] bg-white flex items-center justify-center text-[#1B2B5E] shadow-sm">
                                 <Scissors className="h-5 w-5" />
                               </div>
                               <div>
-                                <div className="font-bold text-[#111C17]">{order.customerName}</div>
-                                <div className="text-[12px] font-medium text-[#4A5E54] mt-0.5">{order.dressType} • {formatDate(order.createdAt)}</div>
+                                <div className="font-bold text-[#0F172A]">{order.customerName}</div>
+                                <div className="text-[12px] font-medium text-[#334155] mt-0.5">{order.dressType} • {formatDate(order.createdAt)}</div>
                               </div>
                             </div>
                             <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
-                              <div className="text-base font-black text-[#111C17]">{formatCurrency(order.price)}</div>
+                              <div className="text-base font-black text-[#0F172A]">{formatCurrency(order.price)}</div>
                               <div className="flex flex-col items-end gap-1 mt-1">
                                 <div className={`badge ${
                                   order.status === ORDER_STATUS.DELIVERED ? 'badge-success' : 'badge-warning'
@@ -590,7 +590,7 @@ export default function Dashboard() {
                       )
                     ) : (
                       upcomingDeliveries.length === 0 ? (
-                        <div className="p-12 text-center text-[#8A9E94] text-sm font-medium">{t('dashboard.noUpcomingDeliveries')}</div>
+                        <div className="p-12 text-center text-[#64748B] text-sm font-medium">{t('dashboard.noUpcomingDeliveries')}</div>
                       ) : (
                         upcomingDeliveries.map((order, idx) => (
                           <motion.div 
@@ -598,17 +598,17 @@ export default function Dashboard() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="p-4 flex items-center justify-between bg-[#F2F4F0] rounded-[16px] hover:bg-[#EDF0EC] transition-all group cursor-pointer"
+                            className="p-4 flex items-center justify-between bg-[#F5F7FA] rounded-[16px] hover:bg-[#F1F5F9] transition-all group cursor-pointer"
                             onClick={() => navigate(`/dashboard/orders/${order.id}`)}
                           >
                             <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-[14px] bg-[#1A4A3A] text-white flex items-center justify-center font-black text-lg shadow-sm">
+                              <div className="h-12 w-12 rounded-[14px] bg-[#1B2B5E] text-white flex items-center justify-center font-black text-lg shadow-sm">
                                 {order.customerName.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <div className="font-bold text-[#111C17]">{order.customerName}</div>
-                                <div className="text-[12px] font-medium text-[#4A5E54] mt-0.5 flex items-center">
-                                  <Clock className={cn("h-3.5 w-3.5 text-[#1A4A3A]", isRTL ? "ml-1" : "mr-1")} />
+                                <div className="font-bold text-[#0F172A]">{order.customerName}</div>
+                                <div className="text-[12px] font-medium text-[#334155] mt-0.5 flex items-center">
+                                  <Clock className={cn("h-3.5 w-3.5 text-[#1B2B5E]", isRTL ? "ml-1" : "mr-1")} />
                                   {t('dashboard.due')}: {format(new Date(order.deliveryDate), 'MMM dd, yyyy')}
                                 </div>
                               </div>
@@ -617,7 +617,7 @@ export default function Dashboard() {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className="h-9 px-4 rounded-[12px] bg-white border-[#DDE3DC] text-[#1A4A3A] font-bold"
+                                className="h-9 px-4 rounded-[12px] bg-white border-[#E2E8F0] text-[#1B2B5E] font-bold"
                               >
                                 {t('dashboard.details')}
                               </Button>

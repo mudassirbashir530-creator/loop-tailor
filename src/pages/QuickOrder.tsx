@@ -414,20 +414,20 @@ export default function QuickOrder() {
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="bg-white shadow-[0_2px_8px_rgba(26,74,58,0.08)] hover:shadow-[0_4px_12px_rgba(26,74,58,0.12)] border border-[#EEF1ED] rounded-[12px]">
-            {isRTL ? <ArrowRight className="h-5 w-5 text-[#1A4A3A]" /> : <ArrowLeft className="h-5 w-5 text-[#1A4A3A]" />}
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="bg-white shadow-[0_2px_8px_rgba(27, 43, 94,0.08)] hover:shadow-[0_4px_12px_rgba(27, 43, 94,0.12)] border border-[#F8FAFC] rounded-[12px]">
+            {isRTL ? <ArrowRight className="h-5 w-5 text-[#1B2B5E]" /> : <ArrowLeft className="h-5 w-5 text-[#1B2B5E]" />}
           </Button>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#111C17]">{t('quickOrder.newOrder')}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">{t('quickOrder.newOrder')}</h1>
         </div>
         {preGeneratedToken && (
-          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#F6FEF9] border border-[#EEF1ED] text-[#1D4ED8] rounded-[12px] font-bold">
+          <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#F6FEF9] border border-[#F8FAFC] text-[#1D4ED8] rounded-[12px] font-bold">
             <Hash className="h-4 w-4" />
             Order Token: {preGeneratedToken}
           </div>
         )}
       </div>
       {preGeneratedToken && (
-        <div className="sm:hidden flex items-center gap-2 px-4 py-2 bg-[#F6FEF9] border border-[#EEF1ED] text-[#1D4ED8] rounded-[12px] font-bold mb-4">
+        <div className="sm:hidden flex items-center gap-2 px-4 py-2 bg-[#F6FEF9] border border-[#F8FAFC] text-[#1D4ED8] rounded-[12px] font-bold mb-4">
           <Hash className="h-4 w-4" />
           Order Token: {preGeneratedToken}
         </div>
@@ -443,15 +443,15 @@ export default function QuickOrder() {
       {/* Steps Indicator */}
       <div className="mb-4 sm:mb-8 mt-2 px-4 sm:px-10">
         <div className="flex items-center justify-between relative">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-[#EEF1ED] rounded-full z-0"></div>
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#1A4A3A] rounded-full z-0 transition-all duration-300" style={{ width: `${((currentStep - 1) / 3) * 100}%` }}></div>
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-[#F8FAFC] rounded-full z-0"></div>
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#1B2B5E] rounded-full z-0 transition-all duration-300" style={{ width: `${((currentStep - 1) / 3) * 100}%` }}></div>
           
           {[1, 2, 3, 4].map((step) => (
              <div key={step} className="flex flex-col items-center relative z-10 bg-white p-1 rounded-full">
-                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border", currentStep > step ? "bg-[#1A4A3A] text-white border-[#1A4A3A]" : currentStep === step ? "bg-[#1A4A3A] text-white border-[#1A4A3A] shadow-lg shadow-[#1A4A3A]/20" : "bg-[#F2F4F0] text-[#8A9E94] border-[#EEF1ED]")}>
+                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border", currentStep > step ? "bg-[#1B2B5E] text-white border-[#1B2B5E]" : currentStep === step ? "bg-[#1B2B5E] text-white border-[#1B2B5E] shadow-lg shadow-[#1B2B5E]/20" : "bg-[#F5F7FA] text-[#64748B] border-[#F8FAFC]")}>
                    {currentStep > step ? <Check className="w-5 h-5"/> : step}
                 </div>
-                <div className={cn("absolute -bottom-6 w-32 text-center text-[10px] font-bold uppercase tracking-wider hidden sm:block", currentStep >= step ? "text-[#1A4A3A]" : "text-[#8A9E94]")}>
+                <div className={cn("absolute -bottom-6 w-32 text-center text-[10px] font-bold uppercase tracking-wider hidden sm:block", currentStep >= step ? "text-[#1B2B5E]" : "text-[#64748B]")}>
                   {step === 1 ? 'Customer Info' : step === 2 ? 'Order Details' : step === 3 ? 'Measurements' : 'Review'}
                 </div>
              </div>
@@ -471,17 +471,17 @@ export default function QuickOrder() {
             {currentStep === 1 && (
             <div className="space-y-8">
             <div className="card overflow-hidden">
-              <div className="bg-transparent border-b border-[#EEF1ED] p-4 sm:p-6">
+              <div className="bg-transparent border-b border-[#F8FAFC] p-4 sm:p-6">
                 <h2 className="section-title flex items-center gap-2">
-                  <span className="h-2 w-2 bg-[#D4AA45] rounded-full shadow-sm"></span>
+                  <span className="h-2 w-2 bg-[#60A5FA] rounded-full shadow-sm"></span>
                   {t('quickOrder.customerInformation')}
                 </h2>
               </div>
               <div className="p-4 sm:p-6 grid sm:grid-cols-2 gap-6">
                 <div className="sm:col-span-2 space-y-1.5 relative" ref={dropdownRef}>
-                  <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">{t('quickOrder.searchCustomer')}</label>
+                  <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.searchCustomer')}</label>
                   <div className="relative">
-                    <Search className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A]", isRTL ? "right-4" : "left-4")} />
+                    <Search className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E]", isRTL ? "right-4" : "left-4")} />
                     <Input 
                       value={searchQuery} 
                       onChange={e => {
@@ -508,27 +508,27 @@ export default function QuickOrder() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(26,74,58,0.12)] rounded-[16px] border border-[#EEF1ED] overflow-hidden max-h-60 overflow-y-auto"
+                        className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(27, 43, 94,0.12)] rounded-[16px] border border-[#F8FAFC] overflow-hidden max-h-60 overflow-y-auto"
                       >
                         {filteredCustomers.map(customer => (
                           <div 
                             key={customer.id}
                             onClick={() => handleSelectCustomer(customer)}
-                            className="p-4 hover:bg-[#F2F4F0] cursor-pointer border-b border-[#EEF1ED] last:border-0 flex items-center justify-between group transition-colors"
+                            className="p-4 hover:bg-[#F5F7FA] cursor-pointer border-b border-[#F8FAFC] last:border-0 flex items-center justify-between group transition-colors"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-[12px] bg-[#F2F4F0] flex items-center justify-center text-[#1A4A3A] font-bold">
+                              <div className="h-10 w-10 rounded-[12px] bg-[#F5F7FA] flex items-center justify-center text-[#1B2B5E] font-bold">
                                 {customer.name.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <div className="font-bold text-[#111C17] group-hover:text-[#1A4A3A] transition-colors">{customer.name}</div>
-                                <div className="text-xs text-[#8A9E94] flex items-center mt-0.5">
+                                <div className="font-bold text-[#0F172A] group-hover:text-[#1B2B5E] transition-colors">{customer.name}</div>
+                                <div className="text-xs text-[#64748B] flex items-center mt-0.5">
                                   <Phone className="h-3 w-3 mr-1" /> {customer.phone}
                                 </div>
                               </div>
                             </div>
                             {selectedCustomerId === customer.id && (
-                              <Check className="h-5 w-5 text-[#1A4A3A]" />
+                              <Check className="h-5 w-5 text-[#1B2B5E]" />
                             )}
                           </div>
                         ))}
@@ -538,9 +538,9 @@ export default function QuickOrder() {
                 </div>
 
                   <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">{t('quickOrder.customerName')}</label>
+                  <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.customerName')}</label>
                   <div className="relative">
-                    <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                    <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                     <Input 
                       required 
                       value={customerData.name} 
@@ -562,8 +562,8 @@ export default function QuickOrder() {
                         className={cn(
                           "h-12 rounded-[12px] font-bold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all border-none text-xs sm:text-sm",
                           gender === g 
-                            ? "bg-white shadow-[0_2px_8px_rgba(26,74,58,0.08)] border border-[#1A4A3A]/20 text-[#1A4A3A]" 
-                            : "bg-[#F2F4F0] text-[#8A9E94] hover:text-[#1A4A3A]"
+                            ? "bg-white shadow-[0_2px_8px_rgba(27, 43, 94,0.08)] border border-[#1B2B5E]/20 text-[#1B2B5E]" 
+                            : "bg-[#F5F7FA] text-[#64748B] hover:text-[#1B2B5E]"
                         )}
                       >
                         <span className="hidden sm:inline">{g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Kids'}</span>
@@ -573,9 +573,9 @@ export default function QuickOrder() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">{t('quickOrder.phoneNumber')}</label>
+                  <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.phoneNumber')}</label>
                   <div className="relative">
-                    <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                    <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                     <Input 
                       value={customerData.phone} 
                       onChange={e => setCustomerData({...customerData, phone: e.target.value})}
@@ -587,9 +587,9 @@ export default function QuickOrder() {
                   {validationErrors.phone && <p className="text-[#DC2626] text-xs font-bold mt-1 pl-1">{validationErrors.phone}</p>}
                 </div>
                 <div className="sm:col-span-2 space-y-1.5">
-                  <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">{t('quickOrder.address')}</label>
+                  <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.address')}</label>
                   <div className="relative">
-                    <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                    <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                     <Input 
                       value={customerData.address} 
                       onChange={e => setCustomerData({...customerData, address: e.target.value})}
@@ -612,18 +612,18 @@ export default function QuickOrder() {
             {currentStep === 2 && (
             <div className="space-y-8">
             <div className="card overflow-hidden">
-              <div className="bg-transparent border-b border-[#EEF1ED] p-4 sm:p-6">
+              <div className="bg-transparent border-b border-[#F8FAFC] p-4 sm:p-6">
                 <h2 className="section-title flex items-center gap-2">
-                  <span className="h-2 w-2 bg-[#D4AA45] rounded-full shadow-sm"></span>
+                  <span className="h-2 w-2 bg-[#60A5FA] rounded-full shadow-sm"></span>
                   {t('quickOrder.orderDetails')}
                 </h2>
               </div>
               <div className="p-4 sm:p-6 space-y-6">
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div className="space-y-1.5 relative" ref={dressDropdownRef}>
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">{t('quickOrder.dressType')}</label>
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.dressType')}</label>
                     <div className="relative">
-                      <Scissors className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                      <Scissors className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={showDressDropdown ? dressSearch : orderData.dressType} 
@@ -638,7 +638,7 @@ export default function QuickOrder() {
                         placeholder={t('quickOrder.dressTypePlaceholder')}
                         className={cn("input-field", isRTL ? "pr-12" : "pl-12")}
                       />
-                      <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#8A9E94]", isRTL ? "left-4" : "right-4")} />
+                      <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B]", isRTL ? "left-4" : "right-4")} />
                     </div>
                     
                     <AnimatePresence>
@@ -647,7 +647,7 @@ export default function QuickOrder() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 10 }}
-                          className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(26,74,58,0.12)] rounded-[16px] border border-[#EEF1ED] overflow-hidden max-h-60 overflow-y-auto"
+                          className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(27, 43, 94,0.12)] rounded-[16px] border border-[#F8FAFC] overflow-hidden max-h-60 overflow-y-auto"
                         >
                           {DRESS_OPTIONS[gender as keyof typeof DRESS_OPTIONS]
                             .filter(opt => opt.en.toLowerCase().includes(dressSearch.toLowerCase()) || opt.ur.includes(dressSearch))
@@ -658,10 +658,10 @@ export default function QuickOrder() {
                                 setOrderData({...orderData, dressType: opt.en});
                                 setShowDressDropdown(false);
                               }}
-                              className="p-3 hover:bg-[#F2F4F0] cursor-pointer border-b border-[#EEF1ED] last:border-0 flex items-center justify-between group transition-colors"
+                              className="p-3 hover:bg-[#F5F7FA] cursor-pointer border-b border-[#F8FAFC] last:border-0 flex items-center justify-between group transition-colors"
                             >
-                              <div className="font-bold text-[#111C17] group-hover:text-[#1A4A3A]">{opt.en}</div>
-                              <div className="text-sm text-[#8A9E94] font-urdu">{opt.ur}</div>
+                              <div className="font-bold text-[#0F172A] group-hover:text-[#1B2B5E]">{opt.en}</div>
+                              <div className="text-sm text-[#64748B] font-urdu">{opt.ur}</div>
                             </div>
                           ))}
                           {dressSearch && !DRESS_OPTIONS[gender as keyof typeof DRESS_OPTIONS].some(opt => opt.en.toLowerCase() === dressSearch.toLowerCase()) && (
@@ -670,7 +670,7 @@ export default function QuickOrder() {
                                 setOrderData({...orderData, dressType: dressSearch});
                                 setShowDressDropdown(false);
                               }}
-                              className="p-3 bg-[#F2F4F0] cursor-pointer flex items-center gap-2 text-[#1A4A3A] font-bold m-2 rounded-[12px]"
+                              className="p-3 bg-[#F5F7FA] cursor-pointer flex items-center gap-2 text-[#1B2B5E] font-bold m-2 rounded-[12px]"
                             >
                               <Plus className="h-4 w-4" /> Use custom: "{dressSearch}"
                             </div>
@@ -682,9 +682,9 @@ export default function QuickOrder() {
                   </div>
                   
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">Service Type</label>
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Service Type</label>
                     <div className="relative">
-                      <Tag className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                      <Tag className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                       <select
                         value={serviceType}
                         onChange={(e) => setServiceType(e.target.value)}
@@ -694,14 +694,14 @@ export default function QuickOrder() {
                         <option value="Express">Express (2-3 days)</option>
                         <option value="Premium">Premium (1 day)</option>
                       </select>
-                      <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-[#8A9E94] pointer-events-none", isRTL ? "left-4" : "right-4")} />
+                      <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748B] pointer-events-none", isRTL ? "left-4" : "right-4")} />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">{t('quickOrder.deliveryDate')}</label>
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.deliveryDate')}</label>
                     <div className="relative">
-                      <Calendar className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                      <Calendar className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         type="date" 
                         required 
@@ -716,9 +716,9 @@ export default function QuickOrder() {
 
                 <div className="grid sm:grid-cols-3 gap-6">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">{t('quickOrder.quantity')}</label>
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.quantity')}</label>
                     <div className="relative">
-                      <Hash className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                      <Hash className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         type="number" 
                         required 
@@ -730,9 +730,9 @@ export default function QuickOrder() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">{t('quickOrder.totalPrice')} ({settings.currency})</label>
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.totalPrice')} ({settings.currency})</label>
                     <div className="relative">
-                      <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                      <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         type="number" 
                         required 
@@ -746,9 +746,9 @@ export default function QuickOrder() {
                     {validationErrors.price && <p className="text-[#DC2626] text-xs font-bold mt-1 pl-1">{validationErrors.price}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">{t('quickOrder.advance')} ({settings.currency})</label>
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.advance')} ({settings.currency})</label>
                     <div className="relative">
-                      <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                      <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         type="number" 
                         value={orderData.advancePayment} 
@@ -763,11 +763,11 @@ export default function QuickOrder() {
 
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider flex items-center gap-1">
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1">
                       <Scissors className="h-3 w-3" /> Assign Staff
                     </label>
                     <div className="relative">
-                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                       <select
                         value={orderData.assignedStaffId}
                         onChange={(e) => {
@@ -785,16 +785,16 @@ export default function QuickOrder() {
                           <option key={w.id} value={w.id}>{w.name} ({w.role})</option>
                         ))}
                       </select>
-                      <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-[#8A9E94] pointer-events-none", isRTL ? "left-4" : "right-4")} />
+                      <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748B] pointer-events-none", isRTL ? "left-4" : "right-4")} />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider flex items-center gap-1">
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1">
                       <MapPin className="h-3 w-3" /> {t('quickOrder.rackLocation')}
                     </label>
                     <div className="relative">
-                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         value={orderData.rackLocation} 
                         onChange={e => setOrderData({...orderData, rackLocation: e.target.value})}
@@ -804,9 +804,9 @@ export default function QuickOrder() {
                     </div>
                   </div>
                   <div className="sm:col-span-2 space-y-1.5">
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider">{t('quickOrder.notes')}</label>
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.notes')}</label>
                     <div className="relative">
-                      <Notebook className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1A4A3A] z-10", isRTL ? "right-4" : "left-4")} />
+                      <Notebook className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         value={orderData.notes} 
                         onChange={e => setOrderData({...orderData, notes: e.target.value})}
@@ -817,26 +817,26 @@ export default function QuickOrder() {
                   </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-[#EEF1ED] grid sm:grid-cols-2 gap-6">
+                <div className="mt-8 pt-8 border-t border-[#F8FAFC] grid sm:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider flex items-center gap-2">
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-2">
                       <Upload className="h-4 w-4" />
                       {t('quickOrder.referencePhoto')} (Beta)
                     </label>
                     <div className="relative">
                       {referencePhoto ? (
-                        <div className="relative h-32 w-full rounded-[12px] bg-[#F2F4F0] overflow-hidden group">
+                        <div className="relative h-32 w-full rounded-[12px] bg-[#F5F7FA] overflow-hidden group">
                           <img src={URL.createObjectURL(referencePhoto)} alt="Reference" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-[#111C17]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="absolute inset-0 bg-[#0F172A]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <Button type="button" variant="destructive" size="sm" onClick={() => setReferencePhoto(null)} className="h-[32px] rounded-[8px] bg-[#DC2626] font-bold">
                               <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
                             </Button>
                           </div>
                         </div>
                       ) : (
-                        <label className="flex flex-col items-center justify-center h-32 w-full rounded-[12px] bg-[#F2F4F0] hover:bg-[#EEF1ED] transition-all cursor-pointer border border-dashed border-[#8A9E94]/30">
-                          <Upload className="h-6 w-6 text-[#1A4A3A] mb-2" />
-                          <span className="text-sm font-bold text-[#8A9E94]">{t('quickOrder.clickToUpload')}</span>
+                        <label className="flex flex-col items-center justify-center h-32 w-full rounded-[12px] bg-[#F5F7FA] hover:bg-[#F8FAFC] transition-all cursor-pointer border border-dashed border-[#64748B]/30">
+                          <Upload className="h-6 w-6 text-[#1B2B5E] mb-2" />
+                          <span className="text-sm font-bold text-[#64748B]">{t('quickOrder.clickToUpload')}</span>
                           <input type="file" accept="image/*" className="hidden" onChange={e => setReferencePhoto(e.target.files?.[0] || null)} />
                         </label>
                       )}
@@ -844,24 +844,24 @@ export default function QuickOrder() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider flex items-center gap-2">
+                    <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-2">
                       <Upload className="h-4 w-4" />
                       {t('quickOrder.sampleDesign')} (Beta)
                     </label>
                     <div className="relative">
                       {sampleDesign ? (
-                        <div className="relative h-32 w-full rounded-[12px] bg-[#F2F4F0] overflow-hidden group">
+                        <div className="relative h-32 w-full rounded-[12px] bg-[#F5F7FA] overflow-hidden group">
                           <img src={URL.createObjectURL(sampleDesign)} alt="Sample" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-[#111C17]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="absolute inset-0 bg-[#0F172A]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <Button type="button" variant="destructive" size="sm" onClick={() => setSampleDesign(null)} className="h-[32px] rounded-[8px] bg-[#DC2626] font-bold">
                               <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
                             </Button>
                           </div>
                         </div>
                       ) : (
-                        <label className="flex flex-col items-center justify-center h-32 w-full rounded-[12px] bg-[#F2F4F0] hover:bg-[#EEF1ED] transition-all cursor-pointer border border-dashed border-[#8A9E94]/30">
-                          <Upload className="h-6 w-6 text-[#1A4A3A] mb-2" />
-                          <span className="text-sm font-bold text-[#8A9E94]">{t('quickOrder.clickToUpload')}</span>
+                        <label className="flex flex-col items-center justify-center h-32 w-full rounded-[12px] bg-[#F5F7FA] hover:bg-[#F8FAFC] transition-all cursor-pointer border border-dashed border-[#64748B]/30">
+                          <Upload className="h-6 w-6 text-[#1B2B5E] mb-2" />
+                          <span className="text-sm font-bold text-[#64748B]">{t('quickOrder.clickToUpload')}</span>
                           <input type="file" accept="image/*" className="hidden" onChange={e => setSampleDesign(e.target.files?.[0] || null)} />
                         </label>
                       )}
@@ -885,16 +885,16 @@ export default function QuickOrder() {
             {currentStep === 3 && (
             <div className="space-y-8">
             <div className="card overflow-hidden">
-              <div className="bg-transparent border-b border-[#EEF1ED] p-4 sm:p-6">
+              <div className="bg-transparent border-b border-[#F8FAFC] p-4 sm:p-6">
                 <h2 className="section-title flex items-center gap-2">
-                  <span className="h-2 w-2 bg-[#D4AA45] rounded-full shadow-sm"></span>
+                  <span className="h-2 w-2 bg-[#60A5FA] rounded-full shadow-sm"></span>
                   {t('quickOrder.measurements')}
                 </h2>
                 {selectedCustomerId ? (
                   <div className="space-y-4 mt-4">
                     {Object.keys(measurementSets).length > 0 && (
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider flex items-center gap-1">
+                        <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1">
                           <Scissors className="h-3 w-3" /> Use measurements from:
                         </label>
                         <div className="relative">
@@ -911,17 +911,17 @@ export default function QuickOrder() {
                               <option key={setName} value={setName}>{setName}</option>
                             ))}
                           </select>
-                          <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-[#8A9E94] pointer-events-none", isRTL ? "left-4" : "right-4")} />
+                          <ChevronDown className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748B] pointer-events-none", isRTL ? "left-4" : "right-4")} />
                         </div>
                       </div>
                     )}
-                    <div className="flex items-center gap-2 bg-[#F6FEF9] text-[#1D4ED8] px-3 py-2 rounded-[8px] text-[12px] font-bold border border-[#EEF1ED] w-fit">
+                    <div className="flex items-center gap-2 bg-[#F6FEF9] text-[#1D4ED8] px-3 py-2 rounded-[8px] text-[12px] font-bold border border-[#F8FAFC] w-fit">
                       <Check className="h-4 w-4" />
                       {selectedMeasurementSet ? `📐 ${selectedMeasurementSet} measurements loaded. Editing updates their profile.` : 'Loaded from customer profile. Editing here updates their profile.'}
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 bg-[#F6FEF9] text-[#1D4ED8] px-3 py-2 rounded-[8px] text-[12px] font-bold border border-[#EEF1ED] w-fit mt-3">
+                  <div className="flex items-center gap-2 bg-[#F6FEF9] text-[#1D4ED8] px-3 py-2 rounded-[8px] text-[12px] font-bold border border-[#F8FAFC] w-fit mt-3">
                     <User className="h-4 w-4" />
                     These measurements will be saved to the customer's profile.
                   </div>
@@ -936,18 +936,18 @@ export default function QuickOrder() {
                     return (
                       <div className="space-y-4">
                         <div className="flex items-center gap-4">
-                          <div className="h-8 w-8 rounded-[8px] bg-[#F2F4F0] flex items-center justify-center text-[#1A4A3A] font-bold text-xs">
+                          <div className="h-8 w-8 rounded-[8px] bg-[#F5F7FA] flex items-center justify-center text-[#1B2B5E] font-bold text-xs">
                             01
                           </div>
-                          <h3 className="text-sm font-bold text-[#8A9E94] uppercase tracking-[0.2em]">
+                          <h3 className="text-sm font-bold text-[#64748B] uppercase tracking-[0.2em]">
                             {isRTL ? customTemplate.nameUr || customTemplate.nameEn : customTemplate.nameEn}
                           </h3>
-                          <div className="flex-1 h-px bg-[#EEF1ED]"></div>
+                          <div className="flex-1 h-px bg-[#F8FAFC]"></div>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                           {[...customTemplate.fields].sort((a,b) => a.order - b.order).map((field) => (
                             <div key={field.id} className="space-y-1.5 group">
-                              <label className="text-[10px] font-bold text-[#8A9E94] uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-[#1A4A3A] transition-colors">
+                              <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-[#1B2B5E] transition-colors">
                                 <Ruler className="h-3 w-3" />
                                 {isRTL ? field.labelUr || field.labelEn : field.labelEn}
                               </label>
@@ -964,7 +964,7 @@ export default function QuickOrder() {
                                   className={cn("input-field", isRTL ? "pr-3 pl-8 text-right" : "pl-3 pr-8")}
                                   dir="ltr"
                                 />
-                                <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] uppercase font-bold text-[#8A9E94]", isRTL ? "left-3" : "right-3")}>
+                                <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] uppercase font-bold text-[#64748B]", isRTL ? "left-3" : "right-3")}>
                                   {customTemplate.unit === 'cm' ? 'CM' : 'IN'}
                                 </span>
                               </div>
@@ -978,20 +978,20 @@ export default function QuickOrder() {
                   return getMeasurementCategoriesForDress(orderData.dressType).map((category, index) => (
                     <div key={category.id} className="space-y-4">
                       <div className="flex items-center gap-4">
-                        <div className="h-8 w-8 rounded-[8px] bg-[#F2F4F0] flex items-center justify-center text-[#1A4A3A] font-bold text-xs">
+                        <div className="h-8 w-8 rounded-[8px] bg-[#F5F7FA] flex items-center justify-center text-[#1B2B5E] font-bold text-xs">
                           {String(index + 1).padStart(2, '0')}
                         </div>
-                        <h3 className="text-sm font-bold text-[#8A9E94] uppercase tracking-[0.2em]">
+                        <h3 className="text-sm font-bold text-[#64748B] uppercase tracking-[0.2em]">
                           {isRTL ? category.titleUr : category.titleEn}
                         </h3>
-                        <div className="flex-1 h-px bg-[#EEF1ED]"></div>
+                        <div className="flex-1 h-px bg-[#F8FAFC]"></div>
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                         {category.items.map((item) => {
                           const Icon = item.icon;
                           return (
                             <div key={item.id} className="space-y-1.5 group">
-                              <label className="text-[10px] font-bold text-[#8A9E94] uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-[#1A4A3A] transition-colors">
+                              <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-[#1B2B5E] transition-colors">
                                 <Icon className="h-3 w-3" />
                                 {isRTL ? item.ur : item.en}
                               </label>
@@ -1008,9 +1008,9 @@ export default function QuickOrder() {
                                   className={cn("input-field", isRTL ? "pr-3 pl-8 text-right" : "pl-3 pr-8")}
                                   dir="ltr"
                                 />
-                                <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#8A9E94]", isRTL ? "left-3" : "right-3")}>{t('quickOrder.in')}</span>
+                                <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#64748B]", isRTL ? "left-3" : "right-3")}>{t('quickOrder.in')}</span>
                               </div>
-                              <p className="text-[9px] text-[#8A9E94] font-medium">{item.desc}</p>
+                              <p className="text-[9px] text-[#64748B] font-medium">{item.desc}</p>
                             </div>
                           );
                         })}
@@ -1044,9 +1044,9 @@ export default function QuickOrder() {
             {currentStep === 4 && (
             <div className="space-y-8">
             <div className="card overflow-hidden">
-              <div className="bg-transparent border-b border-[#EEF1ED] p-4 sm:p-6 flex flex-row items-center justify-between">
+              <div className="bg-transparent border-b border-[#F8FAFC] p-4 sm:p-6 flex flex-row items-center justify-between">
                 <h2 className="section-title flex items-center gap-2">
-                  <span className="h-2 w-2 bg-[#D4AA45] rounded-full shadow-sm"></span>
+                  <span className="h-2 w-2 bg-[#60A5FA] rounded-full shadow-sm"></span>
                   Review & Confirm
                 </h2>
               </div>
@@ -1054,42 +1054,42 @@ export default function QuickOrder() {
                 {/* Customer Summary */}
                 <div className="space-y-3 relative group">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-[#8A9E94] uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-2">
                       <User className="h-3 w-3" /> Customer Info
                     </h3>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(1)} className="text-[#D4AA45] font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(1)} className="text-[#60A5FA] font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
                   </div>
-                  <div className="bg-[#F2F4F0] rounded-[16px] p-4 space-y-2">
-                    <div className="font-bold text-[#111C17]">{customerData.name}</div>
-                    <div className="text-sm text-[#8A9E94] flex items-center gap-2"><Phone className="h-3 w-3" /> {customerData.phone}</div>
-                    {customerData.address && <div className="text-sm text-[#8A9E94] flex items-center gap-2"><MapPin className="h-3 w-3" /> {customerData.address}</div>}
+                  <div className="bg-[#F5F7FA] rounded-[16px] p-4 space-y-2">
+                    <div className="font-bold text-[#0F172A]">{customerData.name}</div>
+                    <div className="text-sm text-[#64748B] flex items-center gap-2"><Phone className="h-3 w-3" /> {customerData.phone}</div>
+                    {customerData.address && <div className="text-sm text-[#64748B] flex items-center gap-2"><MapPin className="h-3 w-3" /> {customerData.address}</div>}
                   </div>
                 </div>
 
                 {/* Order Summary */}
                 <div className="space-y-3 relative group">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-[#8A9E94] uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-2">
                       <Scissors className="h-3 w-3" /> Order Details
                     </h3>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(2)} className="text-[#D4AA45] font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(2)} className="text-[#60A5FA] font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
                   </div>
-                  <div className="bg-[#F2F4F0] rounded-[16px] p-4 grid sm:grid-cols-2 gap-4">
+                  <div className="bg-[#F5F7FA] rounded-[16px] p-4 grid sm:grid-cols-2 gap-4">
                     <div>
-                      <div className="text-[10px] uppercase font-bold text-[#8A9E94]">Dress Type</div>
-                      <div className="font-bold text-[#111C17]">{orderData.dressType}</div>
+                      <div className="text-[10px] uppercase font-bold text-[#64748B]">Dress Type</div>
+                      <div className="font-bold text-[#0F172A]">{orderData.dressType}</div>
                     </div>
                     <div>
-                      <div className="text-[10px] uppercase font-bold text-[#8A9E94]">Quantity</div>
-                      <div className="font-bold text-[#111C17]">{orderData.quantity}</div>
+                      <div className="text-[10px] uppercase font-bold text-[#64748B]">Quantity</div>
+                      <div className="font-bold text-[#0F172A]">{orderData.quantity}</div>
                     </div>
                     <div>
-                      <div className="text-[10px] uppercase font-bold text-[#8A9E94]">Gender</div>
-                      <div className="font-bold text-[#111C17] capitalize">{gender}</div>
+                      <div className="text-[10px] uppercase font-bold text-[#64748B]">Gender</div>
+                      <div className="font-bold text-[#0F172A] capitalize">{gender}</div>
                     </div>
                     <div>
-                      <div className="text-[10px] uppercase font-bold text-[#8A9E94]">Assigned To</div>
-                      <div className="font-bold text-[#111C17]">{orderData.assignedStaffName || 'Unassigned'}</div>
+                      <div className="text-[10px] uppercase font-bold text-[#64748B]">Assigned To</div>
+                      <div className="font-bold text-[#0F172A]">{orderData.assignedStaffName || 'Unassigned'}</div>
                     </div>
                     <div>
                       <div className="text-[10px] uppercase font-bold text-[#1D4ED8]">Estimated Delivery</div>
@@ -1097,8 +1097,8 @@ export default function QuickOrder() {
                     </div>
                     {orderData.rackLocation && (
                       <div>
-                        <div className="text-[10px] uppercase font-bold text-[#8A9E94]">Rack</div>
-                        <div className="font-bold text-[#111C17]">{orderData.rackLocation}</div>
+                        <div className="text-[10px] uppercase font-bold text-[#64748B]">Rack</div>
+                        <div className="font-bold text-[#0F172A]">{orderData.rackLocation}</div>
                       </div>
                     )}
                   </div>
@@ -1107,22 +1107,22 @@ export default function QuickOrder() {
                 {/* Price Summary */}
                 <div className="space-y-3 relative group">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-[#8A9E94] uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-2">
                       <CreditCard className="h-3 w-3" /> Payment Info
                     </h3>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(2)} className="text-[#D4AA45] font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(2)} className="text-[#60A5FA] font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
                   </div>
-                  <div className="bg-[#F2F4F0] rounded-[16px] p-4 grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-[#F5F7FA] rounded-[16px] p-4 grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="text-[10px] uppercase font-bold text-[#8A9E94]">Total</div>
-                      <div className="font-black text-[#111C17]">{settings.currency}{orderData.price || "0"}</div>
+                      <div className="text-[10px] uppercase font-bold text-[#64748B]">Total</div>
+                      <div className="font-black text-[#0F172A]">{settings.currency}{orderData.price || "0"}</div>
                     </div>
                     <div>
-                      <div className="text-[10px] uppercase font-bold text-[#8A9E94]">Advance</div>
+                      <div className="text-[10px] uppercase font-bold text-[#64748B]">Advance</div>
                       <div className="font-black text-[#1D4ED8]">{settings.currency}{orderData.advancePayment || "0"}</div>
                     </div>
                     <div>
-                      <div className="text-[10px] uppercase font-bold text-[#8A9E94]">Balance</div>
+                      <div className="text-[10px] uppercase font-bold text-[#64748B]">Balance</div>
                       <div className="font-black text-[#DC2626]">{settings.currency}{Number(orderData.price || 0) - Number(orderData.advancePayment || 0)}</div>
                     </div>
                   </div>
@@ -1131,13 +1131,13 @@ export default function QuickOrder() {
                 {/* Measurements Summary */}
                 <div className="space-y-3 relative group">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-[#8A9E94] uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-2">
                       <Ruler className="h-3 w-3" /> Measurements Summary
                     </h3>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(3)} className="text-[#D4AA45] font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(3)} className="text-[#60A5FA] font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
                   </div>
-                  <div className="bg-[#F2F4F0] rounded-[16px] p-4">
-                    <p className="text-sm font-bold text-[#8A9E94] leading-relaxed">
+                  <div className="bg-[#F5F7FA] rounded-[16px] p-4">
+                    <p className="text-sm font-bold text-[#64748B] leading-relaxed">
                       {Object.entries(measurements)
                         .filter(([_, val]) => val && Number(val) > 0)
                         .map(([key, val]) => {
@@ -1145,7 +1145,7 @@ export default function QuickOrder() {
                           return `${capKey}: ${val}`;
                         })
                         .join(", ")}
-                      {Object.keys(measurements).length === 0 && <span className="text-[#8A9E94] italic">No measurements entered</span>}
+                      {Object.keys(measurements).length === 0 && <span className="text-[#64748B] italic">No measurements entered</span>}
                     </p>
                   </div>
                 </div>
@@ -1154,10 +1154,10 @@ export default function QuickOrder() {
                 {orderData.notes && (
                   <div className="space-y-3 relative group">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-bold text-[#8A9E94] uppercase tracking-widest flex items-center gap-2">
+                      <h3 className="text-xs font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-2">
                         <Notebook className="h-3 w-3" /> Notes
                       </h3>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(2)} className="text-[#D4AA45] font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setCurrentStep(2)} className="text-[#60A5FA] font-bold opacity-0 group-hover:opacity-100 transition-opacity h-6 px-2">Edit</Button>
                     </div>
                     <div className="bg-[#FEFCE8] rounded-[16px] p-4 border border-[#FEF08A]">
                       <p className="text-sm font-bold text-[#B45309]">{orderData.notes}</p>

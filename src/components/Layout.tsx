@@ -50,7 +50,7 @@ export default function Layout() {
   };
 
   return (
-    <div className={cn("flex h-screen bg-[#F2F4F0] text-[#111C17] font-sans overflow-hidden", isRTL ? "font-urdu" : "")}>
+    <div className={cn("flex h-screen bg-[#F5F7FA] text-[#0F172A] font-sans overflow-hidden", isRTL ? "font-urdu" : "")}>
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 header flex items-center justify-between z-30">
         <span className="logo-text">Loop Tailor</span>
@@ -60,20 +60,20 @@ export default function Layout() {
             onClick={toggleLanguage}
             className="flex items-center justify-center p-2 rounded-full cursor-pointer"
           >
-            <Globe className="h-4 w-4 text-[#4A5E54]" />
+            <Globe className="h-4 w-4 text-[#334155]" />
           </button>
           <div className="relative">
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="user-avatar">
               {userInitial}
             </button>
             {isMenuOpen && (
-              <div className={cn("absolute mt-4 w-64 bg-white rounded-[20px] shadow-[0_8px_32px_rgba(26,74,58,0.12)] border border-[#EEF1ED] py-4 z-50", isRTL ? "left-0" : "right-0")}>
-                <div className="px-6 pb-4 mb-2 mx-4 rounded-xl p-4 bg-[#EDF0EC]">
-                  <div className="font-bold text-[17px] truncate text-[#1A4A3A]">{shop.name || t('layout.myShop')}</div>
-                  <div className="text-[13px] text-[#4A5E54] truncate">{shop.address || t('layout.noAddress')}</div>
-                  <div className="text-[13px] text-[#4A5E54] truncate">{shop.phone || t('layout.noPhone')}</div>
+              <div className={cn("absolute mt-4 w-64 bg-white rounded-[20px] shadow-[0_8px_32px_rgba(27, 43, 94,0.12)] border border-[#F8FAFC] py-4 z-50", isRTL ? "left-0" : "right-0")}>
+                <div className="px-6 pb-4 mb-2 mx-4 rounded-xl p-4 bg-[#F1F5F9]">
+                  <div className="font-bold text-[17px] truncate text-[#1B2B5E]">{shop.name || t('layout.myShop')}</div>
+                  <div className="text-[13px] text-[#334155] truncate">{shop.address || t('layout.noAddress')}</div>
+                  <div className="text-[13px] text-[#334155] truncate">{shop.phone || t('layout.noPhone')}</div>
                 </div>
-                <Link to="/dashboard/settings" className="block px-6 py-3 text-[15px] font-medium text-[#4A5E54] hover:text-[#1A4A3A]" onClick={() => setIsMenuOpen(false)}>{t('layout.settings')}</Link>
+                <Link to="/dashboard/settings" className="block px-6 py-3 text-[15px] font-medium text-[#334155] hover:text-[#1B2B5E]" onClick={() => setIsMenuOpen(false)}>{t('layout.settings')}</Link>
                 <button onClick={() => { logOut(); setIsMenuOpen(false); }} className={cn("block w-full px-6 py-3 text-[15px] font-medium text-[#DC2626] hover:text-[#DC2626]", isRTL ? "text-right" : "text-left")}>{t('layout.signOut')}</button>
               </div>
             )}
@@ -82,15 +82,15 @@ export default function Layout() {
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-72 bg-white flex-col z-20 border-r border-[#EEF1ED]">
+      <aside className="hidden lg:flex w-72 bg-white flex-col z-20 border-r border-[#F8FAFC]">
         <div className="h-24 flex items-center justify-between px-6 mb-4">
           <Link to="/dashboard" className="flex items-center cursor-pointer">
             <motion.div 
               whileHover={{ rotate: 180 }}
               transition={{ duration: 0.5 }}
-              className={cn("bg-[#1A4A3A] p-3 rounded-2xl shadow-sm", isRTL ? "ml-3" : "mr-3")}
+              className={cn("bg-[#1B2B5E] p-3 rounded-2xl shadow-sm", isRTL ? "ml-3" : "mr-3")}
             >
-              <Scissors className="h-6 w-6 text-[#D4AA45]" />
+              <Scissors className="h-6 w-6 text-[#60A5FA]" />
             </motion.div>
             <span className="logo-text">
               Loop Tailor
@@ -111,12 +111,12 @@ export default function Layout() {
                 className={cn(
                   "group flex items-center px-5 py-4 rounded-[14px] text-[15px] font-bold transition-all duration-300",
                   isActive 
-                    ? "bg-[#1A4A3A] shadow-[0_6px_20px_rgba(26,74,58,0.3)] text-white" 
-                    : "text-[#4A5E54] hover:bg-[#F2F4F0] hover:text-[#1A4A3A]"
+                    ? "bg-[#1B2B5E] shadow-[0_6px_20px_rgba(27, 43, 94,0.3)] text-white" 
+                    : "text-[#334155] hover:bg-[#F5F7FA] hover:text-[#1B2B5E]"
                 )}
               >
                 <div className={cn("p-2 rounded-xl transition-all duration-300", isActive ? "bg-[#2A6B52]" : "group-hover:bg-white", isRTL ? "ml-4" : "mr-4")}>
-                  <Icon className={cn("h-5 w-5", isActive ? "text-white" : "text-[#8A9E94] group-hover:text-[#1A4A3A]")} />
+                  <Icon className={cn("h-5 w-5", isActive ? "text-white" : "text-[#64748B] group-hover:text-[#1B2B5E]")} />
                 </div>
                 {item.name}
               </Link>
@@ -128,10 +128,10 @@ export default function Layout() {
           <div className="flex items-center gap-4">
             <button
               onClick={toggleLanguage}
-              className="flex-1 flex items-center px-5 py-4 rounded-[14px] text-[15px] font-bold text-[#4A5E54] hover:bg-[#F2F4F0] hover:text-[#1A4A3A] transition-all duration-300 group"
+              className="flex-1 flex items-center px-5 py-4 rounded-[14px] text-[15px] font-bold text-[#334155] hover:bg-[#F5F7FA] hover:text-[#1B2B5E] transition-all duration-300 group"
             >
               <div className={cn("p-2 rounded-xl group-hover:bg-white transition-all duration-300", isRTL ? "ml-4" : "mr-4")}>
-                <Globe className="h-5 w-5 text-[#8A9E94] group-hover:text-[#1A4A3A] transition-colors" />
+                <Globe className="h-5 w-5 text-[#64748B] group-hover:text-[#1B2B5E] transition-colors" />
               </div>
               {language === 'en' ? 'اردو' : 'English'}
             </button>
@@ -141,10 +141,10 @@ export default function Layout() {
           </div>
           <button
             onClick={logOut}
-            className="flex items-center w-full px-5 py-4 rounded-[14px] text-[15px] font-bold text-[#4A5E54] hover:bg-[#F2F4F0] hover:text-[#DC2626] transition-all duration-300 group"
+            className="flex items-center w-full px-5 py-4 rounded-[14px] text-[15px] font-bold text-[#334155] hover:bg-[#F5F7FA] hover:text-[#DC2626] transition-all duration-300 group"
           >
             <div className={cn("p-2 rounded-xl group-hover:bg-white transition-all duration-300", isRTL ? "ml-4" : "mr-4")}>
-              <LogOut className="h-5 w-5 text-[#8A9E94] group-hover:text-[#DC2626] transition-colors" />
+              <LogOut className="h-5 w-5 text-[#64748B] group-hover:text-[#DC2626] transition-colors" />
             </div>
             {t('layout.signOut')}
           </button>
@@ -154,7 +154,7 @@ export default function Layout() {
       <MobileBottomNav />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-[#F2F4F0] relative pb-20 pt-20 lg:pt-0 lg:pb-0">
+      <main className="flex-1 overflow-auto bg-[#F5F7FA] relative pb-20 pt-20 lg:pt-0 lg:pb-0">
         <div className="p-0 sm:p-4 lg:p-12 max-w-7xl mx-auto min-h-full">
           <AnimatePresence mode="wait">
             <motion.div
