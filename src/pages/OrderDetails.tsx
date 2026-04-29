@@ -452,30 +452,6 @@ export default function OrderDetails() {
                   </p>
                 </div>
               </div>
-
-              {(order.referencePhotoUrl || order.sampleDesignUrl) && (
-                <div className="sm:col-span-2 pt-6 border-t border-gray-200/50">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">{t('quickOrder.referenceImages', 'Reference Images')}</h3>
-                  <div className="flex gap-4 overflow-x-auto pb-2">
-                    {order.referencePhotoUrl && (
-                      <div className="flex-shrink-0 w-40 space-y-2">
-                        <a href={order.referencePhotoUrl} target="_blank" rel="noopener noreferrer" className="block">
-                          <img src={order.referencePhotoUrl} alt="Reference Photo" className="w-full h-40 object-cover rounded-[12px] shadow-neu-sm hover:opacity-90 transition-opacity" />
-                        </a>
-                        <p className="text-[10px] font-bold text-slate-700 text-center uppercase">{t('quickOrder.referencePhoto', 'Reference Photo')}</p>
-                      </div>
-                    )}
-                    {order.sampleDesignUrl && (
-                      <div className="flex-shrink-0 w-40 space-y-2">
-                        <a href={order.sampleDesignUrl} target="_blank" rel="noopener noreferrer" className="block">
-                          <img src={order.sampleDesignUrl} alt="Sample Design" className="w-full h-40 object-cover rounded-[12px] shadow-neu-sm hover:opacity-90 transition-opacity" />
-                        </a>
-                        <p className="text-[10px] font-bold text-slate-700 text-center uppercase">{t('quickOrder.sampleDesign', 'Sample Design')}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 

@@ -15,7 +15,6 @@ import { getMeasurementCategoriesForDress } from '../lib/measurements';
 import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
 import { cn } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/config';
-import { ImageUpload } from '../components/ImageUpload';
 import { TemplateSelector, SaveTemplateButton } from '../components/OrderTemplates';
 import { useOrderTemplates } from '../hooks/useOrderTemplates';
 import { useStaff } from '../hooks/useStaff';
@@ -153,10 +152,47 @@ export default function QuickOrder() {
   // File Uploads
   const [referencePhoto, setReferencePhoto] = useState<string | null>(null);
   const [sampleDesign, setSampleDesign] = useState<string | null>(null);
+  const [isUploadingRef, setIsUploadingRef] = useState(false);
+  const [isUploadingSample, setIsUploadingSample] = useState(false);
 
   // Measurements
   const [measurements, setMeasurements] = useState<any>({});
   const [measurementSets, setMeasurementSets] = useState<Record<string, any>>({});
+
+  const handleFileUpload = async (file: File | null, setUrl: (url: string | null) => void, setLoading: (loading: boolean) => void) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB.');
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error('Invalid file type. Use JPG, PNG, or WEBP.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
+      }
+      const data = await response.json();
+      if (data.url) {
+        setUrl(data.url);
+      } else {
+        throw new Error("Invalid response from server");
+      }
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      toast.error(error.message || 'Failed to upload image.');
+    } finally {
+      setLoading(false);
+    }
+  };
   const [selectedMeasurementSet, setSelectedMeasurementSet] = useState('');
 
   const handleSelectCustomer = async (customer: any) => {
@@ -802,25 +838,51 @@ export default function QuickOrder() {
                   <div className="space-y-3">
                     <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider flex items-center gap-2">
                       <Upload className="h-4 w-4" />
-                      {t('quickOrder.referencePhoto')}
+                      {t('quickOrder.referencePhoto')} (Beta)
                     </label>
-                    <ImageUpload 
-                      value={referencePhoto} 
-                      onChange={setReferencePhoto} 
-                      disabled={isSubmitting} 
-                    />
+                    <div className="relative">
+                      {referencePhoto ? (
+                        <div className="relative h-32 w-full rounded-[12px] bg-[#F2F4F0] overflow-hidden group">
+                          <img src={referencePhoto} alt="Reference" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-[#111C17]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Button type="button" variant="destructive" size="sm" onClick={() => setReferencePhoto(null)} className="h-[32px] rounded-[8px] bg-[#DC2626] font-bold">
+                              <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center h-32 w-full rounded-[12px] bg-[#F2F4F0] hover:bg-[#EEF1ED] transition-all cursor-pointer border border-dashed border-[#8A9E94]/30">
+                          {isUploadingRef ? <Loader2 className="h-6 w-6 text-[#1A4A3A] mb-2 animate-spin" /> : <Upload className="h-6 w-6 text-[#1A4A3A] mb-2" />}
+                          <span className="text-sm font-bold text-[#8A9E94]">{t('quickOrder.clickToUpload')}</span>
+                          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={isUploadingRef || isSubmitting} onChange={e => handleFileUpload(e.target.files?.[0] || null, setReferencePhoto, setIsUploadingRef)} />
+                        </label>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-3">
                     <label className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider flex items-center gap-2">
                       <Upload className="h-4 w-4" />
-                      {t('quickOrder.sampleDesign')}
+                      {t('quickOrder.sampleDesign')} (Beta)
                     </label>
-                    <ImageUpload 
-                      value={sampleDesign} 
-                      onChange={setSampleDesign} 
-                      disabled={isSubmitting}
-                    />
+                    <div className="relative">
+                      {sampleDesign ? (
+                        <div className="relative h-32 w-full rounded-[12px] bg-[#F2F4F0] overflow-hidden group">
+                          <img src={sampleDesign} alt="Sample" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-[#111C17]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Button type="button" variant="destructive" size="sm" onClick={() => setSampleDesign(null)} className="h-[32px] rounded-[8px] bg-[#DC2626] font-bold">
+                              <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center h-32 w-full rounded-[12px] bg-[#F2F4F0] hover:bg-[#EEF1ED] transition-all cursor-pointer border border-dashed border-[#8A9E94]/30">
+                          {isUploadingSample ? <Loader2 className="h-6 w-6 text-[#1A4A3A] mb-2 animate-spin" /> : <Upload className="h-6 w-6 text-[#1A4A3A] mb-2" />}
+                          <span className="text-sm font-bold text-[#8A9E94]">{t('quickOrder.clickToUpload')}</span>
+                          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={isUploadingSample || isSubmitting} onChange={e => handleFileUpload(e.target.files?.[0] || null, setSampleDesign, setIsUploadingSample)} />
+                        </label>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -845,27 +907,6 @@ export default function QuickOrder() {
                   <span className="h-2 w-2 bg-[#D4AA45] rounded-full shadow-sm"></span>
                   {t('quickOrder.measurements')}
                 </h2>
-
-                {/* Show uploaded reference images if any exist */}
-                {(referencePhoto || sampleDesign) && (
-                  <div className="mt-4 p-4 rounded-[12px] bg-[#F9FAF9] border border-[#EEF1ED]">
-                    <h3 className="text-xs font-bold text-[#8A9E94] uppercase tracking-wider mb-3">Reference Images</h3>
-                    <div className="flex gap-4 overflow-x-auto pb-2">
-                      {referencePhoto && (
-                        <div className="flex-shrink-0 w-32 space-y-1.5">
-                          <img src={referencePhoto} alt="Reference Photo" className="w-full h-32 object-cover rounded-[8px] shadow-sm border border-[#EEF1ED]" />
-                          <p className="text-[10px] font-bold text-[#1A4A3A] text-center uppercase">{t('quickOrder.referencePhoto', 'Reference Photo')}</p>
-                        </div>
-                      )}
-                      {sampleDesign && (
-                        <div className="flex-shrink-0 w-32 space-y-1.5">
-                          <img src={sampleDesign} alt="Sample Design" className="w-full h-32 object-cover rounded-[8px] shadow-sm border border-[#EEF1ED]" />
-                          <p className="text-[10px] font-bold text-[#1A4A3A] text-center uppercase">{t('quickOrder.sampleDesign', 'Sample Design')}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 {selectedCustomerId ? (
                   <div className="space-y-4 mt-4">

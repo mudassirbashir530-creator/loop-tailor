@@ -16,7 +16,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { getAllMeasurementCategories, MEASUREMENT_SETS } from '../lib/measurements';
 import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
-import { ImageUpload } from '../components/ImageUpload';
 import { toast } from 'sonner';
 
 export default function CustomerDetails() {
@@ -39,6 +38,44 @@ export default function CustomerDetails() {
   const [referencePhoto, setReferencePhoto] = useState<string | null>(null);
   const [sampleDesign, setSampleDesign] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingRef, setIsUploadingRef] = useState(false);
+  const [isUploadingSample, setIsUploadingSample] = useState(false);
+
+  const handleFileUpload = async (file: File | null, setUrl: (url: string | null) => void, setLoading: (loading: boolean) => void) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB.');
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error('Invalid file type. Use JPG, PNG, or WEBP.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to upload image");
+      }
+      const data = await response.json();
+      if (data.url) {
+        setUrl(data.url);
+      } else {
+        throw new Error("Invalid response from server");
+      }
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      toast.error(error.message || 'Failed to upload image.');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const [isEditingCustomer, setIsEditingCustomer] = useState(false);
   const [isDeletingCustomer, setIsDeletingCustomer] = useState(false);
@@ -517,11 +554,24 @@ export default function CustomerDetails() {
                             <Upload className="h-4 w-4" />
                             {t('quickOrder.referencePhoto')}
                           </label>
-                          <ImageUpload 
-                            value={referencePhoto} 
-                            onChange={setReferencePhoto} 
-                            disabled={isUploading} 
-                          />
+                          <div className="relative">
+                            {referencePhoto ? (
+                              <div className="relative h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none overflow-hidden group p-2">
+                                <img src={referencePhoto} alt="Reference" className="w-full h-full object-cover rounded-lg" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                                  <Button type="button" variant="destructive" size="sm" onClick={() => setReferencePhoto(null)} className="rounded-full bg-red-500 text-white border-none shadow-neu-sm">
+                                    <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none hover:shadow-neu-sm transition-all cursor-pointer">
+                                {isUploadingRef ? <Loader2 className="h-6 w-6 text-brand-primary mb-2 animate-spin" /> : <Upload className="h-6 w-6 text-brand-primary mb-2" />}
+                                <span className="text-sm font-medium text-slate-500">{t('quickOrder.clickToUpload')}</span>
+                                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={isUploadingRef || isUploading} onChange={e => handleFileUpload(e.target.files?.[0] || null, setReferencePhoto, setIsUploadingRef)} />
+                              </label>
+                            )}
+                          </div>
                         </div>
 
                         <div className="space-y-3">
@@ -529,11 +579,24 @@ export default function CustomerDetails() {
                             <Upload className="h-4 w-4" />
                             {t('quickOrder.sampleDesign')}
                           </label>
-                          <ImageUpload 
-                            value={sampleDesign} 
-                            onChange={setSampleDesign} 
-                            disabled={isUploading}
-                          />
+                          <div className="relative">
+                            {sampleDesign ? (
+                              <div className="relative h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none overflow-hidden group p-2">
+                                <img src={sampleDesign} alt="Sample" className="w-full h-full object-cover rounded-lg" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                                  <Button type="button" variant="destructive" size="sm" onClick={() => setSampleDesign(null)} className="rounded-full bg-red-500 text-white border-none shadow-neu-sm">
+                                    <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none hover:shadow-neu-sm transition-all cursor-pointer">
+                                {isUploadingSample ? <Loader2 className="h-6 w-6 text-brand-primary mb-2 animate-spin" /> : <Upload className="h-6 w-6 text-brand-primary mb-2" />}
+                                <span className="text-sm font-medium text-slate-500">{t('quickOrder.clickToUpload')}</span>
+                                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={isUploadingSample || isUploading} onChange={e => handleFileUpload(e.target.files?.[0] || null, setSampleDesign, setIsUploadingSample)} />
+                              </label>
+                            )}
+                          </div>
                         </div>
                       </div>
 
