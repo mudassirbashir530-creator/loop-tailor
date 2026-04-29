@@ -8,7 +8,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { useImageUpload } from '../hooks/useImageUpload';
-import ImageUpload from '../components/ImageUpload';
 
 export default function SignUp() {
   const [step, setStep] = useState(1);
@@ -359,19 +358,38 @@ export default function SignUp() {
 
                   <div className="space-y-2">
                     <label className={cn("text-sm font-bold text-slate-700 block", isRTL ? "mr-1" : "ml-1")}>Shop Logo (Optional)</label>
-                    <ImageUpload
-                      label="Upload Shop Logo"
-                      preview={logoUpload.preview}
-                      uploading={logoUpload.uploading}
-                      error={logoUpload.error}
-                      onSelectFile={logoUpload.selectFile}
-                      onReset={logoUpload.reset}
-                    />
-                    {logoUpload.uploading && (
-                      <div className="w-full h-1.5 bg-slate-200 rounded-full mt-3 overflow-hidden">
-                        <div className="h-full bg-brand-primary rounded-full transition-all duration-300" style={{ width: `${logoUpload.progress}%` }}></div>
-                      </div>
-                    )}
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        id="logo-upload"
+                        className="hidden" 
+                        onChange={(e) => e.target.files?.[0] && logoUpload.selectFile(e.target.files[0])}
+                      />
+                      {logoUpload.preview ? (
+                        <div className="w-full h-32 border-none shadow-neu-pressed-sm rounded-2xl relative overflow-hidden bg-gray-100 flex items-center justify-center">
+                          <img src={logoUpload.preview} alt="Shop Logo Preview" className="h-full object-contain p-2" />
+                          <button 
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); logoUpload.reset(); }}
+                            className="absolute top-2 right-2 bg-gray-100 shadow-neu-sm p-1.5 rounded-full hover:shadow-neu-pressed-sm text-slate-600 transition-all"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <label htmlFor="logo-upload" className="w-full h-32 border-none shadow-neu-sm rounded-2xl flex flex-col items-center justify-center cursor-pointer bg-gray-100 hover:shadow-neu-pressed-sm transition-all group">
+                          <Store className="h-8 w-8 text-slate-400 group-hover:text-brand-primary mb-2 transition-colors" />
+                          <span className="text-sm font-medium text-slate-500 group-hover:text-brand-primary transition-colors">Upload Shop Logo</span>
+                        </label>
+                      )}
+                      {logoUpload.error && <p className="text-red-500 text-xs mt-2">{logoUpload.error}</p>}
+                      {logoUpload.uploading && (
+                        <div className="w-full h-1.5 bg-slate-200 rounded-full mt-3 overflow-hidden">
+                          <div className="h-full bg-brand-primary rounded-full transition-all duration-300" style={{ width: `${logoUpload.progress}%` }}></div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-2">

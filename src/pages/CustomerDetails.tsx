@@ -4,8 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
 import { ORDER_STATUS } from '../lib/config';
-import { db, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
+import { db, storage, handleFirestoreError, OperationType, generateTokenId } from '../lib/firebase';
 import { doc, getDoc, collection, query, where, getDocs, setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -15,8 +16,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { getAllMeasurementCategories, MEASUREMENT_SETS } from '../lib/measurements';
 import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
+import { ImageUpload } from '../components/ImageUpload';
 import { toast } from 'sonner';
-import { uploadImageFile } from '../lib/apiHelpers';
 
 export default function CustomerDetails() {
   const { id } = useParams<{ id: string }>();
@@ -35,8 +36,8 @@ export default function CustomerDetails() {
   
   const [isAddingOrder, setIsAddingOrder] = useState(false);
   const [newOrder, setNewOrder] = useState({ dressType: 'Shalwar Kameez', deliveryDate: '', price: '', advancePayment: '' });
-  const [referencePhoto, setReferencePhoto] = useState<File | null>(null);
-  const [sampleDesign, setSampleDesign] = useState<File | null>(null);
+  const [referencePhoto, setReferencePhoto] = useState<string | null>(null);
+  const [sampleDesign, setSampleDesign] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   
   const [isEditingCustomer, setIsEditingCustomer] = useState(false);
@@ -229,26 +230,11 @@ export default function CustomerDetails() {
         status: 'Pending',
         price: Number(newOrder.price),
         advancePayment: Number(newOrder.advancePayment),
+        referencePhotoUrl: referencePhoto || null,
+        sampleDesignUrl: sampleDesign || null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-
-      // Upload optional order images to Cloudinary via backend.
-      if (referencePhoto) {
-        const { url, error } = await uploadImageFile(referencePhoto);
-        if (error) throw new Error(error);
-        referencePhotoUrl = url || '';
-      }
-
-      if (sampleDesign) {
-        const { url, error } = await uploadImageFile(sampleDesign);
-        if (error) throw new Error(error);
-        sampleDesignUrl = url || '';
-      }
-
-      if (referencePhotoUrl || sampleDesignUrl) {
-        await updateDoc(orderRef, { referencePhotoUrl, sampleDesignUrl });
-      }
 
       setIsAddingOrder(false);
       setNewOrder({ dressType: 'Shalwar Kameez', deliveryDate: '', price: '', advancePayment: '' });
@@ -529,51 +515,25 @@ export default function CustomerDetails() {
                         <div className="space-y-3">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                             <Upload className="h-4 w-4" />
-                            {t('quickOrder.referencePhoto')} (Beta)
+                            {t('quickOrder.referencePhoto')}
                           </label>
-                          <div className="relative">
-                            {referencePhoto ? (
-                              <div className="relative h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none overflow-hidden group p-2">
-                                <img src={URL.createObjectURL(referencePhoto)} alt="Reference" className="w-full h-full object-cover rounded-lg" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                                  <Button type="button" variant="destructive" size="sm" onClick={() => setReferencePhoto(null)} className="rounded-full bg-red-500 text-white border-none shadow-neu-sm">
-                                    <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none hover:shadow-neu-sm transition-all cursor-pointer">
-                                <Upload className="h-6 w-6 text-brand-primary mb-2" />
-                                <span className="text-sm font-medium text-slate-500">{t('quickOrder.clickToUpload')}</span>
-                                <input type="file" accept="image/*" className="hidden" onChange={e => setReferencePhoto(e.target.files?.[0] || null)} />
-                              </label>
-                            )}
-                          </div>
+                          <ImageUpload 
+                            value={referencePhoto} 
+                            onChange={setReferencePhoto} 
+                            disabled={isUploading} 
+                          />
                         </div>
 
                         <div className="space-y-3">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                             <Upload className="h-4 w-4" />
-                            {t('quickOrder.sampleDesign')} (Beta)
+                            {t('quickOrder.sampleDesign')}
                           </label>
-                          <div className="relative">
-                            {sampleDesign ? (
-                              <div className="relative h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none overflow-hidden group p-2">
-                                <img src={URL.createObjectURL(sampleDesign)} alt="Sample" className="w-full h-full object-cover rounded-lg" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                                  <Button type="button" variant="destructive" size="sm" onClick={() => setSampleDesign(null)} className="rounded-full bg-red-500 text-white border-none shadow-neu-sm">
-                                    <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none hover:shadow-neu-sm transition-all cursor-pointer">
-                                <Upload className="h-6 w-6 text-brand-primary mb-2" />
-                                <span className="text-sm font-medium text-slate-500">{t('quickOrder.clickToUpload')}</span>
-                                <input type="file" accept="image/*" className="hidden" onChange={e => setSampleDesign(e.target.files?.[0] || null)} />
-                              </label>
-                            )}
-                          </div>
+                          <ImageUpload 
+                            value={sampleDesign} 
+                            onChange={setSampleDesign} 
+                            disabled={isUploading}
+                          />
                         </div>
                       </div>
 

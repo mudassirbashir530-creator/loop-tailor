@@ -83,37 +83,3 @@ export async function safeFetchJSON(url: string, options: RequestInit = {}, time
     return { data: null, error: errorMessage };
   }
 }
-
-/**
- * Converts a File into base64 and uploads it to backend `/api/upload`.
- * Backend then uploads to Cloudinary and returns a secure URL.
- */
-export async function uploadImageFile(file: File): Promise<{ url: string | null; error: string | null }> {
-  try {
-    const toBase64 = (input: File) =>
-      new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ''));
-        reader.onerror = () => reject(new Error('Failed to read file.'));
-        reader.readAsDataURL(input);
-      });
-
-    const fileData = await toBase64(file);
-    const { data, error } = await safeFetchJSON('/api/upload', {
-      method: 'POST',
-      body: JSON.stringify({
-        fileData,
-        fileName: file.name,
-        mimeType: file.type
-      })
-    }, 30000);
-
-    if (error) {
-      return { url: null, error };
-    }
-
-    return { url: data?.url || null, error: null };
-  } catch (error: any) {
-    return { url: null, error: error?.message || 'Upload failed.' };
-  }
-}

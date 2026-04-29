@@ -83,23 +83,47 @@ export default function Settings() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
+    // Client-side validation
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB.');
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error('Invalid file type. Use JPG, PNG, or WEBP.');
+      return;
+    }
+
     setUploading(true);
     try {
-      /* BETA: Image upload is disabled
-      const storageRef = ref(storage, `shops/${user.uid}/logo_${Date.now()}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-      setEditData(prev => ({ ...prev, logoUrl: url }));
-      */
-      
-      // Use local preview instead
-      const url = URL.createObjectURL(file);
-      setEditData(prev => ({ ...prev, logoUrl: url }));
-    } catch (error) {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to upload image");
+      }
+
+      const data = await response.json();
+      if (data.url) {
+        setEditData(prev => ({ ...prev, logoUrl: data.url }));
+        toast.success("Logo uploaded successfully!");
+      } else {
+        throw new Error("Invalid response from server");
+      }
+    } catch (error: any) {
       console.error('Error uploading logo:', error);
-      toast.error('Failed to upload logo. Please try again.');
+      toast.error(error.message || 'Failed to upload logo. Please try again.');
     } finally {
       setUploading(false);
+      // Reset input
+      if (e.target) {
+        e.target.value = '';
+      }
     }
   };
 
