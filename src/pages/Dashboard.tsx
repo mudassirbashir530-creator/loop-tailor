@@ -324,6 +324,22 @@ export default function Dashboard() {
       .slice(0, 5);
   }, [allOrders]);
 
+  const topCustomersData = React.useMemo(() => {
+    const counts: Record<string, { count: number, name: string }> = {};
+    allOrders.forEach(o => {
+      const id = o.customerId || o.customerName;
+      if (id && o.customerName) {
+        if (!counts[id]) {
+           counts[id] = { count: 0, name: o.customerName };
+        }
+        counts[id].count += 1;
+      }
+    });
+    return Object.values(counts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 4);
+  }, [allOrders]);
+
   if (loading && !stats.customers) {
     return (
       <div className="space-y-8">
@@ -449,7 +465,7 @@ export default function Dashboard() {
           <div className="bg-gradient-to-r from-[#16A34A] to-[#15803D] rounded-[20px] p-5 text-white relative overflow-hidden shadow-[0_4px_16px_rgba(22,163,74,0.3)]">
             <svg className="absolute right-0 bottom-0 opacity-10" width="120" height="120" viewBox="0 0 100 100" fill="white"><circle cx="80" cy="80" r="50"/></svg>
             <div className="relative z-10">
-              <div className="text-[13px] font-medium opacity-90 mb-1">Today's Revenue</div>
+              <div className="text-[13px] font-medium opacity-90 mb-1">Total Revenue</div>
               <div className="text-[28px] font-bold tracking-tight mb-4">{formatCurrency(stats.totalRevenue)}</div>
               <div className="flex items-center gap-4">
                 <div>
@@ -517,23 +533,25 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Top Customers (Using first 3 recent orders as dummy Top Customers for visually satisfying layout per instructions) */}
-        <div className="px-4 pb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[16px] font-semibold text-[#0F172A]">Top Customers</h2>
-          </div>
-          <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
-            {recentOrders.slice(0,4).map((order, i) => (
-              <div key={i} className="flex flex-col items-center min-w-[72px] bg-white rounded-[16px] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
-                <div className="w-[52px] h-[52px] rounded-full bg-[#E2E8F0] flex items-center justify-center text-[#64748B] text-lg font-bold mb-2">
-                  {order.customerName.charAt(0).toUpperCase()}
+        {/* Top Customers */}
+        {topCustomersData.length > 0 && (
+          <div className="px-4 pb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[16px] font-semibold text-[#0F172A]">Top Customers</h2>
+            </div>
+            <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
+              {topCustomersData.map((customer, i) => (
+                <div key={i} className="flex flex-col items-center min-w-[72px] bg-white rounded-[16px] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+                  <div className="w-[52px] h-[52px] rounded-full bg-[#E2E8F0] flex items-center justify-center text-[#64748B] text-lg font-bold mb-2">
+                    {customer.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="text-[12px] font-medium text-[#0F172A] line-clamp-1 text-center w-full">{customer.name.split(' ')[0]}</div>
+                  <div className="text-[10px] text-[#64748B] mt-0.5">{customer.count} Order{customer.count !== 1 ? 's' : ''}</div>
                 </div>
-                <div className="text-[12px] font-medium text-[#0F172A] line-clamp-1 text-center w-full">{order.customerName.split(' ')[0]}</div>
-                <div className="text-[10px] text-[#64748B] mt-0.5">3 Orders</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
       </motion.div>
     </>

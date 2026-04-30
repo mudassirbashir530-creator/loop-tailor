@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, serverTimestamp, getDocs, addDoc } from 'firebase/firestore';
+import { db, messaging, handleFirestoreError, OperationType } from '../lib/firebase';
+import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, serverTimestamp, setDoc, addDoc } from 'firebase/firestore';
+import { getToken, onMessage } from 'firebase/messaging';
+import { toast } from 'sonner';
 
 export interface AppNotification {
   id: string;
@@ -44,6 +46,34 @@ export function useNotifications() {
 
     return () => unsubscribe();
   }, [user]);
+
+  const requestPermission = async () => {
+    if (!user || !messaging) return;
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        const token = await getToken(messaging, {
+           // Providing VAPID key is necessary for some environments, but we'll try without it if the sw works.
+        });
+        if (token) {
+          await setDoc(doc(db, 'shops', user.uid, 'fcmTokens', token), {
+            token,
+            updatedAt: serverTimestamp()
+          });
+        }
+      }
+    } catch (error) {
+      console.error('An error occurred while retrieving token. ', error);
+    }
+  };
+
+  useEffect(() => {
+    if (!messaging) return;
+    const unsubscribe = onMessage(messaging, (payload) => {
+       toast.success(`${payload.notification?.title}: ${payload.notification?.body}`);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const markAsRead = async (id: string) => {
     if (!user) return;

@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { doc, runTransaction, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getMessaging } from 'firebase/messaging';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Use environment variables if available, otherwise fallback to the config file
@@ -20,6 +21,7 @@ export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
 });
 export const storage = getStorage(app);
+export const messaging = typeof window !== 'undefined' && 'Notification' in window ? getMessaging(app) : null;
 
 import { toast } from 'sonner';
 

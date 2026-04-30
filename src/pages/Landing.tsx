@@ -18,9 +18,8 @@ export default function Landing() {
             <span className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-500 font-plus-jakarta">LoopTailor</span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
-            <a className="text-green-600 font-bold border-b-2 border-green-600 pb-1 font-plus-jakarta text-sm" href="#">Home</a>
-            <a className="text-slate-600 dark:text-slate-400 font-medium hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 font-plus-jakarta text-sm" href="#">Features</a>
-            <a className="text-slate-600 dark:text-slate-400 font-medium hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 font-plus-jakarta text-sm" href="#">Pricing</a>
+            <span className="text-green-600 font-bold border-b-2 border-green-600 pb-1 font-plus-jakarta text-sm">Home</span>
+            <Link to="/about" className="text-slate-600 dark:text-slate-400 font-medium hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 font-plus-jakarta text-sm">About Us</Link>
           </nav>
           <Link to="/login">
             <button className="bg-primary text-on-primary px-6 py-2.5 rounded-full text-label-md active:scale-95 transition-transform hover:bg-primary/90">
@@ -51,10 +50,12 @@ export default function Landing() {
                     Get Started Free
                   </button>
                 </Link>
-                <button className="flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant px-8 py-4 rounded-full font-bold text-lg hover:bg-surface-container-low transition-all">
-                  <span className="material-symbols-outlined">play_circle</span>
-                  View Demo
-                </button>
+                <Link to="/login">
+                  <button className="flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant px-8 py-4 rounded-full font-bold text-lg hover:bg-surface-container-low transition-all">
+                    <span className="material-symbols-outlined">play_circle</span>
+                    View Demo
+                  </button>
+                </Link>
               </div>
             </div>
             <div className="relative">
@@ -203,10 +204,9 @@ export default function Landing() {
             <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs text-center md:text-left">Bringing digital precision to the artisanal world of tailoring.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-8">
-            <a className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" href="#">Features</a>
-            <a className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" href="#">Pricing</a>
-            <a className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" href="#">Testimonials</a>
-            <a className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" href="#">Privacy Policy</a>
+            <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" to="/about">About Us</Link>
+            <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" to="/privacy">Privacy Policy</Link>
+            <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" to="/terms">Terms of Service</Link>
           </div>
           <div className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta">
             © 2026 LoopTailor. Crafted for Precision.
