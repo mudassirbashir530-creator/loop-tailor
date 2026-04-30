@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -12,12 +12,71 @@
   --color-brand-secondary: #FFFFFF;
   --color-brand-accent: #15803D;
 
+  --color-surface-container-lowest: #ffffff;
+  --color-surface: #faf8ff;
+  --color-on-tertiary-fixed: #002113;
+  --color-surface-dim: #d2d9f4;
+  --color-tertiary-fixed-dim: #4edea3;
+  --color-inverse-primary: #62df7d;
+  --color-on-surface-variant: #3e4a3d;
+  --color-error-container: #ffdad6;
+  --color-on-secondary: #ffffff;
+  --color-secondary: #2e6764;
+  --color-on-secondary-container: #336c68;
+  --color-on-primary-fixed-variant: #005320;
+  --color-secondary-fixed-dim: #98d1cc;
+  --color-surface-container-highest: #dae2fd;
+  --color-on-tertiary-fixed-variant: #005236;
+  --color-surface-container-high: #e2e7ff;
+  --color-secondary-container: #b1ebe6;
+  --color-on-secondary-fixed-variant: #104f4c;
+  --color-primary-fixed-dim: #62df7d;
+  --color-on-primary-fixed: #002109;
+  --color-on-error: #ffffff;
+  --color-surface-bright: #faf8ff;
+  --color-tertiary: #006947;
+  --color-inverse-on-surface: #eef0ff;
+  --color-error: #ba1a1a;
+  --color-on-error-container: #93000a;
+  --color-on-surface: #131b2e;
+  --color-inverse-surface: #283044;
+  --color-outline: #6e7b6c;
+  --color-on-primary-container: #f7fff2;
+  --color-on-tertiary: #ffffff;
+  --color-surface-tint: #006e2d;
+  --color-secondary-fixed: #b4ede8;
+  --color-on-tertiary-container: #f5fff6;
+  --color-tertiary-container: #00855b;
+  --color-on-background: #131b2e;
+  --color-on-secondary-fixed: #00201e;
+  --color-surface-variant: #dae2fd;
+  --color-primary-container: #00873a;
+  --color-outline-variant: #bdcaba;
+  --color-tertiary-fixed: #6ffbbe;
+  --color-on-primary: #ffffff;
+  --color-primary: #006b2c;
+  --color-background: #faf8ff;
+  --color-primary-fixed: #7ffc97;
+  --color-surface-container: #eaedff;
+  --color-surface-container-low: #f2f3ff;
+
+  --border-radius-card: 16px;
+
+  --font-plus-jakarta: "Plus Jakarta Sans", sans-serif;
+  --font-h1: "Poppins", sans-serif;
+  --font-h2: "Poppins", sans-serif;
+  --font-h3: "Poppins", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-body-md: "Inter", sans-serif;
+  --font-label-md: "Inter", sans-serif;
+  --font-label-sm: "Inter", sans-serif;
+
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Poppins", "Inter", sans-serif;
   --font-urdu: "Noto Nastaliq Urdu", serif;
 
   --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 2px 12px rgba(0, 0, 0, 0.07); /* Requested soft shadow */
+  --shadow-md: 0 2px 12px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.16);
   --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.6);
@@ -29,6 +88,18 @@
   --shadow-neu-sm: var(--shadow-sm);
   --shadow-neu-pressed-sm: inset 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-neu-icon: var(--shadow-sm);
+}
+
+@layer utilities {
+  .hero-gradient { background: radial-gradient(circle at top right, #b1ebe6 0%, transparent 40%), radial-gradient(circle at bottom left, #7ffc97 0%, transparent 40%); }
+  
+  .text-h1 { font-family: var(--font-h1); font-size: 32px; font-weight: 600; line-height: 1.2; }
+  .text-h2 { font-family: var(--font-h2); font-size: 24px; font-weight: 600; line-height: 1.3; }
+  .text-h3 { font-family: var(--font-h3); font-size: 20px; font-weight: 500; line-height: 1.4; }
+  .text-body-lg { font-family: var(--font-body-lg); font-size: 16px; font-weight: 400; line-height: 1.6; }
+  .text-body-md { font-family: var(--font-body-md); font-size: 14px; font-weight: 400; line-height: 1.5; }
+  .text-label-md { font-family: var(--font-label-md); font-size: 12px; font-weight: 600; line-height: 1; letter-spacing: 0.02em; }
+  .text-label-sm { font-family: var(--font-label-sm); font-size: 11px; font-weight: 500; line-height: 1; }
 }
 
 :root {

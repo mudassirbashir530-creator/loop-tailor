@@ -1,616 +1,215 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useLanguage } from '../contexts/LanguageContext';
+import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import Header from '../components/Header';
-import Hero from '../components/Hero';
-import Pricing from '../components/Pricing';
-import Footer from '../components/Footer';
-import { cn } from '../lib/utils';
-import { 
-  Scissors, 
-  CheckCircle, 
-  Clock, 
-  Users, 
-  Smartphone, 
-  Shield, 
-  Zap, 
-  ChevronRight, 
-  Star,
-  LayoutDashboard,
-  FileText,
-  Camera,
-  ArrowRight,
-  Menu,
-  X,
-  UserPlus,
-  Activity,
-  FileCheck,
-  ListTodo,
-  Plus,
-  Facebook,
-  Linkedin,
-  Instagram,
-  Youtube,
-  ClipboardList,
-  Ruler,
-  Truck,
-  Workflow,
-  ChevronDown,
-  Globe
-} from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.3
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { type: 'spring', stiffness: 100 }
-  }
-};
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Landing() {
   const { user, wasLoggedIn } = useAuth();
-  const { t, isRTL, language, setLanguage } = useLanguage();
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  const translatedFaqs = (t('landing.faq.items') as unknown as {q: string, a: string}[]);
-
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": translatedFaqs.map(faq => ({
-      "@type": "Question",
-      "name": faq.q,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": faq.a
-      }
-    }))
-  };
 
   if (user || wasLoggedIn) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return (
-    <div className={cn("min-h-screen bg-[#FDFCF9] font-sans text-slate-900 overflow-x-hidden selection:bg-brand-primary/10 selection:text-brand-primary", isRTL ? "font-urdu" : "")}>
-      <script type="application/ld+json">
-        {JSON.stringify(faqSchema)}
-      </script>
-
-      <Header />
-
-      {/* Hero Section */}
-      <Hero />
-
-      {/* Features Section */}
-      <section id="features" className="py-32 bg-[#FDFCF9] relative overflow-hidden">
-        {/* Decorative background elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-40">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/5 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-24">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-primary/5 border border-brand-primary/10 mb-6"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-brand-primary animate-pulse" />
-              <span className="text-xs font-black text-brand-primary uppercase tracking-[0.2em]">{t('landing.features.badge')}</span>
-            </motion.div>
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-4xl md:text-6xl font-display font-black tracking-tight text-slate-900 mb-6"
-            >
-              {t('landing.features.title')} <br className="hidden md:block" /> <span className="text-brand-primary">{t('landing.features.titleHighlight')}</span>
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="text-lg text-slate-500 max-w-2xl mx-auto font-medium"
-            >
-              {t('landing.features.subtitle')}
-            </motion.p>
+    <div className="bg-background text-on-background font-plus-jakarta min-h-screen">
+      <header className="fixed top-0 w-full z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="flex items-center justify-between px-6 md:px-12 py-4 max-w-7xl mx-auto">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-green-600 dark:text-green-500 text-2xl" style={{fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24"}}>straighten</span>
+            <span className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-500 font-plus-jakarta">LoopTailor</span>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <Users className="h-6 w-6" />,
-                title: t('landing.features.items.crm.title'),
-                desc: t('landing.features.items.crm.desc'),
-                color: "from-blue-500 to-indigo-600",
-                lightColor: "bg-blue-50"
-              },
-              {
-                icon: <LayoutDashboard className="h-6 w-6" />,
-                title: t('landing.features.items.tracking.title'),
-                desc: t('landing.features.items.tracking.desc'),
-                color: "from-emerald-500 to-teal-600",
-                lightColor: "bg-emerald-50"
-              },
-              {
-                icon: <FileText className="h-6 w-6" />,
-                title: t('landing.features.items.invoices.title'),
-                desc: t('landing.features.items.invoices.desc'),
-                color: "from-amber-500 to-orange-600",
-                lightColor: "bg-amber-50"
-              },
-              {
-                icon: <Camera className="h-6 w-6" />,
-                title: t('landing.features.items.visuals.title'),
-                desc: t('landing.features.items.visuals.desc'),
-                color: "from-purple-500 to-violet-600",
-                lightColor: "bg-purple-50"
-              },
-              {
-                icon: <Shield className="h-6 w-6" />,
-                title: t('landing.features.items.security.title'),
-                desc: t('landing.features.items.security.desc'),
-                color: "from-rose-500 to-pink-600",
-                lightColor: "bg-rose-50"
-              },
-              {
-                icon: <Zap className="h-6 w-6" />,
-                title: t('landing.features.items.analytics.title'),
-                desc: t('landing.features.items.analytics.desc'),
-                color: "from-indigo-500 to-blue-600",
-                lightColor: "bg-indigo-50"
-              }
-            ].map((feature, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1, duration: 0.5 }}
-                whileHover={{ y: -8 }}
-                className="group relative p-10 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-500"
-              >
-                {/* Decorative corner element */}
-                <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-[0.03] rounded-bl-[5rem] transition-opacity duration-500`} />
-                
-                <div className={`h-16 w-16 rounded-[1.5rem] bg-gradient-to-br ${feature.color} p-[1px] mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-slate-200`}>
-                  <div className="w-full h-full bg-white rounded-[1.4rem] flex items-center justify-center text-slate-900 group-hover:bg-transparent group-hover:text-white transition-colors duration-500">
-                    {feature.icon}
-                  </div>
-                </div>
-                
-                <h4 className="text-2xl font-black text-slate-900 mb-4 tracking-tight group-hover:text-brand-primary transition-colors">
-                  {feature.title}
-                </h4>
-                <p className="text-slate-500 leading-relaxed font-medium mb-6">
-                  {feature.desc}
-                </p>
-                
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 group-hover:text-brand-primary transition-colors">
-                  <span>Explore Feature</span>
-                  <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <nav className="hidden md:flex items-center gap-8">
+            <a className="text-green-600 font-bold border-b-2 border-green-600 pb-1 font-plus-jakarta text-sm" href="#">Home</a>
+            <a className="text-slate-600 dark:text-slate-400 font-medium hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 font-plus-jakarta text-sm" href="#">Features</a>
+            <a className="text-slate-600 dark:text-slate-400 font-medium hover:text-green-600 dark:hover:text-green-400 transition-all duration-200 font-plus-jakarta text-sm" href="#">Pricing</a>
+          </nav>
+          <Link to="/login">
+            <button className="bg-primary text-on-primary px-6 py-2.5 rounded-full text-label-md active:scale-95 transition-transform hover:bg-primary/90">
+                Get Started
+            </button>
+          </Link>
         </div>
-      </section>
+      </header>
 
-      {/* Why Choose Loop Tailor */}
-      <section className="py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">{t('landing.whyChoose.badge')}</h2>
-            <h2 className="text-4xl md:text-5xl font-display font-black text-slate-900">{t('landing.whyChoose.title')}</h2>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {[
-              { icon: <ClipboardList className="h-6 w-6 text-brand-primary" />, title: t('landing.whyChoose.items.tracking.title'), desc: t('landing.whyChoose.items.tracking.desc') },
-              { icon: <Ruler className="h-6 w-6 text-brand-primary" />, title: t('landing.whyChoose.items.storage.title'), desc: t('landing.whyChoose.items.storage.desc') },
-              { icon: <Truck className="h-6 w-6 text-brand-primary" />, title: t('landing.whyChoose.items.delivery.title'), desc: t('landing.whyChoose.items.delivery.desc') },
-              { icon: <Workflow className="h-6 w-6 text-brand-primary" />, title: t('landing.whyChoose.items.workflow.title'), desc: t('landing.whyChoose.items.workflow.desc') }
-            ].map((item, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="p-8 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group"
-              >
-                <div className="bg-slate-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-brand-primary/10 transition-colors shrink-0">
-                  {item.icon}
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3 leading-tight">{item.title}</h3>
-                <p className="text-slate-500 leading-relaxed text-sm">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it Works */}
-      <section id="how-it-works" className="py-24 bg-slate-50 relative overflow-hidden">
-        {/* Background Decorative Elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-brand-primary/5 blur-3xl"></div>
-          <div className="absolute -bottom-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-emerald-400/5 blur-3xl"></div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-            <motion.div 
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">{t('landing.workflow.badge')}</h2>
-              <h3 className="text-4xl md:text-5xl font-display font-black tracking-tight text-slate-900 mb-6">{t('landing.workflow.title')} <br className="hidden md:block" /> {t('landing.workflow.titleHighlight')}</h3>
-              <p className="text-lg text-slate-500 mb-10">{t('landing.workflow.subtitle')}</p>
-              
-              <div className="space-y-4">
-                {[
-                  { icon: UserPlus, title: t('landing.workflow.items.profile.title'), desc: t('landing.workflow.items.profile.desc') },
-                  { icon: Scissors, title: t('landing.workflow.items.order.title'), desc: t('landing.workflow.items.order.desc') },
-                  { icon: Activity, title: t('landing.workflow.items.progress.title'), desc: t('landing.workflow.items.progress.desc') },
-                  { icon: FileCheck, title: t('landing.workflow.items.deliver.title'), desc: t('landing.workflow.items.deliver.desc') }
-                ].map((item, idx) => (
-                  <div key={idx} className="flex gap-5 p-5 rounded-2xl bg-white shadow-sm border border-slate-100 hover:border-brand-primary/30 hover:shadow-md transition-all group cursor-default">
-                    <div className="w-14 h-14 rounded-xl bg-brand-primary/10 flex items-center justify-center shrink-0 group-hover:bg-brand-primary group-hover:text-white transition-colors text-brand-primary">
-                      <item.icon className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('landing.workflow.stepPrefix')} 0{idx + 1}</span>
-                        <h4 className="text-lg font-bold text-slate-900">{item.title}</h4>
-                      </div>
-                      <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
+      <main className="pt-24 overflow-x-hidden">
+        {/* Hero Section */}
+        <section className="relative px-6 md:px-12 py-16 md:py-32 max-w-7xl mx-auto hero-gradient">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-fixed text-on-primary-fixed rounded-full text-label-sm font-label-sm">
+                <span className="material-symbols-outlined text-sm" style={{fontVariationSettings: "'FILL' 1"}}>verified</span>
+                The Professional Standard for Modern Tailors
               </div>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="relative lg:h-[650px] flex items-center justify-center mt-10 lg:mt-0"
-            >
-              {/* Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/20 to-emerald-400/20 rounded-[3rem] transform rotate-3 scale-105 blur-2xl opacity-60"></div>
-              
-              {/* Phone Mockup */}
-              <motion.div 
-                animate={{ y: [0, -15, 0] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="relative w-full max-w-[360px] aspect-[9/19] bg-slate-950 rounded-[3rem] shadow-2xl overflow-hidden border-[8px] border-slate-900 flex flex-col z-10"
-              >
-                {/* Notch */}
-                <div className="absolute top-0 inset-x-0 h-6 flex justify-center z-20">
-                  <div className="w-32 h-6 bg-slate-900 rounded-b-3xl"></div>
-                </div>
-
-                {/* Mock App Header */}
-                <div className="px-6 pt-10 pb-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80 backdrop-blur z-10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center shadow-lg shadow-brand-primary/20">
-                      <Scissors className="w-4 h-4 text-white" />
-                    </div>
-                    <div className="font-bold text-white tracking-wide">Loop Tailor</div>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
-                    <UserPlus className="w-4 h-4 text-slate-400" />
-                  </div>
-                </div>
-                
-                {/* Mock App Content */}
-                <div className="p-5 flex-1 space-y-6 overflow-hidden relative">
-                  {/* Stats Row */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-inner">
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Active Orders</div>
-                      <div className="text-2xl font-black text-white">24</div>
-                    </div>
-                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 shadow-inner">
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Due Today</div>
-                      <div className="text-2xl font-black text-brand-primary">5</div>
-                    </div>
-                  </div>
-                  
-                  {/* Recent Orders List */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Recent Orders</div>
-                      <div className="text-[10px] font-bold text-brand-primary uppercase tracking-wider">View All</div>
-                    </div>
-                    {[
-                      { name: "Ahmed Khan", item: "Shalwar Kameez", status: "Cutting", color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
-                      { name: "Ali Raza", item: "Kurta Pajama", status: "Stitching", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-                      { name: "Usman Tariq", item: "Waistcoat", status: "Ready", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-                      { name: "Zain Ali", item: "Shalwar Kameez", status: "Pending", color: "bg-slate-800 text-slate-400 border-slate-700" },
-                    ].map((order, i) => (
-                      <div key={i} className="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between group hover:border-slate-700 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 font-bold border border-slate-700">
-                            {order.name.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-white text-sm">{order.name}</div>
-                            <div className="text-xs text-slate-500">{order.item}</div>
-                          </div>
-                        </div>
-                        <div className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${order.color}`}>
-                          {order.status}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Gradient Fade at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent pointer-events-none"></div>
-                </div>
-
-                {/* Mock Bottom Nav */}
-                <div className="h-16 bg-slate-900 border-t border-slate-800 flex items-center justify-around px-2 pb-2 z-20">
-                  <div className="flex flex-col items-center gap-1 text-brand-primary">
-                    <LayoutDashboard className="w-5 h-5" />
-                    <span className="text-[8px] font-bold uppercase tracking-wider">Home</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1 text-slate-500">
-                    <Users className="w-5 h-5" />
-                    <span className="text-[8px] font-bold uppercase tracking-wider">Clients</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1 text-slate-500">
-                    <div className="w-10 h-10 rounded-full bg-brand-primary flex items-center justify-center text-white -mt-6 shadow-lg shadow-brand-primary/30 border-4 border-slate-950">
-                      <Plus className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-1 text-slate-500">
-                    <Scissors className="w-5 h-5" />
-                    <span className="text-[8px] font-bold uppercase tracking-wider">Orders</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1 text-slate-500">
-                    <FileText className="w-5 h-5" />
-                    <span className="text-[8px] font-bold uppercase tracking-wider">Invoices</span>
-                  </div>
-                </div>
-              </motion.div>
-              
-              {/* Floating Accents */}
-              <motion.div 
-                animate={{ y: [0, -15, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-10 -right-4 lg:-right-12 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 z-20 max-w-[220px]"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                    <CheckCircle className="h-5 w-5 text-emerald-600" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Notification</div>
-                    <div className="text-sm font-bold text-slate-900 leading-tight">Order Delivered</div>
-                    <div className="text-xs text-emerald-600 font-bold mt-0.5">+ 4,500</div>
-                  </div>
-                </div>
-              </motion.div>
-              
-              <motion.div 
-                animate={{ y: [0, 15, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute bottom-20 -left-4 lg:-left-12 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 z-20 max-w-[220px]"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 bg-brand-primary/10 rounded-full flex items-center justify-center shrink-0">
-                    <ListTodo className="h-5 w-5 text-brand-primary" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Task Due</div>
-                    <div className="text-sm font-bold text-slate-900 leading-tight">Measure Ali Raza</div>
-                    <div className="text-xs text-slate-500 font-medium mt-0.5">Today, 4:00 PM</div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-sm font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">{t('landing.pricing.badge')}</h2>
-            <h3 className="text-4xl md:text-5xl font-display font-bold tracking-tight" dangerouslySetInnerHTML={{ __html: t('landing.pricing.title') }}></h3>
-          </div>
-
-          <div className="max-w-lg mx-auto">
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="relative p-1 rounded-[2.5rem] bg-gradient-to-b from-brand-primary to-emerald-800 shadow-2xl"
-            >
-              <div className="bg-white rounded-[2.2rem] p-10">
-                <div className="flex justify-between items-start mb-8">
-                  <div>
-                    <h4 className="text-2xl font-bold mb-1">{t('landing.pricing.planName')}</h4>
-                    <p className="text-slate-500">{t('landing.pricing.planDesc')}</p>
-                  </div>
-                  <div className="bg-brand-primary/10 text-brand-primary text-xs font-bold tracking-wide px-3 py-1 rounded-full">
-                    {t('landing.pricing.mostPopular')}
-                  </div>
-                </div>
-                
-                <div className="flex items-baseline gap-1 mb-10">
-                  <span className="text-5xl font-black">{t('landing.pricing.price')}</span>
-                  <span className="text-slate-400 font-medium">{t('landing.pricing.perMonth')}</span>
-                  <span className="ml-2 text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded">{t('landing.pricing.freeBeta')}</span>
-                </div>
-
-                <ul className="space-y-4 mb-10">
-                  {(t('landing.pricing.features') as unknown as string[]).map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-emerald-500" />
-                      <span className="text-slate-600 font-medium">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
+              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-on-surface text-h1 leading-tight">
+                Precision <span className="text-primary">Tailoring</span>, Managed Smarter
+              </h1>
+              <p className="text-lg md:text-xl text-on-surface-variant text-body-lg max-w-xl">
+                The all-in-one platform for modern tailors to manage orders, customers, and measurements with ease. Elevate your craft with digital efficiency.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/signup">
-                  <Button size="lg" className="w-full h-16 rounded-2xl bg-brand-primary hover:bg-brand-primary/90 text-lg font-bold text-white shadow-xl shadow-brand-primary/30">
-                    {t('landing.pricing.cta')}
-                  </Button>
+                  <button className="bg-primary text-on-primary px-8 py-4 rounded-full font-bold text-lg shadow-lg shadow-primary/20 hover:bg-primary-container hover:text-on-primary-container transition-all">
+                    Get Started Free
+                  </button>
                 </Link>
-                <p className="text-center text-xs text-slate-400 mt-6 font-medium">{t('landing.pricing.noCreditCard')}</p>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-24 bg-slate-50 relative overflow-hidden">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-display font-black text-slate-900 mb-4">{t('landing.faq.title')}</h2>
-            <p className="text-lg text-slate-500">{t('landing.faq.subtitle')}</p>
-          </motion.div>
-
-          <div className="space-y-4">
-            {translatedFaqs.map((faq, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-              >
-                <button 
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)} 
-                  className={cn("w-full px-6 py-5 flex justify-between items-center focus:outline-none", isRTL ? "text-right" : "text-left")}
-                >
-                  <span className={cn("font-bold text-slate-900", isRTL ? "pl-8" : "pr-8")}>{faq.q}</span>
-                  <div className={cn("flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center transition-transform duration-300", openFaq === idx ? 'rotate-180 bg-brand-primary/10 text-brand-primary' : 'text-slate-400')}>
-                    <ChevronDown className="h-5 w-5" />
-                  </div>
+                <button className="flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant px-8 py-4 rounded-full font-bold text-lg hover:bg-surface-container-low transition-all">
+                  <span className="material-symbols-outlined">play_circle</span>
+                  View Demo
                 </button>
-                <AnimatePresence initial={false}>
-                  {openFaq === idx && (
-                    <motion.div 
-                      key="content"
-                      initial={{ height: 0, opacity: 0 }} 
-                      animate={{ height: 'auto', opacity: 1 }} 
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-6 pb-5 pt-1 border-t border-slate-100">
-                        <p className="text-slate-600 leading-relaxed">{faq.a}</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="bg-brand-primary rounded-[3rem] p-12 md:p-20 text-center text-white relative overflow-hidden"
-          >
-            <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-              <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-white rounded-full blur-[120px]"></div>
-              <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-white rounded-full blur-[120px]"></div>
-            </div>
-
-            <div className="relative z-10">
-              <h2 className="text-4xl md:text-6xl font-display font-black mb-8 leading-tight" dangerouslySetInnerHTML={{ __html: t('landing.cta.title') }}></h2>
-              <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">{t('landing.cta.subtitle')}</p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link to="/signup" className="w-full sm:w-auto">
-                  <Button size="lg" className="group relative overflow-hidden w-full sm:w-auto h-16 px-12 rounded-2xl bg-[#005c58] hover:bg-[#006f6a] border border-[#007a75] text-white text-lg font-bold shadow-[0_0_40px_rgba(0,111,106,0.5)] transition-all duration-300">
-                    <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-150%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(150%)]">
-                      <div className="relative h-full w-8 bg-white/20" />
-                    </div>
-                    <span className="relative flex items-center gap-2">
-                      {t('landing.cta.button')}
-                      <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                  </Button>
-                </Link>
               </div>
             </div>
-          </motion.div>
-        </div>
-      </section>
+            <div className="relative">
+              <div className="bg-surface-container-lowest p-4 rounded-[32px] shadow-2xl border border-outline-variant/30 overflow-hidden">
+                <img alt="LoopTailor Dashboard" className="rounded-[24px] w-full h-auto object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEQBZFpBG4UBtigC3CeZ_mOfmESEspvB7HHNIcycUrJaxNz6TebgY9nCjx_holgj_okHG3cklZ2dUn-7z1hn_5IXah60PCjqdzitMoCDhZALQi1P0yKmzNE4odRyyi_ijKAEQj6NJNoqhouiGsrCgmKK1mdsA__xHGJ9TIag5NbRUTI3-dIeAW1bk0LjNgJpvsPfdt8m-7WSmiMP8DwmnjnN5YRMxr1-hzhzWlJK5fe_6ecnU874Afp7THw5ccfPDINOaOEhoWTvs" />
+              </div>
+              <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-card shadow-xl border border-outline-variant flex items-center gap-3">
+                <div className="w-12 h-12 bg-primary-fixed rounded-full flex items-center justify-center">
+                  <span className="material-symbols-outlined text-on-primary-fixed">pending_actions</span>
+                </div>
+                <div>
+                  <p className="text-label-sm text-on-surface-variant">Active Orders</p>
+                  <p className="text-h3 font-bold">124 Orders</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Social Proof */}
+        <section className="bg-surface-container-low py-12">
+          <div className="max-w-7xl mx-auto px-6 text-center space-y-8">
+            <p className="text-label-md text-slate-500 uppercase tracking-widest">Trusted by 500+ master tailors worldwide</p>
+            <div className="flex flex-wrap justify-center items-center gap-12 opacity-50 grayscale">
+              <div className="flex items-center gap-2 font-bold text-2xl"><span className="material-symbols-outlined">diamond</span> SAVILE</div>
+              <div className="flex items-center gap-2 font-bold text-2xl"><span className="material-symbols-outlined">architecture</span> BRIONI</div>
+              <div className="flex items-center gap-2 font-bold text-2xl"><span className="material-symbols-outlined">content_cut</span> ATELIER</div>
+              <div className="flex items-center gap-2 font-bold text-2xl"><span className="material-symbols-outlined">palette</span> STITCH</div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-24 px-6 max-w-7xl mx-auto">
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="text-4xl text-h2 text-on-surface">Crafted for the Modern Workshop</h2>
+            <p className="text-on-surface-variant max-w-2xl mx-auto">Every tool you need to streamline your bespoke tailoring business, from initial consultation to final fitting.</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-surface-container-lowest p-8 rounded-card border border-outline-variant hover:shadow-xl transition-all group">
+              <div className="w-14 h-14 bg-secondary-container text-on-secondary-container rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+                <span className="material-symbols-outlined text-3xl">list_alt</span>
+              </div>
+              <h3 className="text-xl text-h3 mb-3">Order Tracking</h3>
+              <p className="text-body-md text-on-surface-variant">Real-time status updates for every garment in production. Never miss a deadline again.</p>
+            </div>
+            <div className="bg-surface-container-lowest p-8 rounded-card border border-outline-variant hover:shadow-xl transition-all group">
+              <div className="w-14 h-14 bg-secondary-container text-on-secondary-container rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+                <span className="material-symbols-outlined text-3xl">group</span>
+              </div>
+              <h3 className="text-xl text-h3 mb-3">Customer CRM</h3>
+              <p className="text-body-md text-on-surface-variant">Maintain detailed profiles, fitting histories, and preferences for every client in one secure place.</p>
+            </div>
+            <div className="bg-surface-container-lowest p-8 rounded-card border border-outline-variant hover:shadow-xl transition-all group">
+              <div className="w-14 h-14 bg-secondary-container text-on-secondary-container rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+                <span className="material-symbols-outlined text-3xl">straighten</span>
+              </div>
+              <h3 className="text-xl text-h3 mb-3">Digital Measurements</h3>
+              <p className="text-body-md text-on-surface-variant">Standardized measurement templates for various garments. Sync across all your devices instantly.</p>
+            </div>
+            <div className="bg-surface-container-lowest p-8 rounded-card border border-outline-variant hover:shadow-xl transition-all group">
+              <div className="w-14 h-14 bg-secondary-container text-on-secondary-container rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+                <span className="material-symbols-outlined text-3xl">style</span>
+              </div>
+              <h3 className="text-xl text-h3 mb-3">Design Library</h3>
+              <p className="text-body-md text-on-surface-variant">Organize fabric swatches, pattern sketches, and design inspirations for easy collaboration.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Measurement UI Demo / Asymmetric Layout */}
+        <section className="py-24 bg-surface px-6">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
+            <div className="flex-1 space-y-6">
+              <div className="w-12 h-1 bg-primary mb-4"></div>
+              <h2 className="text-4xl text-h2 leading-tight">Meticulous Detail,<br/>Digital Precision.</h2>
+              <p className="text-body-lg text-on-surface-variant">Our unique measurement interface was designed with real tailors in mind. It mimics the flow of a physical fitting, ensuring no detail is overlooked.</p>
+              <div className="space-y-4 pt-4">
+                <div className="flex items-center justify-between py-3 border-b border-dotted border-outline">
+                  <span className="text-on-surface-variant font-medium">Chest Circumference</span>
+                  <span className="text-primary font-bold text-xl">42.5 in</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-dotted border-outline">
+                  <span className="text-on-surface-variant font-medium">Shoulder Width</span>
+                  <span className="text-primary font-bold text-xl">18.2 in</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-dotted border-outline">
+                  <span className="text-on-surface-variant font-medium">Sleeve Length</span>
+                  <span className="text-primary font-bold text-xl">25.0 in</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex-1 w-full">
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary-fixed/20 rounded-[40px] rotate-3 -z-10"></div>
+                <img alt="Measurement Tool" className="rounded-card shadow-2xl w-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCsr9sieKeeMlTVV191J8j5RfCxPZInPfFZFDZEcPYV1WzSXDiVfun-fMfJjyRT94nRL1MSO_B8CvSMtGJ8S9Pjj0MvVCFafHQrhRdVUccLHFr9UDHB0L83GhQXfhH13kJY0B4msFImtSwAaaSbCH8lYxYKDb4bSwmZCB6Kb9mIbtpnNqqOXuPB2ZYTqli0zzrMYI3pM1OOb39ciRDydzudNEdd6aoPraWtq6sMtDo8LyJ41MwRd6VXAObge9DQL3U9f4xA9Kz_Ec" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonial */}
+        <section className="py-24 bg-surface-container-high relative overflow-hidden">
+          <div className="max-w-4xl mx-auto px-6 text-center space-y-8">
+            <span className="material-symbols-outlined text-primary text-6xl opacity-30" style={{fontVariationSettings: "'FILL' 1"}}>format_quote</span>
+            <p className="text-2xl md:text-3xl font-medium leading-relaxed italic text-on-surface">
+              "LoopTailor has completely transformed how we handle bespoke commissions. We've reduced measurement errors by 40% and our customers love the digital updates on their suit's progress."
+            </p>
+            <div className="flex flex-col items-center gap-4">
+              <img alt="Giovanni Rossi" className="w-20 h-20 rounded-full border-4 border-white shadow-lg object-cover object-top" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXZi3hSrbajAdavpfxVCcKFOTzP--IBCkEZqWJ2Bhtxhza96-Wjt0Wa9O5eSkp5C9QDIJ0KueucIMa7U9iCgeFYwnHK9rdUg3aNZrrvJEssJKu3Ydru71PPVKXb62s8pbDwbuFL-MJbK54exqlYHxmRAB5_T9oEH31fybqE6pF_SUd0JX_ZaDGmpgEPoRMaAtsB7ZafV6rRcgBbbyeIdZi0oVzLSoF0tg5W7LMeohazop5qBSpDFxnqVJtvgMD_5oGUuh16td-PNk" />
+              <div>
+                <p className="font-bold text-lg">Giovanni Rossi</p>
+                <p className="text-on-surface-variant text-sm uppercase tracking-widest">Master Tailor, Rossi & Sons</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="py-24 px-6">
+          <div className="max-w-5xl mx-auto bg-on-surface text-surface-container-lowest rounded-[40px] p-12 md:p-24 text-center space-y-10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+            <h2 className="text-4xl md:text-6xl text-h1 leading-tight relative z-10">Ready to transform your tailor shop?</h2>
+            <p className="text-xl text-surface-dim max-w-2xl mx-auto relative z-10">Join hundreds of professional tailors who are scaling their business with LoopTailor.</p>
+            <div className="flex justify-center relative z-10">
+              <Link to="/signup">
+                <button className="bg-primary text-on-primary px-12 py-5 rounded-full font-bold text-xl hover:scale-105 transition-transform">
+                  Get Started Free
+                </button>
+              </Link>
+            </div>
+            <p className="text-sm text-surface-dim/60 relative z-10">No credit card required. Cancel anytime.</p>
+          </div>
+        </section>
+      </main>
 
       {/* Footer */}
-      <footer className="py-20 bg-slate-50 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-12 items-center">
-            <div>
-              <div className={cn("flex items-center gap-2 mb-4", isRTL ? "flex-row-reverse" : "")}>
-                <div className="bg-brand-primary p-2 rounded-xl">
-                  <Scissors className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-xl font-display font-bold text-slate-900">Loop Tailor</span>
-              </div>
-              <p className="text-slate-500 mb-4">{t('landing.footer.tagline')}</p>
-              <p className="text-sm text-slate-500">{t('landing.footer.rights')}</p>
+      <footer className="bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
+        <div className="flex flex-col md:flex-row justify-between items-center px-8 py-16 max-w-7xl mx-auto gap-8">
+          <div className="flex flex-col items-center md:items-start gap-4">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-green-600 dark:text-green-500 text-xl font-plus-jakarta">straighten</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-slate-50 font-plus-jakarta">LoopTailor</span>
             </div>
-            
-            <div className="flex flex-col md:items-start gap-4">
-              <Link to="/" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.home')}</Link>
-              <a href="#features" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.features')}</a>
-              <Link to="/about" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.about')}</Link>
-              <Link to="/contact" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.contact')}</Link>
-              <Link to="/privacy" className="text-slate-600 hover:text-brand-primary transition-colors">{t('landing.footer.privacy')}</Link>
-            </div>
-
-            <div className={cn("flex flex-col gap-4", isRTL ? "md:items-start" : "md:items-end")}>
-              <h4 className="font-bold text-slate-900">{t('landing.footer.follow')}</h4>
-              <div className="flex gap-2">
-                <a href="https://www.facebook.com/profile.php?id=61575736701852" target="_blank" rel="noopener noreferrer" aria-label="Visit our Facebook profile" className="p-2 text-slate-500 hover:text-brand-primary transition-colors"><Facebook className="h-6 w-6" /></a>
-                <a href="https://www.linkedin.com/in/loop-tailor-1b50543ba/" target="_blank" rel="noopener noreferrer" aria-label="Visit our LinkedIn profile" className="p-2 text-slate-500 hover:text-brand-primary transition-colors"><Linkedin className="h-6 w-6" /></a>
-                <a href="https://www.instagram.com/looptailor/" target="_blank" rel="noopener noreferrer" aria-label="Visit our Instagram profile" className="p-2 text-slate-500 hover:text-brand-primary transition-colors"><Instagram className="h-6 w-6" /></a>
-                <a href="https://youtube.com/@looptailor?si=yWxjWbNEXox2WBTd" target="_blank" rel="noopener noreferrer" aria-label="Visit our YouTube channel" className="p-2 text-slate-500 hover:text-brand-primary transition-colors"><Youtube className="h-6 w-6" /></a>
-              </div>
-            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs text-center md:text-left">Bringing digital precision to the artisanal world of tailoring.</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-8">
+            <a className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" href="#">Features</a>
+            <a className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" href="#">Pricing</a>
+            <a className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" href="#">Testimonials</a>
+            <a className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-green-600 dark:hover:text-green-400 hover:underline transition-colors" href="#">Privacy Policy</a>
+          </div>
+          <div className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta">
+            © 2026 LoopTailor. Crafted for Precision.
           </div>
         </div>
       </footer>
