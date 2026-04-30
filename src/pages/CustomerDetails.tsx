@@ -14,7 +14,7 @@ import { ArrowLeft, ArrowRight, Plus, Save, Upload, Edit, X, FileText, Phone, Ma
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
-import { getAllMeasurementCategories, MEASUREMENT_SETS } from '../lib/measurements';
+import { getAllMeasurementCategories, MEASUREMENT_SETS, getMeasurementCategoriesForDress } from '../lib/measurements';
 import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
 import { toast } from 'sonner';
 
@@ -284,608 +284,211 @@ export default function CustomerDetails() {
 
   if (!customer) return null;
 
-  const activeOrdersCount = orders.filter(o => 
-    [ORDER_STATUS.PENDING, ORDER_STATUS.STITCHING, ORDER_STATUS.READY].includes(o.status)
-  ).length;
+  // Visual filters for Orders list
+  const [orderFilter, setOrderFilter] = useState<'All' | 'Complete' | 'Not Complete'>('All');
+  const [activeTab, setActiveTab] = useState<'Orders' | 'Measurements'>('Orders');
+
+  const filteredOrders = orders.filter(o => {
+    if (orderFilter === 'All') return true;
+    if (orderFilter === 'Complete') return o.status === ORDER_STATUS.DELIVERED;
+    return o.status !== ORDER_STATUS.DELIVERED;
+  });
 
   return (
-    <div className="space-y-10 pb-20">
-      <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-6"
-      >
-        <div className="flex items-center gap-6">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => navigate('/dashboard/customers')} 
-            className="h-12 w-12 rounded-2xl bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none"
-          >
-            {isRTL ? <ArrowRight className="h-6 w-6 text-slate-500" /> : <ArrowLeft className="h-6 w-6 text-slate-500" />}
-          </Button>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">{customer.name}</h1>
-              {activeOrdersCount > 0 && (
-                <span className="bg-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full">
-                  {activeOrdersCount} {activeOrdersCount === 1 ? 'Active Order' : 'Active Orders'}
-                </span>
-              )}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setIsEditingCustomer(!isEditingCustomer)}
-                className={cn("h-10 w-10 rounded-xl border-none transition-all", isEditingCustomer ? "bg-gray-100 shadow-neu-pressed text-brand-primary" : "bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-slate-500")}
-              >
-                {isEditingCustomer ? <X className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleDeleteCustomer}
-                disabled={isDeletingCustomer}
-                className="h-10 w-10 rounded-xl border-none bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-red-500 transition-all"
-              >
-                {isDeletingCustomer ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-              </Button>
-            </div>
-            <div className="flex flex-wrap items-center gap-4 mt-2 text-slate-500 font-bold text-sm">
-              <div className="flex items-center">
-                <Phone className={cn("h-4 w-4 text-slate-400", isRTL ? "ml-2" : "mr-2")} />
-                {customer.phone}
-              </div>
-              {customer.emergencyPhone && (
-                <div className="flex items-center text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg cursor-pointer" onClick={() => window.open(`https://wa.me/${customer.emergencyPhone.replace(/[^\d+]/g, '')}`, '_blank')}>
-                  <Phone className={cn("h-3 w-3", isRTL ? "ml-1" : "mr-1")} />
-                  {customer.emergencyPhone}
-                </div>
-              )}
-              {customer.address && (
-                <div className="flex items-center">
-                  <MapPin className={cn("h-4 w-4 text-slate-400", isRTL ? "ml-2" : "mr-2")} />
-                  {customer.address}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-4">
-          <Button 
-            onClick={() => setIsAddingOrder(!isAddingOrder)}
-            className={cn(
-              "h-14 px-8 rounded-2xl font-black text-base transition-all border-none",
-              isAddingOrder ? "bg-gray-100 shadow-neu-pressed text-slate-500" : "bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-brand-primary"
-            )}
-          >
-            {isAddingOrder ? <X className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <Plus className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
-            {isAddingOrder ? t('customerDetails.cancel') : t('customerDetails.newOrder')}
-          </Button>
-        </div>
-      </motion.div>
+    <div className="min-h-screen bg-[#F5F7FA] pb-[80px]">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-12 pb-4 bg-[#F5F7FA]">
+        <button onClick={() => navigate('/dashboard/customers')} className="p-2">
+          <ArrowLeft className="h-6 w-6 text-[#0F172A]" />
+        </button>
+        <h1 className="text-[18px] font-bold text-[#0F172A]">Customer Detail</h1>
+        <button className="p-2" onClick={() => setIsEditingCustomer(!isEditingCustomer)}>
+          <Edit className="h-5 w-5 text-[#0F172A]" />
+        </button>
+      </div>
 
       <AnimatePresence>
         {isEditingCustomer && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
-              <CardHeader className="p-8 pb-4">
-                <CardTitle className="text-2xl font-black text-slate-900">{t('customerDetails.editProfile')}</CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 pt-0">
-                <form onSubmit={handleUpdateCustomer} className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.fullName')}</label>
-                    <div className="relative">
-                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
-                      <Input 
-                        required 
-                        value={editCustomerData.name} 
-                        onChange={e => setEditCustomerData({...editCustomerData, name: e.target.value})} 
-                        className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all text-slate-900", isRTL ? "pr-12" : "pl-12")}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.phoneNumber')}</label>
-                    <div className="relative">
-                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
-                      <Input 
-                        required 
-                        value={editCustomerData.phone} 
-                        onChange={e => setEditCustomerData({...editCustomerData, phone: e.target.value})} 
-                        className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all text-slate-900", isRTL ? "pr-12" : "pl-12")}
-                      />
-                    </div>
-                  </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.address')}</label>
-                    <div className="relative">
-                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
-                      <Input 
-                        value={editCustomerData.address} 
-                        onChange={e => setEditCustomerData({...editCustomerData, address: e.target.value})} 
-                        className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all text-slate-900", isRTL ? "pr-12" : "pl-12")}
-                      />
-                    </div>
-                  </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.notes')}</label>
-                    <div className="relative">
-                      <Notebook className={cn("absolute top-4 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
-                      <textarea 
-                        value={editCustomerData.notes} 
-                        onChange={e => setEditCustomerData({...editCustomerData, notes: e.target.value})} 
-                        className={cn("w-full min-h-[100px] px-4 py-4 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all focus:outline-none text-slate-900", isRTL ? "pr-12" : "pl-12")}
-                      />
-                    </div>
-                  </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>Style Preferences</label>
-                    <div className="relative">
-                      <Scissors className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
-                      <Input 
-                        placeholder="e.g., Prefers slim fit, likes embroidery on collar, avoid synthetic fabric"
-                        value={editCustomerData.stylePreferences || ''} 
-                        onChange={e => setEditCustomerData({...editCustomerData, stylePreferences: e.target.value})} 
-                        className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all text-slate-900", isRTL ? "pr-12" : "pl-12")}
-                      />
-                    </div>
-                  </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>Emergency / WhatsApp Contact</label>
-                    <div className="relative">
-                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-500 z-10", isRTL ? "right-4" : "left-4")} />
-                      <Input 
-                        value={editCustomerData.emergencyPhone || ''} 
-                        onChange={e => setEditCustomerData({...editCustomerData, emergencyPhone: e.target.value})} 
-                        className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all text-slate-900", isRTL ? "pr-12" : "pl-12")}
-                      />
-                    </div>
-                  </div>
-                  <div className="md:col-span-2 flex justify-end gap-4 mt-4">
-                    <Button type="button" variant="ghost" onClick={() => setIsEditingCustomer(false)} className="h-12 px-6 rounded-xl font-bold bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none text-slate-500">{t('customerDetails.cancel')}</Button>
-                    <Button type="submit" className="h-12 px-8 rounded-xl bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none text-brand-primary font-black">{t('customerDetails.saveChanges')}</Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-4 mb-6 overflow-hidden">
+             <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+               <h3 className="font-bold text-[#0F172A] mb-3">Edit Customer</h3>
+               <form onSubmit={handleUpdateCustomer} className="space-y-3">
+                 <Input value={editCustomerData.name} onChange={e => setEditCustomerData({...editCustomerData, name: e.target.value})} placeholder="Name" className="bg-[#F1F5F9] border-none" />
+                 <Input value={editCustomerData.phone} onChange={e => setEditCustomerData({...editCustomerData, phone: e.target.value})} placeholder="Phone" className="bg-[#F1F5F9] border-none" />
+                 <Input value={editCustomerData.address} onChange={e => setEditCustomerData({...editCustomerData, address: e.target.value})} placeholder="Address" className="bg-[#F1F5F9] border-none" />
+                 <div className="flex justify-end gap-2 pt-2">
+                   <Button type="button" onClick={() => setIsEditingCustomer(false)} className="bg-transparent text-[#64748B] border border-[#E2E8F0] rounded-full px-5 py-2 h-auto text-[14px]">Cancel</Button>
+                   <Button type="submit" className="bg-[#16A34A] text-white rounded-full px-5 py-2 h-auto text-[14px]">Save</Button>
+                 </div>
+               </form>
+             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="grid lg:grid-cols-3 gap-10">
-        <div className="lg:col-span-2 space-y-10">
-          <AnimatePresence>
-            {isAddingOrder && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-              >
-                <Card className="border-none shadow-neu bg-gray-100 text-slate-900 rounded-[2.5rem] overflow-hidden">
-                  <CardHeader className="p-8 pb-4 border-b border-gray-200/50">
-                    <CardTitle className="text-2xl font-black">{t('customerDetails.newOrderFor')} {customer.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-8 pt-6">
-                    <form onSubmit={handleCreateOrder} className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.dressType')}</label>
-                          <div className="relative">
-                            <Scissors className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
-                            <Input 
-                              required 
-                              value={newOrder.dressType} 
-                              onChange={e => setNewOrder({...newOrder, dressType: e.target.value})} 
-                              className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none text-slate-900 focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.deliveryDate')}</label>
-                          <div className="relative">
-                            <Calendar className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
-                            <Input 
-                              type="date" 
-                              required 
-                              value={newOrder.deliveryDate} 
-                              onChange={e => setNewOrder({...newOrder, deliveryDate: e.target.value})} 
-                              className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none text-slate-900 focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.totalPrice')} ({settings.currency})</label>
-                          <div className="relative">
-                            <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
-                            <Input 
-                              type="number" 
-                              required 
-                              value={newOrder.price} 
-                              onChange={e => setNewOrder({...newOrder, price: e.target.value})} 
-                              className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none text-slate-900 focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <label className={cn("text-xs font-black text-slate-500 uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customerDetails.advancePayment')} ({settings.currency})</label>
-                          <div className="relative">
-                            <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-brand-primary z-10", isRTL ? "right-4" : "left-4")} />
-                            <Input 
-                              type="number" 
-                              value={newOrder.advancePayment} 
-                              onChange={e => setNewOrder({...newOrder, advancePayment: e.target.value})} 
-                              className={cn("h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none text-slate-900 focus:ring-2 focus:ring-brand-primary/20 text-base font-bold transition-all", isRTL ? "pr-12" : "pl-12")}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-200/50">
-                        <div className="space-y-3">
-                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <Upload className="h-4 w-4" />
-                            {t('quickOrder.referencePhoto')} (Beta)
-                          </label>
-                          <div className="relative">
-                            {referencePhoto ? (
-                              <div className="relative h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none overflow-hidden group p-2">
-                                <img src={URL.createObjectURL(referencePhoto)} alt="Reference" className="w-full h-full object-cover rounded-lg" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                                  <Button type="button" variant="destructive" size="sm" onClick={() => setReferencePhoto(null)} className="rounded-full bg-red-500 text-white border-none shadow-neu-sm">
-                                    <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none hover:shadow-neu-sm transition-all cursor-pointer">
-                                <Upload className="h-6 w-6 text-brand-primary mb-2" />
-                                <span className="text-sm font-medium text-slate-500">{t('quickOrder.clickToUpload')}</span>
-                                <input type="file" accept="image/*" className="hidden" onChange={e => setReferencePhoto(e.target.files?.[0] || null)} />
-                              </label>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <Upload className="h-4 w-4" />
-                            {t('quickOrder.sampleDesign')} (Beta)
-                          </label>
-                          <div className="relative">
-                            {sampleDesign ? (
-                              <div className="relative h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none overflow-hidden group p-2">
-                                <img src={URL.createObjectURL(sampleDesign)} alt="Sample" className="w-full h-full object-cover rounded-lg" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                                  <Button type="button" variant="destructive" size="sm" onClick={() => setSampleDesign(null)} className="rounded-full bg-red-500 text-white border-none shadow-neu-sm">
-                                    <X className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> {t('quickOrder.remove')}
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <label className="flex flex-col items-center justify-center h-32 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none hover:shadow-neu-sm transition-all cursor-pointer">
-                                <Upload className="h-6 w-6 text-brand-primary mb-2" />
-                                <span className="text-sm font-medium text-slate-500">{t('quickOrder.clickToUpload')}</span>
-                                <input type="file" accept="image/*" className="hidden" onChange={e => setSampleDesign(e.target.files?.[0] || null)} />
-                              </label>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end gap-4 pt-6 border-t border-gray-200/50">
-                        <Button type="button" variant="ghost" onClick={() => setIsAddingOrder(false)} className="h-12 px-6 rounded-xl font-bold bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none text-slate-500">{t('customerDetails.cancel')}</Button>
-                        <Button type="submit" disabled={isUploading} className="h-12 px-10 rounded-xl font-black text-base bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none text-brand-primary transition-all">
-                          {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : t('customerDetails.createOrder')}
-                        </Button>
-                      </div>
-                    </form>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="p-8 pb-4 flex flex-row items-center justify-between border-b border-gray-200/50">
-              <CardTitle className="text-2xl font-black text-slate-900 flex items-center gap-3">
-                <Scissors className="h-6 w-6 text-brand-primary" />
-                {t('customerDetails.measurements')}
-              </CardTitle>
-              <div className="flex items-center gap-4">
-                <div className="flex bg-gray-200/50 p-1 rounded-xl">
-                  {(['male', 'female', 'kids'] as const).map(g => (
-                    <button
-                      key={g}
-                      onClick={() => setSelectedGender(g)}
-                      className={cn("px-4 py-1.5 rounded-lg text-xs font-bold capitalize transition-all", selectedGender === g ? "bg-white shadow-neu-sm text-brand-primary" : "text-slate-500")}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-                <AnimatePresence>
-                  {saveSuccess && (
-                    <motion.span 
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="text-xs font-black text-emerald-500 uppercase tracking-widest"
-                    >
-                      {t('customerDetails.savedSuccessfully')}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-                <Button 
-                  onClick={handleSaveMeasurements} 
-                  disabled={savingMeasurements}
-                  className="h-12 px-8 rounded-2xl bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none text-brand-primary font-black transition-all"
-                >
-                  {savingMeasurements ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
-                  {savingMeasurements ? t('customerDetails.saving') : t('customerDetails.save')}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-8 pt-8">
-              <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2 custom-scrollbar">
-                {Array.from(new Set([...MEASUREMENT_SETS, ...Object.keys(measurementSets)])).map(setName => (
-                  <div key={setName} className="flex relative group shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => { setActiveSet(setName); setMeasurements(measurementSets[setName] || {}); }}
-                      className={cn("px-5 py-2.5 font-bold text-sm rounded-xl whitespace-nowrap transition-all", activeSet === setName ? "bg-brand-primary text-white shadow-neu-sm" : "bg-gray-100 text-slate-500 shadow-neu-sm hover:shadow-neu-pressed-sm")}
-                    >
-                      {setName}
-                    </button>
-                    {activeSet === setName && setName !== 'Shalwar Kameez' && (
-                      <button type="button" onClick={() => handleDeleteSet(setName)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-neu-sm">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                
-                {isAddingSet ? (
-                  <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl shadow-neu-pressed-sm pl-3 shrink-0">
-                    <Input 
-                      autoFocus 
-                      value={newSetName} 
-                      onChange={e => setNewSetName(e.target.value)} 
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddSet(); } }} 
-                      className="h-9 w-32 border-none bg-transparent focus:ring-0 text-sm font-bold shadow-none" 
-                      placeholder="Set Name..." 
-                    />
-                    <Button size="sm" onClick={handleAddSet} className="h-9 rounded-lg bg-brand-primary text-white px-3 border-none hover:bg-brand-primary/90"><CheckCircle2 className="h-4 w-4" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => setIsAddingSet(false)} className="h-9 rounded-lg text-slate-500 px-2 border-none"><X className="h-4 w-4" /></Button>
-                  </div>
-                ) : (
-                  <button type="button" onClick={() => setIsAddingSet(true)} className="px-4 py-2.5 font-bold text-sm bg-gray-100 text-slate-500 hover:text-brand-primary rounded-xl shadow-neu-sm hover:shadow-neu-pressed-sm transition-all flex items-center whitespace-nowrap shrink-0">
-                    <Plus className="h-4 w-4 mr-1" /> Add Set
-                  </button>
-                )}
-              </div>
-
-              {(() => {
-                 const currentSetData = measurementSets[activeSet] || {};
-                 const updatedAt = currentSetData?.updatedAt?.toDate ? currentSetData.updatedAt.toDate() : (currentSetData?.updatedAt ? new Date(currentSetData.updatedAt) : null);
-                 if (updatedAt && (Date.now() - updatedAt.getTime() > 1000 * 60 * 60 * 24 * 30 * 6)) {
-                    return (
-                      <div className="mb-6 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-xl flex items-center gap-3">
-                        <span className="text-xl">⚠️</span>
-                        <div className="text-sm font-bold">Measurements may be outdated - last updated {format(updatedAt, 'MMM dd, yyyy')}</div>
-                      </div>
-                    )
-                 }
-                 return null;
-              })()}
-
-              <form className="space-y-12">
-                {(() => {
-                  const customTemplate = templates.find(t => t.gender === selectedGender && t.isDefault) || templates.find(t => t.gender === selectedGender);
-                  
-                  if (customTemplate) {
-                    return (
-                      <div className="space-y-8">
-                        <div className="flex items-center gap-4">
-                          <h3 className="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">
-                            {isRTL ? customTemplate.nameUr || customTemplate.nameEn : customTemplate.nameEn}
-                          </h3>
-                          <div className="flex-1 h-px bg-gray-200/50"></div>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                          {[...customTemplate.fields].sort((a, b) => a.order - b.order).map((field) => (
-                            <div key={field.id} className="space-y-2 group">
-                              <label className={cn("text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
-                                <Ruler className="h-3 w-3" />
-                                {isRTL ? field.labelUr || field.labelEn : field.labelEn}
-                              </label>
-                              <div className="relative">
-                                <Input 
-                                  type="number" 
-                                  step="0.25"
-                                  placeholder="0.00"
-                                  value={measurements[field.id] || ''} 
-                                  onChange={e => {
-                                    const val = e.target.value === '' ? '' : Number(e.target.value);
-                                    setMeasurements({...measurements, [field.id]: val});
-                                  }} 
-                                  className={cn("h-12 rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-black transition-all text-slate-900", isRTL ? "pr-3 pl-8" : "pl-3 pr-8")}
-                                />
-                                <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] uppercase font-black text-slate-400", isRTL ? "left-4" : "right-4")}>
-                                  {customTemplate.unit === 'cm' ? 'CM' : 'IN'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  return getAllMeasurementCategories().map((category, index) => (
-                    <div key={category.id} className="space-y-8">
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary font-black text-sm">
-                          {String(index + 1).padStart(2, '0')}
-                        </div>
-                        <h3 className="text-sm font-black text-slate-500 uppercase tracking-[0.2em]">
-                          {isRTL ? category.titleUr : category.titleEn}
-                        </h3>
-                        <div className="flex-1 h-px bg-gray-200/50"></div>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                        {category.items.map((item) => {
-                          const Icon = item.icon;
-                          return (
-                            <div key={item.id} className="space-y-2 group">
-                              <label className={cn("text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-brand-primary transition-colors", isRTL ? "mr-1" : "ml-1")}>
-                                <Icon className="h-3 w-3" />
-                                {isRTL ? item.ur : item.en}
-                              </label>
-                              <div className="relative">
-                                <Input 
-                                  type="number" 
-                                  step="0.25"
-                                  placeholder="0.00"
-                                  value={measurements[item.id] || ''} 
-                                  onChange={e => {
-                                    const val = e.target.value === '' ? '' : Number(e.target.value);
-                                    setMeasurements({...measurements, [item.id]: val});
-                                  }} 
-                                  className={cn("h-12 rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-2 focus:ring-brand-primary/20 text-base font-black transition-all text-slate-900", isRTL ? "pr-3 pl-8" : "pl-3 pr-8")}
-                                />
-                                <span className={cn("absolute top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400", isRTL ? "left-4" : "right-4")}>IN</span>
-                              </div>
-                              <p className={cn("text-[9px] text-slate-400 font-medium", isRTL ? "mr-1" : "ml-1")}>{item.desc}</p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ));
-                })()}
-              </form>
-              
-              {(() => {
-                 const currentSetData = measurementSets[activeSet] || {};
-                 const updatedAt = currentSetData?.updatedAt?.toDate ? currentSetData.updatedAt.toDate() : (currentSetData?.updatedAt ? new Date(currentSetData.updatedAt) : null);
-                 if (updatedAt) {
-                    return (
-                      <div className="mt-8 pt-6 border-t border-gray-200/50 flex justify-end">
-                        <p className="text-xs font-bold text-slate-400">Last updated: {format(updatedAt, 'MMM dd, yyyy h:mm a')}</p>
-                      </div>
-                    )
-                 }
-                 return null;
-              })()}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-10">
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="p-8 pb-4 border-b border-gray-200/50">
-              <CardTitle className="text-2xl font-black text-slate-900 flex items-center gap-3">
-                <Hash className="h-6 w-6 text-brand-primary" />
-                {t('customerDetails.orderHistory')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 pt-6">
-              <div className="space-y-6">
-                {orders.length === 0 ? (
-                  <div className="py-12 text-center">
-                    <div className="h-16 w-16 bg-gray-100 shadow-neu-pressed-sm rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-4">
-                      <CreditCard className="h-8 w-8" />
-                    </div>
-                    <p className="text-slate-500 font-bold">{t('customerDetails.noOrders')}</p>
-                  </div>
-                ) : (
-                  orders.map((order, idx) => (
-                    <motion.div 
-                      key={order.id} 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="p-6 rounded-[2rem] bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none transition-all cursor-pointer group"
-                      onClick={() => navigate(`/dashboard/orders/${order.id}`)}
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('customerDetails.token')}</span>
-                            <span className="text-sm font-black text-brand-primary">#{order.tokenId}</span>
-                          </div>
-                          <div className="font-black text-slate-900 group-hover:text-brand-primary transition-colors">{order.dressType}</div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <span className={cn(
-                            "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-neu-sm",
-                            order.status === ORDER_STATUS.DELIVERED ? 'bg-gray-100 text-emerald-600' : 'bg-gray-100 text-amber-600'
-                          )}>
-                            {t(`orders.${order.status.toLowerCase()}`)}
-                          </span>
-                          <span className={cn(
-                            "px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-neu-sm",
-                            (!order.paymentStatus || order.paymentStatus === 'Unpaid') ? "bg-red-50 text-rose-500" :
-                            order.paymentStatus === 'Partial' ? "bg-blue-50 text-blue-500" :
-                            "bg-emerald-50 text-emerald-500"
-                          )}>
-                            {order.paymentStatus || 'Unpaid'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200/50">
-                        <div>
-                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">{t('customerDetails.delivery')}</span>
-                          <span className="text-xs font-bold text-slate-700">{formatDate(order.deliveryDate)}</span>
-                        </div>
-                        <div className={cn(isRTL ? "text-left" : "text-right")}>
-                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">{t('customerDetails.amount')}</span>
-                          <span className="text-xs font-black text-slate-900">{settings.currency} {order.price}</span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {(customer.notes || customer.stylePreferences) && (
-            <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
-              <CardHeader className="p-8 pb-4 border-b border-gray-200/50">
-                <CardTitle className="text-lg font-black text-slate-900 flex items-center gap-2">
-                  <Notebook className="h-5 w-5 text-brand-primary" />
-                  Profile Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 pt-6 space-y-6">
-                {customer.stylePreferences && (
-                  <div>
-                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5"><span className="text-amber-500">✨</span> Style Preferences</h4>
-                    <p className="text-sm font-bold text-slate-700 leading-relaxed bg-gray-100 shadow-neu-pressed-sm p-4 rounded-2xl">
-                      {customer.stylePreferences}
-                    </p>
-                  </div>
-                )}
-                {customer.notes && (
-                  <div>
-                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">Client Notes</h4>
-                    <p className="text-sm font-bold text-slate-700 leading-relaxed bg-gray-100 shadow-neu-pressed-sm p-4 rounded-2xl">
-                      {customer.notes}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+      {/* Profile Section */}
+      <div className="px-4 mb-6">
+        <div className="flex flex-col items-center">
+          <div className="w-[72px] h-[72px] rounded-full bg-[#E2E8F0] flex items-center justify-center text-[#64748B] text-2xl font-bold mb-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+            {customer.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="text-[18px] font-bold text-[#0F172A]">{customer.name}</div>
+          <div className="text-[13px] text-[#64748B] mb-5">ID: {customer.id.substring(0,8)}</div>
+          
+          <div className="w-full flex justify-center items-center bg-white rounded-[16px] py-4 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+            <div className="flex-1 flex flex-col items-center justify-center px-2">
+              <div className="text-[12px] text-[#64748B] mb-1 flex items-center gap-1"><Phone className="w-3.5 h-3.5"/> Phone</div>
+              <div className="text-[14px] font-semibold text-[#0F172A] text-center">{customer.phone}</div>
+            </div>
+            <div className="h-10 w-[1px] bg-[#E2E8F0]"></div>
+            <div className="flex-1 flex flex-col items-center justify-center px-2">
+              <div className="text-[12px] text-[#64748B] mb-1 flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> Location</div>
+              <div className="text-[14px] font-semibold text-[#0F172A] text-center line-clamp-1">{customer.address || 'Not set'}</div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Tab Toggle */}
+      <div className="px-4 mb-6 flex justify-center">
+        <div className="bg-[#F1F5F9] rounded-full p-1 flex">
+          {['Orders', 'Measurements'].map(tab => (
+            <button 
+              key={tab} 
+              onClick={() => setActiveTab(tab as any)}
+              className={cn(
+                "px-8 py-2 rounded-full text-[14px] font-semibold transition-all",
+                activeTab === tab ? "bg-[#16A34A] text-white shadow-sm" : "text-[#64748B] bg-transparent"
+              )}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="px-4 mb-4 flex justify-between items-center">
+        <h2 className="text-[16px] font-semibold text-[#0F172A]">
+          {activeTab === 'Orders' ? 'Order History' : 'Measurements'}
+        </h2>
+        {activeTab === 'Orders' && (
+          <Button onClick={() => setIsAddingOrder(!isAddingOrder)} className="bg-[#16A34A] text-white rounded-full h-8 px-4 text-[13px] font-semibold flex items-center gap-1">
+            <Plus className="w-4 h-4"/> New Order
+          </Button>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {isAddingOrder && activeTab === 'Orders' && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-4 mb-6 overflow-hidden">
+             <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+               <h3 className="font-bold text-[#0F172A] mb-3">Add New Order</h3>
+               <form onSubmit={handleCreateOrder} className="space-y-3">
+                 <Input value={newOrder.dressType} onChange={e => setNewOrder({...newOrder, dressType: e.target.value})} placeholder="Dress Type" required className="bg-[#F1F5F9] border-none" />
+                 <Input type="date" value={newOrder.deliveryDate} onChange={e => setNewOrder({...newOrder, deliveryDate: e.target.value})} required className="bg-[#F1F5F9] border-none" />
+                 <Input type="number" value={newOrder.price} onChange={e => setNewOrder({...newOrder, price: e.target.value})} placeholder="Total Price" required className="bg-[#F1F5F9] border-none" />
+                 <Input type="number" value={newOrder.advancePayment} onChange={e => setNewOrder({...newOrder, advancePayment: e.target.value})} placeholder="Advance Payment" className="bg-[#F1F5F9] border-none" />
+                 <div className="flex justify-end gap-2 pt-2">
+                   <Button type="button" onClick={() => setIsAddingOrder(false)} className="bg-transparent text-[#64748B] border border-[#E2E8F0] rounded-full px-5 py-2 h-auto text-[14px]">Cancel</Button>
+                   <Button disabled={isUploading} type="submit" className="bg-[#16A34A] text-white rounded-full px-5 py-2 h-auto text-[14px]">
+                     {isUploading ? <Loader2 className="w-4 h-4 animate-spin"/> : 'Create'}
+                   </Button>
+                 </div>
+               </form>
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {activeTab === 'Orders' ? (
+        <>
+          {/* Orders Filter Pills */}
+          <div className="flex gap-2 px-4 mb-4">
+            {['All', 'Complete', 'Not Complete'].map(f => (
+              <button 
+                key={f}
+                onClick={() => setOrderFilter(f as any)}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors",
+                  orderFilter === f ? "bg-[#16A34A] text-white" : "bg-white text-[#64748B] border border-[#E2E8F0]"
+                )}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+
+          <div className="px-4 space-y-3">
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-8 text-[#64748B] text-[14px]">No orders found.</div>
+            ) : (
+              filteredOrders.map(order => (
+                <div key={order.id} className="bg-white rounded-[16px] p-3.5 flex items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]" onClick={() => navigate(`/dashboard/orders/${order.id}`)}>
+                  <div className="w-[44px] h-[44px] rounded-[12px] bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
+                    <Scissors className="w-5 h-5"/>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] font-semibold text-[#0F172A] truncate leading-tight">{order.dressType || 'Order'}</div>
+                    <div className="text-[12px] text-[#64748B] mt-0.5">{formatDate(order.createdAt)}</div>
+                  </div>
+                  <div className="text-right flex flex-col items-end shrink-0 gap-1.5">
+                    <div className="text-[14px] font-semibold text-[#0F172A] leading-none mb-0.5">{(order.price || 0).toLocaleString()}</div>
+                    <div className={cn(
+                      "px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider leading-relaxed",
+                      order.status === ORDER_STATUS.DELIVERED ? "bg-[#16A34A]" : 
+                      order.status === ORDER_STATUS.PENDING ? "bg-[#F59E0B]" : "bg-[#1E293B]"
+                    )}>
+                      {order.status === ORDER_STATUS.DELIVERED ? 'Completed' : 
+                       order.status === ORDER_STATUS.PENDING ? 'Pending' : 'Not Complete'}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="px-4">
+           {/* Measurements UI preserving original Logic */}
+           <div className="bg-white p-5 rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.07)] mb-4">
+              <div className="flex items-center gap-3 overflow-x-auto pb-2 mb-4 hide-scrollbar">
+                {Object.keys(measurementSets).map((setName) => (
+                  <button
+                    key={setName}
+                    onClick={() => setActiveSet(setName)}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap",
+                      activeSet === setName 
+                        ? "bg-[#16A34A] text-white" 
+                        : "bg-[#F1F5F9] text-[#64748B]"
+                    )}
+                  >
+                    {setName}
+                  </button>
+                ))}
+              </div>
+              <form onSubmit={handleSaveMeasurements} className="grid grid-cols-2 gap-4">
+                {getMeasurementCategoriesForDress(activeSet).map((cat) => (
+                  <div key={cat.id} className="col-span-2 sm:col-span-1">
+                    <label className="block text-[12px] font-bold text-[#64748B] mb-1.5 ml-1">{cat.label.en}</label>
+                    <Input 
+                      type={cat.type === 'number' ? 'number' : 'text'}
+                      value={measurements[cat.id] || ''}
+                      onChange={(e) => setMeasurements({...measurements, [cat.id]: e.target.value})}
+                      placeholder={cat.placeholder?.en}
+                      className="bg-[#F8FAFC] border-[#E2E8F0] h-[44px] rounded-[12px] text-[14px]"
+                    />
+                  </div>
+                ))}
+                <div className="col-span-2 pt-2">
+                  <Button type="submit" disabled={savingMeasurements} className="w-full bg-[#16A34A] text-white rounded-full py-6 text-[15px] font-semibold">
+                    {savingMeasurements ? <Loader2 className="w-5 h-5 animate-spin"/> : 'Save Measurements'}
+                  </Button>
+                </div>
+              </form>
+           </div>
+        </div>
+      )}
     </div>
   );
 }

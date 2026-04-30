@@ -8,21 +8,21 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --color-brand-primary: #1B2B5E;
+  --color-brand-primary: #16A34A;
   --color-brand-secondary: #FFFFFF;
-  --color-brand-accent: #2563EB;
+  --color-brand-accent: #15803D;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Poppins", "Inter", sans-serif;
   --font-urdu: "Noto Nastaliq Urdu", serif;
 
   --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 2px 12px rgba(0, 0, 0, 0.08); /* Requested soft shadow */
+  --shadow-md: 0 2px 12px rgba(0, 0, 0, 0.07); /* Requested soft shadow */
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.16);
   --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.6);
-  --shadow-btn: 0 4px 12px rgba(37, 99, 235, 0.25);
-  --shadow-fab: 0 8px 24px rgba(27, 43, 94, 0.30);
+  --shadow-btn: 0 4px 12px rgba(22, 163, 74, 0.25);
+  --shadow-fab: 0 8px 24px rgba(22, 163, 74, 0.30);
 
   --shadow-neu: var(--shadow-md);
   --shadow-neu-pressed: inset 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -33,9 +33,9 @@
 
 :root {
   /* PRIMARY */
-  --color-primary:        #1B2B5E;
-  --color-primary-light:  #2A4391;
-  --color-primary-dark:   #0E1736;
+  --color-primary:        #16A34A;
+  --color-primary-light:  #DCFCE7;
+  --color-primary-dark:   #15803D;
 
   /* BACKGROUND */
   --color-bg:             #F5F7FA;
@@ -44,9 +44,9 @@
   --color-surface-alt:    #F1F5F9;
 
   /* ACCENT */
-  --color-gold:           #2563EB;
-  --color-gold-light:     #60A5FA;
-  --color-gold-pale:      #DBEAFE;
+  --color-gold:           #15803D;
+  --color-gold-light:     #86EFAC;
+  --color-gold-pale:      #DCFCE7;
 
   /* TEXT */
   --color-text:           #0F172A;
@@ -402,10 +402,12 @@ header, .header, .top-bar, .app-bar {
   letter-spacing: 0.3px;
 }
 
-.badge-success  { background: #10B981 !important; color: #FFFFFF !important; }
-.badge-warning  { background: var(--color-primary) !important; color: #FFFFFF !important; }
+.badge-success  { background: #16A34A !important; color: #FFFFFF !important; }
+.badge-warning  { background: #F59E0B !important; color: #FFFFFF !important; }
 .badge-danger   { background: #EF4444 !important; color: #FFFFFF !important; }
-.badge-primary  { background: #DBEAFE !important; color: var(--color-gold) !important; }
+.badge-pending  { background: #F59E0B !important; color: #FFFFFF !important; }
+.badge-not-completed { background: #1E293B !important; color: #FFFFFF !important; }
+.badge-primary  { background: var(--color-primary-light) !important; color: var(--color-primary) !important; }
 .badge-gold     { background: var(--color-gold-pale) !important; color: var(--color-gold) !important; }
 
 /* Typography Extras */

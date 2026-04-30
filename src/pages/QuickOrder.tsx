@@ -414,8 +414,8 @@ export default function QuickOrder() {
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="bg-white shadow-[0_2px_8px_rgba(27, 43, 94,0.08)] hover:shadow-[0_4px_12px_rgba(27, 43, 94,0.12)] border border-[#F8FAFC] rounded-[12px]">
-            {isRTL ? <ArrowRight className="h-5 w-5 text-[#1B2B5E]" /> : <ArrowLeft className="h-5 w-5 text-[#1B2B5E]" />}
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="bg-white shadow-[0_2px_8px_rgba(22, 163, 74,0.08)] hover:shadow-[0_4px_12px_rgba(22, 163, 74,0.12)] border border-[#F8FAFC] rounded-[12px]">
+            {isRTL ? <ArrowRight className="h-5 w-5 text-[#16A34A]" /> : <ArrowLeft className="h-5 w-5 text-[#16A34A]" />}
           </Button>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0F172A]">{t('quickOrder.newOrder')}</h1>
         </div>
@@ -444,14 +444,14 @@ export default function QuickOrder() {
       <div className="mb-4 sm:mb-8 mt-2 px-4 sm:px-10">
         <div className="flex items-center justify-between relative">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-[#F8FAFC] rounded-full z-0"></div>
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#1B2B5E] rounded-full z-0 transition-all duration-300" style={{ width: `${((currentStep - 1) / 3) * 100}%` }}></div>
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#16A34A] rounded-full z-0 transition-all duration-300" style={{ width: `${((currentStep - 1) / 3) * 100}%` }}></div>
           
           {[1, 2, 3, 4].map((step) => (
              <div key={step} className="flex flex-col items-center relative z-10 bg-white p-1 rounded-full">
-                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border", currentStep > step ? "bg-[#1B2B5E] text-white border-[#1B2B5E]" : currentStep === step ? "bg-[#1B2B5E] text-white border-[#1B2B5E] shadow-lg shadow-[#1B2B5E]/20" : "bg-[#F5F7FA] text-[#64748B] border-[#F8FAFC]")}>
+                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors border", currentStep > step ? "bg-[#16A34A] text-white border-[#16A34A]" : currentStep === step ? "bg-[#16A34A] text-white border-[#16A34A] shadow-lg shadow-[#16A34A]/20" : "bg-[#F5F7FA] text-[#64748B] border-[#F8FAFC]")}>
                    {currentStep > step ? <Check className="w-5 h-5"/> : step}
                 </div>
-                <div className={cn("absolute -bottom-6 w-32 text-center text-[10px] font-bold uppercase tracking-wider hidden sm:block", currentStep >= step ? "text-[#1B2B5E]" : "text-[#64748B]")}>
+                <div className={cn("absolute -bottom-6 w-32 text-center text-[10px] font-bold uppercase tracking-wider hidden sm:block", currentStep >= step ? "text-[#16A34A]" : "text-[#64748B]")}>
                   {step === 1 ? 'Customer Info' : step === 2 ? 'Order Details' : step === 3 ? 'Measurements' : 'Review'}
                 </div>
              </div>
@@ -481,7 +481,7 @@ export default function QuickOrder() {
                 <div className="sm:col-span-2 space-y-1.5 relative" ref={dropdownRef}>
                   <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.searchCustomer')}</label>
                   <div className="relative">
-                    <Search className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E]", isRTL ? "right-4" : "left-4")} />
+                    <Search className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A]", isRTL ? "right-4" : "left-4")} />
                     <Input 
                       value={searchQuery} 
                       onChange={e => {
@@ -508,7 +508,7 @@ export default function QuickOrder() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(27, 43, 94,0.12)] rounded-[16px] border border-[#F8FAFC] overflow-hidden max-h-60 overflow-y-auto"
+                        className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(22, 163, 74,0.12)] rounded-[16px] border border-[#F8FAFC] overflow-hidden max-h-60 overflow-y-auto"
                       >
                         {filteredCustomers.map(customer => (
                           <div 
@@ -517,18 +517,18 @@ export default function QuickOrder() {
                             className="p-4 hover:bg-[#F5F7FA] cursor-pointer border-b border-[#F8FAFC] last:border-0 flex items-center justify-between group transition-colors"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-[12px] bg-[#F5F7FA] flex items-center justify-center text-[#1B2B5E] font-bold">
+                              <div className="h-10 w-10 rounded-[12px] bg-[#F5F7FA] flex items-center justify-center text-[#16A34A] font-bold">
                                 {customer.name.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <div className="font-bold text-[#0F172A] group-hover:text-[#1B2B5E] transition-colors">{customer.name}</div>
+                                <div className="font-bold text-[#0F172A] group-hover:text-[#16A34A] transition-colors">{customer.name}</div>
                                 <div className="text-xs text-[#64748B] flex items-center mt-0.5">
                                   <Phone className="h-3 w-3 mr-1" /> {customer.phone}
                                 </div>
                               </div>
                             </div>
                             {selectedCustomerId === customer.id && (
-                              <Check className="h-5 w-5 text-[#1B2B5E]" />
+                              <Check className="h-5 w-5 text-[#16A34A]" />
                             )}
                           </div>
                         ))}
@@ -540,7 +540,7 @@ export default function QuickOrder() {
                   <div className="space-y-1.5">
                   <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.customerName')}</label>
                   <div className="relative">
-                    <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                    <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                     <Input 
                       required 
                       value={customerData.name} 
@@ -562,8 +562,8 @@ export default function QuickOrder() {
                         className={cn(
                           "h-12 rounded-[12px] font-bold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all border-none text-xs sm:text-sm",
                           gender === g 
-                            ? "bg-white shadow-[0_2px_8px_rgba(27, 43, 94,0.08)] border border-[#1B2B5E]/20 text-[#1B2B5E]" 
-                            : "bg-[#F5F7FA] text-[#64748B] hover:text-[#1B2B5E]"
+                            ? "bg-white shadow-[0_2px_8px_rgba(22, 163, 74,0.08)] border border-[#16A34A]/20 text-[#16A34A]" 
+                            : "bg-[#F5F7FA] text-[#64748B] hover:text-[#16A34A]"
                         )}
                       >
                         <span className="hidden sm:inline">{g === 'male' ? 'Male' : g === 'female' ? 'Female' : 'Kids'}</span>
@@ -575,7 +575,7 @@ export default function QuickOrder() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.phoneNumber')}</label>
                   <div className="relative">
-                    <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                    <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                     <Input 
                       value={customerData.phone} 
                       onChange={e => setCustomerData({...customerData, phone: e.target.value})}
@@ -589,7 +589,7 @@ export default function QuickOrder() {
                 <div className="sm:col-span-2 space-y-1.5">
                   <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.address')}</label>
                   <div className="relative">
-                    <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                    <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                     <Input 
                       value={customerData.address} 
                       onChange={e => setCustomerData({...customerData, address: e.target.value})}
@@ -623,7 +623,7 @@ export default function QuickOrder() {
                   <div className="space-y-1.5 relative" ref={dressDropdownRef}>
                     <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.dressType')}</label>
                     <div className="relative">
-                      <Scissors className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                      <Scissors className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={showDressDropdown ? dressSearch : orderData.dressType} 
@@ -647,7 +647,7 @@ export default function QuickOrder() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 10 }}
-                          className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(27, 43, 94,0.12)] rounded-[16px] border border-[#F8FAFC] overflow-hidden max-h-60 overflow-y-auto"
+                          className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(22, 163, 74,0.12)] rounded-[16px] border border-[#F8FAFC] overflow-hidden max-h-60 overflow-y-auto"
                         >
                           {DRESS_OPTIONS[gender as keyof typeof DRESS_OPTIONS]
                             .filter(opt => opt.en.toLowerCase().includes(dressSearch.toLowerCase()) || opt.ur.includes(dressSearch))
@@ -660,7 +660,7 @@ export default function QuickOrder() {
                               }}
                               className="p-3 hover:bg-[#F5F7FA] cursor-pointer border-b border-[#F8FAFC] last:border-0 flex items-center justify-between group transition-colors"
                             >
-                              <div className="font-bold text-[#0F172A] group-hover:text-[#1B2B5E]">{opt.en}</div>
+                              <div className="font-bold text-[#0F172A] group-hover:text-[#16A34A]">{opt.en}</div>
                               <div className="text-sm text-[#64748B] font-urdu">{opt.ur}</div>
                             </div>
                           ))}
@@ -670,7 +670,7 @@ export default function QuickOrder() {
                                 setOrderData({...orderData, dressType: dressSearch});
                                 setShowDressDropdown(false);
                               }}
-                              className="p-3 bg-[#F5F7FA] cursor-pointer flex items-center gap-2 text-[#1B2B5E] font-bold m-2 rounded-[12px]"
+                              className="p-3 bg-[#F5F7FA] cursor-pointer flex items-center gap-2 text-[#16A34A] font-bold m-2 rounded-[12px]"
                             >
                               <Plus className="h-4 w-4" /> Use custom: "{dressSearch}"
                             </div>
@@ -684,7 +684,7 @@ export default function QuickOrder() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Service Type</label>
                     <div className="relative">
-                      <Tag className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                      <Tag className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                       <select
                         value={serviceType}
                         onChange={(e) => setServiceType(e.target.value)}
@@ -701,7 +701,7 @@ export default function QuickOrder() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.deliveryDate')}</label>
                     <div className="relative">
-                      <Calendar className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                      <Calendar className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         type="date" 
                         required 
@@ -718,7 +718,7 @@ export default function QuickOrder() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.quantity')}</label>
                     <div className="relative">
-                      <Hash className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                      <Hash className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         type="number" 
                         required 
@@ -732,7 +732,7 @@ export default function QuickOrder() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.totalPrice')} ({settings.currency})</label>
                     <div className="relative">
-                      <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                      <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         type="number" 
                         required 
@@ -748,7 +748,7 @@ export default function QuickOrder() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.advance')} ({settings.currency})</label>
                     <div className="relative">
-                      <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                      <CreditCard className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         type="number" 
                         value={orderData.advancePayment} 
@@ -767,7 +767,7 @@ export default function QuickOrder() {
                       <Scissors className="h-3 w-3" /> Assign Staff
                     </label>
                     <div className="relative">
-                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                       <select
                         value={orderData.assignedStaffId}
                         onChange={(e) => {
@@ -794,7 +794,7 @@ export default function QuickOrder() {
                       <MapPin className="h-3 w-3" /> {t('quickOrder.rackLocation')}
                     </label>
                     <div className="relative">
-                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         value={orderData.rackLocation} 
                         onChange={e => setOrderData({...orderData, rackLocation: e.target.value})}
@@ -806,7 +806,7 @@ export default function QuickOrder() {
                   <div className="sm:col-span-2 space-y-1.5">
                     <label className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{t('quickOrder.notes')}</label>
                     <div className="relative">
-                      <Notebook className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#1B2B5E] z-10", isRTL ? "right-4" : "left-4")} />
+                      <Notebook className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#16A34A] z-10", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         value={orderData.notes} 
                         onChange={e => setOrderData({...orderData, notes: e.target.value})}
@@ -835,7 +835,7 @@ export default function QuickOrder() {
                         </div>
                       ) : (
                         <label className="flex flex-col items-center justify-center h-32 w-full rounded-[12px] bg-[#F5F7FA] hover:bg-[#F8FAFC] transition-all cursor-pointer border border-dashed border-[#64748B]/30">
-                          <Upload className="h-6 w-6 text-[#1B2B5E] mb-2" />
+                          <Upload className="h-6 w-6 text-[#16A34A] mb-2" />
                           <span className="text-sm font-bold text-[#64748B]">{t('quickOrder.clickToUpload')}</span>
                           <input type="file" accept="image/*" className="hidden" onChange={e => setReferencePhoto(e.target.files?.[0] || null)} />
                         </label>
@@ -860,7 +860,7 @@ export default function QuickOrder() {
                         </div>
                       ) : (
                         <label className="flex flex-col items-center justify-center h-32 w-full rounded-[12px] bg-[#F5F7FA] hover:bg-[#F8FAFC] transition-all cursor-pointer border border-dashed border-[#64748B]/30">
-                          <Upload className="h-6 w-6 text-[#1B2B5E] mb-2" />
+                          <Upload className="h-6 w-6 text-[#16A34A] mb-2" />
                           <span className="text-sm font-bold text-[#64748B]">{t('quickOrder.clickToUpload')}</span>
                           <input type="file" accept="image/*" className="hidden" onChange={e => setSampleDesign(e.target.files?.[0] || null)} />
                         </label>
@@ -936,7 +936,7 @@ export default function QuickOrder() {
                     return (
                       <div className="space-y-4">
                         <div className="flex items-center gap-4">
-                          <div className="h-8 w-8 rounded-[8px] bg-[#F5F7FA] flex items-center justify-center text-[#1B2B5E] font-bold text-xs">
+                          <div className="h-8 w-8 rounded-[8px] bg-[#F5F7FA] flex items-center justify-center text-[#16A34A] font-bold text-xs">
                             01
                           </div>
                           <h3 className="text-sm font-bold text-[#64748B] uppercase tracking-[0.2em]">
@@ -947,7 +947,7 @@ export default function QuickOrder() {
                         <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
                           {[...customTemplate.fields].sort((a,b) => a.order - b.order).map((field) => (
                             <div key={field.id} className="space-y-1.5 group">
-                              <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-[#1B2B5E] transition-colors">
+                              <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-[#16A34A] transition-colors">
                                 <Ruler className="h-3 w-3" />
                                 {isRTL ? field.labelUr || field.labelEn : field.labelEn}
                               </label>
@@ -978,7 +978,7 @@ export default function QuickOrder() {
                   return getMeasurementCategoriesForDress(orderData.dressType).map((category, index) => (
                     <div key={category.id} className="space-y-4">
                       <div className="flex items-center gap-4">
-                        <div className="h-8 w-8 rounded-[8px] bg-[#F5F7FA] flex items-center justify-center text-[#1B2B5E] font-bold text-xs">
+                        <div className="h-8 w-8 rounded-[8px] bg-[#F5F7FA] flex items-center justify-center text-[#16A34A] font-bold text-xs">
                           {String(index + 1).padStart(2, '0')}
                         </div>
                         <h3 className="text-sm font-bold text-[#64748B] uppercase tracking-[0.2em]">
@@ -991,7 +991,7 @@ export default function QuickOrder() {
                           const Icon = item.icon;
                           return (
                             <div key={item.id} className="space-y-1.5 group">
-                              <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-[#1B2B5E] transition-colors">
+                              <label className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest flex items-center gap-1.5 group-focus-within:text-[#16A34A] transition-colors">
                                 <Icon className="h-3 w-3" />
                                 {isRTL ? item.ur : item.en}
                               </label>

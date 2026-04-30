@@ -1,4 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import fs from 'fs';
+import path from 'path';
+
+const file = 'src/pages/Notifications.tsx';
+let content = fs.readFileSync(file, 'utf8');
+
+const importReplacement = `import React, { useState, useMemo } from 'react';
 import { useNotifications } from '../hooks/useNotifications';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -7,9 +13,20 @@ import { Bell, CheckCircle2, Clock, FileText, Trash2, CheckCircle, Search } from
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../lib/utils';
+import { cn } from '../lib/utils';`;
 
-export default function Notifications() {
+content = content.replace(/import React from 'react';[\s\S]*?import { cn } from '\.\.\/lib\/utils';/, importReplacement);
+
+const componentStartStr = `export default function Notifications() {`;
+let idx = content.lastIndexOf(componentStartStr);
+if (idx === -1) {
+  console.log("Error finding component start");
+  process.exit(1);
+}
+
+// Replace the inside of the component
+// Wait, I will just rewrite the entire component.
+content = content.substring(0, idx) + `export default function Notifications() {
   const { notifications, markAsRead, markAllRead, deleteNotification } = useNotifications();
   const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
@@ -45,7 +62,7 @@ export default function Notifications() {
   const handleNotificationClick = (notification: any) => {
     if (!notification.read) markAsRead(notification.id);
     if (notification.orderId) {
-      navigate(`/dashboard/orders/${notification.orderId}`);
+      navigate(\`/dashboard/orders/\${notification.orderId}\`);
     }
   };
 
@@ -168,3 +185,7 @@ export default function Notifications() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(file, content);
+console.log('Successfully replaced Notifications JSX');

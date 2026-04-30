@@ -400,302 +400,142 @@ export default function Dashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className={cn("", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
+        className={cn("bg-[#F5F7FA] min-h-screen pb-[80px]", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
       >
-        <motion.div variants={itemVariants} className="welcome-section flex flex-col pt-10 px-8 pb-14">
-          <div className="z-10 relative">
-            <div className="greeting-text">{t('dashboard.welcome')}</div>
-            <h1 className="welcome-name">
-              Hello, <span className="highlight">{user?.displayName?.split(' ')[0] || 'Tailor'}</span>
-            </h1>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pt-12 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#16A34A] flex items-center justify-center text-white font-bold text-lg shadow-sm">
+              {user?.displayName?.charAt(0)?.toUpperCase() || 'T'}
+            </div>
+            <div>
+              <div className="font-bold text-[18px] text-[#0F172A] leading-tight">
+                Hello, {user?.displayName?.split(' ')[0] || 'Tailor'}
+              </div>
+              <div className="text-[13px] text-[#64748B]">Good morning</div>
+            </div>
           </div>
-        </motion.div>
+          <button className="relative p-2 rounded-full bg-white shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+            <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          </button>
+        </div>
 
-        {/* Token Search Bar floats over hero */}
-        <div className="search-container">
+        {/* Search Bar */}
+        <div className="px-4 mb-6">
           <form 
             onSubmit={handleTokenSearch} 
-            className="flex items-center gap-3 relative"
+            className="flex items-center gap-3 relative h-[44px] bg-[#F1F5F9] rounded-[12px] px-3"
           >
-            <div className="text-[#64748B]">
-              <Search className="h-5 w-5" />
-            </div>
+            <Search className="h-5 w-5 text-[#64748B]" />
             <input 
               type="text"
-              placeholder={t('dashboard.searchPlaceholder')}
+              placeholder="Search orders, customers..."
               value={searchToken}
               onChange={(e) => setSearchToken(e.target.value)}
-              className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-[#0F172A] font-medium"
-              style={{ boxShadow: 'none' }}
+              className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-[#0F172A] text-[14px]"
             />
-            <button 
-              type="submit"
-              className="px-4 py-2 bg-[#1B2B5E] text-white rounded-lg text-sm font-bold shadow-[0_4px_12px_rgba(27, 43, 94,0.2)]"
-            >
-              Search
-            </button>
             {searchError && (
               <p className="absolute -bottom-6 left-0 text-[10px] font-bold text-[#DC2626] uppercase tracking-wider">{searchError}</p>
             )}
+            <div className="ml-auto flex items-center justify-center w-8 h-8">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+            </div>
           </form>
         </div>
 
-        <div className="px-5 mt-6">
-          <QuickSetupChecklist />
-        </div>
-
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-4 px-5 mt-6">
-        {[
-          { label: t('dashboard.activeOrders'), value: stats.activeOrders, icon: Scissors, color: "text-[#1B2B5E]", bg: "bg-[#F1F5F9]" },
-          { label: t('dashboard.completedOrders'), value: stats.completedOrders, icon: CheckCircle, color: "text-[#1B2B5E]", bg: "bg-[#F1F5F9]" },
-          { label: t('dashboard.pendingPayments'), value: formatCurrency(stats.pendingPayments), icon: Clock, color: "text-[#1B2B5E]", bg: "bg-[#F1F5F9]" },
-          { label: t('dashboard.revenue'), value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: "text-[#60A5FA]", bg: "bg-[#0E1736]", dark: true },
-        ].map((stat, idx) => (
-          <motion.div key={idx} variants={itemVariants}>
-            <div className={cn("stat-card", stat.dark ? "dark-variant" : "")}>
-              <div className={cn("stat-icon-box", stat.bg)}>
-                <stat.icon className={`h-[22px] w-[22px] ${stat.color}`} />
-              </div>
-              <div className="flex flex-col">
-                <div className={cn("text-[11px] font-semibold uppercase tracking-wider mb-1", stat.dark ? "text-[rgba(255,255,255,0.7)]" : "text-[#64748B]")}>{stat.label}</div>
-                <div className={cn("stat-number text-xl md:text-2xl", stat.dark ? "text-white" : "text-[#0F172A]")}>{stat.value}</div>
+        {/* Featured Card */}
+        <div className="px-4 mb-6">
+          <div className="bg-gradient-to-r from-[#16A34A] to-[#15803D] rounded-[20px] p-5 text-white relative overflow-hidden shadow-[0_4px_16px_rgba(22,163,74,0.3)]">
+            <svg className="absolute right-0 bottom-0 opacity-10" width="120" height="120" viewBox="0 0 100 100" fill="white"><circle cx="80" cy="80" r="50"/></svg>
+            <div className="relative z-10">
+              <div className="text-[13px] font-medium opacity-90 mb-1">Today's Revenue</div>
+              <div className="text-[28px] font-bold tracking-tight mb-4">{formatCurrency(stats.totalRevenue)}</div>
+              <div className="flex items-center gap-4">
+                <div>
+                  <div className="text-[11px] opacity-70 uppercase tracking-widest">{t('dashboard.activeOrders')}</div>
+                  <div className="text-lg font-bold">{stats.activeOrders}</div>
+                </div>
+                <div>
+                  <div className="text-[11px] opacity-70 uppercase tracking-widest">Completed</div>
+                  <div className="text-lg font-bold">{stats.completedOrders}</div>
+                </div>
               </div>
             </div>
-          </motion.div>
-        ))}
-        </div>
-
-        {/* Comprehensive Analytics Data Visualization */}
-        <div className="chart-container">
-          <div className="flex items-center gap-2 mb-6">
-            <TrendingUp className="h-5 w-5 text-[#1B2B5E]" />
-            <h2 className="section-title">Revenue (Last 6 Months)</h2>
-          </div>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={revenueChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#F8FAFC" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B', fontWeight: 600 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B', fontWeight: 600 }} tickFormatter={(value) => `${value}`} />
-                <RechartsTooltip 
-                  cursor={{ fill: '#F5F7FA', radius: 8 }}
-                  contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 8px 32px rgba(27, 43, 94,0.12)', padding: '12px' }}
-                  formatter={(value: any) => [formatCurrency(value as number), 'Revenue']}
-                />
-                <Bar 
-                  dataKey="revenue" 
-                  radius={[6, 6, 0, 0]} 
-                  barSize={32}
-                  fill="#1B2B5E" 
-                  className="chart-bar outline-none border-none"
-                >
-                  {revenueChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} className={index === revenueChartData.length - 1 ? 'current-month' : 'has-data'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6 px-5 mt-6">
-          <motion.div variants={itemVariants} className="lg:col-span-2">
-            <div className="card overflow-hidden">
-              <div className="p-5 border-b border-[#F8FAFC]">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div 
-                    className="flex p-1 bg-[#F5F7FA] rounded-[16px] w-fit"
-                    role="tablist"
-                    aria-label="Dashboard views"
-                  >
-                    {dashboardTabs.map((tab, index) => (
-                      <button
-                        key={tab.id}
-                        id={`dashboard-tab-${index}`}
-                        role="tab"
-                        aria-selected={activeTab === tab.id}
-                        aria-controls={`dashboard-tabpanel-${index}`}
-                        tabIndex={activeTab === tab.id ? 0 : -1}
-                        onClick={() => setActiveTab(tab.id)}
-                        onKeyDown={(e) => handleTabKeyDown(e, index)}
-                        className={cn(
-                          "px-5 py-2 rounded-[14px] text-sm font-bold transition-all duration-300 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1B2B5E]",
-                          activeTab === tab.id 
-                            ? "text-[#1B2B5E] bg-white shadow-[0_2px_8px_rgba(27, 43, 94,0.08)]" 
-                            : "text-[#64748B] hover:text-[#1B2B5E]"
-                        )}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
+        {/* Category Quick Access */}
+        <div className="px-4 mb-8">
+          <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
+            {[
+              { label: 'Orders', icon: Scissors, path: '/dashboard/orders', color: 'bg-green-100 text-[#16A34A]' },
+              { label: 'Customers', icon: Users, path: '/dashboard/customers', color: 'bg-blue-100 text-blue-600' },
+              { label: 'Measurements', icon: FileText, path: '/dashboard/measurements', color: 'bg-purple-100 text-purple-600' },
+              { label: 'Designs', icon: TrendingUp, path: '/dashboard', color: 'bg-orange-100 text-orange-600' },
+              { label: 'Payments', icon: Search, path: '/dashboard/settings', color: 'bg-indigo-100 text-indigo-600' },
+            ].map((cat, i) => (
+              <div key={i} className="flex flex-col items-center gap-2 min-w-[64px]" onClick={() => navigate(cat.path)}>
+                <div className={cn("w-[56px] h-[56px] rounded-full flex items-center justify-center", cat.color)}>
+                  <cat.icon className="w-6 h-6" />
+                </div>
+                <div className="text-[11px] font-medium text-[#64748B]">{cat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Today's Orders / Recent */}
+        <div className="px-4 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[16px] font-semibold text-[#0F172A]">Today's Orders</h2>
+            <Link to="/dashboard/orders" className="text-[13px] font-medium text-[#16A34A] border border-[#16A34A] rounded-full px-3 py-1">See All</Link>
+          </div>
+          <div className="space-y-3">
+            {recentOrders.length === 0 ? (
+              <div className="text-center text-sm text-[#64748B] py-4 bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.07)]">No orders today</div>
+            ) : (
+              recentOrders.map(order => (
+                <div key={order.id} className="bg-white rounded-[16px] p-3.5 flex items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]" onClick={() => navigate(`/dashboard/orders/${order.id}`)}>
+                  <div className="w-[56px] h-[56px] rounded-[14px] bg-[#F1F5F9] flex items-center justify-center text-[#16A34A]">
+                    <Scissors className="w-6 h-6" />
                   </div>
-                  {activeTab === 'recent' ? (
-                    <Button variant="ghost" size="sm" asChild className="rounded-[14px] bg-[#F1F5F9] text-[#1B2B5E] font-bold h-10 px-4 transition-all hover:bg-[#E2E8F0]">
-                      <Link to="/dashboard/orders" className="flex items-center">
-                        {t('dashboard.viewAll')} <ArrowRight className={cn("h-4 w-4", isRTL ? "mr-2 rotate-180" : "ml-2")} />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <div className="bg-[#F1F5F9] p-2.5 rounded-[14px]">
-                      <Calendar className="h-5 w-5 text-[#1B2B5E]" />
+                  <div className="flex-1">
+                    <div className="text-[15px] font-semibold text-[#0F172A]">{order.customerName}</div>
+                    <div className="text-[12px] text-[#64748B] mt-0.5">{order.dressType}</div>
+                    <div className="text-[12px] text-[#64748B]">{formatDate(order.createdAt)}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[15px] font-semibold text-[#16A34A] mb-1">{formatCurrency(order.price)}</div>
+                    <div className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block", order.status === ORDER_STATUS.DELIVERED ? "bg-[#16A34A] text-white" : "bg-[#1E293B] text-white")}>
+                      {t(`orders.${order.status.toLowerCase()}`)}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-              <div className="p-3">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeTab}
-                    id={`dashboard-tabpanel-${dashboardTabs.findIndex((t) => t.id === activeTab)}`}
-                    role="tabpanel"
-                    aria-labelledby={`dashboard-tab-${dashboardTabs.findIndex((t) => t.id === activeTab)}`}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-2"
-                  >
-                    {activeTab === 'recent' ? (
-                      recentOrders.length === 0 ? (
-                        <div className="p-12 text-center text-[#64748B] text-sm font-medium">{t('dashboard.noRecentOrders')}</div>
-                      ) : (
-                        recentOrders.map((order, idx) => (
-                          <motion.div 
-                            key={order.id} 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="p-4 flex items-center justify-between bg-[#F5F7FA] rounded-[16px] hover:bg-[#F1F5F9] transition-all cursor-pointer group"
-                            onClick={() => navigate(`/dashboard/orders/${order.id}`)}
-                          >
-                            <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-[14px] bg-white flex items-center justify-center text-[#1B2B5E] shadow-sm">
-                                <Scissors className="h-5 w-5" />
-                              </div>
-                              <div>
-                                <div className="font-bold text-[#0F172A]">{order.customerName}</div>
-                                <div className="text-[12px] font-medium text-[#334155] mt-0.5">{order.dressType} • {formatDate(order.createdAt)}</div>
-                              </div>
-                            </div>
-                            <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
-                              <div className="text-base font-black text-[#0F172A]">{formatCurrency(order.price)}</div>
-                              <div className="flex flex-col items-end gap-1 mt-1">
-                                <div className={`badge ${
-                                  order.status === ORDER_STATUS.DELIVERED ? 'badge-success' : 'badge-warning'
-                                }`}>{t(`orders.${order.status.toLowerCase()}`)}</div>
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))
-                      )
-                    ) : (
-                      upcomingDeliveries.length === 0 ? (
-                        <div className="p-12 text-center text-[#64748B] text-sm font-medium">{t('dashboard.noUpcomingDeliveries')}</div>
-                      ) : (
-                        upcomingDeliveries.map((order, idx) => (
-                          <motion.div 
-                            key={order.id} 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="p-4 flex items-center justify-between bg-[#F5F7FA] rounded-[16px] hover:bg-[#F1F5F9] transition-all group cursor-pointer"
-                            onClick={() => navigate(`/dashboard/orders/${order.id}`)}
-                          >
-                            <div className="flex items-center gap-4">
-                              <div className="h-12 w-12 rounded-[14px] bg-[#1B2B5E] text-white flex items-center justify-center font-black text-lg shadow-sm">
-                                {order.customerName.charAt(0).toUpperCase()}
-                              </div>
-                              <div>
-                                <div className="font-bold text-[#0F172A]">{order.customerName}</div>
-                                <div className="text-[12px] font-medium text-[#334155] mt-0.5 flex items-center">
-                                  <Clock className={cn("h-3.5 w-3.5 text-[#1B2B5E]", isRTL ? "ml-1" : "mr-1")} />
-                                  {t('dashboard.due')}: {format(new Date(order.deliveryDate), 'MMM dd, yyyy')}
-                                </div>
-                              </div>
-                            </div>
-                            <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-9 px-4 rounded-[12px] bg-white border-[#E2E8F0] text-[#1B2B5E] font-bold"
-                              >
-                                {t('dashboard.details')}
-                              </Button>
-                            </div>
-                          </motion.div>
-                        ))
-                      )
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-          </motion.div>
+              ))
+            )}
+          </div>
+        </div>
 
-        {/* Third column / right side widgets */}
-        <motion.div variants={itemVariants} className="lg:col-span-1 space-y-6">
-          {/* Staff Performance Widget */}
-          <Card className="border-none shadow-neu bg-gray-100 overflow-hidden rounded-3xl h-full">
-            <CardHeader className="p-6 border-b border-gray-200/50">
-              <CardTitle className="flex items-center gap-2 text-lg font-bold text-slate-900">
-                <UserCircle className="h-5 w-5 text-brand-primary" />
-                Staff Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              {staff.length === 0 ? (
-                <div className="text-center text-sm font-medium text-slate-500 py-4">No staff members assigned.</div>
-              ) : (
-                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                  {staff.map(member => {
-                    const assignedOrders = allOrders.filter(o => o.assignedWorkerId === member.id);
-                    const pendingOrders = assignedOrders.filter(o => o.status !== ORDER_STATUS.DELIVERED);
-                    const completedThisMonth = assignedOrders.filter(o => {
-                      if (o.status !== ORDER_STATUS.DELIVERED) return false;
-                      const date = o.updatedAt?.toDate ? o.updatedAt.toDate() : new Date(o.updatedAt || Date.now());
-                      return isThisMonth(date);
-                    });
-
-                    return (
-                      <div key={member.id} className="bg-gray-100 shadow-neu-pressed-sm rounded-2xl p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h4 className="font-bold text-slate-900">{member.name}</h4>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{member.role}</span>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm font-black text-brand-primary">{assignedOrders.length}</div>
-                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Total</div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-4 gap-2">
-                          <div className="bg-gray-100 shadow-neu-sm rounded-xl p-2 text-center">
-                            <span className="block text-sm font-black text-slate-600">{assignedOrders.filter(o => o.status === ORDER_STATUS.PENDING).length}</span>
-                            <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Pending</span>
-                          </div>
-                          <div className="bg-gray-100 shadow-neu-sm rounded-xl p-2 text-center">
-                            <span className="block text-sm font-black text-amber-600">{assignedOrders.filter(o => o.status === ORDER_STATUS.STITCHING).length}</span>
-                            <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Stitching</span>
-                          </div>
-                          <div className="bg-gray-100 shadow-neu-sm rounded-xl p-2 text-center">
-                            <span className="block text-sm font-black text-blue-600">{assignedOrders.filter(o => o.status === ORDER_STATUS.READY).length}</span>
-                            <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Ready</span>
-                          </div>
-                          <div className="bg-emerald-50 shadow-neu-sm rounded-xl p-2 text-center border-none">
-                            <span className="block text-sm font-black text-emerald-600">{completedThisMonth.length}</span>
-                            <span className="block text-[8px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">Done(Mo)</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+        {/* Top Customers (Using first 3 recent orders as dummy Top Customers for visually satisfying layout per instructions) */}
+        <div className="px-4 pb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[16px] font-semibold text-[#0F172A]">Top Customers</h2>
+          </div>
+          <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
+            {recentOrders.slice(0,4).map((order, i) => (
+              <div key={i} className="flex flex-col items-center min-w-[72px] bg-white rounded-[16px] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+                <div className="w-[52px] h-[52px] rounded-full bg-[#E2E8F0] flex items-center justify-center text-[#64748B] text-lg font-bold mb-2">
+                  {order.customerName.charAt(0).toUpperCase()}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </motion.div>
+                <div className="text-[12px] font-medium text-[#0F172A] line-clamp-1 text-center w-full">{order.customerName.split(' ')[0]}</div>
+                <div className="text-[10px] text-[#64748B] mt-0.5">3 Orders</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </motion.div>
     </>
   );
 }

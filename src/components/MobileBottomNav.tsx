@@ -24,22 +24,23 @@ export default function MobileBottomNav() {
 
   return (
     <>
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bottom-nav z-50 flex items-end justify-around">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-white border-t border-[#E2E8F0] h-[64px] pb-safe px-2 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
         {mainNavItems.map((item) => {
           const Icon = item.icon;
           
           if (item.isAction) {
             return (
-              <button
-                key={item.name}
-                onClick={() => {
-                  setIsMoreOpen(false);
-                  navigate(item.path!);
-                }}
-                className="fab-btn"
-              >
-                <Icon className="h-7 w-7" />
-              </button>
+              <div key={item.name} className="relative -top-5">
+                <button
+                  onClick={() => {
+                    setIsMoreOpen(false);
+                    navigate(item.path!);
+                  }}
+                  className="flex items-center justify-center w-[56px] h-[56px] bg-[#16A34A] text-white rounded-full shadow-[0_4px_12px_rgba(22,163,74,0.30)]"
+                >
+                  <Icon className="h-7 w-7" />
+                </button>
+              </div>
             );
           }
 
@@ -49,13 +50,12 @@ export default function MobileBottomNav() {
               <button
                 key={item.name}
                 onClick={() => setIsMoreOpen(!isMoreOpen)}
-                className={cn(
-                  "nav-item transition-colors",
-                  isActive ? "active" : ""
-                )}
+                className="flex flex-col items-center justify-center flex-1 h-full gap-1 pt-1"
               >
-                <Icon className={cn("h-6 w-6 nav-icon", isActive ? "" : "text-slate-400")} />
-                <span className={cn("text-[10px] font-medium nav-label", isActive ? "" : "text-slate-500")}>{item.name}</span>
+                <Icon className={cn("h-[22px] w-[22px]", isActive ? "text-[#16A34A]" : "text-[#94A3B8]")} />
+                <span className={cn("text-[11px] font-medium", isActive ? "text-[#16A34A]" : "text-[#94A3B8]")}>{item.name}</span>
+                {isActive && <div className="w-[4px] h-[4px] bg-[#16A34A] rounded-full mt-0.5"></div>}
+                {!isActive && <div className="w-[4px] h-[4px] bg-transparent rounded-full mt-0.5"></div>}
               </button>
             );
           }
@@ -67,13 +67,12 @@ export default function MobileBottomNav() {
               key={item.name}
               to={item.path!}
               onClick={() => setIsMoreOpen(false)}
-              className={cn(
-                "nav-item transition-colors",
-                isActive ? "active" : ""
-              )}
+              className="flex flex-col items-center justify-center flex-1 h-full gap-1 pt-1"
             >
-              <Icon className={cn("h-6 w-6 nav-icon", isActive ? "" : "text-slate-400")} />
-              <span className={cn("text-[10px] font-medium nav-label", isActive ? "" : "text-slate-500")}>{item.name}</span>
+              <Icon className={cn("h-[22px] w-[22px]", isActive ? "text-[#16A34A]" : "text-[#94A3B8]")} />
+              <span className={cn("text-[11px] font-medium", isActive ? "text-[#16A34A]" : "text-[#94A3B8]")}>{item.name}</span>
+              {isActive && <div className="w-[4px] h-[4px] bg-[#16A34A] rounded-full mt-0.5"></div>}
+              {!isActive && <div className="w-[4px] h-[4px] bg-transparent rounded-full mt-0.5"></div>}
             </Link>
           );
         })}
@@ -94,13 +93,13 @@ export default function MobileBottomNav() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="w-full max-w-sm bg-gray-100 rounded-t-3xl shadow-neu flex flex-col overflow-hidden relative z-50 mb-20"
+              className="w-full max-w-sm bg-white rounded-t-[20px] shadow-[0_-4px_24px_rgba(0,0,0,0.12)] flex flex-col overflow-hidden relative z-50 mb-[64px]"
             >
-              <div className="p-4 flex items-center justify-between border-b border-gray-200/50">
-                <span className="font-bold text-slate-700">More Options</span>
+              <div className="p-4 flex items-center justify-between border-b border-[#E2E8F0]">
+                <span className="font-bold text-[#0F172A]">More Options</span>
                 <button 
                   onClick={() => setIsMoreOpen(false)}
-                  className="p-2 rounded-full bg-gray-100 shadow-neu-sm text-slate-500"
+                  className="p-2 rounded-full bg-[#F5F7FA] text-[#64748B]"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -115,13 +114,13 @@ export default function MobileBottomNav() {
                       to={item.path}
                       onClick={() => setIsMoreOpen(false)}
                       className={cn(
-                        "flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300",
+                        "flex items-center gap-4 px-4 py-3 rounded-[16px] transition-all duration-300",
                         isActive 
-                          ? "bg-gray-100 shadow-neu-pressed text-brand-primary font-bold" 
-                          : "text-slate-600 font-medium hover:shadow-neu-sm"
+                          ? "bg-[#DCFCE7] text-[#16A34A] font-bold" 
+                          : "text-[#334155] font-medium hover:bg-[#F5F7FA]"
                       )}
                     >
-                      <div className={cn("p-2 rounded-xl", isActive ? "bg-gray-100 shadow-neu-sm text-brand-primary" : "text-slate-500 shadow-neu-sm")}>
+                      <div className={cn("p-2 rounded-xl", isActive ? "bg-[#16A34A] text-white" : "text-[#64748B] bg-[#F5F7FA]")}>
                         <Icon className="h-5 w-5" />
                       </div>
                       <span className="text-sm">{item.name}</span>

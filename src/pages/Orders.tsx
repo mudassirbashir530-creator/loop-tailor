@@ -226,499 +226,78 @@ export default function Orders() {
   };
 
   return (
-    <div className="space-y-8">
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-4"
-      >
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-display font-black tracking-tight text-slate-900">{t('orders.title')}</h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-2 font-medium">{t('orders.subtitle')}</p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-4 items-center w-full md:w-auto">
-          <div className="relative w-full sm:w-80 group">
-            <input
-              type="text"
-              placeholder={t('orders.searchPlaceholder')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={cn("w-full h-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none text-base font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
-            />
-            <div className={cn("absolute top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-primary transition-colors", isRTL ? "right-4" : "left-4")}>
-              <Search className="h-5 w-5" />
-            </div>
-          </div>
-          <Button 
-            onClick={() => navigate('/dashboard/orders/new')} 
-            className="w-full sm:w-auto h-14 rounded-2xl bg-gray-100 shadow-neu-sm text-brand-primary hover:shadow-neu-pressed-sm px-8 font-black text-base transition-all hover:scale-105 active:scale-95 border-none"
-          >
-            <Plus className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
-            {t('orders.newOrder')}
-          </Button>
-        </div>
-      </motion.div>
-
-      <div className="flex flex-col gap-6">
-        {/* Status Filters */}
-        <div className="flex flex-wrap gap-4">
-          {['All', ORDER_STATUS.PENDING, ORDER_STATUS.CUTTING, ORDER_STATUS.STITCHING, ORDER_STATUS.QC, ORDER_STATUS.READY, ORDER_STATUS.DELIVERED].map((status) => (
-            <Button
-              key={status}
-              variant="ghost"
-              size="sm"
-              onClick={() => setFilter(status)}
-              className={cn(
-                "rounded-xl px-6 h-12 font-bold transition-all border-none",
-                filter === status 
-                  ? "bg-gray-100 shadow-neu-pressed text-brand-primary" 
-                  : "bg-gray-100 shadow-neu-sm text-slate-500 hover:text-brand-primary hover:shadow-neu-pressed-sm"
-              )}
-            >
-              {t(`orders.${status.toLowerCase()}`)}
-            </Button>
-          ))}
-        </div>
-
-        {/* Advanced Filters Row */}
-        <div className="flex flex-wrap items-center gap-4 bg-gray-100 shadow-neu-pressed-sm p-3 rounded-2xl border-none">
-          <div className="flex items-center gap-2 px-3 border-r border-gray-300/50">
-            <Filter className="h-4 w-4 text-brand-primary" />
-            <span className="text-sm font-bold text-slate-700">Filters</span>
-          </div>
-
-          {/* Gender Filter */}
-          <div className="flex bg-gray-100 shadow-neu-sm rounded-xl p-1">
-            {['All', 'male', 'female', 'kids'].map(g => (
-              <button
-                key={g}
-                onClick={() => setGenderFilter(g)}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-xs font-bold capitalize transition-all",
-                  genderFilter === g ? "bg-gray-100 shadow-neu-pressed-sm text-brand-primary" : "text-slate-500 hover:text-brand-primary"
-                )}
-              >
-                {g === 'All' ? 'All Genders' : g}
-              </button>
-            ))}
-          </div>
-
-          {/* Date Filter */}
-          <div className="flex bg-gray-100 shadow-neu-sm rounded-xl p-1">
-            {['All Time', 'Today', 'This Week', 'This Month'].map(d => (
-              <button
-                key={d}
-                onClick={() => setDateFilter(d)}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-xs font-bold transition-all",
-                  dateFilter === d ? "bg-gray-100 shadow-neu-pressed-sm text-brand-primary" : "text-slate-500 hover:text-brand-primary"
-                )}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-
-          {/* Dress Type Dropdown */}
-          <select 
-            value={dressTypeFilter}
-            onChange={(e) => setDressTypeFilter(e.target.value)}
-            className="h-10 px-4 rounded-xl bg-gray-100 shadow-neu-sm border-none text-xs font-bold text-slate-700 focus:ring-0 cursor-pointer outline-none"
-          >
-            <option value="All">All Types</option>
-            {uniqueDressTypes.map((type: any) => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-
-          {/* Overdue Toggle */}
-          <button
-            onClick={() => setShowOverdue(!showOverdue)}
-            className={cn(
-              "px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all h-10",
-              showOverdue ? "bg-gray-100 shadow-neu-pressed-sm text-red-600" : "bg-gray-100 shadow-neu-sm text-slate-500 hover:text-red-500"
-            )}
-          >
-            <AlertCircle className="h-4 w-4" />
-            Overdue
-          </button>
-
-          {/* Sort Dropdown */}
-          <div className="ml-auto flex items-center gap-3">
-            <span className="text-xs font-bold text-slate-500">Sort by:</span>
-            <select 
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="h-10 px-4 rounded-xl bg-gray-100 shadow-neu-sm border-none text-xs font-bold text-slate-700 focus:ring-0 cursor-pointer outline-none"
-            >
-              <option value="Newest First">Newest First</option>
-              <option value="Oldest First">Oldest First</option>
-              <option value="Delivery Date">Delivery Date</option>
-              <option value="Price High-Low">Price High-Low</option>
-              <option value="Price Low-High">Price Low-High</option>
-            </select>
-          </div>
-          
-          {/* View Toggle */}
-          <div className="flex bg-gray-100 shadow-neu-sm rounded-xl p-1">
-            <button
-              onClick={() => setViewMode('list')}
-              className={cn(
-                "p-2 rounded-lg transition-all",
-                viewMode === 'list' ? "bg-gray-100 shadow-neu-pressed-sm text-brand-primary" : "text-slate-500 hover:text-brand-primary"
-              )}
-            >
-              <List className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('kanban')}
-              className={cn(
-                "p-2 rounded-lg transition-all",
-                viewMode === 'kanban' ? "bg-gray-100 shadow-neu-pressed-sm text-brand-primary" : "text-slate-500 hover:text-brand-primary"
-              )}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Filter Summary Bar */}
-        <AnimatePresence>
-          {activeFilterCount > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="flex items-center justify-between bg-gray-100 shadow-neu-sm rounded-xl px-5 py-3 border-none"
-            >
-              <div className="text-sm font-bold text-brand-primary flex items-center gap-3 flex-wrap">
-                <span>Showing {filteredOrders.length} orders</span>
-                <span className="text-brand-primary/40">•</span>
-                {filter !== 'All' && <span className="bg-gray-100 shadow-neu-pressed-sm px-3 py-1 rounded-lg text-xs font-black">{filter}</span>}
-                {genderFilter !== 'All' && <span className="bg-gray-100 shadow-neu-pressed-sm px-3 py-1 rounded-lg text-xs font-black capitalize">{genderFilter}</span>}
-                {dressTypeFilter !== 'All' && <span className="bg-gray-100 shadow-neu-pressed-sm px-3 py-1 rounded-lg text-xs font-black">{dressTypeFilter}</span>}
-                {dateFilter !== 'All Time' && <span className="bg-gray-100 shadow-neu-pressed-sm px-3 py-1 rounded-lg text-xs font-black">{dateFilter}</span>}
-                {showOverdue && <span className="bg-gray-100 shadow-neu-pressed-sm text-red-600 px-3 py-1 rounded-lg text-xs font-black">Overdue</span>}
-              </div>
-              <button 
-                onClick={clearAllFilters}
-                className="text-xs font-bold text-slate-500 hover:text-brand-primary flex items-center gap-1.5"
-              >
-                <X className="h-3.5 w-3.5" /> Clear All
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+    <div className="min-h-screen bg-[#F5F7FA] pb-[80px]">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-12 pb-4 bg-[#F5F7FA]">
+        <button onClick={() => navigate(-1)} className="p-2">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+        </button>
+        <h1 className="text-[20px] font-bold text-[#0F172A]">Orders</h1>
+        <button className="p-2">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+        </button>
       </div>
 
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-24 space-y-4">
-          <div className="flex gap-4">
-               <div className="w-64 h-80 bg-gray-100 shadow-neu-sm rounded-[2.5rem] animate-pulse"></div>
-               <div className="w-64 h-80 bg-gray-100 shadow-neu-sm rounded-[2.5rem] animate-pulse"></div>
-               <div className="w-64 h-80 bg-gray-100 shadow-neu-sm rounded-[2.5rem] animate-pulse"></div>
-          </div>
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{t('orders.loading')}</p>
-        </div>
-      ) : (
-        <>
-          {filteredOrders.length === 0 ? (
-            <AnimatePresence mode="wait">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="col-span-full py-16 px-4 md:px-8 text-center bg-gray-100 shadow-neu-pressed-sm rounded-[3rem] flex flex-col items-center space-y-6 border-none"
-              >
-                <div className="w-64 max-w-full opaciy-80">
-                  <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="75" y="50" width="250" height="200" rx="30" fill="white" stroke="#e2e8f0" strokeWidth="8"/>
-                    <rect x="120" y="90" width="160" height="20" rx="10" fill="#f1f5f9"/>
-                    <rect x="120" y="130" width="100" height="20" rx="10" fill="#f1f5f9"/>
-                    <rect x="120" y="170" width="140" height="20" rx="10" fill="#f1f5f9"/>
-                    <circle cx="200" cy="150" r="80" stroke="#004643" strokeWidth="12" strokeDasharray="20 20" opacity="0.1"/>
-                    <path d="M200 110L240 190H160L200 110Z" fill="#004643" opacity="0.2"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">{t('orders.noOrders')}</h3>
-                  <p className="text-slate-500 font-medium mt-2 max-w-sm mx-auto">
-                    {filter === 'All' ? "There are no orders matching your current filters. Try clearing them or start a new order." : t('orders.noOrdersFound').replace('{{status}}', t(`orders.${filter.toLowerCase()}`))}
-                  </p>
-                </div>
-                <Button 
-                  onClick={() => navigate('/dashboard/orders/new')}
-                  className="rounded-xl h-14 px-8 font-bold bg-brand-primary shadow-lg text-white mt-4"
-                >
-                  <Plus className="h-5 w-5 mr-no-rtl ml-auto-rtl mr-2" />
-                  {t('orders.createOrder')}
-                </Button>
-              </motion.div>
-            </AnimatePresence>
-          ) : viewMode === 'list' ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              <AnimatePresence mode="popLayout">
-                {filteredOrders.map((order, index) => {
-                  const overdue = isOverdue(order.deliveryDate, order.status);
-                  return (
-                    <motion.div
-                      key={order.id}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Card className={cn(
-                        "border-none shadow-neu rounded-[2.5rem] overflow-hidden hover:-translate-y-1 transition-all group",
-                        overdue ? "bg-red-50/50 animate-flash-red" : "bg-gray-100",
-                        order.status === ORDER_STATUS.READY ? "animate-glow-green" : ""
-                      )}>
-                        <CardHeader className="p-7 pb-4 flex flex-row items-start justify-between space-y-0">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <div className={cn(
-                                "p-2 rounded-xl shadow-neu-pressed-sm",
-                                overdue ? "bg-red-100 text-red-600" : "bg-gray-100 text-brand-primary"
-                              )}>
-                                <Hash className="h-4 w-4" />
-                              </div>
-                              <span className="text-xl font-black text-slate-900">{order.tokenId || '---'}</span>
-                              {order.deliveryType === 'Home Delivery' ? (
-                                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md ml-2"><span className="hidden sm:inline">Home Delivery</span></span>
-                              ) : order.deliveryType === 'Self Pickup' ? (
-                                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md ml-2"><span className="hidden sm:inline">Self Pickup</span></span>
-                              ) : null}
-                              {overdue && (
-                                <span className="flex items-center gap-1 px-3 py-1 bg-red-100 shadow-neu-pressed-sm text-red-600 text-[10px] font-black rounded-xl uppercase tracking-wider animate-pulse">
-                                  <AlertCircle className="h-3 w-3" />
-                                  Overdue
-                                </span>
-                              )}
-                            </div>
-                            <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-brand-primary transition-colors line-clamp-1 mt-2">
-                              {order.customerName}
-                            </CardTitle>
-                          </div>
-                          <div className="flex flex-col items-end gap-2">
-                            <span className={cn(
-                              "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-neu-pressed-sm",
-                              getStatusColor(order.status),
-                              order.status === ORDER_STATUS.STITCHING ? "animate-pulse-opacity" : ""
-                            )}>
-                              {t(`orders.${order.status.toLowerCase()}`)}
-                            </span>
-                          <span className={cn(
-                            "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-neu-sm",
-                            (!order.paymentStatus || order.paymentStatus === 'Unpaid') ? "bg-red-50 text-rose-500" :
-                            order.paymentStatus === 'Partial' ? "bg-blue-50 text-blue-600" :
-                            "bg-emerald-50 text-emerald-600"
-                          )}>
-                            {order.paymentStatus || 'Unpaid'}
-                          </span>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-7 pt-0 space-y-6">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="space-y-1.5">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                              <Scissors className="h-3.5 w-3.5 text-brand-primary" /> {t('orders.dressType')}
-                            </span>
-                            <p className="font-bold text-slate-900">{order.dressType}</p>
-                          </div>
-                          <div className="space-y-1.5">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                              <MapPin className="h-3.5 w-3.5 text-brand-primary" /> {t('orders.rack')}
-                            </span>
-                            <p className="font-bold text-slate-900">{order.rackLocation || '---'}</p>
-                          </div>
-                          <div className="space-y-1.5 col-span-2">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                              <User className="h-3.5 w-3.5 text-brand-primary" /> Assigned Staff
-                            </span>
-                            <p className="font-bold text-slate-900 flex items-center gap-1">
-                              {order.assignedStaffId 
-                                ? <><span className="text-brand-primary">👤</span> {staff.find(w => w.id === order.assignedStaffId)?.name || order.assignedStaffName || 'Unknown'}</>
-                                : 'Unassigned'}
-                            </p>
-                          </div>
-                        </div>
+      {/* Toggle Stats Pills */}
+      <div className="flex gap-3 px-4 mb-5">
+        <div className="flex-1 rounded-full bg-[#16A34A] text-white text-center py-2 text-[14px] font-semibold">Total: {orders.length.toString().padStart(2, '0')}</div>
+        <div className="flex-1 rounded-full bg-white border-2 border-[#16A34A] text-[#16A34A] text-center py-2 text-[14px] font-semibold">Filtered: {filteredOrders.length.toString().padStart(2, '0')}</div>
+      </div>
 
-                        <div className="pt-6 border-t border-gray-200/50 flex items-center justify-between gap-2">
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5 text-brand-primary" /> {t('orders.delivery')}
-                            </span>
-                            <span className={cn("text-sm font-black mt-1", overdue ? "text-red-600" : "text-slate-900")}>
-                              {format(new Date(order.deliveryDate), 'MMM dd, yyyy')}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            {order.status === ORDER_STATUS.PENDING && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                onClick={() => updateStatus(order.id, ORDER_STATUS.CUTTING)}
-                                className="text-amber-600 hover:text-amber-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
-                              >
-                                <Scissors className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
-                                Start Cutting
-                              </Button>
-                            )}
-                            {order.status === ORDER_STATUS.CUTTING && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                onClick={() => updateStatus(order.id, ORDER_STATUS.STITCHING)}
-                                className="text-blue-600 hover:text-blue-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
-                              >
-                                <Layers className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
-                                Start Stitching
-                              </Button>
-                            )}
-                            {order.status === ORDER_STATUS.STITCHING && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                onClick={() => updateStatus(order.id, ORDER_STATUS.QC)}
-                                className="text-purple-600 hover:text-purple-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
-                              >
-                                <CheckSquare className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
-                                Quality Check
-                              </Button>
-                            )}
-                            {order.status === ORDER_STATUS.QC && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                onClick={() => updateStatus(order.id, ORDER_STATUS.READY)}
-                                className="text-blue-600 hover:text-blue-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
-                              >
-                                <Package className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
-                                Mark Ready
-                              </Button>
-                            )}
-                            {order.status === ORDER_STATUS.READY && (
-                              <>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (order.phone) {
-                                      sendOrderReadyMessage(
-                                        order.customerName, 
-                                        order.dressType || 'Suit', 
-                                        order.tokenId, 
-                                        settings?.name || 'Loop Tailor', 
-                                        order.phone,
-                                        settings?.messageTemplates
-                                      );
-                                    } else {
-                                      toast.error("Customer phone number is missing.");
-                                    }
-                                  }}
-                                  className="text-white bg-[#25D366] hover:bg-[#20bd5a] shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
-                                >
-                                  Notify Customer
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => updateStatus(order.id, ORDER_STATUS.DELIVERED)}
-                                  className="text-emerald-600 hover:text-emerald-700 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm font-black text-xs rounded-xl h-10 px-4 border-none"
-                                >
-                                  <CheckCircle2 className={cn("h-4 w-4", isRTL ? "ml-1.5" : "mr-1.5")} />
-                                  {t('orders.deliver')}
-                                </Button>
-                              </>
-                            )}
-                            {order.status === ORDER_STATUS.DELIVERED && (
-                              <div className="bg-gray-100 shadow-neu-pressed-sm text-emerald-600 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5">
-                                <CheckCircle2 className="h-4 w-4" />
-                                {t('orders.done')}
-                              </div>
-                            )}
-                            <Button 
-                              size="icon" 
-                              variant="outline" 
-                              onClick={() => navigate(`/dashboard/orders/${order.id}`)}
-                              className="rounded-xl h-10 w-10 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none text-brand-primary transition-all"
-                            >
-                              <ArrowRight className={cn("h-5 w-5", isRTL ? "rotate-180" : "")} />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-              </AnimatePresence>
+      {/* Filter Row */}
+      <div className="px-4 mb-6 flex gap-3">
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            placeholder="Enter Order ID"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full h-[48px] rounded-[12px] bg-white border border-[#E2E8F0] pl-10 pr-3 focus:outline-none focus:border-[#16A34A] text-[14px] placeholder-[#94A3B8]"
+          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+        </div>
+        <div className="flex-1 relative">
+          <select 
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="w-full h-[48px] rounded-[12px] bg-white border border-[#E2E8F0] pl-3 pr-10 appearance-none focus:outline-none focus:border-[#16A34A] text-[14px] font-medium text-[#0F172A]"
+          >
+            <option value="All">All Statuses</option>
+            {Object.values(ORDER_STATUS).map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+        </div>
+      </div>
+
+      {/* Order List */}
+      <div className="px-4 space-y-2.5">
+        {loading ? (
+          <div className="flex justify-center py-8"><Loader2 className="w-8 h-8 animate-spin text-[#16A34A]" /></div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" strokeWidth="1" className="mb-4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+            <h3 className="text-[16px] font-bold text-[#0F172A] mb-1">No orders yet</h3>
+            <p className="text-[13px] text-[#64748B]">Try adjusting your filters or search</p>
+          </div>
+        ) : (
+          filteredOrders.map(order => (
+            <div key={order.id} className="bg-white rounded-[16px] p-3.5 flex items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+              <div className="w-[56px] h-[56px] rounded-[16px] flex-shrink-0 bg-[#EEF2FF] flex items-center justify-center text-[#4F46E5] overflow-hidden">
+                <Scissors className="w-6 h-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-semibold text-[#0F172A] truncate leading-tight">{order.dressType || 'Custom Order'}</div>
+                <div className="text-[12px] text-[#64748B] mt-0.5 mix-blend-multiply">ID: {order.tokenId || order.id.slice(0,8)}</div>
+                <div className="text-[12px] text-[#64748B] mix-blend-multiply">{order.createdAt ? startOfDay(order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt)).toLocaleDateString() : 'N/A'}</div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <div className="text-[15px] font-semibold text-[#16A34A] leading-tight mb-2">{(order.price || 0).toLocaleString()}</div>
+                <Link to={`/dashboard/orders/${order.id}`} className="text-[12px] font-medium text-[#16A34A] underline">View details</Link>
+              </div>
             </div>
-          ) : (
-            <div className="flex overflow-x-auto pb-8 gap-6 pt-4 snap-x pr-8">
-              {[ORDER_STATUS.PENDING, ORDER_STATUS.CUTTING, ORDER_STATUS.STITCHING, ORDER_STATUS.QC, ORDER_STATUS.READY, ORDER_STATUS.DELIVERED].map(columnStatus => (
-                <div key={columnStatus} className="min-w-[320px] max-w-[320px] bg-gray-100/50 px-3 py-6 rounded-[2.5rem] mt-2 snap-center">
-                  <div className="flex items-center justify-between px-3 mb-6">
-                    <h3 className="font-bold text-slate-700 capitalize flex items-center gap-2">
-                      <span className={cn(
-                        "w-3 h-3 rounded-full",
-                        columnStatus === ORDER_STATUS.PENDING && "bg-slate-500",
-                        columnStatus === ORDER_STATUS.STITCHING && "bg-blue-500 animate-pulse",
-                        columnStatus === ORDER_STATUS.READY && "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]",
-                        columnStatus === ORDER_STATUS.DELIVERED && "bg-emerald-600"
-                      )} />
-                      {columnStatus.toLowerCase()}
-                    </h3>
-                    <span className="bg-gray-100 shadow-neu-pressed-sm text-xs font-black px-3 py-1 rounded-full text-slate-500">
-                      {filteredOrders.filter(o => o.status === columnStatus).length}
-                    </span>
-                  </div>
-                  <div className="space-y-4">
-                    {filteredOrders.filter(o => o.status === columnStatus).map(order => {
-                      const overdue = isOverdue(order.deliveryDate, order.status);
-                      return (
-                        <div key={order.id} className={cn(
-                          "bg-gray-100 shadow-neu p-5 rounded-3xl group cursor-pointer transition-all hover:scale-[1.02]",
-                          overdue && "animate-flash-red"
-                        )}
-                        onClick={() => navigate(`/dashboard/orders/${order.id}`)}
-                        >
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="font-black text-brand-primary">#{order.tokenId}</span>
-                            {overdue && <AlertCircle className="h-4 w-4 text-red-500" />}
-                          </div>
-                          <h4 className="font-bold text-slate-900 group-hover:text-brand-primary">{order.customerName}</h4>
-                          <p className="text-xs text-slate-500 mb-4">{order.dressType}</p>
-                          <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
-                            <div className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {format(new Date(order.deliveryDate), 'MMM dd')}</div>
-                            {columnStatus !== ORDER_STATUS.DELIVERED && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const nextStatus = columnStatus === ORDER_STATUS.PENDING ? ORDER_STATUS.CUTTING : 
-                                                       columnStatus === ORDER_STATUS.CUTTING ? ORDER_STATUS.STITCHING :
-                                                       columnStatus === ORDER_STATUS.STITCHING ? ORDER_STATUS.QC :
-                                                       columnStatus === ORDER_STATUS.QC ? ORDER_STATUS.READY : ORDER_STATUS.DELIVERED;
-                                    updateStatus(order.id, nextStatus);
-                                  }}
-                                  className="h-8 px-3 rounded-lg bg-white shadow-sm text-brand-primary hover:bg-gray-50 border border-gray-100"
-                                >
-                                  Move <ArrowRight className="h-3 w-3 ml-1" />
-                                </Button>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }
