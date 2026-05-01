@@ -220,6 +220,18 @@ export default function App() {
                 </Legal>
               } />
 
+              <Route path="/refund" element={
+                <Legal title="Refund Policy" lastUpdated={LEGAL_LAST_UPDATED}>
+                  <p>This Refund Policy outlines the terms and conditions for refunds for Loop Tailor subscriptions.</p>
+                  <h2>1. Subscription Plans</h2>
+                  <p>We offer various subscription plans. Refunds are generally not provided for active subscriptions, except as required by law or under specific circumstances outlined below.</p>
+                  <h2>2. Cancellation</h2>
+                  <p>You can cancel your subscription at any time. Cancellation will prevent future billing, but no prorated refund will be issued for the current billing cycle.</p>
+                  <h2>3. Exceptions</h2>
+                  <p>If you experience significant technical issues that prevent you from using the core features of Loop Tailor, and our support team is unable to resolve them within a reasonable timeframe, you may be eligible for a refund at our discretion.</p>
+                </Legal>
+              } />
+
               <Route path="/dashboard" element={<PrivateRoute><Layout /></PrivateRoute>}>
                 <Route index element={<Dashboard />} />
                 <Route path="customers" element={<Customers />} />

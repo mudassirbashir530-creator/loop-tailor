@@ -211,20 +211,45 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
-        <div className="flex flex-col md:flex-row justify-between items-center px-8 py-16 max-w-7xl mx-auto gap-8">
-          <div className="flex flex-col items-center md:items-start gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-start px-8 py-16 max-w-7xl mx-auto gap-12 md:gap-8">
+          <div className="flex flex-col items-center md:items-start gap-6 w-full md:w-1/3">
             <div className="flex items-center gap-2">
-              <img src="/icon-192x192.svg" alt="LoopTailor Logo" className="w-6 h-6 rounded-md shadow-sm" />
+              <img src="/icon-192x192.svg" alt="LoopTailor Logo" className="w-8 h-8 rounded-md shadow-sm" />
               <span className="text-xl font-bold text-slate-900 dark:text-slate-50 font-plus-jakarta">LoopTailor</span>
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs text-center md:text-left">Bringing digital precision to the artisanal world of tailoring.</p>
+            <div className="flex items-center gap-4 mt-2">
+              <a href="https://facebook.com/looptailor" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[#16A34A] transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+              </a>
+              <a href="https://instagram.com/looptailor" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[#16A34A] transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
+              </a>
+              <a href="https://twitter.com/looptailor" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[#16A34A] transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+              </a>
+              <a href="https://linkedin.com/company/looptailor" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-[#16A34A] transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+              </a>
+            </div>
           </div>
-          <div className="flex flex-wrap justify-center gap-8">
-            <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-[#16A34A] hover:underline transition-colors" to="/about">About Us</Link>
-            <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-[#16A34A] hover:underline transition-colors" to="/privacy">Privacy Policy</Link>
-            <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-[#16A34A] hover:underline transition-colors" to="/terms">Terms of Service</Link>
+          <div className="flex flex-col md:flex-row gap-12 md:gap-24 w-full md:w-auto text-center md:text-left">
+            <div className="flex flex-col gap-4">
+              <h4 className="font-bold text-slate-900 dark:text-slate-50 font-plus-jakarta mb-2">Company</h4>
+              <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-[#16A34A] hover:underline transition-colors" to="/about">About Us</Link>
+              <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-[#16A34A] hover:underline transition-colors" to="/contact">Contact</Link>
+            </div>
+            <div className="flex flex-col gap-4">
+              <h4 className="font-bold text-slate-900 dark:text-slate-50 font-plus-jakarta mb-2">Legal</h4>
+              <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-[#16A34A] hover:underline transition-colors" to="/privacy">Privacy Policy</Link>
+              <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-[#16A34A] hover:underline transition-colors" to="/terms">Terms of Service</Link>
+              <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-[#16A34A] hover:underline transition-colors" to="/refund">Refund Policy</Link>
+              <Link className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta hover:text-[#16A34A] hover:underline transition-colors" to="/cookies">Cookie Policy</Link>
+            </div>
           </div>
-          <div className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta">
+        </div>
+        <div className="border-t border-slate-200 dark:border-slate-800 py-8 px-8 flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto gap-4">
+          <div className="text-slate-500 dark:text-slate-400 text-sm font-plus-jakarta text-center md:text-left">
             © 2026 LoopTailor. Crafted for Precision.
           </div>
         </div>
