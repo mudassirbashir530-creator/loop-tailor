@@ -113,24 +113,37 @@ service cloud.firestore {
     // --- Collections ---
 
     match /users/{userId} {
-      allow get: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       // Admin dashboard requires listing users
       allow list: if isAdmin();
       
-      allow create: if isAuthenticated() && request.auth.uid == userId 
+      allow create: if isSignedIn() && request.auth.uid == userId 
              && isValidUser(incoming())
              && incoming().uid == request.auth.uid
              // Prevent self-claiming admin on create
              && incoming().role == 'user';
              
-      allow update: if isAuthenticated() && request.auth.uid == userId 
+      allow update: if isSignedIn() && (
+             (request.auth.uid == userId 
              && isValidUser(incoming())
-             // User cannot change their uid or elevate their role
              && incoming().uid == existing().uid
-             && incoming().role == existing().role
-             || isAdmin();
+             && incoming().role == existing().role)
+             || isAdmin()
+             );
              
       allow delete: if isAdmin();
+    }
+
+    match /subscriptions/{subId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /adminLogs/{logId} {
+      allow read, write: if isAdmin();
     }
 
     match /articles/{articleId} {

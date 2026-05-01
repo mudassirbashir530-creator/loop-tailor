@@ -58,6 +58,10 @@ const SocialPosts = React.lazy(() => import('./pages/admin/SocialPosts').then(m 
 const MediaLibrary = React.lazy(() => import('./pages/admin/MediaLibrary').then(m => ({ default: m.MediaLibrary })));
 const Users = React.lazy(() => import('./pages/admin/Users').then(m => ({ default: m.Users })));
 
+// Secret Admin Panel
+const AdminPanel = React.lazy(() => import('./pages/AdminPanel'));
+import { ADMIN_SECRET_ROUTE } from './config/adminConfig';
+
 const LEGAL_LAST_UPDATED = new Date('2026-03-23').toLocaleDateString();
 
 function LoadingFallback() {
@@ -257,6 +261,9 @@ export default function App() {
                 <Route path="media" element={<MediaLibrary />} />
                 <Route path="users" element={<Users />} />
               </Route>
+
+              {/* Secret Admin Route */}
+              <Route path={ADMIN_SECRET_ROUTE} element={<PrivateRoute><AdminPanel /></PrivateRoute>} />
 
               <Route path="*" element={<NotFound />} />
                 </Routes>
