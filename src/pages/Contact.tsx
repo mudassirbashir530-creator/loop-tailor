@@ -10,7 +10,8 @@ import { safeFetchJSON } from '../lib/apiHelpers';
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [globalError, setGlobalError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -22,37 +23,57 @@ export default function Contact() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear inline error when typing
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: '' });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.firstName.trim()) newErrors.firstName = 'First Name is required';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last Name is required';
+    if (!formData.phone.trim()) newErrors.phone = 'Phone is required';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    if (!formData.message.trim()) newErrors.message = 'Message is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGlobalError('');
+    
+    if (!validateForm()) return;
+    
     setIsSubmitting(true);
-    setError('');
 
     let googleScriptSuccess = false;
     let localApiSuccess = false;
 
     // 1. Try sending to Google Apps Script
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec', {
+      await fetch('https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec', {
         method: 'POST',
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: `${formData.firstName} ${formData.lastName}`.trim(),
-          phone: formData.phone,
           email: formData.email,
-          message: formData.message
+          phone: formData.phone,
+          message: formData.message,
+          timestamp: new Date().toISOString()
         })
       });
-      
-      const data = await response.json();
-      if (response.ok) {
-        googleScriptSuccess = true;
-      } else {
-        console.error('Google Apps Script returned an error:', data);
-      }
+      // Since no-cors produces an opaque response, we assume success if no exception is thrown
+      googleScriptSuccess = true;
     } catch (err) {
       console.error('Error sending to Google Apps Script:', err);
     }
@@ -76,15 +97,12 @@ export default function Contact() {
     setIsSubmitting(false);
 
     // 3. Determine overall success
-    // If deployed on static hosting, local API will fail, but Google Script should succeed.
     if (googleScriptSuccess || localApiSuccess) {
       setIsSuccess(true);
       setFormData({ firstName: '', lastName: '', phone: '', email: '', message: '' });
-      
-      // Reset success message after 5 seconds
       setTimeout(() => setIsSuccess(false), 5000);
     } else {
-      setError('Failed to send message. Please check your connection and try again.');
+      setGlobalError('Failed to send message. Please check your connection and try again.');
     }
   };
 
@@ -140,9 +158,9 @@ export default function Contact() {
             </motion.div>
           ) : (
             <form className="space-y-6" onSubmit={handleSubmit}>
-              {error && (
+              {globalError && (
                 <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium">
-                  {error}
+                  {globalError}
                 </div>
               )}
               <div className="grid md:grid-cols-2 gap-6">
@@ -155,10 +173,10 @@ export default function Contact() {
                       value={formData.firstName}
                       onChange={handleChange}
                       placeholder="John" 
-                      className="h-12 pl-9" 
-                      required
+                      className={`h-12 pl-9 ${errors.firstName ? 'border-red-500 focus-visible:ring-red-500' : ''}`} 
                     />
                   </div>
+                  {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Last Name</label>
@@ -169,10 +187,10 @@ export default function Contact() {
                       value={formData.lastName}
                       onChange={handleChange}
                       placeholder="Doe" 
-                      className="h-12 pl-9" 
-                      required
+                      className={`h-12 pl-9 ${errors.lastName ? 'border-red-500 focus-visible:ring-red-500' : ''}`} 
                     />
                   </div>
+                  {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
                 </div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
@@ -186,10 +204,10 @@ export default function Contact() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="john@example.com" 
-                      className="h-12 pl-9" 
-                      required
+                      className={`h-12 pl-9 ${errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`} 
                     />
                   </div>
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Phone</label>
@@ -201,9 +219,10 @@ export default function Contact() {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="+1 (555) 000-0000" 
-                      className="h-12 pl-9" 
+                      className={`h-12 pl-9 ${errors.phone ? 'border-red-500 focus-visible:ring-red-500' : ''}`} 
                     />
                   </div>
+                  {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                 </div>
               </div>
               <div className="space-y-2">
@@ -214,11 +233,11 @@ export default function Contact() {
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
-                    className="w-full min-h-[150px] rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-3 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary resize-none" 
+                    className={`w-full min-h-[150px] rounded-xl border bg-white pl-9 pr-4 py-3 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 resize-none ${errors.message ? 'border-red-500 focus-visible:ring-red-500' : 'border-slate-200 focus-visible:ring-brand-primary'}`} 
                     placeholder="How can we help you?"
-                    required
                   ></textarea>
                 </div>
+                {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message}</p>}
               </div>
               <Button 
                 type="submit"
