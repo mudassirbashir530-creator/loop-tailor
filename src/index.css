@@ -10,7 +10,7 @@
 @theme {
   --color-brand-primary: #22C55E;
   --color-brand-secondary: #FFFFFF;
-  --color-brand-accent: #15803D;
+  --color-brand-accent: #0D3D33;
 
   --color-surface-container-lowest: #ffffff;
   --color-surface: #faf8ff;
@@ -106,7 +106,7 @@
   /* PRIMARY */
   --color-primary:        #22C55E;
   --color-primary-light:  #DCFCE7;
-  --color-primary-dark:   #15803D;
+  --color-primary-dark:   #0D3D33;
 
   /* BACKGROUND */
   --color-bg:             #F5F7FA;
@@ -115,7 +115,7 @@
   --color-surface-alt:    #F1F5F9;
 
   /* ACCENT */
-  --color-gold:           #15803D;
+  --color-gold:           #0D3D33;
   --color-gold-light:     #86EFAC;
   --color-gold-pale:      #DCFCE7;
 

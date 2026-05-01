@@ -656,7 +656,7 @@ export default function QuickOrder() {
             ))}
           </div>
           
-          <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full h-14 bg-[#22C55E] hover:bg-[#15803D] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]">
+          <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full h-14 bg-[#22C55E] hover:bg-[#0D3D33] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]">
             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Order'}
           </Button>
 

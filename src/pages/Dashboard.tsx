@@ -462,7 +462,7 @@ export default function Dashboard() {
 
         {/* Featured Card */}
         <div className="px-4 mb-6">
-          <div className="bg-gradient-to-r from-[#22C55E] to-[#15803D] rounded-[20px] p-5 text-white relative overflow-hidden shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]">
+          <div className="bg-gradient-to-r from-[#22C55E] to-[#0D3D33] rounded-[20px] p-5 text-white relative overflow-hidden shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]">
             <svg className="absolute right-0 bottom-0 opacity-10" width="120" height="120" viewBox="0 0 100 100" fill="white"><circle cx="80" cy="80" r="50"/></svg>
             <div className="relative z-10">
               <div className="text-[13px] font-medium opacity-90 mb-1">Total Revenue</div>

@@ -70,7 +70,7 @@ export function DesignModal({ partName, options, selectedOption, onSelect, onClo
       <div className="p-4 bg-white border-t border-[#F8FAFC] pb-8 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
         <Button 
           onClick={onSave}
-          className="w-full h-14 bg-[#22C55E] hover:bg-[#15803D] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]"
+          className="w-full h-14 bg-[#22C55E] hover:bg-[#0D3D33] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]"
         >
           Save & Continue
         </Button>
