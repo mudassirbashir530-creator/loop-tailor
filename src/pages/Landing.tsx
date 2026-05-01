@@ -5,6 +5,11 @@ import { useAuth } from '../contexts/AuthContext';
 export default function Landing() {
   const { user, wasLoggedIn } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
 
   if (user || wasLoggedIn) {
     return <Navigate to="/dashboard" replace />;
@@ -104,6 +109,42 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Stats Section */}
+        <section className="py-16 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="flex flex-col items-center text-center space-y-2">
+                <div className="w-12 h-12 bg-[#22C55E]/10 text-[#16A34A] rounded-full flex items-center justify-center mb-2">
+                  <span className="material-symbols-outlined text-2xl">person</span>
+                </div>
+                <h4 className="text-3xl font-bold text-slate-900 dark:text-slate-50">500+</h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Active Tailors</p>
+              </div>
+              <div className="flex flex-col items-center text-center space-y-2">
+                <div className="w-12 h-12 bg-[#22C55E]/10 text-[#16A34A] rounded-full flex items-center justify-center mb-2">
+                  <span className="material-symbols-outlined text-2xl">check_circle</span>
+                </div>
+                <h4 className="text-3xl font-bold text-slate-900 dark:text-slate-50">10,000+</h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Orders Managed</p>
+              </div>
+              <div className="flex flex-col items-center text-center space-y-2">
+                <div className="w-12 h-12 bg-[#22C55E]/10 text-[#16A34A] rounded-full flex items-center justify-center mb-2">
+                  <span className="material-symbols-outlined text-2xl">favorite</span>
+                </div>
+                <h4 className="text-3xl font-bold text-slate-900 dark:text-slate-50">98%</h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Customer Satisfaction</p>
+              </div>
+              <div className="flex flex-col items-center text-center space-y-2">
+                <div className="w-12 h-12 bg-[#22C55E]/10 text-[#16A34A] rounded-full flex items-center justify-center mb-2">
+                  <span className="material-symbols-outlined text-2xl">timer</span>
+                </div>
+                <h4 className="text-3xl font-bold text-slate-900 dark:text-slate-50">40%</h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Time Saved on Admin</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Features Section */}
         <section className="py-24 px-6 max-w-7xl mx-auto">
           <div className="text-center mb-16 space-y-4">
@@ -138,6 +179,200 @@ export default function Landing() {
               </div>
               <h3 className="text-xl text-h3 mb-3">Design Library</h3>
               <p className="text-body-md text-on-surface-variant">Organize fabric swatches, pattern sketches, and design inspirations for easy collaboration.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section className="py-24 bg-slate-50 dark:bg-slate-800/50 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16 space-y-4">
+              <h2 className="text-4xl font-bold text-slate-900 dark:text-white">How It Works</h2>
+              <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Get your tailor shop digitized in three simple steps.</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-12 relative">
+              <div className="hidden md:block absolute top-12 left-[15%] right-[15%] h-0.5 bg-slate-200 dark:bg-slate-700"></div>
+              
+              <div className="relative flex flex-col items-center text-center space-y-4">
+                <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-full border-4 border-[#22C55E] flex items-center justify-center z-10 shadow-lg">
+                  <span className="text-3xl font-bold text-[#22C55E]">1</span>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-4">Create your shop profile</h3>
+                <p className="text-slate-600 dark:text-slate-400">Sign up and set up your shop details, logo, and preferences in minutes.</p>
+              </div>
+
+              <div className="relative flex flex-col items-center text-center space-y-4">
+                <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-full border-4 border-[#22C55E] flex items-center justify-center z-10 shadow-lg">
+                  <span className="text-3xl font-bold text-[#22C55E]">2</span>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-4">Add customers & measurements</h3>
+                <p className="text-slate-600 dark:text-slate-400">Digitize your physical records and start storing measurements securely.</p>
+              </div>
+
+              <div className="relative flex flex-col items-center text-center space-y-4">
+                <div className="w-24 h-24 bg-white dark:bg-slate-900 rounded-full border-4 border-[#22C55E] flex items-center justify-center z-10 shadow-lg">
+                  <span className="text-3xl font-bold text-[#22C55E]">3</span>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-4">Track orders & grow your business</h3>
+                <p className="text-slate-600 dark:text-slate-400">Manage orders, update statuses, and keep your customers informed effortlessly.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section className="py-24 px-6 max-w-7xl mx-auto">
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="text-4xl font-bold text-slate-900 dark:text-white">Simple, Transparent Pricing</h2>
+            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Choose the plan that fits your business needs.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Free Plan */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 flex flex-col hover:shadow-xl transition-shadow relative">
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Free</h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-2">For individuals and small shops starting their digital journey.</p>
+              <div className="my-6">
+                <span className="text-4xl font-extrabold text-slate-900 dark:text-white">$0</span>
+                <span className="text-slate-500 dark:text-slate-400">/month</span>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-[#22C55E] text-xl">check_circle</span>
+                  <span className="text-slate-600 dark:text-slate-300">Basic features</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-[#22C55E] text-xl">check_circle</span>
+                  <span className="text-slate-600 dark:text-slate-300">Up to 10 customers</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-[#22C55E] text-xl">check_circle</span>
+                  <span className="text-slate-600 dark:text-slate-300">Order tracking</span>
+                </li>
+              </ul>
+              <Link to="/signup" className="w-full">
+                <button className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white px-6 py-3 rounded-full font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                  Get Started
+                </button>
+              </Link>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="bg-white dark:bg-slate-900 border-2 border-[#22C55E] rounded-3xl p-8 flex flex-col shadow-xl relative md:scale-105 z-10 md:transform">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#22C55E] text-white px-4 py-1 rounded-full text-sm font-bold tracking-wide w-max">
+                MOST POPULAR
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Pro</h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-2">For growing tailoring businesses that need more power.</p>
+              <div className="my-6">
+                <span className="text-4xl font-extrabold text-slate-900 dark:text-white">$19</span>
+                <span className="text-slate-500 dark:text-slate-400">/month</span>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-[#22C55E] text-xl">check_circle</span>
+                  <span className="text-slate-600 dark:text-slate-300">All basic features</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-[#22C55E] text-xl">check_circle</span>
+                  <span className="text-slate-600 dark:text-slate-300 font-medium">Unlimited customers</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-[#22C55E] text-xl">check_circle</span>
+                  <span className="text-slate-600 dark:text-slate-300">Advanced analytics</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-[#22C55E] text-xl">check_circle</span>
+                  <span className="text-slate-600 dark:text-slate-300">Priority support</span>
+                </li>
+              </ul>
+              <Link to="/signup" className="w-full">
+                <button className="w-full bg-[#22C55E] text-white px-6 py-3 rounded-full font-bold hover:bg-[#16A34A] transition-colors shadow-lg shadow-[#22C55E]/25">
+                  Start Free Trial
+                </button>
+              </Link>
+            </div>
+
+            {/* Enterprise Plan */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 flex flex-col hover:shadow-xl transition-shadow relative">
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Enterprise</h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-2">For large tailor shops and franchises with custom needs.</p>
+              <div className="my-6">
+                <span className="text-3xl font-bold text-slate-900 dark:text-white">Custom</span>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-[#22C55E] text-xl">check_circle</span>
+                  <span className="text-slate-600 dark:text-slate-300">Everything in Pro</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-[#22C55E] text-xl">check_circle</span>
+                  <span className="text-slate-600 dark:text-slate-300">Custom integrations</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-[#22C55E] text-xl">check_circle</span>
+                  <span className="text-slate-600 dark:text-slate-300">Dedicated account manager</span>
+                </li>
+              </ul>
+              <Link to="/contact" className="w-full">
+                <button className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white px-6 py-3 rounded-full font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                  Contact Us
+                </button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-24 bg-slate-50 dark:bg-slate-800/50 px-6 relative">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-16 space-y-4">
+              <h2 className="text-4xl font-bold text-slate-900 dark:text-white">Frequently Asked Questions</h2>
+              <p className="text-slate-600 dark:text-slate-400">Everything you need to know about the product and billing.</p>
+            </div>
+            <div className="space-y-4">
+              {[
+                {
+                  question: "What is Loop Tailor?",
+                  answer: "Loop Tailor is a comprehensive digital management platform specifically designed for modern tailors. It helps you manage customer measurements, track orders, and streamline your entire workflow in one secure place."
+                },
+                {
+                  question: "Is my data secure?",
+                  answer: "Yes, absolutely. We use industry-standard encryption to ensure all your customer data, measurements, and business information are securely stored and backed up daily."
+                },
+                {
+                  question: "Can I use it on mobile?",
+                  answer: "Yes! Loop Tailor is built with a responsive design, meaning you can access and manage your shop from any smartphone, tablet, or desktop computer seamlessly."
+                },
+                {
+                  question: "How do I get started?",
+                  answer: "Simply click 'Get Started Free' to create your account. You can set up your shop profile and start adding customers in less than 5 minutes."
+                },
+                {
+                  question: "Is there a free trial?",
+                  answer: "You can start using Loop Tailor completely free for up to 10 customers to test out the features. If you need more capacity, you can upgrade to our Pro plan anytime."
+                },
+                {
+                  question: "Can I export my data?",
+                  answer: "Yes, you have full ownership of your data. You can easily export your customer lists, measurements, and orders to standard formats like CSV at any time."
+                }
+              ].map((faq, index) => (
+                <div key={index} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                  <button 
+                    className="w-full px-6 py-4 flex justify-between items-center text-left focus:outline-none"
+                    onClick={() => toggleFaq(index)}
+                  >
+                    <span className="font-bold text-slate-900 dark:text-white pr-4">{faq.question}</span>
+                    <span className={`material-symbols-outlined text-slate-400 transition-transform duration-200 ${openFaq === index ? 'rotate-180' : ''}`}>
+                      expand_more
+                    </span>
+                  </button>
+                  <div 
+                    className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openFaq === index ? 'max-h-48 pb-4 opacity-100' : 'max-h-0 opacity-0'}`}
+                  >
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">{faq.answer}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
