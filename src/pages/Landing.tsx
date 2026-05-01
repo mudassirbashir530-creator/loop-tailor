@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Landing() {
   const { user, wasLoggedIn } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   if (user || wasLoggedIn) {
     return <Navigate to="/dashboard" replace />;
@@ -21,12 +22,27 @@ export default function Landing() {
             <span className="text-[#22C55E] font-bold border-b-2 border-[#22C55E] pb-1 font-plus-jakarta text-sm">Home</span>
             <Link to="/about" className="text-slate-600 dark:text-slate-400 font-medium hover:text-[#16A34A] transition-all duration-200 font-plus-jakarta text-sm">About Us</Link>
           </nav>
-          <Link to="/login">
+          <Link to="/login" className="hidden md:block">
             <button className="bg-[#22C55E] text-white px-6 py-2.5 rounded-full text-label-md active:scale-95 transition-transform hover:bg-[#16A34A]">
                 Get Started
             </button>
           </Link>
+          <button className="md:hidden text-slate-600 dark:text-slate-300" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            <span className="material-symbols-outlined text-3xl">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+          </button>
         </div>
+        {/* Mobile menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-lg px-6 py-4 flex flex-col gap-4">
+            <span className="text-[#22C55E] font-bold font-plus-jakarta text-lg">Home</span>
+            <Link to="/about" className="text-slate-600 dark:text-slate-400 font-medium hover:text-[#16A34A] font-plus-jakarta text-lg">About Us</Link>
+            <Link to="/login" className="w-full mt-2">
+              <button className="w-full bg-[#22C55E] text-white px-6 py-3 rounded-full font-medium active:scale-95 transition-transform hover:bg-[#16A34A]">
+                  Get Started
+              </button>
+            </Link>
+          </div>
+        )}
       </header>
 
       <main className="pt-24 overflow-x-hidden">
@@ -44,14 +60,14 @@ export default function Landing() {
               <p className="text-lg md:text-xl text-on-surface-variant text-body-lg max-w-xl">
                 The all-in-one platform for modern tailors to manage orders, customers, and measurements with ease. Elevate your craft with digital efficiency.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/signup">
-                  <button className="bg-[#22C55E] text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg shadow-[#22C55E]/20 hover:bg-[#16A34A] transition-all">
+              <div className="flex flex-col sm:flex-row gap-4 w-full">
+                <Link to="/signup" className="w-full sm:w-auto">
+                  <button className="w-full bg-[#22C55E] text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg shadow-[#22C55E]/20 hover:bg-[#16A34A] transition-all">
                     Get Started Free
                   </button>
                 </Link>
-                <Link to="/login">
-                  <button className="flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant px-8 py-4 rounded-full font-bold text-lg hover:bg-surface-container-low transition-all">
+                <Link to="/login" className="w-full sm:w-auto">
+                  <button className="w-full flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant px-8 py-4 rounded-full font-bold text-lg hover:bg-surface-container-low transition-all">
                     <span className="material-symbols-outlined">play_circle</span>
                     View Demo
                   </button>
@@ -181,9 +197,9 @@ export default function Landing() {
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
             <h2 className="text-4xl md:text-6xl text-h1 leading-tight relative z-10">Ready to transform your tailor shop?</h2>
             <p className="text-xl text-surface-dim max-w-2xl mx-auto relative z-10">Join hundreds of professional tailors who are scaling their business with LoopTailor.</p>
-            <div className="flex justify-center relative z-10">
-              <Link to="/signup">
-                <button className="bg-[#22C55E] text-white px-12 py-5 rounded-full font-bold text-xl hover:bg-[#16A34A] transition-all">
+            <div className="flex justify-center relative z-10 w-full">
+              <Link to="/signup" className="w-full md:w-auto">
+                <button className="w-full bg-[#22C55E] text-white px-12 py-5 rounded-full font-bold text-xl hover:bg-[#16A34A] transition-all">
                   Get Started Free
                 </button>
               </Link>
