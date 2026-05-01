@@ -421,7 +421,7 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-12 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#16A34A] flex items-center justify-center text-white font-bold text-lg shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-[#22C55E] flex items-center justify-center text-white font-bold text-lg shadow-sm">
               {user?.displayName?.charAt(0)?.toUpperCase() || 'T'}
             </div>
             <div>
@@ -455,14 +455,14 @@ export default function Dashboard() {
               <p className="absolute -bottom-6 left-0 text-[10px] font-bold text-[#DC2626] uppercase tracking-wider">{searchError}</p>
             )}
             <div className="ml-auto flex items-center justify-center w-8 h-8">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
             </div>
           </form>
         </div>
 
         {/* Featured Card */}
         <div className="px-4 mb-6">
-          <div className="bg-gradient-to-r from-[#16A34A] to-[#15803D] rounded-[20px] p-5 text-white relative overflow-hidden shadow-[0_4px_16px_rgba(22,163,74,0.3)]">
+          <div className="bg-gradient-to-r from-[#22C55E] to-[#15803D] rounded-[20px] p-5 text-white relative overflow-hidden shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]">
             <svg className="absolute right-0 bottom-0 opacity-10" width="120" height="120" viewBox="0 0 100 100" fill="white"><circle cx="80" cy="80" r="50"/></svg>
             <div className="relative z-10">
               <div className="text-[13px] font-medium opacity-90 mb-1">Total Revenue</div>
@@ -485,7 +485,7 @@ export default function Dashboard() {
         <div className="px-4 mb-8">
           <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
             {[
-              { label: 'Orders', icon: Scissors, path: '/dashboard/orders', color: 'bg-green-100 text-[#16A34A]' },
+              { label: 'Orders', icon: Scissors, path: '/dashboard/orders', color: 'bg-green-100 text-[#22C55E]' },
               { label: 'Customers', icon: Users, path: '/dashboard/customers', color: 'bg-blue-100 text-blue-600' },
               { label: 'Measurements', icon: FileText, path: '/dashboard/measurements', color: 'bg-purple-100 text-purple-600' },
               { label: 'Designs', icon: TrendingUp, path: '/dashboard', color: 'bg-orange-100 text-orange-600' },
@@ -505,7 +505,7 @@ export default function Dashboard() {
         <div className="px-4 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[16px] font-semibold text-[#0F172A]">Today's Orders</h2>
-            <Link to="/dashboard/orders" className="text-[13px] font-medium text-[#16A34A] border border-[#16A34A] rounded-full px-3 py-1">See All</Link>
+            <Link to="/dashboard/orders" className="text-[13px] font-medium text-[#22C55E] border border-[#22C55E] rounded-full px-3 py-1">See All</Link>
           </div>
           <div className="space-y-3">
             {recentOrders.length === 0 ? (
@@ -513,7 +513,7 @@ export default function Dashboard() {
             ) : (
               recentOrders.map(order => (
                 <div key={order.id} className="bg-white rounded-[16px] p-3.5 flex items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]" onClick={() => navigate(`/dashboard/orders/${order.id}`)}>
-                  <div className="w-[56px] h-[56px] rounded-[14px] bg-[#F1F5F9] flex items-center justify-center text-[#16A34A]">
+                  <div className="w-[56px] h-[56px] rounded-[14px] bg-[#F1F5F9] flex items-center justify-center text-[#22C55E]">
                     <Scissors className="w-6 h-6" />
                   </div>
                   <div className="flex-1">
@@ -522,8 +522,8 @@ export default function Dashboard() {
                     <div className="text-[12px] text-[#64748B]">{formatDate(order.createdAt)}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[15px] font-semibold text-[#16A34A] mb-1">{formatCurrency(order.price)}</div>
-                    <div className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block", order.status === ORDER_STATUS.DELIVERED ? "bg-[#16A34A] text-white" : "bg-[#1E293B] text-white")}>
+                    <div className="text-[15px] font-semibold text-[#22C55E] mb-1">{formatCurrency(order.price)}</div>
+                    <div className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block", order.status === ORDER_STATUS.DELIVERED ? "bg-[#22C55E] text-white" : "bg-[#1E293B] text-white")}>
                       {t(`orders.${order.status.toLowerCase()}`)}
                     </div>
                   </div>

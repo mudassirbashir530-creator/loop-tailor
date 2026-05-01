@@ -36,7 +36,7 @@ export default function MobileBottomNav() {
                     setIsMoreOpen(false);
                     navigate(item.path!);
                   }}
-                  className="flex items-center justify-center w-[56px] h-[56px] bg-[#16A34A] text-white rounded-full shadow-[0_4px_12px_rgba(22,163,74,0.30)]"
+                  className="flex items-center justify-center w-[56px] h-[56px] bg-[#22C55E] text-white rounded-full shadow-[0_4px_12px_rgba(34, 197, 94,0.30)]"
                 >
                   <Icon className="h-7 w-7" />
                 </button>
@@ -52,9 +52,9 @@ export default function MobileBottomNav() {
                 onClick={() => setIsMoreOpen(!isMoreOpen)}
                 className="flex flex-col items-center justify-center flex-1 h-full gap-1 pt-1"
               >
-                <Icon className={cn("h-[22px] w-[22px]", isActive ? "text-[#16A34A]" : "text-[#94A3B8]")} />
-                <span className={cn("text-[11px] font-medium", isActive ? "text-[#16A34A]" : "text-[#94A3B8]")}>{item.name}</span>
-                {isActive && <div className="w-[4px] h-[4px] bg-[#16A34A] rounded-full mt-0.5"></div>}
+                <Icon className={cn("h-[22px] w-[22px]", isActive ? "text-[#22C55E]" : "text-[#94A3B8]")} />
+                <span className={cn("text-[11px] font-medium", isActive ? "text-[#22C55E]" : "text-[#94A3B8]")}>{item.name}</span>
+                {isActive && <div className="w-[4px] h-[4px] bg-[#22C55E] rounded-full mt-0.5"></div>}
                 {!isActive && <div className="w-[4px] h-[4px] bg-transparent rounded-full mt-0.5"></div>}
               </button>
             );
@@ -69,9 +69,9 @@ export default function MobileBottomNav() {
               onClick={() => setIsMoreOpen(false)}
               className="flex flex-col items-center justify-center flex-1 h-full gap-1 pt-1"
             >
-              <Icon className={cn("h-[22px] w-[22px]", isActive ? "text-[#16A34A]" : "text-[#94A3B8]")} />
-              <span className={cn("text-[11px] font-medium", isActive ? "text-[#16A34A]" : "text-[#94A3B8]")}>{item.name}</span>
-              {isActive && <div className="w-[4px] h-[4px] bg-[#16A34A] rounded-full mt-0.5"></div>}
+              <Icon className={cn("h-[22px] w-[22px]", isActive ? "text-[#22C55E]" : "text-[#94A3B8]")} />
+              <span className={cn("text-[11px] font-medium", isActive ? "text-[#22C55E]" : "text-[#94A3B8]")}>{item.name}</span>
+              {isActive && <div className="w-[4px] h-[4px] bg-[#22C55E] rounded-full mt-0.5"></div>}
               {!isActive && <div className="w-[4px] h-[4px] bg-transparent rounded-full mt-0.5"></div>}
             </Link>
           );
@@ -116,11 +116,11 @@ export default function MobileBottomNav() {
                       className={cn(
                         "flex items-center gap-4 px-4 py-3 rounded-[16px] transition-all duration-300",
                         isActive 
-                          ? "bg-[#DCFCE7] text-[#16A34A] font-bold" 
+                          ? "bg-[#DCFCE7] text-[#22C55E] font-bold" 
                           : "text-[#334155] font-medium hover:bg-[#F5F7FA]"
                       )}
                     >
-                      <div className={cn("p-2 rounded-xl", isActive ? "bg-[#16A34A] text-white" : "text-[#64748B] bg-[#F5F7FA]")}>
+                      <div className={cn("p-2 rounded-xl", isActive ? "bg-[#22C55E] text-white" : "text-[#64748B] bg-[#F5F7FA]")}>
                         <Icon className="h-5 w-5" />
                       </div>
                       <span className="text-sm">{item.name}</span>

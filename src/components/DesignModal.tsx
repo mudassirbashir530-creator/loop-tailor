@@ -46,18 +46,18 @@ export function DesignModal({ partName, options, selectedOption, onSelect, onClo
                 className={cn(
                   "aspect-square rounded-[24px] flex flex-col items-center justify-center p-4 cursor-pointer transition-all border-2 relative",
                   isActive 
-                    ? "bg-[#16A34A]/5 border-[#16A34A]" 
+                    ? "bg-[#22C55E]/5 border-[#22C55E]" 
                     : "bg-white border-[#E2E8F0] hover:border-[#CBD5E1]"
                 )}
               >
                 {isActive && (
-                  <div className="absolute top-3 right-3 w-5 h-5 bg-[#16A34A] rounded-full flex items-center justify-center">
+                  <div className="absolute top-3 right-3 w-5 h-5 bg-[#22C55E] rounded-full flex items-center justify-center">
                     <Check className="w-3 h-3 text-white" />
                   </div>
                 )}
                 
-                <Icon className={cn("w-12 h-12 mb-4", isActive ? "text-[#16A34A]" : "text-[#94A3B8]")} />
-                <span className={cn("text-[14px] font-bold", isActive ? "text-[#16A34A]" : "text-[#64748B]")}>
+                <Icon className={cn("w-12 h-12 mb-4", isActive ? "text-[#22C55E]" : "text-[#94A3B8]")} />
+                <span className={cn("text-[14px] font-bold", isActive ? "text-[#22C55E]" : "text-[#64748B]")}>
                   {option.label}
                 </span>
               </div>
@@ -70,7 +70,7 @@ export function DesignModal({ partName, options, selectedOption, onSelect, onClo
       <div className="p-4 bg-white border-t border-[#F8FAFC] pb-8 shadow-[0_-4px_24px_rgba(0,0,0,0.04)]">
         <Button 
           onClick={onSave}
-          className="w-full h-14 bg-[#16A34A] hover:bg-[#15803D] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_16px_rgba(22,163,74,0.3)]"
+          className="w-full h-14 bg-[#22C55E] hover:bg-[#15803D] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]"
         >
           Save & Continue
         </Button>

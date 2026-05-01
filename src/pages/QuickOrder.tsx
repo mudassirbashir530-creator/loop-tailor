@@ -444,7 +444,7 @@ export default function QuickOrder() {
       </div>
 
       {preGeneratedToken && (
-        <div className="flex items-center justify-center gap-2 px-2 pb-4 text-[#16A34A] text-xs font-bold">
+        <div className="flex items-center justify-center gap-2 px-2 pb-4 text-[#22C55E] text-xs font-bold">
           <Hash className="h-3 w-3" />
           Order: {preGeneratedToken}
         </div>
@@ -461,7 +461,7 @@ export default function QuickOrder() {
           
           {/* Color Swatches */}
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3">
-            {[ '#1E293B', '#16A34A', '#94A3B8', '#DC2626' ].map((color, i) => (
+            {[ '#1E293B', '#22C55E', '#94A3B8', '#DC2626' ].map((color, i) => (
               <div key={i} className={`w-8 h-8 rounded-full shadow-md cursor-pointer border-2 ${i === 1 ? 'border-white scale-110' : 'border-transparent'}`} style={{ backgroundColor: color }}></div>
             ))}
           </div>
@@ -470,10 +470,10 @@ export default function QuickOrder() {
 
       {/* Price + View Button Row */}
       <div className="px-4 mb-6 flex justify-between items-center">
-        <div className="text-[20px] font-bold text-[#16A34A]">
+        <div className="text-[20px] font-bold text-[#22C55E]">
           {settings.currency} {orderData.price || '0.00'}
         </div>
-        <button type="button" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} className="bg-[#16A34A] text-white px-6 py-2 rounded-full text-[14px] font-semibold shadow-[0_2px_12px_rgba(22,163,74,0.3)]">
+        <button type="button" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} className="bg-[#22C55E] text-white px-6 py-2 rounded-full text-[14px] font-semibold shadow-[0_2px_12px_rgba(34, 197, 94,0.3)]">
           View Details
         </button>
       </div>
@@ -491,11 +491,11 @@ export default function QuickOrder() {
              const hasDesign = !!garmentDesigns[part.label];
              return (
              <div key={i} onClick={() => setActivePartModal(part.label)} className="flex flex-col items-center shrink-0 min-w-[72px] cursor-pointer">
-               <div className={`w-[56px] h-[56px] rounded-[16px] flex items-center justify-center mb-2 transition-colors ${hasDesign ? 'bg-[#16A34A]/10 text-[#16A34A]' : 'bg-white text-[#64748B] shadow-[0_2px_12px_rgba(0,0,0,0.07)]'}`}>
+               <div className={`w-[56px] h-[56px] rounded-[16px] flex items-center justify-center mb-2 transition-colors ${hasDesign ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-white text-[#64748B] shadow-[0_2px_12px_rgba(0,0,0,0.07)]'}`}>
                  <Tag className="w-6 h-6" />
                </div>
-               <div className={`text-[12px] font-medium ${hasDesign ? 'text-[#16A34A]' : 'text-[#64748B]'}`}>{part.label}</div>
-               {hasDesign && <div className="w-8 h-1 bg-[#16A34A] rounded-full mt-1.5"></div>}
+               <div className={`text-[12px] font-medium ${hasDesign ? 'text-[#22C55E]' : 'text-[#64748B]'}`}>{part.label}</div>
+               {hasDesign && <div className="w-8 h-1 bg-[#22C55E] rounded-full mt-1.5"></div>}
              </div>
            )})}
         </div>
@@ -504,7 +504,7 @@ export default function QuickOrder() {
       {/* Action Buttons */}
       <div className="px-4 mb-10 space-y-3">
         <div className="flex gap-3">
-          <label className="flex-1 bg-[#16A34A] text-white h-12 rounded-full font-semibold text-[14px] shadow-[0_2px_12px_rgba(22,163,74,0.3)] flex items-center justify-center gap-2 cursor-pointer">
+          <label className="flex-1 bg-[#22C55E] text-white h-12 rounded-full font-semibold text-[14px] shadow-[0_2px_12px_rgba(34, 197, 94,0.3)] flex items-center justify-center gap-2 cursor-pointer">
              <Upload className="w-4 h-4"/> Upload Design
              <input type="file" accept="image/*" className="hidden" onChange={e => {
                 const file = e.target.files?.[0];
@@ -514,7 +514,7 @@ export default function QuickOrder() {
                 }
              }} />
           </label>
-          <a href={customerData.phone ? `tel:${customerData.phone}` : '#'} className="flex-1 bg-white border-2 border-[#16A34A] text-[#16A34A] h-12 rounded-full font-semibold text-[14px] flex items-center justify-center gap-2">
+          <a href={customerData.phone ? `tel:${customerData.phone}` : '#'} className="flex-1 bg-white border-2 border-[#22C55E] text-[#22C55E] h-12 rounded-full font-semibold text-[14px] flex items-center justify-center gap-2">
             <Phone className="w-4 h-4"/> Call Customer
           </a>
         </div>
@@ -522,7 +522,7 @@ export default function QuickOrder() {
           <button type="button" onClick={() => navigate(-1)} className="w-1/3 bg-transparent border border-[#E2E8F0] text-[#64748B] h-12 rounded-full font-semibold text-[14px]">
             Save Draft
           </button>
-          <button onClick={handleSubmit} type="button" disabled={isSubmitting} className="w-2/3 bg-[#16A34A] text-white h-12 rounded-full font-bold text-[15px] shadow-[0_2px_12px_rgba(22,163,74,0.3)] flex items-center justify-center">
+          <button onClick={handleSubmit} type="button" disabled={isSubmitting} className="w-2/3 bg-[#22C55E] text-white h-12 rounded-full font-bold text-[15px] shadow-[0_2px_12px_rgba(34, 197, 94,0.3)] flex items-center justify-center">
             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Order'}
           </button>
         </div>
@@ -569,7 +569,7 @@ export default function QuickOrder() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(22,163,74,0.12)] rounded-[16px] border border-[#F8FAFC] overflow-hidden max-h-60 overflow-y-auto"
+                        className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(34, 197, 94,0.12)] rounded-[16px] border border-[#F8FAFC] overflow-hidden max-h-60 overflow-y-auto"
                       >
                         {filteredCustomers.map(customer => (
                           <div 
@@ -578,7 +578,7 @@ export default function QuickOrder() {
                             className="p-4 hover:bg-[#F5F7FA] cursor-pointer border-b border-[#F8FAFC] flex items-center justify-between"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-[12px] bg-[#F5F7FA] flex items-center justify-center text-[#16A34A] font-bold">
+                              <div className="h-10 w-10 rounded-[12px] bg-[#F5F7FA] flex items-center justify-center text-[#22C55E] font-bold">
                                 {customer.name.charAt(0).toUpperCase()}
                               </div>
                               <div>
@@ -656,7 +656,7 @@ export default function QuickOrder() {
             ))}
           </div>
           
-          <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full h-14 bg-[#16A34A] hover:bg-[#15803D] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_16px_rgba(22,163,74,0.3)]">
+          <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full h-14 bg-[#22C55E] hover:bg-[#15803D] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]">
             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Order'}
           </Button>
 

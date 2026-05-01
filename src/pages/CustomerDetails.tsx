@@ -318,7 +318,7 @@ export default function CustomerDetails() {
                  <Input value={editCustomerData.address} onChange={e => setEditCustomerData({...editCustomerData, address: e.target.value})} placeholder="Address" className="bg-[#F1F5F9] border-none" />
                  <div className="flex justify-end gap-2 pt-2">
                    <Button type="button" onClick={() => setIsEditingCustomer(false)} className="bg-transparent text-[#64748B] border border-[#E2E8F0] rounded-full px-5 py-2 h-auto text-[14px]">Cancel</Button>
-                   <Button type="submit" className="bg-[#16A34A] text-white rounded-full px-5 py-2 h-auto text-[14px]">Save</Button>
+                   <Button type="submit" className="bg-[#22C55E] text-white rounded-full px-5 py-2 h-auto text-[14px]">Save</Button>
                  </div>
                </form>
              </div>
@@ -358,7 +358,7 @@ export default function CustomerDetails() {
               onClick={() => setActiveTab(tab as any)}
               className={cn(
                 "px-8 py-2 rounded-full text-[14px] font-semibold transition-all",
-                activeTab === tab ? "bg-[#16A34A] text-white shadow-sm" : "text-[#64748B] bg-transparent"
+                activeTab === tab ? "bg-[#22C55E] text-white shadow-sm" : "text-[#64748B] bg-transparent"
               )}
             >
               {tab}
@@ -372,7 +372,7 @@ export default function CustomerDetails() {
           {activeTab === 'Orders' ? 'Order History' : 'Measurements'}
         </h2>
         {activeTab === 'Orders' && (
-          <Button onClick={() => setIsAddingOrder(!isAddingOrder)} className="bg-[#16A34A] text-white rounded-full h-8 px-4 text-[13px] font-semibold flex items-center gap-1">
+          <Button onClick={() => setIsAddingOrder(!isAddingOrder)} className="bg-[#22C55E] text-white rounded-full h-8 px-4 text-[13px] font-semibold flex items-center gap-1">
             <Plus className="w-4 h-4"/> New Order
           </Button>
         )}
@@ -390,7 +390,7 @@ export default function CustomerDetails() {
                  <Input type="number" value={newOrder.advancePayment} onChange={e => setNewOrder({...newOrder, advancePayment: e.target.value})} placeholder="Advance Payment" className="bg-[#F1F5F9] border-none" />
                  <div className="flex justify-end gap-2 pt-2">
                    <Button type="button" onClick={() => setIsAddingOrder(false)} className="bg-transparent text-[#64748B] border border-[#E2E8F0] rounded-full px-5 py-2 h-auto text-[14px]">Cancel</Button>
-                   <Button disabled={isUploading} type="submit" className="bg-[#16A34A] text-white rounded-full px-5 py-2 h-auto text-[14px]">
+                   <Button disabled={isUploading} type="submit" className="bg-[#22C55E] text-white rounded-full px-5 py-2 h-auto text-[14px]">
                      {isUploading ? <Loader2 className="w-4 h-4 animate-spin"/> : 'Create'}
                    </Button>
                  </div>
@@ -410,7 +410,7 @@ export default function CustomerDetails() {
                 onClick={() => setOrderFilter(f as any)}
                 className={cn(
                   "px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors",
-                  orderFilter === f ? "bg-[#16A34A] text-white" : "bg-white text-[#64748B] border border-[#E2E8F0]"
+                  orderFilter === f ? "bg-[#22C55E] text-white" : "bg-white text-[#64748B] border border-[#E2E8F0]"
                 )}
               >
                 {f}
@@ -435,7 +435,7 @@ export default function CustomerDetails() {
                     <div className="text-[14px] font-semibold text-[#0F172A] leading-none mb-0.5">{(order.price || 0).toLocaleString()}</div>
                     <div className={cn(
                       "px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider leading-relaxed",
-                      order.status === ORDER_STATUS.DELIVERED ? "bg-[#16A34A]" : 
+                      order.status === ORDER_STATUS.DELIVERED ? "bg-[#22C55E]" : 
                       order.status === ORDER_STATUS.PENDING ? "bg-[#F59E0B]" : "bg-[#1E293B]"
                     )}>
                       {order.status === ORDER_STATUS.DELIVERED ? 'Completed' : 
@@ -459,7 +459,7 @@ export default function CustomerDetails() {
                     className={cn(
                       "px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap",
                       activeSet === setName 
-                        ? "bg-[#16A34A] text-white" 
+                        ? "bg-[#22C55E] text-white" 
                         : "bg-[#F1F5F9] text-[#64748B]"
                     )}
                   >
@@ -481,7 +481,7 @@ export default function CustomerDetails() {
                   </div>
                 ))}
                 <div className="col-span-2 pt-2">
-                  <Button type="submit" disabled={savingMeasurements} className="w-full bg-[#16A34A] text-white rounded-full py-6 text-[15px] font-semibold">
+                  <Button type="submit" disabled={savingMeasurements} className="w-full bg-[#22C55E] text-white rounded-full py-6 text-[15px] font-semibold">
                     {savingMeasurements ? <Loader2 className="w-5 h-5 animate-spin"/> : 'Save Measurements'}
                   </Button>
                 </div>

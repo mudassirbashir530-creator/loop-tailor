@@ -155,7 +155,7 @@ export default function Customers() {
                   <div className="space-y-2">
                     <label className={cn("text-xs font-black text-[#64748B] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.fullName')}</label>
                     <div className="relative group">
-                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] group-focus-within:text-[#16A34A] transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] group-focus-within:text-[#22C55E] transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={newCustomer.name} 
@@ -168,7 +168,7 @@ export default function Customers() {
                   <div className="space-y-2">
                     <label className={cn("text-xs font-black text-[#64748B] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.phone')}</label>
                     <div className="relative group">
-                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] group-focus-within:text-[#16A34A] transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] group-focus-within:text-[#22C55E] transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={newCustomer.phone} 
@@ -181,7 +181,7 @@ export default function Customers() {
                   <div className="md:col-span-2 space-y-2">
                     <label className={cn("text-xs font-black text-[#64748B] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.address')}</label>
                     <div className="relative group">
-                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] group-focus-within:text-[#16A34A] transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] group-focus-within:text-[#22C55E] transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         value={newCustomer.address} 
                         onChange={e => setNewCustomer({...newCustomer, address: e.target.value})} 
@@ -193,7 +193,7 @@ export default function Customers() {
                   <div className="md:col-span-2 space-y-2">
                     <label className={cn("text-xs font-black text-[#64748B] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.notes')}</label>
                     <div className="relative group">
-                      <Notebook className={cn("absolute top-4 h-5 w-5 text-[#64748B] group-focus-within:text-[#16A34A] transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <Notebook className={cn("absolute top-4 h-5 w-5 text-[#64748B] group-focus-within:text-[#22C55E] transition-colors", isRTL ? "right-4" : "left-4")} />
                       <textarea 
                         value={newCustomer.notes} 
                         onChange={e => setNewCustomer({...newCustomer, notes: e.target.value})} 
@@ -225,14 +225,14 @@ export default function Customers() {
         )}
       </AnimatePresence>
 
-      <div className="flex bg-white rounded-full p-1.5 shadow-[0_2px_10px_rgba(22, 163, 74,0.04)] w-fit border border-[#F8FAFC]">
+      <div className="flex bg-white rounded-full p-1.5 shadow-[0_2px_10px_rgba(34, 197, 94,0.04)] w-fit border border-[#F8FAFC]">
         <button
           onClick={() => setFilterTab('all')}
           className={cn(
             "px-6 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
             filterTab === 'all' 
-              ? "bg-[#16A34A] text-white" 
-              : "text-[#64748B] hover:text-[#16A34A]"
+              ? "bg-[#22C55E] text-white" 
+              : "text-[#64748B] hover:text-[#22C55E]"
           )}
         >
           All Clients
@@ -242,8 +242,8 @@ export default function Customers() {
           className={cn(
             "px-6 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
             filterTab === 'active' 
-              ? "bg-[#16A34A] text-white" 
-              : "text-[#64748B] hover:text-[#16A34A]"
+              ? "bg-[#22C55E] text-white" 
+              : "text-[#64748B] hover:text-[#22C55E]"
           )}
         >
           Active
@@ -253,8 +253,8 @@ export default function Customers() {
           className={cn(
             "px-6 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
             filterTab === 'inactive' 
-              ? "bg-[#16A34A] text-white" 
-              : "text-[#64748B] hover:text-[#16A34A]"
+              ? "bg-[#22C55E] text-white" 
+              : "text-[#64748B] hover:text-[#22C55E]"
           )}
         >
           Inactive
@@ -276,7 +276,7 @@ export default function Customers() {
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="col-span-full py-16 px-4 text-center bg-white rounded-[24px] shadow-[0_2px_12px_rgba(22, 163, 74,0.04)] border border-[#F8FAFC] flex flex-col items-center space-y-6"
+                className="col-span-full py-16 px-4 text-center bg-white rounded-[24px] shadow-[0_2px_12px_rgba(34, 197, 94,0.04)] border border-[#F8FAFC] flex flex-col items-center space-y-6"
               >
                 <div className="w-64 max-w-full opaciy-80">
                   <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -306,16 +306,16 @@ export default function Customers() {
                   transition={{ delay: index * 0.05 }}
                 >
                   <div 
-                    className="card p-5 flex items-center justify-between hover:shadow-[0_8px_30px_rgba(22, 163, 74,0.08)] hover:-translate-y-1 transition-all group cursor-pointer"
+                    className="card p-5 flex items-center justify-between hover:shadow-[0_8px_30px_rgba(34, 197, 94,0.08)] hover:-translate-y-1 transition-all group cursor-pointer"
                     onClick={() => navigate(`/dashboard/customers/${customer.id}`)}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="h-14 w-14 rounded-[14px] bg-[#F5F7FA] flex items-center justify-center text-[#16A34A] font-black text-xl group-hover:bg-[#16A34A] group-hover:text-white transition-colors duration-300">
+                      <div className="h-14 w-14 rounded-[14px] bg-[#F5F7FA] flex items-center justify-center text-[#22C55E] font-black text-xl group-hover:bg-[#22C55E] group-hover:text-white transition-colors duration-300">
                         {customer.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-base font-bold text-[#0F172A] group-hover:text-[#16A34A] transition-colors line-clamp-1">
+                          <h3 className="text-base font-bold text-[#0F172A] group-hover:text-[#22C55E] transition-colors line-clamp-1">
                             {customer.name}
                           </h3>
                         </div>

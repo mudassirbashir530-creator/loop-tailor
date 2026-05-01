@@ -155,13 +155,13 @@ async function startServer() {
       const htmlContent = `
         <div style="font-family: 'Inter', Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 40px 0; text-align: center;">
           <div style="max-width: 480px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-            <h1 style="color: #16a34a; margin-bottom: 24px; font-size: 24px; font-weight: bold;">Loop Tailor</h1>
+            <h1 style="color: #22c55e; margin-bottom: 24px; font-size: 24px; font-weight: bold;">Loop Tailor</h1>
             <h2 style="color: #0f172a; font-size: 20px; margin-bottom: 16px;">Password Reset Verification</h2>
             <p style="color: #475569; font-size: 16px; line-height: 1.5; margin-bottom: 32px;">
               You recently requested to reset your password. Use the verification code below to proceed.
             </p>
-            <div style="background-color: #f0fdf4; border: 2px dashed #16a34a; border-radius: 8px; padding: 20px; margin-bottom: 32px;">
-              <span style="font-size: 36px; font-weight: bold; color: #16a34a; letter-spacing: 8px;">${otp}</span>
+            <div style="background-color: #f0fdf4; border: 2px dashed #22c55e; border-radius: 8px; padding: 20px; margin-bottom: 32px;">
+              <span style="font-size: 36px; font-weight: bold; color: #22c55e; letter-spacing: 8px;">${otp}</span>
             </div>
             <p style="color: #64748b; font-size: 14px; margin-bottom: 8px;">
               This code will expire in <strong>10 minutes</strong>.
@@ -295,12 +295,12 @@ async function startServer() {
         
         const htmlContent = `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #16a34a;">New Contact Form Submission</h2>
+            <h2 style="color: #22c55e;">New Contact Form Submission</h2>
             <p><strong>Name:</strong> ${firstName} ${lastName}</p>
             <p><strong>Email:</strong> ${email}</p>
             <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
             <p><strong>Message:</strong></p>
-            <blockquote style="background: #f8fafc; border-left: 4px solid #16a34a; padding: 16px; margin: 0; white-space: pre-wrap;">${message}</blockquote>
+            <blockquote style="background: #f8fafc; border-left: 4px solid #22c55e; padding: 16px; margin: 0; white-space: pre-wrap;">${message}</blockquote>
           </div>
         `;
 

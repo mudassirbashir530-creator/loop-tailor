@@ -28,7 +28,7 @@ export default function Notifications() {
       case 'new_order':
       case 'order_started':
       default:
-        return <FileText className="h-5 w-5 text-[#16A34A]" />;
+        return <FileText className="h-5 w-5 text-[#22C55E]" />;
     }
   };
 
@@ -87,7 +87,7 @@ export default function Notifications() {
                 !notification.read ? "bg-[#F5F7FA]/40" : ""
               )}
             >
-              {!notification.read && <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#16A34A]" />}
+              {!notification.read && <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#22C55E]" />}
               
               <div className="w-10 h-10 rounded-full bg-[#E2E8F0] flex items-center justify-center shrink-0">
                 {getIcon(notification.type)}
@@ -142,7 +142,7 @@ export default function Notifications() {
             onClick={() => setFilter(f as any)}
             className={cn(
               "px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors",
-              filter === f ? "bg-[#16A34A] text-white" : "bg-white border text-[#64748B] border-[#E2E8F0]"
+              filter === f ? "bg-[#22C55E] text-white" : "bg-white border text-[#64748B] border-[#E2E8F0]"
             )}
           >
             {f}
