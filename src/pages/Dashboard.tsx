@@ -68,10 +68,12 @@ export default function Dashboard() {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [upcomingDeliveries, setUpcomingDeliveries] = useState<any[]>([]);
   const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [allCustomers, setAllCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<DashboardTab>('recent');
   const [searchToken, setSearchToken] = useState('');
-  const [searchError, setSearchError] = useState('');
+  const [searchResults, setSearchResults] = useState<{ type: string; id: string; title: string; subtitle: string; url: string; }[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const { staff } = useStaff();
 
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -111,28 +113,58 @@ export default function Dashboard() {
     }).format(amount);
   };
 
-  const handleTokenSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchToken.trim() || !user) return;
-
-    setSearchError('');
-    try {
-      const q = query(
-        collection(db, 'shops', user.uid, 'orders'), 
-        where('tokenId', '==', searchToken.trim().toUpperCase())
-      );
-      const snap = await getDocs(q);
-      
-      if (!snap.empty) {
-        navigate(`/dashboard/orders/${snap.docs[0].id}`);
-      } else {
-        setSearchError('Order not found with this Token ID.');
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-      setSearchError('Error searching for order.');
+  useEffect(() => {
+    if (!searchToken.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
     }
-  };
+    
+    const token = searchToken.toLowerCase();
+    const results: { type: string; id: string; title: string; subtitle: string; url: string; }[] = [];
+    
+    // Customers (Name/Phone)
+    allCustomers.forEach(c => {
+      if ((c.name && c.name.toLowerCase().includes(token)) || (c.phone && c.phone.includes(token))) {
+        results.push({
+          type: 'customer',
+          id: `cust_${c.id}`,
+          title: c.name,
+          subtitle: c.phone || 'No phone',
+          url: `/dashboard/customers/${c.id}`
+        });
+      }
+    });
+
+    // Orders (ID/Name)
+    allOrders.forEach(o => {
+      if ((o.tokenId && o.tokenId.toLowerCase().includes(token)) || (o.customerName && o.customerName.toLowerCase().includes(token))) {
+        results.push({
+          type: 'order',
+          id: `ord_${o.id}`,
+          title: `Order #${o.tokenId}`,
+          subtitle: o.customerName || 'Unknown Customer',
+          url: `/dashboard/orders/${o.id}`
+        });
+      }
+    });
+
+    // Measurements (by customer name)
+    allCustomers.forEach(c => {
+      if (c.name && c.name.toLowerCase().includes(token)) {
+        results.push({
+          type: 'measurement',
+          id: `meas_${c.id}`,
+          title: `${c.name}'s Measurements`,
+          subtitle: c.phone || 'No phone',
+          url: `/dashboard/customers/${c.id}#measurements`
+        });
+      }
+    });
+
+    setSearchResults(results);
+    setShowSearchResults(true);
+  }, [searchToken, allCustomers, allOrders]);
 
   useEffect(() => {
     if (!user) return;
@@ -141,13 +173,16 @@ export default function Dashboard() {
 
     const unsubscribeCustomers = onSnapshot(collection(db, 'shops', user.uid, 'customers'), (customersSnap) => {
       let newCust = 0;
+      const loadedCustomers: any[] = [];
       customersSnap.forEach(doc => {
         const data = doc.data();
+        loadedCustomers.push({ id: doc.id, ...data });
         if (data.createdAt) {
           const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
           if (isThisMonth(createdAtDate)) newCust++;
         }
       });
+      setAllCustomers(loadedCustomers);
       setStats(prev => ({ ...prev, customers: customersSnap.size, newCustomersThisMonth: newCust }));
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'dashboard_customers');
@@ -325,12 +360,12 @@ export default function Dashboard() {
   }, [allOrders]);
 
   const topCustomersData = React.useMemo(() => {
-    const counts: Record<string, { count: number, name: string }> = {};
+    const counts: Record<string, { count: number, name: string, id: string }> = {};
     allOrders.forEach(o => {
       const id = o.customerId || o.customerName;
       if (id && o.customerName) {
         if (!counts[id]) {
-           counts[id] = { count: 0, name: o.customerName };
+           counts[id] = { count: 0, name: o.customerName, id: o.customerId };
         }
         counts[id].count += 1;
       }
@@ -438,26 +473,50 @@ export default function Dashboard() {
         </div>
 
         {/* Search Bar */}
-        <div className="px-4 mb-6">
-          <form 
-            onSubmit={handleTokenSearch} 
-            className="flex items-center gap-3 relative h-[44px] bg-[#F1F5F9] rounded-[12px] px-3"
-          >
+        <div className="px-4 mb-6 relative z-30">
+          <div className="flex items-center gap-3 relative h-[44px] bg-[#F1F5F9] rounded-[12px] px-3">
             <Search className="h-5 w-5 text-[#64748B]" />
             <input 
               type="text"
-              placeholder="Search orders, customers..."
+              placeholder="Search customers, orders, measurements..."
               value={searchToken}
               onChange={(e) => setSearchToken(e.target.value)}
+              onFocus={() => { if (searchToken) setShowSearchResults(true); }}
+              onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
               className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-[#0F172A] text-[14px]"
             />
-            {searchError && (
-              <p className="absolute -bottom-6 left-0 text-[10px] font-bold text-[#DC2626] uppercase tracking-wider">{searchError}</p>
+          </div>
+          
+          <AnimatePresence>
+            {showSearchResults && searchToken && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute top-[50px] left-4 right-4 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-80 overflow-y-auto z-50"
+              >
+                 {searchResults.length > 0 ? (
+                    searchResults.map((res) => (
+                      <div 
+                        key={res.id} 
+                        onClick={() => navigate(res.url)} 
+                        className="flex items-center gap-3 p-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
+                      >
+                         {res.type === 'customer' && <Users className="h-5 w-5 text-blue-500" />}
+                         {res.type === 'order' && <Scissors className="h-5 w-5 text-green-500" />}
+                         {res.type === 'measurement' && <FileText className="h-5 w-5 text-purple-500" />}
+                         <div>
+                           <div className="text-sm font-bold text-slate-800">{res.title}</div>
+                           <div className="text-xs text-slate-500">{res.subtitle}</div>
+                         </div>
+                      </div>
+                    ))
+                 ) : (
+                    <div className="p-4 text-center text-sm text-slate-500 font-medium">No results found</div>
+                 )}
+              </motion.div>
             )}
-            <div className="ml-auto flex items-center justify-center w-8 h-8">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
-            </div>
-          </form>
+          </AnimatePresence>
         </div>
 
         {/* Featured Card */}
@@ -487,9 +546,9 @@ export default function Dashboard() {
             {[
               { label: 'Orders', icon: Scissors, path: '/dashboard/orders', color: 'bg-green-100 text-[#22C55E]' },
               { label: 'Customers', icon: Users, path: '/dashboard/customers', color: 'bg-blue-100 text-blue-600' },
-              { label: 'Measurements', icon: FileText, path: '/dashboard/measurements', color: 'bg-purple-100 text-purple-600' },
-              { label: 'Designs', icon: TrendingUp, path: '/dashboard', color: 'bg-orange-100 text-orange-600' },
-              { label: 'Payments', icon: Search, path: '/dashboard/settings', color: 'bg-indigo-100 text-indigo-600' },
+              { label: 'Measurements', icon: FileText, path: '/dashboard/customers', color: 'bg-purple-100 text-purple-600' },
+              { label: 'Designs', icon: TrendingUp, path: '/dashboard/orders/new', color: 'bg-orange-100 text-orange-600' },
+              { label: 'Payments', icon: Search, path: '/dashboard/reminders', color: 'bg-indigo-100 text-indigo-600' },
             ].map((cat, i) => (
               <div key={i} className="flex flex-col items-center gap-2 min-w-[64px]" onClick={() => navigate(cat.path)}>
                 <div className={cn("w-[56px] h-[56px] rounded-full flex items-center justify-center", cat.color)}>
@@ -541,7 +600,7 @@ export default function Dashboard() {
             </div>
             <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
               {topCustomersData.map((customer, i) => (
-                <div key={i} className="flex flex-col items-center min-w-[72px] bg-white rounded-[16px] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+                <div key={i} onClick={() => { if (customer.id) navigate(`/dashboard/customers/${customer.id}`); }} className="flex flex-col items-center min-w-[72px] bg-white rounded-[16px] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)] cursor-pointer hover:bg-gray-50 transition-colors">
                   <div className="w-[52px] h-[52px] rounded-full bg-[#E2E8F0] flex items-center justify-center text-[#64748B] text-lg font-bold mb-2">
                     {customer.name.charAt(0).toUpperCase()}
                   </div>

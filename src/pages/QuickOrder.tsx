@@ -11,7 +11,6 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ArrowLeft, ArrowRight, Save, Hash, MapPin, Ruler, Loader2, Search, User, Phone, Check, Upload, X, Scissors, Calendar, CreditCard, Notebook, ChevronDown, Plus, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DesignModal } from '../components/DesignModal';
 
 import { getMeasurementCategoriesForDress } from '../lib/measurements';
 import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
@@ -22,6 +21,64 @@ import { useOrderTemplates } from '../hooks/useOrderTemplates';
 import { useStaff } from '../hooks/useStaff';
 import { toast } from 'sonner';
 import { useNotifications } from '../hooks/useNotifications';
+
+const STYLE_CATEGORIES = [
+  {
+    id: 'Collar',
+    title: 'Collar',
+    options: [
+      { id: 'classic', label: 'Classic Collar' },
+      { id: 'mandarin', label: 'Mandarin / Band Collar' },
+      { id: 'pointed', label: 'Pointed Collar' },
+      { id: 'round', label: 'Round Collar' },
+      { id: 'vshape', label: 'V-Shape Collar' },
+      { id: 'nehru', label: 'Nehru Collar' },
+    ]
+  },
+  {
+    id: 'Sleeves',
+    title: 'Sleeves',
+    options: [
+      { id: 'full', label: 'Full Sleeves' },
+      { id: 'half', label: 'Half Sleeves' },
+      { id: 'three_quarter', label: '3/4 Sleeves' },
+      { id: 'sleeveless', label: 'Sleeveless' },
+      { id: 'bell', label: 'Bell Sleeves' },
+    ]
+  },
+  {
+    id: 'Pocket',
+    title: 'Pocket',
+    options: [
+      { id: 'none', label: 'No Pocket' },
+      { id: 'single', label: 'Single Chest Pocket' },
+      { id: 'double', label: 'Double Side Pockets' },
+      { id: 'patch', label: 'Patch Pocket' },
+      { id: 'welt', label: 'Welt Pocket' },
+    ]
+  },
+  {
+    id: 'Placket',
+    title: 'Placket',
+    options: [
+      { id: 'simple', label: 'Simple Placket' },
+      { id: 'hidden', label: 'Hidden Placket' },
+      { id: 'french', label: 'French Placket' },
+      { id: 'half', label: 'Half Placket (Half PK)' },
+      { id: 'full', label: 'Full Button Placket' },
+    ]
+  },
+  {
+    id: 'Back',
+    title: 'Back',
+    options: [
+      { id: 'plain', label: 'Plain Back' },
+      { id: 'center', label: 'Center Pleat' },
+      { id: 'side', label: 'Side Pleats' },
+      { id: 'box', label: 'Box Pleat' },
+    ]
+  }
+];
 
 export default function QuickOrder() {
   const { user } = useAuth();
@@ -122,25 +179,7 @@ export default function QuickOrder() {
 
   // Customer Data
   
-  // Garment Part UI State
-  const [activePartModal, setActivePartModal] = useState<string | null>(null);
-  const [garmentDesigns, setGarmentDesigns] = useState<Record<string, string>>({
-    Collar: 'Classic',
-    Sleeves: 'Full',
-    Pocket: 'Single',
-    Placket: 'Hidden',
-    'Half Pk': 'None'
-  });
-  
-  const getOptionsForPart = (part: string) => {
-    switch (part) {
-      case 'Collar': return [{id: 'Classic', label: 'Classic'}, {id: 'Cutaway', label: 'Cutaway'}, {id: 'Mandarin', label: 'Mandarin'}, {id: 'Button Down', label: 'Button Down'}];
-      case 'Sleeves': return [{id: 'Full', label: 'Full Sleeves'}, {id: 'Half', label: 'Half Sleeves'}, {id: 'Roll Up', label: 'Roll Up'}];
-      case 'Pocket': return [{id: 'Single', label: 'Single Pocket'}, {id: 'Double', label: 'Double Pockets'}, {id: 'None', label: 'No Pocket'}];
-      default: return [{id: 'Option 1', label: 'Option 1'}, {id: 'Option 2', label: 'Option 2'}];
-    }
-  };
-
+  // Customer Data
   const [customerData, setCustomerData] = useState({
     name: '',
     phone: '',
@@ -179,6 +218,7 @@ export default function QuickOrder() {
   const [measurements, setMeasurements] = useState<any>({});
   const [measurementSets, setMeasurementSets] = useState<Record<string, any>>({});
   const [selectedMeasurementSet, setSelectedMeasurementSet] = useState('');
+  const [garmentStyles, setGarmentStyles] = useState<Record<string, string>>({});
 
   const handleSelectCustomer = async (customer: any) => {
     setCustomerData({
@@ -366,6 +406,7 @@ export default function QuickOrder() {
           quantity: Number(orderData.quantity),
           rackLocation: orderData.rackLocation,
           notes: orderData.notes,
+          garmentStyles: garmentStyles,
           measurements: Object.fromEntries(
             Object.entries(measurements).map(([k, v]) => [k, Number(v) || 0])
           ),
@@ -478,26 +519,37 @@ export default function QuickOrder() {
         </button>
       </div>
 
-      {/* Garment Part Options Row */}
+      {/* Garment Style Selection */}
       <div className="px-4 mb-8">
-        <div className="flex overflow-x-auto gap-4 hide-scrollbar pb-2">
-           {[ 
-             { label: 'Collar' },
-             { label: 'Sleeves' },
-             { label: 'Pocket' },
-             { label: 'Placket' },
-             { label: 'Half Pk' }
-           ].map((part, i) => {
-             const hasDesign = !!garmentDesigns[part.label];
-             return (
-             <div key={i} onClick={() => setActivePartModal(part.label)} className="flex flex-col items-center shrink-0 min-w-[72px] cursor-pointer">
-               <div className={`w-[56px] h-[56px] rounded-[16px] flex items-center justify-center mb-2 transition-colors ${hasDesign ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-white text-[#64748B] shadow-[0_2px_12px_rgba(0,0,0,0.07)]'}`}>
-                 <Tag className="w-6 h-6" />
+        <h3 className="text-[16px] font-bold text-[#0F172A] mb-4">Garment Style Selection</h3>
+        <div className="space-y-6">
+          {STYLE_CATEGORIES.map((category) => (
+             <div key={category.id}>
+               <h4 className="text-xs font-bold text-[#64748B] uppercase tracking-widest mb-3" >{category.title}</h4>
+               <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar md:grid md:grid-cols-4 lg:grid-cols-5">
+                 {category.options.map(opt => {
+                   const isSelected = garmentStyles[category.id] === opt.label;
+                   return (
+                     <div 
+                       key={opt.id} 
+                       onClick={() => setGarmentStyles(prev => ({...prev, [category.id]: opt.label}))}
+                       className={cn(
+                         "flex flex-col items-center justify-between p-3 rounded-xl border-2 min-w-[110px] cursor-pointer transition-all bg-white",
+                         isSelected ? "border-[#22C55E] bg-[#22C55E]/5 shadow-sm" : "border-transparent border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+                       )}
+                     >
+                        <div className="w-16 h-16 bg-[#F1F5F9] rounded-lg mb-3 flex items-center justify-center text-3xl">
+                           {category.id === 'Collar' ? '👔' : category.id === 'Sleeves' ? '👕' : category.id === 'Pocket' ? '👝' : category.id === 'Placket' ? '🧵' : '🎽'}
+                        </div>
+                        <div className="text-[12px] font-semibold text-center text-[#334155] leading-tight">
+                          {opt.label}
+                        </div>
+                     </div>
+                   );
+                 })}
                </div>
-               <div className={`text-[12px] font-medium ${hasDesign ? 'text-[#22C55E]' : 'text-[#64748B]'}`}>{part.label}</div>
-               {hasDesign && <div className="w-8 h-1 bg-[#22C55E] rounded-full mt-1.5"></div>}
              </div>
-           )})}
+          ))}
         </div>
       </div>
 
@@ -661,19 +713,6 @@ export default function QuickOrder() {
           </Button>
 
       </div>
-
-      <AnimatePresence>
-        {activePartModal && (
-          <DesignModal 
-            partName={activePartModal}
-            options={getOptionsForPart(activePartModal)}
-            selectedOption={garmentDesigns[activePartModal] || ''}
-            onSelect={(id) => setGarmentDesigns({...garmentDesigns, [activePartModal]: id})}
-            onClose={() => setActivePartModal(null)}
-            onSave={() => setActivePartModal(null)}
-          />
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }

@@ -9,7 +9,7 @@ import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, collect
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMeasurementName } from '../lib/measurements';
@@ -454,6 +454,33 @@ export default function OrderDetails() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Garment Styles Card */}
+          {order.garmentStyles && Object.keys(order.garmentStyles).length > 0 && (
+            <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-transparent border-b border-gray-200/50 p-6 flex flex-row items-center justify-between">
+                <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Scissors className="h-5 w-5 text-brand-primary" />
+                  Garment Style Selection
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {Object.entries(order.garmentStyles).map(([key, value]) => (
+                    <div key={key} className="bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-4 rounded-xl border border-gray-100 flex flex-col items-center justify-center text-center">
+                      <div className="w-10 h-10 bg-[#F1F5F9] rounded-lg mb-2 flex items-center justify-center text-xl">
+                        {key.toLowerCase() === 'collar' ? '👔' : key.toLowerCase() === 'sleeves' ? '👕' : key.toLowerCase() === 'pocket' ? '👝' : key.toLowerCase() === 'placket' ? '🧵' : '🎽'}
+                      </div>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">
+                        {key}
+                      </span>
+                      <span className="text-sm font-bold text-slate-800 leading-tight block">{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Measurements Card */}
           <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">

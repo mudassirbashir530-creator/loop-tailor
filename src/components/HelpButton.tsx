@@ -42,9 +42,8 @@ export default function HelpButton() {
   }
 
   const handleWhatsapp = () => {
-    // 923001234567 as requested
-    const phone = settings.phone ? settings.phone.replace(/[^\d+]/g, '') : "923001234567";
-    const shopPhone = phone || "923001234567";
+    // Override requested phone number
+    const shopPhone = "923321379924";
     window.open(`https://wa.me/${shopPhone}?text=Hi! I need some help with Loop Tailor.`, '_blank');
   };
 
