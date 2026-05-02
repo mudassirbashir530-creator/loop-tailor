@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -108,8 +108,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           photoURL: photoURL || user.photoURL || '',
           provider: provider,
           preferred_language: language || 'en',
+          plan: null,
           role: 'user',
-          createdAt: new Date().toISOString(),
+          isAdmin: false,
+          paymentStatus: 'not_paid',
+          subscriptionActive: false,
+          trialActive: false,
+          trialStartDate: null,
+          createdAt: serverTimestamp(),
+          features: {
+            cms: true,
+            workerAssign: false,
+            whatsapp: false,
+            invoice: false,
+            imageUpload: false,
+            aiSuggestions: false
+          }
         });
       }
 
@@ -122,7 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           phone: phone || '',
           logoUrl: shopLogoUrl || '',
           address: shopAddress || '',
-          createdAt: new Date().toISOString(),
+          createdAt: serverTimestamp(),
         });
       }
     } catch (error) {

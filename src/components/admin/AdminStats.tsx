@@ -16,14 +16,32 @@ export default function AdminStats() {
     const usersUnsub = onSnapshot(collection(db, 'users'), (snap) => {
       let activeT = 0;
       let paid = 0;
+      let rev = 0;
+      const amounts: Record<string, number> = { 
+        basic: 500, 
+        standard: 1000, 
+        premium: 2000 
+      };
 
       snap.forEach(doc => {
         const data = doc.data();
-        if (data.subscriptionActive) {
+        
+        if (data.paymentStatus === 'paid') {
            paid++;
+           if (data.plan && typeof data.plan === 'string') {
+               rev += (amounts[data.plan.toLowerCase()] || 0);
+           }
         }
-        if (data.trialActive) {
-           activeT++;
+        
+        if (data.trialStartDate) {
+           const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+           const trialStartMillis = typeof data.trialStartDate.toMillis === 'function' 
+              ? data.trialStartDate.toMillis() 
+              : new Date(data.trialStartDate).getTime();
+              
+           if (Date.now() < trialStartMillis + thirtyDays) {
+               activeT++;
+           }
         }
       });
       
@@ -31,24 +49,13 @@ export default function AdminStats() {
         ...prev,
         totalUsers: snap.size,
         activeTrials: activeT,
-        paidSubscribers: paid
+        paidSubscribers: paid,
+        totalRevenue: rev
       }));
-    });
-
-    const subsUnsub = onSnapshot(collection(db, 'subscriptions'), (snap) => {
-      let rev = 0;
-      snap.forEach(doc => {
-        const d = doc.data();
-        if (d.status === 'paid' && d.amount) {
-           rev += Number(d.amount);
-        }
-      });
-      setStats(prev => ({ ...prev, totalRevenue: rev }));
     });
 
     return () => {
       usersUnsub();
-      subsUnsub();
     };
   }, []);
 

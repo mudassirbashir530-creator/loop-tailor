@@ -25,7 +25,19 @@ export default function UserManageModal({ user, onClose }: { user: any; onClose:
     setLoading(true);
     try {
       await updateDoc(doc(db, 'users', user.id), {
-        ...formData
+        plan: formData.plan,
+        paymentStatus: formData.paymentStatus,
+        subscriptionActive: formData.paymentStatus === 'paid',
+        features: {
+          cms: formData.features.cms,
+          workerAssign: formData.features.workerAssign,
+          whatsapp: formData.features.whatsapp,
+          invoice: formData.features.invoice,
+          imageUpload: formData.features.imageUpload,
+          aiSuggestions: formData.features.aiSuggestions,
+        },
+        updatedAt: serverTimestamp(),
+        updatedBy: 'admin'
       });
 
       await setDoc(doc(collection(db, 'adminLogs')), {
@@ -47,14 +59,49 @@ export default function UserManageModal({ user, onClose }: { user: any; onClose:
     }
   };
 
-  const handleExtendTrial = () => {
-    setFormData(prev => ({ ...prev, trialActive: true }));
-    toast.success('Trial set to active (pending save)');
+  const handleExtendTrial = async () => {
+    try {
+      const now = new Date();
+      await updateDoc(doc(db, 'users', user.id), {
+        trialStartDate: now,
+        trialActive: true,
+        updatedAt: serverTimestamp(),
+      });
+      await setDoc(doc(collection(db, 'adminLogs')), {
+        action: 'Extended Trial',
+        targetUser: user.name || user.email,
+        targetUserId: user.id,
+        performedBy: 'admin',
+        timestamp: serverTimestamp(),
+        details: '+30 Days Trial Added'
+      });
+      toast.success('Trial set to active (+30 days)');
+    } catch (e) {
+      toast.error('Failed to update trial');
+    }
   };
 
-  const handleEndTrial = () => {
-    setFormData(prev => ({ ...prev, trialActive: false }));
-    toast.success('Trial set to inactive (pending save)');
+  const handleEndTrial = async () => {
+    try {
+      // Set to 30 days ago to expire
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      await updateDoc(doc(db, 'users', user.id), {
+        trialStartDate: thirtyDaysAgo,
+        trialActive: false,
+        updatedAt: serverTimestamp(),
+      });
+      await setDoc(doc(collection(db, 'adminLogs')), {
+        action: 'Ended Trial',
+        targetUser: user.name || user.email,
+        targetUserId: user.id,
+        performedBy: 'admin',
+        timestamp: serverTimestamp(),
+        details: 'Trial Manually Ended'
+      });
+      toast.success('Trial ended immediately');
+    } catch (e) {
+      toast.error('Failed to end trial');
+    }
   };
 
   const toggleFeature = (key: keyof typeof formData.features) => {

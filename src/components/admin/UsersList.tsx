@@ -58,24 +58,50 @@ export default function UsersList() {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map(user => (
+            {filteredUsers.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="py-8 text-center text-slate-500">
+                  No users yet. Users will appear here automatically when they sign up.
+                </td>
+              </tr>
+            ) : filteredUsers.map(user => {
+              
+              let planDisplay = <span className="text-amber-600 font-bold bg-amber-50 px-2 py-1 rounded text-xs border border-amber-200">⚠️ No Plan Selected</span>;
+              if (user.plan?.toLowerCase() === 'basic') planDisplay = <span>Basic - Rs.500</span>;
+              else if (user.plan?.toLowerCase() === 'standard') planDisplay = <span>Standard - Rs.1000</span>;
+              else if (user.plan?.toLowerCase() === 'premium') planDisplay = <span>Premium - Rs.2000</span>;
+
+              let trialDisplay = <span className="text-slate-500 italic text-xs">No Trial Started</span>;
+              if (user.trialStartDate) {
+                 const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+                 const trialStartMillis = typeof user.trialStartDate.toMillis === 'function' 
+                    ? user.trialStartDate.toMillis() 
+                    : new Date(user.trialStartDate).getTime();
+                 const daysLeft = Math.max(0, Math.ceil((trialStartMillis + thirtyDays - Date.now()) / (1000 * 60 * 60 * 24)));
+                 
+                 if (daysLeft > 0) {
+                   trialDisplay = <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 font-medium">Active ({daysLeft}d left)</span>;
+                 } else {
+                   trialDisplay = <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700 font-medium">Expired</span>;
+                 }
+              }
+
+              let paymentDisplay = <span className="text-slate-400 font-medium text-xs">❌ Not Paid</span>;
+              if (user.paymentStatus === 'paid') paymentDisplay = <span className="text-green-600 font-bold text-xs bg-green-50 px-2 py-1 rounded">✅ Paid</span>;
+              else if (user.paymentStatus === 'pending') paymentDisplay = <span className="text-amber-600 font-bold text-xs bg-amber-50 px-2 py-1 rounded">⏳ Pending</span>;
+
+              return (
               <tr key={user.id} className="border-b border-slate-50 hover:bg-slate-50/50">
                 <td className="py-3 px-4">
-                  <p className="font-medium text-slate-900">{user.name || 'Unnamed'}</p>
+                  <p className="font-medium text-slate-900">{user.name || user.displayName || 'Unnamed'}</p>
                   <p className="text-xs text-slate-500">{user.email}</p>
                 </td>
-                <td className="py-3 px-4 text-sm font-medium">{user.plan || 'Basic'}</td>
+                <td className="py-3 px-4 text-sm font-medium">{planDisplay}</td>
                 <td className="py-3 px-4 text-sm">
-                  <span className={`px-2 py-1 rounded-full text-xs ${user.trialActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {user.trialActive ? 'Active' : 'Expired'}
-                  </span>
+                  {trialDisplay}
                 </td>
                 <td className="py-3 px-4 text-sm">
-                  {user.paymentStatus === 'paid' ? (
-                    <span className="text-green-600 font-medium">Paid</span>
-                  ) : (
-                    <span className="text-amber-600 font-medium">Pending</span>
-                  )}
+                  {paymentDisplay}
                 </td>
                 <td className="py-3 px-4 text-sm text-slate-500">{formatDate(user.createdAt)}</td>
                 <td className="py-3 px-4 text-right">
@@ -87,7 +113,7 @@ export default function UsersList() {
                   </button>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>
