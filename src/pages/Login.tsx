@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 
 export default function Login() {
@@ -17,9 +17,11 @@ export default function Login() {
   const { signIn, user } = useAuth();
   const { t, isRTL, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    const from = location.state?.from?.pathname || '/dashboard';
+    return <Navigate to={from} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +32,8 @@ export default function Login() {
 
     try {
       await signIn(email, password);
-      navigate('/dashboard');
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please try again.');
     } finally {

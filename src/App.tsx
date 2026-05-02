@@ -77,8 +77,11 @@ function LoadingFallback() {
   );
 }
 
+import { useLocation } from 'react-router-dom';
+
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, wasLoggedIn } = useAuth();
+  const location = useLocation();
   
   // If we know they were logged in, optimistically render the children
   // The children (like Dashboard) will handle their own loading states or use cached data
@@ -90,7 +93,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
     return <LoadingFallback />;
   }
   
-  return user ? <>{children}</> : <Navigate to="/login" />;
+  return user ? <>{children}</> : <Navigate to="/login" state={{ from: location }} replace />;
 }
 
 import HelpButton from './components/HelpButton';
