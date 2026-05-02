@@ -80,14 +80,14 @@ export default function UsersList() {
                  const daysLeft = Math.max(0, Math.ceil((trialStartMillis + thirtyDays - Date.now()) / (1000 * 60 * 60 * 24)));
                  
                  if (daysLeft > 0) {
-                   trialDisplay = <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 font-medium">Active ({daysLeft}d left)</span>;
+                   trialDisplay = <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-[#0D3D33] font-medium">Active ({daysLeft}d left)</span>;
                  } else {
                    trialDisplay = <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700 font-medium">Expired</span>;
                  }
               }
 
               let paymentDisplay = <span className="text-slate-400 font-medium text-xs">❌ Not Paid</span>;
-              if (user.paymentStatus === 'paid') paymentDisplay = <span className="text-green-600 font-bold text-xs bg-green-50 px-2 py-1 rounded">✅ Paid</span>;
+              if (user.paymentStatus === 'paid') paymentDisplay = <span className="text-[#0D3D33] font-bold text-xs bg-green-50 px-2 py-1 rounded">✅ Paid</span>;
               else if (user.paymentStatus === 'pending') paymentDisplay = <span className="text-amber-600 font-bold text-xs bg-amber-50 px-2 py-1 rounded">⏳ Pending</span>;
 
               return (
