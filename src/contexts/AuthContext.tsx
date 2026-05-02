@@ -51,13 +51,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setWasLoggedIn(true);
         try {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-          if (userDoc.exists() && userDoc.data().role === 'admin') {
-            setIsAdmin(true);
-          } else if (currentUser.email === 'mudassirbashir530@gmail.com' && currentUser.emailVerified) {
-            setIsAdmin(true);
-          } else {
-            setIsAdmin(false);
-          }
+            if (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email)) {
+              if (userDoc.data()?.role !== 'admin' || !userDoc.data()?.isAdmin) {
+                // Auto-fix admin role in Firestore
+                await setDoc(doc(db, 'users', currentUser.uid), {
+                  role: 'admin',
+                  isAdmin: true,
+                  plan: 'premium',
+                  subscriptionActive: true,
+                  trialActive: false,
+                  paymentStatus: 'paid'
+                }, { merge: true });
+              }
+              setIsAdmin(true);
+            } else if (userDoc.exists() && userDoc.data().role === 'admin') {
+              setIsAdmin(true);
+            } else {
+              setIsAdmin(false);
+            }
         } catch (error) {
           console.error("Error fetching user role:", error);
           setIsAdmin(false);
