@@ -416,7 +416,7 @@ ${THEME}
 <body>
     <header class="header">
         <a href="index.html" class="header-left">
-            <div class="header-logo-circle">✂</div>
+            <img src="logo.png" alt="LoopTailor Logo" style="width:36px; height:36px; border-radius:8px;">
             <div class="header-title">Loop Tailor</div>
         </a>
         <button class="hamburger" onclick="toggleMenu()" aria-label="Toggle menu">≡</button>
@@ -434,7 +434,7 @@ ${content}
 
     <footer class="footer">
         <div class="footer-logo">
-            <span>✂</span>
+            <img src="logo.png" alt="LoopTailor Logo" style="width:32px; height:32px; border-radius:8px;">
             <span>Loop Tailor</span>
         </div>
         <div class="footer-links">
@@ -478,7 +478,7 @@ const pages = {
 <div class="container text-center">
     <div class="hero-circle-wrap">
         <div class="hero-ring spin-ring"></div>
-        <div class="hero-circle">✂</div>
+        <img src="logo.png" alt="LoopTailor Logo" style="width:90px; height:90px; border-radius:20px; position:relative; z-index:2;">
     </div>
     <div class="hero-title">Loop Tailor</div>
     <div class="hero-subtitle">Smart Tailor Management Software</div>
