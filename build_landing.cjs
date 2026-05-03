@@ -1,5 +1,7 @@
 const fs = require('fs');
 
+const LOGO_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAYAAAA5ZDbSAAA7ZklEQVR42tV9ebglVXXvb+2qc+58b88D0BN0N+0EccYh2t1MDiQYP6OAxpj4xCnGfIlJSJQkXxInAt3EF40xwzO+lyCJQxBE8ySAIwKCYhREwKahgW6gofsOZ6y91/tjT6vqVNU5rfm+997la7rvPXWrdu1hDb/1W2sRMzMAuL9yX+T+Jz8iAINXAuSuI7JXFG9HFO8gnyXvR/Gi0vFAXFf7uXggM4exFe8xyrPiraqfKW4lnsN+JAPPtPcZ/Lz+XuHNxNg5dx3RwCwgtRNAIDHTLH+98E5cOkliQZnz10C+B+U2Q5gGKm6b8s1Wt7HKFq44AYV3r3xW+btx6eaXoyu5YmA8cSw05HmDiy4PkNwfROX3BIC0bAfnB1W+yym3S+P0c92WlPdxv0Ils85iw5J7FxDZXylsoLrFzX8WTyGVPavy/cu3ll/zcG3JgSyZxlJxQyi7UN5QbhZ5mPIjHHwe2wWuW9ji4obDFkSyvZE8SVT5ZhzFq58cce8BEchxYQsDGnGSBsdTNTY/LhqyKiQnoGTBq57j321A4lSOm2rGyzlpWHefNK87h+wyZv9NiWjgoYvrN0TuGqIhJwgjLdywPTBMv9ZPZtmpzr3ZkDFzYc/WHSQ7x9XXoPbzEhFNhTnmAdUUblbQE3lDZbgEGDoJpScxf1qGGVjeqCp/XrzXaGOq0/5CKg2bZR5t09p3w9CNUvdeRdFOXJitakuR6vVxxe5nHl0FUIkFExfMLSxVTVjRoqTasVSPiXMW8zCJVGezSHuoSmzLDVv7rEoVECVj/ll2ztJqG3l0a2FAIzGj1nAtmUh/FrxOHxRLXHGe/H3K9KSwcBlDNyWzGXhCUS9XSw8eOPH1m5tHux8P2u9lrhQXz4bXpsyGvcXEte4IDTkF0fLikfzAIXq1ZJOM4lIMuE+5FxoU92AGU8F0L7su5y5RDQ6AmjHRTy0ly2yG+vvYz1SpNVi4IfkJr9EP/uUZVX7eaAaPtbC5yjEpEZFcNfISa4sGBs0D1xQXd8hGKujOUY27ulPLQ2/C9XZIHBlUuRiQO4HAA258dMCkq1M/LjsJ9YO34qd2cSvRoGGuEAsjxV1D8nep8h6DiFJxPFxrOUvjsAoxLD/dXIEE1puEVPSDuQI5qvqJ37Ek/CUq+Hrl";
+
 const THEME = `
 :root {
   --primary:    #0D3D33;
@@ -10,6 +12,9 @@ const THEME = `
   --text-b:     #555555;
   --border:     #E2DDD6;
   --caption:    #888888;
+  --logo-size-header: 36px;
+  --logo-size-footer: 32px;
+  --logo-size-hero: 90px;
 }
 
 body {
@@ -416,7 +421,7 @@ ${THEME}
 <body>
     <header class="header">
         <a href="index.html" class="header-left">
-            <img src="logo.png" alt="LoopTailor Logo" style="width:36px; height:36px; border-radius:8px;">
+            <img src="${LOGO_B64}" alt="LoopTailor Logo" style="width:var(--logo-size-header); height:var(--logo-size-header); border-radius:8px;">
             <div class="header-title">Loop Tailor</div>
         </a>
         <button class="hamburger" onclick="toggleMenu()" aria-label="Toggle menu">≡</button>
@@ -434,7 +439,7 @@ ${content}
 
     <footer class="footer">
         <div class="footer-logo">
-            <img src="logo.png" alt="LoopTailor Logo" style="width:32px; height:32px; border-radius:8px;">
+            <img src="${LOGO_B64}" alt="LoopTailor Logo" style="width:var(--logo-size-footer); height:var(--logo-size-footer); border-radius:8px;">
             <span>Loop Tailor</span>
         </div>
         <div class="footer-links">
@@ -478,7 +483,7 @@ const pages = {
 <div class="container text-center">
     <div class="hero-circle-wrap">
         <div class="hero-ring spin-ring"></div>
-        <img src="logo.png" alt="LoopTailor Logo" style="width:90px; height:90px; border-radius:20px; position:relative; z-index:2;">
+        <img src="${LOGO_B64}" alt="LoopTailor Logo" style="width:var(--logo-size-hero); height:var(--logo-size-hero); border-radius:20px; position:relative; z-index:2;">
     </div>
     <div class="hero-title">Loop Tailor</div>
     <div class="hero-subtitle">Smart Tailor Management Software</div>
