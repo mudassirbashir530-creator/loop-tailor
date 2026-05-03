@@ -16,11 +16,14 @@
                 extend: {
                     colors: {
                         brand: {
-                            primary: '#22C55E',
-                            accent: '#0D3D33',
-                            bg: '#F5F7FA',
-                            text: '#0F172A',
-                            muted: '#64748B'
+                            primary: 'var(--primary)',
+                            accent: 'var(--accent)',
+                            bg: 'var(--bg)',
+                            card: 'var(--card)',
+                            heading: 'var(--text-h)',
+                            body: 'var(--text-b)',
+                            border: 'var(--border)',
+                            caption: 'var(--caption)'
                         }
                     },
                     fontFamily: {
@@ -32,27 +35,27 @@
         }
     </script>
 </head>
-<body class="bg-brand-bg text-brand-text antialiased fade-in">
+<body class="bg-brand-bg text-brand-heading antialiased fade-in">
 
     <div id="header-container"></div>
 
     <main class="min-h-screen pt-20 pb-20">
-        <section class="bg-white py-12 border-b border-gray-100">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center bg-white">
-                <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Privacy Policy</h1>
-                <p class="text-brand-muted font-inter">Last updated: <span class="font-bold">March 23, 2026</span></p>
+        <section class="bg-brand-card py-12 border-b border-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center bg-brand-card">
+                <h1 class="text-4xl font-extrabold text-brand-heading mb-4">Privacy Policy</h1>
+                <p class="text-brand-body font-inter">Last updated: <span class="font-bold">March 23, 2026</span></p>
             </div>
         </section>
 
-        <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
-            <div class="prose prose-lg text-brand-muted font-inter space-y-8">
+        <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 bg-brand-card p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
+            <div class="prose prose-lg text-brand-body font-inter space-y-8">
                 <section>
-                    <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">1. What is Loop Tailor?</h2>
+                    <h2 class="text-2xl font-bold text-brand-heading font-sans mb-4">1. What is Loop Tailor?</h2>
                     <p class="leading-relaxed">Loop Tailor is a specialized, cloud-based management platform designed exclusively for the tailoring industry. Our primary purpose is to digitize and streamline the traditional tailoring workflow, replacing manual paper-based records with a secure, efficient, and organized digital system.</p>
                 </section>
 
                 <section>
-                    <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">2. Information We Collect</h2>
+                    <h2 class="text-2xl font-bold text-brand-heading font-sans mb-4">2. Information We Collect</h2>
                     <p class="mb-4">To provide our services effectively, we collect the following types of information:</p>
                     <ul class="list-disc pl-6 space-y-2">
                         <li><strong>Account Information:</strong> When you sign up, we collect your name, email address, shop name, and preferred interface language.</li>
@@ -62,7 +65,7 @@
                 </section>
 
                 <section>
-                    <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">3. Data Storage and Security</h2>
+                    <h2 class="text-2xl font-bold text-brand-heading font-sans mb-4">3. Data Storage and Security</h2>
                     <p class="leading-relaxed mb-4">We prioritize the security of your data. Loop Tailor utilizes industry-standard cloud infrastructure provided by Google Firebase to store and protect your information.</p>
                     <ul class="list-disc pl-6 space-y-2">
                         <li><strong>Encryption:</strong> Data is encrypted both in transit and at rest.</li>
@@ -71,7 +74,7 @@
                 </section>
 
                 <section>
-                    <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">4. Contact Us</h2>
+                    <h2 class="text-2xl font-bold text-brand-heading font-sans mb-4">4. Contact Us</h2>
                     <p class="leading-relaxed">If you have any questions or concerns about this Privacy Policy, please contact us at <a href="mailto:looptailor@gmail.com" class="text-brand-primary font-bold hover:underline">looptailor@gmail.com</a>.</p>
                 </section>
             </div>

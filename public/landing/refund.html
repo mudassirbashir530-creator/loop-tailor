@@ -16,11 +16,14 @@
                 extend: {
                     colors: {
                         brand: {
-                            primary: '#22C55E',
-                            accent: '#0D3D33',
-                            bg: '#F5F7FA',
-                            text: '#0F172A',
-                            muted: '#64748B'
+                            primary: 'var(--primary)',
+                            accent: 'var(--accent)',
+                            bg: 'var(--bg)',
+                            card: 'var(--card)',
+                            heading: 'var(--text-h)',
+                            body: 'var(--text-b)',
+                            border: 'var(--border)',
+                            caption: 'var(--caption)'
                         }
                     },
                     fontFamily: {
@@ -32,33 +35,33 @@
         }
     </script>
 </head>
-<body class="bg-brand-bg text-brand-text antialiased fade-in">
+<body class="bg-brand-bg text-brand-heading antialiased fade-in">
 
     <div id="header-container"></div>
 
     <main class="min-h-screen pt-20 pb-20">
-        <section class="bg-white py-12 border-b border-gray-100">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center bg-white">
-                <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Refund Policy</h1>
-                <p class="text-brand-muted font-inter">Last updated: <span class="font-bold">March 23, 2026</span></p>
+        <section class="bg-brand-card py-12 border-b border-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center bg-brand-card">
+                <h1 class="text-4xl font-extrabold text-brand-heading mb-4">Refund Policy</h1>
+                <p class="text-brand-body font-inter">Last updated: <span class="font-bold">March 23, 2026</span></p>
             </div>
         </section>
 
-        <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
-            <div class="prose prose-lg text-brand-muted font-inter space-y-8">
+        <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 bg-brand-card p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100">
+            <div class="prose prose-lg text-brand-body font-inter space-y-8">
                 <section>
                     <p class="leading-relaxed">This Refund Policy outlines the terms and conditions for subscriptions on Loop Tailor.</p>
                 </section>
                 <section>
-                    <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">1. Subscription Plans</h2>
+                    <h2 class="text-2xl font-bold text-brand-heading font-sans mb-4">1. Subscription Plans</h2>
                     <p class="leading-relaxed">We offer various subscription plans. Refunds are generally not provided for active subscriptions, except as required by law or under specific circumstances outlined below.</p>
                 </section>
                 <section>
-                    <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">2. Cancellation</h2>
+                    <h2 class="text-2xl font-bold text-brand-heading font-sans mb-4">2. Cancellation</h2>
                     <p class="leading-relaxed">You can cancel your subscription at any time. Cancellation will prevent future billing, but no prorated refund will be issued for the current billing cycle.</p>
                 </section>
                 <section>
-                    <h2 class="text-2xl font-bold text-gray-900 font-sans mb-4">3. Exceptions</h2>
+                    <h2 class="text-2xl font-bold text-brand-heading font-sans mb-4">3. Exceptions</h2>
                     <p class="leading-relaxed">If you experience significant technical issues that prevent you from using the core features of Loop Tailor, and our support team is unable to resolve them within a reasonable timeframe, you may be eligible for a refund at our discretion.</p>
                 </section>
             </div>

@@ -16,11 +16,14 @@
                 extend: {
                     colors: {
                         brand: {
-                            primary: '#22C55E',
-                            accent: '#0D3D33',
-                            bg: '#F5F7FA',
-                            text: '#0F172A',
-                            muted: '#64748B'
+                            primary: 'var(--primary)',
+                            accent: 'var(--accent)',
+                            bg: 'var(--bg)',
+                            card: 'var(--card)',
+                            heading: 'var(--text-h)',
+                            body: 'var(--text-b)',
+                            border: 'var(--border)',
+                            caption: 'var(--caption)'
                         }
                     },
                     fontFamily: {
@@ -32,7 +35,7 @@
         }
     </script>
 </head>
-<body class="bg-brand-bg text-brand-text antialiased fade-in">
+<body class="bg-brand-bg text-brand-heading antialiased fade-in">
 
     <div id="header-container"></div>
 
@@ -41,7 +44,7 @@
         <section class="bg-brand-accent text-white py-20 relative overflow-hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                 <h1 class="text-4xl md:text-5xl font-extrabold mb-4">About LoopTailor</h1>
-                <p class="text-xl text-green-100 max-w-2xl mx-auto font-inter">
+                <p class="text-xl text-brand-body max-w-2xl mx-auto font-inter">
                     Our mission is to bring traditional tailoring businesses into the digital age, empowering them with efficient tools to grow.
                 </p>
             </div>
@@ -51,10 +54,10 @@
         </section>
 
         <!-- Content Section -->
-        <section class="py-20 bg-white">
+        <section class="py-20 bg-brand-card">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="prose prose-lg text-brand-muted font-inter">
-                    <h2 class="text-3xl font-bold text-gray-900 font-sans mb-6">Our Story</h2>
+                <div class="prose prose-lg text-brand-body font-inter">
+                    <h2 class="text-3xl font-bold text-brand-heading font-sans mb-6">Our Story</h2>
                     <p class="mb-6 leading-relaxed">
                         LoopTailor was born out of a simple observation: tailors and boutique owners, despite creating beautiful and intricate garments, often struggle with the back-office management of their businesses. Piles of paper measurement books, missed WhatsApp messages, and disorganized invoices were common pain points holding them back.
                     </p>
@@ -65,28 +68,28 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-16">
                         <div class="bg-brand-bg p-8 rounded-2xl border border-gray-100">
                             <span class="material-symbols-outlined text-4xl text-brand-primary mb-4">visibility</span>
-                            <h3 class="text-xl font-bold text-gray-900 font-sans mb-3">Our Vision</h3>
+                            <h3 class="text-xl font-bold text-brand-heading font-sans mb-3">Our Vision</h3>
                             <p class="text-sm">To be the global standard software for custom clothing, ensuring every tailor shop runs smoothly, effortlessly, and profitably.</p>
                         </div>
                         <div class="bg-brand-bg p-8 rounded-2xl border border-gray-100">
                             <span class="material-symbols-outlined text-4xl text-brand-primary mb-4">rocket_launch</span>
-                            <h3 class="text-xl font-bold text-gray-900 font-sans mb-3">Our Mission</h3>
+                            <h3 class="text-xl font-bold text-brand-heading font-sans mb-3">Our Mission</h3>
                             <p class="text-sm">To provide accessible, affordable, and easy-to-use digital tools tailored specifically for the clothing manufacturing and retailing industry.</p>
                         </div>
                     </div>
 
-                    <h2 class="text-3xl font-bold text-gray-900 font-sans mb-6">Why Choose Us?</h2>
+                    <h2 class="text-3xl font-bold text-brand-heading font-sans mb-6">Why Choose Us?</h2>
                     <ul class="space-y-4 mb-6">
                         <li class="flex items-start gap-3">
-                            <span class="material-symbols-outlined text-brand-primary shrink-0 mt-1">check_circle</span>
+                            <span class="material-symbols-outlined text-brand-accent shrink-0 mt-1">check_circle</span>
                             <span><strong>Designed by experts:</strong> We talked to hundreds of boutique owners before writing a single line of code.</span>
                         </li>
                         <li class="flex items-start gap-3">
-                            <span class="material-symbols-outlined text-brand-primary shrink-0 mt-1">check_circle</span>
+                            <span class="material-symbols-outlined text-brand-accent shrink-0 mt-1">check_circle</span>
                             <span><strong>Highly secure:</strong> We use state-of-the-art encryption strictly compliant with global data privacy standards.</span>
                         </li>
                         <li class="flex items-start gap-3">
-                            <span class="material-symbols-outlined text-brand-primary shrink-0 mt-1">check_circle</span>
+                            <span class="material-symbols-outlined text-brand-accent shrink-0 mt-1">check_circle</span>
                             <span><strong>Always improving:</strong> We actively listen to user feedback and constantly push new features.</span>
                         </li>
                     </ul>

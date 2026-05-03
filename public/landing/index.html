@@ -16,11 +16,14 @@
                 extend: {
                     colors: {
                         brand: {
-                            primary: '#22C55E',
-                            accent: '#0D3D33',
-                            bg: '#F5F7FA',
-                            text: '#0F172A',
-                            muted: '#64748B'
+                            primary: 'var(--primary)',
+                            accent: 'var(--accent)',
+                            bg: 'var(--bg)',
+                            card: 'var(--card)',
+                            heading: 'var(--text-h)',
+                            body: 'var(--text-b)',
+                            border: 'var(--border)',
+                            caption: 'var(--caption)'
                         }
                     },
                     fontFamily: {
@@ -32,27 +35,27 @@
         }
     </script>
 </head>
-<body class="bg-brand-bg text-brand-text antialiased fade-in">
+<body class="bg-brand-bg text-brand-heading antialiased fade-in">
 
     <!-- Header will be loaded here -->
     <div id="header-container"></div>
 
     <main class="min-h-screen">
         <!-- Hero Section -->
-        <section class="relative bg-white pt-32 pb-20 overflow-hidden">
+        <section class="relative bg-brand-card pt-32 pb-20 overflow-hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="text-center max-w-3xl mx-auto">
-                    <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 mb-6">
+                    <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-brand-heading mb-6">
                         Digitize Your Tailoring Business with <span class="text-brand-primary">LoopTailor</span>
                     </h1>
-                    <p class="text-xl text-brand-muted mb-10 font-inter">
+                    <p class="text-xl text-brand-body mb-10 font-inter">
                         The ultimate management platform designed exclusively for tailors and boutique owners. Track measurements, orders, and invoices seamlessly.
                     </p>
                     <div class="flex flex-col sm:flex-row justify-center gap-4">
-                        <a href="/login" class="bg-brand-primary text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-green-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+                        <a href="/login" class="bg-brand-primary text-white px-8 py-4 rounded-full font-bold text-lg hover:opacity-90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
                             Go to App
                         </a>
-                        <a href="about.html" class="bg-white text-brand-accent border-2 border-brand-accent px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-50 transition-all">
+                        <a href="about.html" class="bg-brand-card text-brand-primary border-2 border-brand-primary px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-50 transition-all">
                             Learn More
                         </a>
                     </div>
@@ -60,8 +63,8 @@
             </div>
             
             <!-- Decorative elements -->
-            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-green-100 opacity-50 blur-3xl"></div>
-            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-teal-100 opacity-50 blur-3xl"></div>
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-brand-bg opacity-50 blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-brand-bg opacity-50 blur-3xl"></div>
         </section>
 
         <!-- Features Section -->
@@ -70,28 +73,28 @@
                 <h2 class="text-3xl font-bold text-center mb-16">Everything you need to run your shop</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <!-- Feature 1 -->
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6 text-brand-primary">
+                    <div class="bg-brand-card p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 bg-brand-bg rounded-xl flex items-center justify-center mb-6 text-brand-primary">
                             <span class="material-symbols-outlined text-3xl">straighten</span>
                         </div>
                         <h3 class="text-xl font-bold mb-3">Measurement Profiles</h3>
-                        <p class="text-brand-muted font-inter">Store precise customer measurements digitally. No more lost paper books or confusing notes.</p>
+                        <p class="text-brand-body font-inter">Store precise customer measurements digitally. No more lost paper books or confusing notes.</p>
                     </div>
                     <!-- Feature 2 -->
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6 text-brand-primary">
+                    <div class="bg-brand-card p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 bg-brand-bg rounded-xl flex items-center justify-center mb-6 text-brand-primary">
                             <span class="material-symbols-outlined text-3xl">local_shipping</span>
                         </div>
                         <h3 class="text-xl font-bold mb-3">Order Tracking</h3>
-                        <p class="text-brand-muted font-inter">Keep track of order statuses from fabric selection to stitching to final delivery.</p>
+                        <p class="text-brand-body font-inter">Keep track of order statuses from fabric selection to stitching to final delivery.</p>
                     </div>
                     <!-- Feature 3 -->
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6 text-brand-primary">
+                    <div class="bg-brand-card p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                        <div class="w-14 h-14 bg-brand-bg rounded-xl flex items-center justify-center mb-6 text-brand-primary">
                             <span class="material-symbols-outlined text-3xl">receipt_long</span>
                         </div>
                         <h3 class="text-xl font-bold mb-3">Smart Invoices</h3>
-                        <p class="text-brand-muted font-inter">Generate professional invoices and send them to clients via WhatsApp instantly.</p>
+                        <p class="text-brand-body font-inter">Generate professional invoices and send them to clients via WhatsApp instantly.</p>
                     </div>
                 </div>
             </div>

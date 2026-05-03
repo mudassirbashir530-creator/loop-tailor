@@ -16,11 +16,14 @@
                 extend: {
                     colors: {
                         brand: {
-                            primary: '#22C55E',
-                            accent: '#0D3D33',
-                            bg: '#F5F7FA',
-                            text: '#0F172A',
-                            muted: '#64748B'
+                            primary: 'var(--primary)',
+                            accent: 'var(--accent)',
+                            bg: 'var(--bg)',
+                            card: 'var(--card)',
+                            heading: 'var(--text-h)',
+                            body: 'var(--text-b)',
+                            border: 'var(--border)',
+                            caption: 'var(--caption)'
                         }
                     },
                     fontFamily: {
@@ -32,35 +35,35 @@
         }
     </script>
 </head>
-<body class="bg-brand-bg text-brand-text antialiased fade-in">
+<body class="bg-brand-bg text-brand-heading antialiased fade-in">
 
     <div id="header-container"></div>
 
     <main class="min-h-screen pt-20 pb-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-            <div class="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
+            <div class="bg-brand-card rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
                 
                 <!-- Info Section -->
                 <div class="bg-brand-accent text-white p-10 md:p-16 md:w-2/5 relative overflow-hidden">
                     <h2 class="text-3xl font-bold mb-4 z-10 relative">Get in touch</h2>
-                    <p class="text-green-100 font-inter mb-12 z-10 relative">We'd love to hear from you. Please fill out this form or reach out via email.</p>
+                    <p class="text-brand-body font-inter mb-12 z-10 relative">We'd love to hear from you. Please fill out this form or reach out via email.</p>
                     
                     <div class="space-y-8 z-10 relative">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
+                            <div class="w-12 h-12 bg-brand-card/10 rounded-full flex items-center justify-center">
                                 <span class="material-symbols-outlined text-brand-primary">mail</span>
                             </div>
                             <div>
-                                <p class="text-sm text-green-100 font-inter">Email us at</p>
+                                <p class="text-sm text-brand-body font-inter">Email us at</p>
                                 <p class="font-bold">looptailor@gmail.com</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
+                            <div class="w-12 h-12 bg-brand-card/10 rounded-full flex items-center justify-center">
                                 <span class="material-symbols-outlined text-brand-primary">location_on</span>
                             </div>
                             <div>
-                                <p class="text-sm text-green-100 font-inter">HQ</p>
+                                <p class="text-sm text-brand-body font-inter">HQ</p>
                                 <p class="font-bold">Global / Remote</p>
                             </div>
                         </div>
@@ -72,27 +75,27 @@
                 </div>
 
                 <!-- Form Section -->
-                <div class="p-10 md:p-16 md:w-3/5 bg-white">
+                <div class="p-10 md:p-16 md:w-3/5 bg-brand-card">
                     <form class="space-y-6" id="contact-form">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="firstName" class="block text-sm font-medium text-gray-700 font-inter mb-2">First Name</label>
+                                <label for="firstName" class="block text-sm font-medium text-brand-body font-inter mb-2">First Name</label>
                                 <input type="text" id="firstName" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors bg-gray-50 font-inter outline-none" placeholder="John" required>
                             </div>
                             <div>
-                                <label for="lastName" class="block text-sm font-medium text-gray-700 font-inter mb-2">Last Name</label>
+                                <label for="lastName" class="block text-sm font-medium text-brand-body font-inter mb-2">Last Name</label>
                                 <input type="text" id="lastName" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors bg-gray-50 font-inter outline-none" placeholder="Doe" required>
                             </div>
                         </div>
                         <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700 font-inter mb-2">Email Address</label>
+                            <label for="email" class="block text-sm font-medium text-brand-body font-inter mb-2">Email Address</label>
                             <input type="email" id="email" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors bg-gray-50 font-inter outline-none" placeholder="john@example.com" required>
                         </div>
                         <div>
-                            <label for="message" class="block text-sm font-medium text-gray-700 font-inter mb-2">Message</label>
+                            <label for="message" class="block text-sm font-medium text-brand-body font-inter mb-2">Message</label>
                             <textarea id="message" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors bg-gray-50 font-inter outline-none resize-none" placeholder="How can we help you?" required></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-brand-primary text-white font-bold py-4 rounded-xl hover:bg-green-600 transition-colors shadow-md hover:shadow-lg mt-4">
+                        <button type="submit" class="w-full bg-brand-primary text-white font-bold py-4 rounded-xl hover:opacity-90 transition-colors shadow-md hover:shadow-lg mt-4">
                             Send Message
                         </button>
                     </form>
