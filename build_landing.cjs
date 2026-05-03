@@ -1,14 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pricing - Loop Tailor</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
+const fs = require('fs');
 
+const THEME = `
 :root {
   --primary:    #0D3D33;
   --accent:     #2ECC71;
@@ -400,7 +392,25 @@ textarea.input-control {
   line-height: 1.6;
   margin-bottom: 15px;
 }
+`;
 
+const SCRIPT = `
+function toggleMenu() {
+  document.getElementById('nav-menu').classList.toggle('active');
+}
+`;
+
+const getBaseHTML = (title, content) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title} - Loop Tailor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+${THEME}
     </style>
 </head>
 <body>
@@ -419,7 +429,86 @@ textarea.input-control {
     </header>
 
     <main>
+${content}
+    </main>
 
+    <footer class="footer">
+        <div class="footer-logo">
+            <span>✂</span>
+            <span>Loop Tailor</span>
+        </div>
+        <div class="footer-links">
+            <a href="about.html">About Us</a>
+            <a href="contact.html">Contact</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="refund.html">Refund</a>
+            <a href="cookies.html">Cookies</a>
+        </div>
+        <div class="footer-bottom">
+            © 2026 LoopTailor
+        </div>
+    </footer>
+
+    <script>
+${SCRIPT}
+    </script>
+</body>
+</html>`;
+
+const featuresHTML = `
+<div class="features-section text-center">
+    <h2>What's Inside</h2>
+    <div class="feature-list-wrap">
+        <ul class="feature-list">
+            <li><span class="check-icon">✓</span> CMS</li>
+            <li><span class="check-icon">✓</span> Worker Assign</li>
+            <li><span class="check-icon">✓</span> WhatsApp Integration</li>
+            <li><span class="check-icon">✓</span> Digital Invoice</li>
+            <li><span class="check-icon">✓</span> Image Upload</li>
+            <li><span class="check-icon">✓</span> AI Suggestions</li>
+        </ul>
+    </div>
+</div>`;
+
+const pages = {
+  'index.html': {
+    title: 'Home',
+    content: `
+<div class="container text-center">
+    <div class="hero-circle-wrap">
+        <div class="hero-ring spin-ring"></div>
+        <div class="hero-circle">✂</div>
+    </div>
+    <div class="hero-title">Loop Tailor</div>
+    <div class="hero-subtitle">Smart Tailor Management Software</div>
+    <a href="pricing.html" class="btn-outline">Sign up as a Tailor</a>
+    ${featuresHTML}
+</div>`
+  },
+  'about.html': {
+    title: 'About Us',
+    content: `
+<div class="container text-center">
+    <h1>About Us</h1>
+    <div class="subtitle">We are building the future of tailor management.</div>
+    
+    <div class="card text-left">
+        <h3>Who We Are</h3>
+        <p>We are a dedicated team of designers, engineers, and tailoring enthusiasts focused on bringing modern technology to traditional crafts. Our goal is to make business management effortless for tailors everywhere.</p>
+    </div>
+    
+    <div class="card text-left">
+        <h3>Our Mission</h3>
+        <p>To empower local tailoring businesses with smart, intuitive tools. We believe that technology should handle the paperwork, letting tailors focus entirely on their craft.</p>
+    </div>
+
+    ${featuresHTML}
+</div>`
+  },
+  'pricing.html': {
+    title: 'Pricing',
+    content: `
 <div class="container text-center">
     <h1>Pricing</h1>
     <div class="subtitle">Simple pricing for every tailor.</div>
@@ -461,33 +550,110 @@ textarea.input-control {
             <a href="pricing.html" class="btn-outline">Get Started</a>
         </div>
     </div>
-</div>
-    </main>
+</div>`
+  },
+  'contact.html': {
+    title: 'Contact Us',
+    content: `
+<div class="container text-center">
+    <h1>Contact Us</h1>
+    <div class="subtitle">We'd love to hear from you.</div>
+    
+    <div class="card contact-card">
+        <form onsubmit="event.preventDefault();">
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" class="input-control" required />
+            </div>
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" class="input-control" required />
+            </div>
+            <div class="input-group">
+                <label>Message</label>
+                <textarea rows="4" class="input-control" required></textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-bottom: 15px;">Send Message</button>
+            <div class="caption text-center">We reply within 24 hours.</div>
+        </form>
+    </div>
+</div>`
+  },
+  'privacy.html': {
+    title: 'Privacy Policy',
+    content: `
+<div class="container text-center">
+    <h1>Privacy Policy</h1>
+    <div class="caption">Last updated: January 2026</div>
+    <div class="policy-content">
+        <h3>1. Information We Collect</h3>
+        <p>We collect information that you manually enter into the system, including your name, email, shop details, and customer measurements. We use this exclusively to provide you with the LoopTailor service.</p>
+        
+        <h3>2. How We Use Your Data</h3>
+        <p>Your data is used to streamline your tailor shop's operations. We do not sell your data to any third parties. Your data is your property, and we treat it with the highest confidence and privacy standards.</p>
+        
+        <h3>3. Data Security</h3>
+        <p>We maintain appropriate security measures to protect your personal information against unauthorized access, alteration, or disclosure. All data is securely stored.</p>
+    </div>
+</div>`
+  },
+  'terms.html': {
+    title: 'Terms of Service',
+    content: `
+<div class="container text-center">
+    <h1>Terms of Service</h1>
+    <div class="caption">Last updated: January 2026</div>
+    <div class="policy-content">
+        <h3>1. Acceptance of Terms</h3>
+        <p>By accessing or using LoopTailor, you agree to comply with and be bound by these terms. If you do not agree to these terms, please do not use our services.</p>
+        
+        <h3>2. Use of Service</h3>
+        <p>LoopTailor provides management software for tailoring businesses. You agree to use the service only for its intended purposes and in compliance with all applicable laws and regulations.</p>
+        
+        <h3>3. Account Responsibilities</h3>
+        <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+    </div>
+</div>`
+  },
+  'refund.html': {
+    title: 'Refund Policy',
+    content: `
+<div class="container text-center">
+    <h1>Refund Policy</h1>
+    <div class="caption">Last updated: January 2026</div>
+    <div class="policy-content">
+        <h3>1. Subscription Cancellations</h3>
+        <p>You may cancel your LoopTailor subscription at any time. Cancellations will take effect at the end of your current billing cycle.</p>
+        
+        <h3>2. Refunds</h3>
+        <p>We do not offer pro-rated refunds for mid-billing cycle cancellations. However, if you experience significant technical issues that prevent you from using the service, please contact us for evaluation.</p>
+        
+        <h3>3. Evaluation Period</h3>
+        <p>We recommend starting with our free or lowest-tier plan to evaluate the service before committing to a larger plan, ensuring it directly meets your tailoring business needs.</p>
+    </div>
+</div>`
+  },
+  'cookies.html': {
+    title: 'Cookie Policy',
+    content: `
+<div class="container text-center">
+    <h1>Cookie Policy</h1>
+    <div class="caption">Last updated: January 2026</div>
+    <div class="policy-content">
+        <h3>1. Essential Cookies</h3>
+        <p>We use essential cookies to maintain your login session and ensure the secure operation of the LoopTailor platform. These cookies are strictly necessary.</p>
+        
+        <h3>2. Preference Cookies</h3>
+        <p>Preference cookies may be used to remember your settings, such as language preferences or layout configurations, to improve your experience.</p>
+        
+        <h3>3. Analytics</h3>
+        <p>We may use minimal analytics cookies to understand how our software is being used so that we can improve the tools provided to our tailor community.</p>
+    </div>
+</div>`
+  }
+};
 
-    <footer class="footer">
-        <div class="footer-logo">
-            <span>✂</span>
-            <span>Loop Tailor</span>
-        </div>
-        <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <a href="contact.html">Contact</a>
-            <a href="privacy.html">Privacy</a>
-            <a href="terms.html">Terms</a>
-            <a href="refund.html">Refund</a>
-            <a href="cookies.html">Cookies</a>
-        </div>
-        <div class="footer-bottom">
-            © 2026 LoopTailor
-        </div>
-    </footer>
-
-    <script>
-
-function toggleMenu() {
-  document.getElementById('nav-menu').classList.toggle('active');
+for (const [filename, data] of Object.entries(pages)) {
+  fs.writeFileSync(`public/landing/${filename}`, getBaseHTML(data.title, data.content));
 }
-
-    </script>
-</body>
-</html>
+console.log('Successfully generated all landing pages.');
