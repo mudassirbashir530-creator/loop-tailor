@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - LoopTailor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#22C55E',
+                            accent: '#0D3D33',
+                            bg: '#F5F7FA',
+                            text: '#0F172A',
+                            muted: '#64748B'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-bg text-brand-text antialiased fade-in">
+
+    <div id="header-container"></div>
+
+    <main class="min-h-screen pt-20">
+        <!-- Header Section -->
+        <section class="bg-brand-accent text-white py-20 relative overflow-hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                <h1 class="text-4xl md:text-5xl font-extrabold mb-4">About LoopTailor</h1>
+                <p class="text-xl text-green-100 max-w-2xl mx-auto font-inter">
+                    Our mission is to bring traditional tailoring businesses into the digital age, empowering them with efficient tools to grow.
+                </p>
+            </div>
+            <!-- Decorative circle -->
+            <div class="absolute -bottom-24 -right-24 w-64 h-64 border-8 border-brand-primary/20 rounded-full"></div>
+            <div class="absolute top-12 left-12 w-32 h-32 bg-brand-primary/20 rounded-full blur-2xl"></div>
+        </section>
+
+        <!-- Content Section -->
+        <section class="py-20 bg-white">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="prose prose-lg text-brand-muted font-inter">
+                    <h2 class="text-3xl font-bold text-gray-900 font-sans mb-6">Our Story</h2>
+                    <p class="mb-6 leading-relaxed">
+                        LoopTailor was born out of a simple observation: tailors and boutique owners, despite creating beautiful and intricate garments, often struggle with the back-office management of their businesses. Piles of paper measurement books, missed WhatsApp messages, and disorganized invoices were common pain points holding them back.
+                    </p>
+                    <p class="mb-10 leading-relaxed">
+                        We developed a comprehensive management platform that acts as a digital ledger, an automated order tracker, and a customer relationship manager—all rolled into one intuitive application built for mobile and desktop.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-16">
+                        <div class="bg-brand-bg p-8 rounded-2xl border border-gray-100">
+                            <span class="material-symbols-outlined text-4xl text-brand-primary mb-4">visibility</span>
+                            <h3 class="text-xl font-bold text-gray-900 font-sans mb-3">Our Vision</h3>
+                            <p class="text-sm">To be the global standard software for custom clothing, ensuring every tailor shop runs smoothly, effortlessly, and profitably.</p>
+                        </div>
+                        <div class="bg-brand-bg p-8 rounded-2xl border border-gray-100">
+                            <span class="material-symbols-outlined text-4xl text-brand-primary mb-4">rocket_launch</span>
+                            <h3 class="text-xl font-bold text-gray-900 font-sans mb-3">Our Mission</h3>
+                            <p class="text-sm">To provide accessible, affordable, and easy-to-use digital tools tailored specifically for the clothing manufacturing and retailing industry.</p>
+                        </div>
+                    </div>
+
+                    <h2 class="text-3xl font-bold text-gray-900 font-sans mb-6">Why Choose Us?</h2>
+                    <ul class="space-y-4 mb-6">
+                        <li class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-brand-primary shrink-0 mt-1">check_circle</span>
+                            <span><strong>Designed by experts:</strong> We talked to hundreds of boutique owners before writing a single line of code.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-brand-primary shrink-0 mt-1">check_circle</span>
+                            <span><strong>Highly secure:</strong> We use state-of-the-art encryption strictly compliant with global data privacy standards.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-brand-primary shrink-0 mt-1">check_circle</span>
+                            <span><strong>Always improving:</strong> We actively listen to user feedback and constantly push new features.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-container"></div>
+    <script src="script.js"></script>
+</body>
+</html>
