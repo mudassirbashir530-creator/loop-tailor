@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { doc, runTransaction, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging } from 'firebase/messaging';
-import firebaseConfig from '../../firebase-applet-config.json';
+import firebaseConfig from '../../public/firebase-applet-config.json';
 
 // Use environment variables if available, otherwise fallback to the config file
 const config = {

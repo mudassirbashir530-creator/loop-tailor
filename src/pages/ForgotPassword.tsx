@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, ArrowLeft, Loader2, CheckCircle, Scissors } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, CheckCircle, Scissors, KeyRound, Lock } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Link } from 'react-router-dom';
@@ -11,7 +11,9 @@ export default function ForgotPassword() {
   const { t } = useLanguage();
   const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
-  const [step, setStep] = useState<'email' | 'success'>('email');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [step, setStep] = useState<'email' | 'verify' | 'success'>('email');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,9 +24,31 @@ export default function ForgotPassword() {
 
     try {
       await resetPassword(email);
-      setStep('success');
+      setStep('verify');
     } catch (err: any) {
       setError(err.message || t('auth.failedToSendReset'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, newPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to reset password');
+      
+      setStep('success');
+    } catch (err: any) {
+      setError(err.message || 'Failed to verify code and reset password');
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +64,7 @@ export default function ForgotPassword() {
           <span className="text-2xl font-display font-bold tracking-tight text-slate-900">Loop Tailor</span>
         </Link>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
-          {step === 'email' ? t('auth.resetYourPassword') : t('auth.passwordReset')}
+          {step === 'email' ? t('auth.resetYourPassword') : step === 'verify' ? 'Enter Verification Code' : t('auth.passwordReset')}
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600">
           {t('auth.or')} {' '}
@@ -63,7 +87,7 @@ export default function ForgotPassword() {
               </div>
               <h3 className="text-lg font-medium text-slate-900 mb-2">{t('auth.passwordResetSuccess')}</h3>
               <p className="text-sm text-slate-500 mb-6">
-                {t('auth.passwordResetSuccessDesc')}
+                Your password has been successfully reset. You can now log in with your new password.
               </p>
               <Link to="/login">
                 <Button className="w-full h-12 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white font-medium shadow-sm transition-all">
@@ -71,6 +95,85 @@ export default function ForgotPassword() {
                 </Button>
               </Link>
             </motion.div>
+          ) : step === 'verify' ? (
+            <form className="space-y-6" onSubmit={handleVerifyOtp}>
+              <div>
+                <label htmlFor="otp" className="block text-sm font-medium text-slate-700">
+                  Verification Code
+                </label>
+                <div className="mt-2 relative rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <KeyRound className="h-5 w-5 text-slate-400" aria-hidden="true" />
+                  </div>
+                  <Input
+                    id="otp"
+                    name="otp"
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="block w-full pl-10 h-12 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 sm:text-sm transition-all"
+                    placeholder="Enter 6-digit code"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700">
+                  New Password
+                </label>
+                <div className="mt-2 relative rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-slate-400" aria-hidden="true" />
+                  </div>
+                  <Input
+                    id="newPassword"
+                    name="newPassword"
+                    type="password"
+                    required
+                    minLength={6}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="block w-full pl-10 h-12 rounded-2xl border-none bg-gray-100 shadow-neu-pressed-sm focus:ring-2 focus:ring-brand-primary/20 sm:text-sm transition-all"
+                    placeholder="Enter new password"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium"
+                >
+                  {error}
+                </motion.div>
+              )}
+
+              <div>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full flex justify-center h-12 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    'Reset Password'
+                  )}
+                </Button>
+              </div>
+              <div className="text-center mt-4">
+                <button
+                  type="button"
+                  onClick={() => setStep('email')}
+                  className="text-sm font-medium text-brand-primary hover:text-brand-primary/80 transition-colors"
+                >
+                  Back to email step
+                </button>
+              </div>
+            </form>
           ) : (
             <form className="space-y-6" onSubmit={handleSendResetLink}>
               <div>

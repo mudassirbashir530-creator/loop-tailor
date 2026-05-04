@@ -7,6 +7,7 @@ import nodemailer from "nodemailer";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
+import twilio from "twilio";
 
 dotenv.config();
 
@@ -16,6 +17,11 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY || '822749848441664',
   api_secret: process.env.CLOUDINARY_API_SECRET || 'gqIlc11KOB1o8pcAC6a-qAMUQZA'
 });
+
+const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN)
+  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+  : null;
+
 
 // Configure Multer
 const storage = multer.memoryStorage();
@@ -320,6 +326,45 @@ async function startServer() {
     } catch (error) {
       console.error("Error processing contact form:", error);
       res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
+  app.post("/api/notify/whatsapp", async (req, res) => {
+    try {
+      const { to, customerName, token, shopName, status, orderId, shopId, dressType } = req.body;
+      
+      if (!twilioClient) {
+        return res.status(503).json({ error: "WhatsApp notifications are not configured yet." });
+      }
+
+      if (!to || !customerName || !shopName || !status) {
+        return res.status(400).json({ error: "Missing required fields for WhatsApp notification" });
+      }
+
+      // Format phone number to E.164. Twilio requires it.
+      let formattedPhone = to.replace(/[^\d+]/g, '');
+      if (!formattedPhone.startsWith('+')) {
+         if(formattedPhone.startsWith('0')) {
+           formattedPhone = '+92' + formattedPhone.substring(1);
+         } else {
+           formattedPhone = '+' + formattedPhone;
+         }
+      }
+
+      const fromWhatsApp = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886";
+      const message = `Hello ${customerName},\n\nYour order for ${dressType || 'dress'} at ${shopName} is now: *${status.toUpperCase()}*.\n\nToken: ${token || 'N/A'}\n\nThank you!`;
+
+      const twilioRes = await twilioClient.messages.create({
+        body: message,
+        from: fromWhatsApp,
+        to: `whatsapp:${formattedPhone}`
+      });
+
+      res.status(200).json({ success: true, messageId: twilioRes.sid });
+
+    } catch (error: any) {
+      console.error("Twilio error:", error);
+      res.status(500).json({ error: error.message || "Failed to send WhatsApp message" });
     }
   });
 
