@@ -537,29 +537,29 @@ const pages = {
     <div class="pricing-grid text-left">
         <div class="card pricing-card">
             <h2>Basic</h2>
-            <div class="price">₹500/mo</div>
+            <div class="price">PKR 500/mo</div>
             <ul class="feature-list pricing-features">
                 <li><span class="check-icon">✓</span> CMS</li>
                 <li><span class="check-icon">✓</span> Worker Assign</li>
             </ul>
-            <a href="pricing.html" class="btn-outline">Get Started</a>
+            <a href="/signup?plan=basic" target="_blank" class="btn-outline">Get Started</a>
         </div>
         
         <div class="card pricing-card highlight">
             <div class="badge-popular">Most Popular</div>
             <h2>Standard</h2>
-            <div class="price">₹1000/mo</div>
+            <div class="price">PKR 1,000/mo</div>
             <ul class="feature-list pricing-features">
                 <li><span class="check-icon">✓</span> CMS</li>
                 <li><span class="check-icon">✓</span> Worker Assign</li>
                 <li><span class="check-icon">✓</span> WhatsApp Integration</li>
             </ul>
-            <a href="pricing.html" class="btn-primary" style="margin-top:auto;">Get Started</a>
+            <a href="/signup?plan=standard" target="_blank" class="btn-primary" style="margin-top:auto;">Get Started</a>
         </div>
         
         <div class="card pricing-card">
             <h2>Premium</h2>
-            <div class="price">₹2000/mo</div>
+            <div class="price">PKR 2,000/mo</div>
             <ul class="feature-list pricing-features">
                 <li><span class="check-icon">✓</span> CMS</li>
                 <li><span class="check-icon">✓</span> Worker Assign</li>
@@ -567,7 +567,7 @@ const pages = {
                 <li><span class="check-icon">✓</span> Digital Invoice</li>
                 <li><span class="check-icon">✓</span> Image Upload</li>
             </ul>
-            <a href="pricing.html" class="btn-outline">Get Started</a>
+            <a href="/signup?plan=premium" target="_blank" class="btn-outline">Get Started</a>
         </div>
     </div>
 </div>`
