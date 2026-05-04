@@ -535,6 +535,21 @@ const pages = {
     <div class="caption" style="margin-bottom: 40px;">No payment required to get started.</div>
     
     <div class="pricing-grid text-left">
+        <div class="card pricing-card highlight">
+            <div class="badge-popular">Free Trial</div>
+            <h2>Free Trial</h2>
+            <div class="price">PKR 0/mo</div>
+            <ul class="feature-list pricing-features">
+                <li><span class="check-icon">✓</span> Full access to all features</li>
+                <li><span class="check-icon">✓</span> Order management</li>
+                <li><span class="check-icon">✓</span> Customer management</li>
+                <li><span class="check-icon">✓</span> Staff assignment</li>
+                <li><span class="check-icon">✓</span> Invoice system</li>
+                <li><span class="check-icon">✓</span> WhatsApp notifications</li>
+            </ul>
+            <a href="/signup?plan=free-trial" target="_blank" class="btn-primary" style="margin-top:auto;">Start Free Trial</a>
+        </div>
+
         <div class="card pricing-card">
             <h2>Basic</h2>
             <div class="price">PKR 500/mo</div>
@@ -542,11 +557,10 @@ const pages = {
                 <li><span class="check-icon">✓</span> CMS</li>
                 <li><span class="check-icon">✓</span> Worker Assign</li>
             </ul>
-            <a href="/signup?plan=basic" target="_blank" class="btn-outline">Get Started</a>
+            <a href="/signup?plan=basic" target="_blank" class="btn-outline" style="margin-top:auto;">Get Started</a>
         </div>
         
-        <div class="card pricing-card highlight">
-            <div class="badge-popular">Most Popular</div>
+        <div class="card pricing-card">
             <h2>Standard</h2>
             <div class="price">PKR 1,000/mo</div>
             <ul class="feature-list pricing-features">
@@ -554,7 +568,7 @@ const pages = {
                 <li><span class="check-icon">✓</span> Worker Assign</li>
                 <li><span class="check-icon">✓</span> WhatsApp Integration</li>
             </ul>
-            <a href="/signup?plan=standard" target="_blank" class="btn-primary" style="margin-top:auto;">Get Started</a>
+            <a href="/signup?plan=standard" target="_blank" class="btn-outline" style="margin-top:auto;">Get Started</a>
         </div>
         
         <div class="card pricing-card">
@@ -567,7 +581,7 @@ const pages = {
                 <li><span class="check-icon">✓</span> Digital Invoice</li>
                 <li><span class="check-icon">✓</span> Image Upload</li>
             </ul>
-            <a href="/signup?plan=premium" target="_blank" class="btn-outline">Get Started</a>
+            <a href="/signup?plan=premium" target="_blank" class="btn-outline" style="margin-top:auto;">Get Started</a>
         </div>
     </div>
 </div>`
