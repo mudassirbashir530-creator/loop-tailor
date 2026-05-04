@@ -18,7 +18,8 @@ interface AuthContextType {
     photoURL?: string,
     shopName?: string,
     shopLogoUrl?: string,
-    shopAddress?: string
+    shopAddress?: string,
+    plan?: string
   ) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logOut: () => Promise<void>;
@@ -93,7 +94,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     photoURL?: string,
     shopName?: string,
     shopLogoUrl?: string,
-    shopAddress?: string
+    shopAddress?: string,
+    plan?: string
   ) => {
     try {
       const userRef = doc(db, 'users', user.uid);
@@ -108,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           photoURL: photoURL || user.photoURL || '',
           provider: provider,
           preferred_language: language || 'en',
-          plan: null,
+          plan: plan || null,
           role: 'user',
           isAdmin: false,
           paymentStatus: 'not_paid',
@@ -158,7 +160,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     photoURL?: string,
     shopName?: string,
     shopLogoUrl?: string,
-    shopAddress?: string
+    shopAddress?: string,
+    plan?: string
   ) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
@@ -168,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     await updateProfile(userCredential.user, profileUpdates);
     
-    await saveUserData(userCredential.user, 'password', name, phone, language, photoURL, shopName, shopLogoUrl, shopAddress);
+    await saveUserData(userCredential.user, 'password', name, phone, language, photoURL, shopName, shopLogoUrl, shopAddress, plan);
   };
 
   const logOut = async () => {

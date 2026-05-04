@@ -123,6 +123,7 @@ export default function SignUp() {
         shopName,
         shopLogoUrl,
         shopAddress,
+        selectedPlan || undefined
       );
       await setLanguage(selectedLanguage);
       navigate("/dashboard");
@@ -238,7 +239,7 @@ export default function SignUp() {
               {selectedPlan && step === 1 && (
                 <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-bold">
                   <CheckCircle className="h-4 w-4" />
-                  You're signing up for: {selectedPlan.replace(/-/, " ")}
+                  You're signing up for: {selectedPlan.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
                 </div>
               )}
               <p className="text-slate-500 font-medium">
