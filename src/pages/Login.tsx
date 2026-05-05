@@ -47,7 +47,7 @@ export default function Login() {
   };
 
   return (
-    <div className={cn("min-h-screen bg-gray-100 flex flex-col lg:flex-row overflow-hidden", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={cn("w-full min-h-screen bg-gray-100 flex flex-col lg:flex-row overflow-hidden", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Left Side: Branding & Features (Hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 bg-brand-primary relative overflow-hidden flex-col justify-between p-12 text-white">
         {/* Background Accents */}
@@ -107,7 +107,7 @@ export default function Login() {
       </div>
 
       {/* Right Side: Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 bg-[#FDFCF9] relative">
+      <div className="flex-1 w-full flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 bg-[#FDFCF9] relative">
         {/* Language Toggle */}
         <div className={cn("absolute top-6 z-20", isRTL ? "left-6" : "right-6")}>
           <button

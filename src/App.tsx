@@ -37,8 +37,15 @@ const Staff = React.lazy(() => import('./pages/Staff'));
 const PaymentReminders = React.lazy(() => import('./pages/PaymentReminders'));
 
 // Info Pages
-const About = () => { window.location.href = '/landing/about.html'; return null; };
-const Contact = () => { window.location.href = '/landing/contact.html'; return null; };
+const RedirectExternal = ({ url }: { url: string }) => {
+  React.useEffect(() => {
+    window.location.href = url;
+  }, [url]);
+  return null;
+};
+
+const About = () => <RedirectExternal url="/landing/about.html" />;
+const Contact = () => <RedirectExternal url="/landing/contact.html" />;
 const Blog = React.lazy(() => import('./pages/Blog'));
 const ArticleView = React.lazy(() => import('./pages/ArticleView'));
 const Careers = React.lazy(() => import('./pages/Careers'));
@@ -123,7 +130,7 @@ export default function App() {
               {/* Info Pages */}
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/pricing" element={(() => { window.location.href = '/landing/pricing.html'; return null; })()} />
+              <Route path="/pricing" element={<RedirectExternal url="/landing/pricing.html" />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<ArticleView />} />
               <Route path="/careers" element={<Careers />} />
@@ -133,10 +140,10 @@ export default function App() {
               <Route path="/install" element={<InstallApp />} />
               
               {/* Legal Pages */}
-              <Route path="/privacy" element={(() => { window.location.href = '/landing/privacy.html'; return null; })()} />
-              <Route path="/terms" element={(() => { window.location.href = '/landing/terms.html'; return null; })()} />
-              <Route path="/cookies" element={(() => { window.location.href = '/landing/cookies.html'; return null; })()} />
-              <Route path="/refund" element={(() => { window.location.href = '/landing/refund.html'; return null; })()} />
+              <Route path="/privacy" element={<RedirectExternal url="/landing/privacy.html" />} />
+              <Route path="/terms" element={<RedirectExternal url="/landing/terms.html" />} />
+              <Route path="/cookies" element={<RedirectExternal url="/landing/cookies.html" />} />
+              <Route path="/refund" element={<RedirectExternal url="/landing/refund.html" />} />
 
               <Route path="/dashboard" element={<PrivateRoute><Layout /></PrivateRoute>}>
                 <Route index element={<Dashboard />} />

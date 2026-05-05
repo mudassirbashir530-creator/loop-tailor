@@ -50,7 +50,7 @@ export default function Layout() {
   };
 
   return (
-    <div className={cn("flex h-screen bg-background text-on-background font-sans overflow-hidden", isRTL ? "font-urdu" : "")}>
+    <div className={cn("flex w-full h-screen bg-background text-on-background font-sans overflow-hidden", isRTL ? "font-urdu" : "")}>
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-surface flex items-center justify-between px-4 z-30 shadow-[0_1px_4px_rgba(0,0,0,0.05)] border-b border-surface-container-highest">
         <span className="logo-text font-bold text-xl text-primary flex items-center gap-2">
@@ -141,8 +141,8 @@ export default function Layout() {
       <MobileBottomNav />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-background relative pb-20 pt-16 lg:pt-0 lg:pb-0">
-        <div className="p-4 sm:p-6 lg:p-8 max-w-[1280px] mx-auto min-h-full">
+      <main className="flex-1 w-full overflow-auto bg-background relative pb-20 pt-16 lg:pt-0 lg:pb-0">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-[1280px] w-full mx-auto min-h-full">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

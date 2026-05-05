@@ -140,7 +140,7 @@ export default function SignUp() {
   return (
     <div
       className={cn(
-        "min-h-screen bg-gray-100 flex flex-col lg:flex-row overflow-hidden",
+        "w-full min-h-screen bg-gray-100 flex flex-col lg:flex-row overflow-hidden",
         selectedLanguage === "ur" && "font-urdu",
       )}
       dir={selectedLanguage === "ur" ? "rtl" : "ltr"}
@@ -218,7 +218,7 @@ export default function SignUp() {
       </div>
 
       {/* Right Side: Form */}
-      <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 bg-[#FDFCF9] relative overflow-y-auto">
+      <div className="flex-1 w-full flex flex-col justify-center px-6 sm:px-12 lg:px-24 py-12 bg-[#FDFCF9] relative overflow-y-auto">
         <div className="max-w-md w-full mx-auto">
           <Link
             to="/"
