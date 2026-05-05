@@ -26,11 +26,11 @@ export function OrderTimeline({ currentStatus, statusHistory = {} }: OrderTimeli
     <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
       <div className="min-w-[600px] flex items-start justify-between relative px-4">
         {/* Background linking line */}
-        <div className="absolute top-6 left-8 right-8 h-1 bg-slate-200 z-0"></div>
+        <div className="absolute top-6 left-8 right-8 h-1 bg-surface-container-highest z-0"></div>
         
         {/* Active linking line */}
         <div 
-          className="absolute top-6 left-8 h-1 bg-brand-primary z-0 transition-all duration-500 ease-in-out"
+          className="absolute top-6 left-8 h-1 bg-primary z-0 transition-all duration-500 ease-in-out"
           style={{ width: `calc(${(Math.max(0, currentIndex) / (timelineSteps.length - 1)) * 100}% - 2rem)` }}
         ></div>
 
@@ -47,26 +47,26 @@ export function OrderTimeline({ currentStatus, statusHistory = {} }: OrderTimeli
               <div className="relative">
                 {isCurrent && (
                   <motion.div 
-                    className="absolute inset-0 rounded-full bg-brand-primary opacity-20"
+                    className="absolute inset-0 rounded-full bg-primary opacity-20"
                     animate={{ scale: [1, 1.5, 1] }}
                     transition={{ repeat: Infinity, duration: 2 }}
                   ></motion.div>
                 )}
                 <div 
                   className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center border-4 border-white shadow-neu-sm transition-colors duration-300 relative z-10",
-                    isCompleted || isCurrent ? "bg-brand-primary" : "bg-slate-200"
+                    "w-12 h-12 rounded-full flex items-center justify-center border-4 border-surface shadow-sm transition-colors duration-300 relative z-10",
+                    isCompleted || isCurrent ? "bg-primary" : "bg-surface-container-highest"
                   )}
                 >
-                  <Icon className={cn("h-5 w-5", isCompleted || isCurrent ? "text-white" : "text-slate-400")} />
+                  <Icon className={cn("h-5 w-5", isCompleted || isCurrent ? "text-on-primary" : "text-on-surface-variant")} />
                 </div>
               </div>
-              <div className="mt-3 text-center">
-                <div className={cn("text-xs font-black uppercase tracking-widest", (isCompleted || isCurrent) ? "text-brand-primary" : "text-slate-400")}>
+              <div className="mt-4 text-center">
+                <div className={cn("text-[10px] font-medium uppercase tracking-widest", (isCompleted || isCurrent) ? "text-primary" : "text-on-surface-variant")}>
                   {step.status}
                 </div>
                 {timestamp && (
-                  <div className="text-[10px] text-slate-500 mt-1 font-medium whitespace-nowrap">
+                  <div className="text-[10px] text-on-surface-variant mt-1 font-medium whitespace-nowrap">
                     {format(new Date(timestamp), 'MMM d, h:mm a')}
                   </div>
                 )}

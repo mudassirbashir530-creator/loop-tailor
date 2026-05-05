@@ -109,28 +109,28 @@ export default function Customers() {
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="hero-section flex flex-col md:flex-row md:items-end justify-between gap-6"
+        className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8"
       >
-        <div className="z-10 relative">
-          <h1 className="hero-title">{t('customers.title')}</h1>
-          <p className="text-[rgba(255,255,255,0.7)] text-sm sm:text-base mt-2 font-medium">{t('customers.subtitle')}</p>
+        <div>
+          <h1 className="text-[28px] md:text-[32px] font-display font-semibold tracking-tight text-on-surface">{t('customers.title')}</h1>
+          <p className="text-on-surface-variant text-sm sm:text-base mt-2">{t('customers.subtitle')}</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-4 items-center w-full md:w-auto z-10 relative">
+        <div className="flex flex-col sm:flex-row gap-3 items-center w-full md:w-auto">
           <div className="relative w-full sm:w-80 group">
             <input
               type="text"
               placeholder={t('customers.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={cn("w-full h-[48px] rounded-[14px] bg-white/10 border-none text-white focus:outline-none focus:ring-2 focus:ring-[#60A5FA] transition-all placeholder:text-[rgba(255,255,255,0.5)]", isRTL ? "pr-[44px] pl-4" : "pl-[44px] pr-4")}
+              className={cn("w-full h-12 rounded-full bg-surface-container-highest border border-outline-variant text-on-surface focus:outline-none focus:border-primary transition-all placeholder:text-on-surface-variant", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
             />
-            <div className={cn("absolute top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.5)] group-focus-within:text-white transition-colors", isRTL ? "right-4" : "left-4")}>
+            <div className={cn("absolute top-1/2 -translate-y-1/2 text-on-surface-variant transition-colors", isRTL ? "right-4" : "left-4")}>
               <Search className="h-5 w-5" />
             </div>
           </div>
           <Button 
             onClick={() => setIsAdding(!isAdding)} 
-            className="btn-primary w-full sm:w-auto flex items-center h-[48px] px-6 shrink-0"
+            className="bg-primary hover:bg-on-surface text-on-primary rounded-full h-12 px-6 font-medium shadow-none w-full sm:w-auto"
           >
             {isAdding ? <X className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <UserPlus className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
             {isAdding ? t('customers.cancel') : t('customers.addCustomer')}
@@ -146,74 +146,74 @@ export default function Customers() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="card mb-6">
-              <div className="p-6 border-b border-[#F8FAFC]">
-                <h2 className="section-title">{t('customers.newProfile')}</h2>
+            <div className="bg-surface border border-outline-variant rounded-3xl shadow-sm overflow-hidden mb-8">
+              <div className="p-6 border-b border-outline-variant bg-surface-container-lowest">
+                <h2 className="text-[18px] font-semibold text-on-surface">{t('customers.newProfile')}</h2>
               </div>
               <div className="p-6">
                 <form onSubmit={handleAddCustomer} className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className={cn("text-xs font-black text-[#64748B] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.fullName')}</label>
+                    <label className={cn("text-[13px] font-medium text-on-surface-variant uppercase tracking-wide", isRTL ? "mr-1" : "ml-1")}>{t('customers.fullName')}</label>
                     <div className="relative group">
-                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] group-focus-within:text-[#22C55E] transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <User className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant group-focus-within:text-primary transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={newCustomer.name} 
                         onChange={e => setNewCustomer({...newCustomer, name: e.target.value})} 
                         placeholder="e.g. Muhammad Ahmed" 
-                        className={cn("input-field", isRTL ? "pr-12" : "pl-12")}
+                        className={cn("h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant focus:border-primary px-4 shadow-none", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className={cn("text-xs font-black text-[#64748B] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.phone')}</label>
+                    <label className={cn("text-[13px] font-medium text-on-surface-variant uppercase tracking-wide", isRTL ? "mr-1" : "ml-1")}>{t('customers.phone')}</label>
                     <div className="relative group">
-                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] group-focus-within:text-[#22C55E] transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <Phone className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant group-focus-within:text-primary transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         required 
                         value={newCustomer.phone} 
                         onChange={e => setNewCustomer({...newCustomer, phone: e.target.value})} 
                         placeholder="e.g. 0300 1234567" 
-                        className={cn("input-field", isRTL ? "pr-12" : "pl-12")}
+                        className={cn("h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant focus:border-primary px-4 shadow-none", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className={cn("text-xs font-black text-[#64748B] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.address')}</label>
+                    <label className={cn("text-[13px] font-medium text-on-surface-variant uppercase tracking-wide", isRTL ? "mr-1" : "ml-1")}>{t('customers.address')}</label>
                     <div className="relative group">
-                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] group-focus-within:text-[#22C55E] transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <MapPin className={cn("absolute top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant group-focus-within:text-primary transition-colors", isRTL ? "right-4" : "left-4")} />
                       <Input 
                         value={newCustomer.address} 
                         onChange={e => setNewCustomer({...newCustomer, address: e.target.value})} 
                         placeholder="e.g. House #123, Street 4, Lahore" 
-                        className={cn("input-field", isRTL ? "pr-12" : "pl-12")}
+                        className={cn("h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant focus:border-primary px-4 shadow-none", isRTL ? "pr-12" : "pl-12")}
                       />
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className={cn("text-xs font-black text-[#64748B] uppercase tracking-widest", isRTL ? "mr-1" : "ml-1")}>{t('customers.notes')}</label>
+                    <label className={cn("text-[13px] font-medium text-on-surface-variant uppercase tracking-wide", isRTL ? "mr-1" : "ml-1")}>{t('customers.notes')}</label>
                     <div className="relative group">
-                      <Notebook className={cn("absolute top-4 h-5 w-5 text-[#64748B] group-focus-within:text-[#22C55E] transition-colors", isRTL ? "right-4" : "left-4")} />
+                      <Notebook className={cn("absolute top-4 h-5 w-5 text-on-surface-variant group-focus-within:text-primary transition-colors", isRTL ? "right-4" : "left-4")} />
                       <textarea 
                         value={newCustomer.notes} 
                         onChange={e => setNewCustomer({...newCustomer, notes: e.target.value})} 
                         placeholder="Specific preferences, fit styles, etc." 
-                        className={cn("input-field min-h-[120px] py-4 resize-none", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
+                        className={cn("w-full rounded-2xl bg-surface-container-highest border border-outline-variant focus:border-primary focus:ring-0 p-4 min-h-[120px] resize-none", isRTL ? "pr-12 pl-4" : "pl-12 pr-4")}
                       />
                     </div>
                   </div>
-                  <div className="md:col-span-2 flex justify-end gap-4 mt-2">
+                  <div className="md:col-span-2 flex justify-end gap-3 mt-4">
                     <Button 
                       type="button" 
                       variant="ghost" 
                       onClick={() => setIsAdding(false)}
-                      className="btn-secondary px-8"
+                      className="rounded-full h-12 px-8 font-medium text-on-surface hover:bg-surface-variant hover:text-on-surface"
                     >
                       {t('customers.discard')}
                     </Button>
                     <Button 
                       type="submit"
-                      className="btn-primary px-10"
+                      className="bg-primary hover:bg-on-surface text-on-primary rounded-full h-12 px-10 font-medium shadow-sm w-auto"
                     >
                       {t('customers.save')}
                     </Button>
@@ -225,14 +225,14 @@ export default function Customers() {
         )}
       </AnimatePresence>
 
-      <div className="flex bg-white rounded-full p-1.5 shadow-[0_2px_10px_rgba(34, 197, 94,0.04)] w-fit border border-[#F8FAFC]">
+      <div className="flex bg-surface-container-highest rounded-full p-1.5 border border-outline-variant w-fit mb-8 shadow-sm">
         <button
           onClick={() => setFilterTab('all')}
           className={cn(
-            "px-6 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
+            "px-6 py-2 rounded-full text-[14px] font-medium transition-all whitespace-nowrap",
             filterTab === 'all' 
-              ? "bg-[#22C55E] text-white" 
-              : "text-[#64748B] hover:text-[#22C55E]"
+              ? "bg-secondary-container text-on-secondary-container shadow-sm" 
+              : "text-on-surface-variant hover:text-on-surface"
           )}
         >
           All Clients
@@ -240,10 +240,10 @@ export default function Customers() {
         <button
           onClick={() => setFilterTab('active')}
           className={cn(
-            "px-6 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
+            "px-6 py-2 rounded-full text-[14px] font-medium transition-all whitespace-nowrap",
             filterTab === 'active' 
-              ? "bg-[#22C55E] text-white" 
-              : "text-[#64748B] hover:text-[#22C55E]"
+              ? "bg-secondary-container text-on-secondary-container shadow-sm" 
+              : "text-on-surface-variant hover:text-on-surface"
           )}
         >
           Active
@@ -251,10 +251,10 @@ export default function Customers() {
         <button
           onClick={() => setFilterTab('inactive')}
           className={cn(
-            "px-6 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
+            "px-6 py-2 rounded-full text-[14px] font-medium transition-all whitespace-nowrap",
             filterTab === 'inactive' 
-              ? "bg-[#22C55E] text-white" 
-              : "text-[#64748B] hover:text-[#22C55E]"
+              ? "bg-secondary-container text-on-secondary-container shadow-sm" 
+              : "text-on-surface-variant hover:text-on-surface"
           )}
         >
           Inactive
@@ -306,22 +306,22 @@ export default function Customers() {
                   transition={{ delay: index * 0.05 }}
                 >
                   <div 
-                    className="card p-5 flex items-center justify-between hover:shadow-[0_8px_30px_rgba(34, 197, 94,0.08)] hover:-translate-y-1 transition-all group cursor-pointer"
+                    className="bg-surface rounded-3xl p-5 flex items-center justify-between border border-outline-variant shadow-sm hover:bg-surface-variant hover:border-primary/30 transition-all cursor-pointer"
                     onClick={() => navigate(`/dashboard/customers/${customer.id}`)}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="h-14 w-14 rounded-[14px] bg-[#F5F7FA] flex items-center justify-center text-[#22C55E] font-black text-xl group-hover:bg-[#22C55E] group-hover:text-white transition-colors duration-300">
+                      <div className="h-14 w-14 rounded-full bg-surface-container flex items-center justify-center text-primary font-bold text-xl">
                         {customer.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-base font-bold text-[#0F172A] group-hover:text-[#22C55E] transition-colors line-clamp-1">
+                          <h3 className="text-[16px] font-semibold text-on-surface line-clamp-1">
                             {customer.name}
                           </h3>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center text-[#64748B] font-medium text-sm">
-                            <Phone className="h-3.5 w-3.5 mr-1" />
+                          <div className="flex items-center text-on-surface-variant text-[13px] font-medium">
+                            <Phone className="h-3.5 w-3.5 mr-1.5" />
                             {customer.phone}
                           </div>
                         </div>
@@ -329,12 +329,12 @@ export default function Customers() {
                     </div>
                     <div className="flex flex-col items-end gap-2">
                        {ordersPerCustomer[customer.id]?.total > 0 && (
-                          <div className="badge badge-info whitespace-nowrap">
+                          <div className="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap">
                             {ordersPerCustomer[customer.id].total} {ordersPerCustomer[customer.id].total === 1 ? 'order' : 'orders'}
                           </div>
                        )}
                        {ordersPerCustomer[customer.id]?.active > 0 && (
-                          <div className="badge badge-success whitespace-nowrap">
+                          <div className="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap">
                             Active
                           </div>
                         )}

@@ -451,31 +451,31 @@ export default function Dashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className={cn("bg-[#F5F7FA] min-h-screen pb-[80px]", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
+        className={cn("bg-background min-h-screen pb-[80px]", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-12 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#22C55E] flex items-center justify-center text-white font-bold text-lg shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-medium text-lg">
               {user?.displayName?.charAt(0)?.toUpperCase() || 'T'}
             </div>
             <div>
-              <div className="font-bold text-[18px] text-[#0F172A] leading-tight">
+              <div className="font-semibold text-[18px] text-on-surface leading-tight">
                 Hello, {user?.displayName?.split(' ')[0] || 'Tailor'}
               </div>
-              <div className="text-[13px] text-[#64748B]">Good morning</div>
+              <div className="text-[14px] text-on-surface-variant mt-0.5">Good morning</div>
             </div>
           </div>
-          <button className="relative p-2 rounded-full bg-white shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
-            <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0F172A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <button className="relative p-2.5 rounded-full bg-surface shadow-sm border border-outline-variant">
+            <div className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border border-surface"></div>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-on-surface"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
           </button>
         </div>
 
         {/* Search Bar */}
         <div className="px-4 mb-6 relative z-30">
-          <div className="flex items-center gap-3 relative h-[44px] bg-[#F1F5F9] rounded-[12px] px-3">
-            <Search className="h-5 w-5 text-[#64748B]" />
+          <div className="flex items-center gap-3 relative h-12 bg-surface-container-highest rounded-full px-4 border border-outline-variant">
+            <Search className="h-5 w-5 text-on-surface-variant" />
             <input 
               type="text"
               placeholder="Search customers, orders, measurements..."
@@ -483,7 +483,7 @@ export default function Dashboard() {
               onChange={(e) => setSearchToken(e.target.value)}
               onFocus={() => { if (searchToken) setShowSearchResults(true); }}
               onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-              className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-[#0F172A] text-[14px]"
+              className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-on-surface text-[15px] placeholder-on-surface-variant"
             />
           </div>
           
@@ -493,26 +493,26 @@ export default function Dashboard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="absolute top-[50px] left-4 right-4 bg-white rounded-2xl shadow-xl border border-gray-100 max-h-80 overflow-y-auto z-50"
+                className="absolute top-[56px] left-4 right-4 bg-surface rounded-2xl shadow-lg border border-outline-variant max-h-80 overflow-y-auto z-50"
               >
                  {searchResults.length > 0 ? (
                     searchResults.map((res) => (
                       <div 
                         key={res.id} 
                         onClick={() => navigate(res.url)} 
-                        className="flex items-center gap-3 p-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
+                        className="flex items-center gap-3 p-3.5 border-b border-outline-variant hover:bg-surface-variant cursor-pointer last:border-0"
                       >
-                         {res.type === 'customer' && <Users className="h-5 w-5 text-blue-500" />}
-                         {res.type === 'order' && <Scissors className="h-5 w-5 text-green-500" />}
-                         {res.type === 'measurement' && <FileText className="h-5 w-5 text-purple-500" />}
+                         {res.type === 'customer' && <Users className="h-5 w-5 text-on-surface-variant" />}
+                         {res.type === 'order' && <Scissors className="h-5 w-5 text-on-surface-variant" />}
+                         {res.type === 'measurement' && <FileText className="h-5 w-5 text-on-surface-variant" />}
                          <div>
-                           <div className="text-sm font-bold text-slate-800">{res.title}</div>
-                           <div className="text-xs text-slate-500">{res.subtitle}</div>
+                           <div className="text-sm font-medium text-on-surface">{res.title}</div>
+                           <div className="text-xs text-on-surface-variant mt-0.5">{res.subtitle}</div>
                          </div>
                       </div>
                     ))
                  ) : (
-                    <div className="p-4 text-center text-sm text-slate-500 font-medium">No results found</div>
+                    <div className="p-4 text-center text-sm text-on-surface-variant font-medium">No results found</div>
                  )}
               </motion.div>
             )}
@@ -520,20 +520,20 @@ export default function Dashboard() {
         </div>
 
         {/* Featured Card */}
-        <div className="px-4 mb-6">
-          <div className="bg-gradient-to-r from-[#22C55E] to-[#0D3D33] rounded-[20px] p-5 text-white relative overflow-hidden shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]">
-            <svg className="absolute right-0 bottom-0 opacity-10" width="120" height="120" viewBox="0 0 100 100" fill="white"><circle cx="80" cy="80" r="50"/></svg>
+        <div className="px-4 mb-8">
+          <div className="bg-primary-container rounded-3xl p-7 text-on-primary-container relative overflow-hidden shadow-md">
+            <svg className="absolute right-0 bottom-0 opacity-10" width="120" height="120" viewBox="0 0 100 100" fill="currentColor"><circle cx="80" cy="80" r="50"/></svg>
             <div className="relative z-10">
-              <div className="text-[13px] font-medium opacity-90 mb-1">Total Revenue</div>
-              <div className="text-[28px] font-bold tracking-tight mb-4">{formatCurrency(stats.totalRevenue)}</div>
-              <div className="flex items-center gap-4">
+              <div className="text-[14px] font-medium opacity-90 mb-1">Total Revenue</div>
+              <div className="text-[36px] font-display font-medium tracking-tight mb-8">{formatCurrency(stats.totalRevenue)}</div>
+              <div className="flex items-center gap-8">
                 <div>
-                  <div className="text-[11px] opacity-70 uppercase tracking-widest">{t('dashboard.activeOrders')}</div>
-                  <div className="text-lg font-bold">{stats.activeOrders}</div>
+                  <div className="text-[12px] opacity-80 uppercase tracking-widest font-medium">Active Orders</div>
+                  <div className="text-2xl font-semibold mt-1.5">{stats.activeOrders}</div>
                 </div>
                 <div>
-                  <div className="text-[11px] opacity-70 uppercase tracking-widest">Completed</div>
-                  <div className="text-lg font-bold">{stats.completedOrders}</div>
+                  <div className="text-[12px] opacity-80 uppercase tracking-widest font-medium">Completed</div>
+                  <div className="text-2xl font-semibold mt-1.5">{stats.completedOrders}</div>
                 </div>
               </div>
             </div>
@@ -541,20 +541,20 @@ export default function Dashboard() {
         </div>
 
         {/* Category Quick Access */}
-        <div className="px-4 mb-8">
+        <div className="px-4 mb-10">
           <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
             {[
-              { label: 'Orders', icon: Scissors, path: '/dashboard/orders', color: 'bg-green-100 text-[#22C55E]' },
-              { label: 'Customers', icon: Users, path: '/dashboard/customers', color: 'bg-blue-100 text-blue-600' },
-              { label: 'Measurements', icon: FileText, path: '/dashboard/customers', color: 'bg-purple-100 text-purple-600' },
-              { label: 'Designs', icon: TrendingUp, path: '/dashboard/orders/new', color: 'bg-orange-100 text-orange-600' },
-              { label: 'Payments', icon: Search, path: '/dashboard/reminders', color: 'bg-indigo-100 text-indigo-600' },
+              { label: 'Orders', icon: Scissors, path: '/dashboard/orders', color: 'bg-surface-container-high text-on-surface' },
+              { label: 'Customers', icon: Users, path: '/dashboard/customers', color: 'bg-surface-container-high text-on-surface' },
+              { label: 'Measurements', icon: FileText, path: '/dashboard/customers', color: 'bg-surface-container-high text-on-surface' },
+              { label: 'Designs', icon: TrendingUp, path: '/dashboard/orders/new', color: 'bg-surface-container-high text-on-surface' },
+              { label: 'Payments', icon: Search, path: '/dashboard/reminders', color: 'bg-surface-container-high text-on-surface' },
             ].map((cat, i) => (
-              <div key={i} className="flex flex-col items-center gap-2 min-w-[64px]" onClick={() => navigate(cat.path)}>
-                <div className={cn("w-[56px] h-[56px] rounded-full flex items-center justify-center", cat.color)}>
+              <div key={i} className="flex flex-col items-center gap-3 min-w-[72px]" onClick={() => navigate(cat.path)}>
+                <div className={cn("w-14 h-14 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity", cat.color)}>
                   <cat.icon className="w-6 h-6" />
                 </div>
-                <div className="text-[11px] font-medium text-[#64748B]">{cat.label}</div>
+                <div className="text-[12px] font-medium text-on-surface-variant">{cat.label}</div>
               </div>
             ))}
           </div>
@@ -562,27 +562,27 @@ export default function Dashboard() {
 
         {/* Today's Orders / Recent */}
         <div className="px-4 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[16px] font-semibold text-[#0F172A]">Today's Orders</h2>
-            <Link to="/dashboard/orders" className="text-[13px] font-medium text-[#22C55E] border border-[#22C55E] rounded-full px-3 py-1">See All</Link>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-[18px] font-semibold text-on-surface">Today's Orders</h2>
+            <Link to="/dashboard/orders" className="text-[14px] font-medium text-primary border border-outline-variant rounded-full px-4 py-1.5 hover:bg-surface-variant transition-colors">See All</Link>
           </div>
           <div className="space-y-3">
             {recentOrders.length === 0 ? (
-              <div className="text-center text-sm text-[#64748B] py-4 bg-white rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.07)]">No orders today</div>
+              <div className="text-center text-[15px] text-on-surface-variant py-6 bg-surface rounded-2xl border border-outline-variant">No orders today</div>
             ) : (
               recentOrders.map(order => (
-                <div key={order.id} className="bg-white rounded-[16px] p-3.5 flex items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]" onClick={() => navigate(`/dashboard/orders/${order.id}`)}>
-                  <div className="w-[56px] h-[56px] rounded-[14px] bg-[#F1F5F9] flex items-center justify-center text-[#22C55E]">
-                    <Scissors className="w-6 h-6" />
+                <div key={order.id} className="bg-surface rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-outline-variant cursor-pointer hover:bg-surface-variant transition-colors" onClick={() => navigate(`/dashboard/orders/${order.id}`)}>
+                  <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-on-surface">
+                    <Scissors className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-[15px] font-semibold text-[#0F172A]">{order.customerName}</div>
-                    <div className="text-[12px] text-[#64748B] mt-0.5">{order.dressType}</div>
-                    <div className="text-[12px] text-[#64748B]">{formatDate(order.createdAt)}</div>
+                    <div className="text-[16px] font-medium text-on-surface">{order.customerName}</div>
+                    <div className="text-[14px] text-on-surface-variant mt-0.5">{order.dressType}</div>
+                    <div className="text-[13px] text-on-surface-variant mt-1">{formatDate(order.createdAt)}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[15px] font-semibold text-[#22C55E] mb-1">{formatCurrency(order.price)}</div>
-                    <div className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block", order.status === ORDER_STATUS.DELIVERED ? "bg-[#22C55E] text-white" : "bg-[#1E293B] text-white")}>
+                    <div className="text-[16px] font-semibold text-primary mb-2">{formatCurrency(order.price)}</div>
+                    <div className={cn("text-[12px] font-medium px-3 py-1 rounded-full inline-block", order.status === ORDER_STATUS.DELIVERED ? "bg-secondary-container text-on-secondary-container" : "bg-surface-container-high text-on-surface-variant")}>
                       {t(`orders.${order.status.toLowerCase()}`)}
                     </div>
                   </div>
@@ -595,17 +595,17 @@ export default function Dashboard() {
         {/* Top Customers */}
         {topCustomersData.length > 0 && (
           <div className="px-4 pb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[16px] font-semibold text-[#0F172A]">Top Customers</h2>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-[18px] font-semibold text-on-surface">Top Customers</h2>
             </div>
             <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
               {topCustomersData.map((customer, i) => (
-                <div key={i} onClick={() => { if (customer.id) navigate(`/dashboard/customers/${customer.id}`); }} className="flex flex-col items-center min-w-[72px] bg-white rounded-[16px] p-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)] cursor-pointer hover:bg-gray-50 transition-colors">
-                  <div className="w-[52px] h-[52px] rounded-full bg-[#E2E8F0] flex items-center justify-center text-[#64748B] text-lg font-bold mb-2">
+                <div key={i} onClick={() => { if (customer.id) navigate(`/dashboard/customers/${customer.id}`); }} className="flex flex-col items-center min-w-[88px] bg-surface rounded-2xl p-4 border border-outline-variant shadow-sm cursor-pointer hover:bg-surface-variant transition-colors">
+                  <div className="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface text-xl font-medium mb-3">
                     {customer.name.charAt(0).toUpperCase()}
                   </div>
-                  <div className="text-[12px] font-medium text-[#0F172A] line-clamp-1 text-center w-full">{customer.name.split(' ')[0]}</div>
-                  <div className="text-[10px] text-[#64748B] mt-0.5">{customer.count} Order{customer.count !== 1 ? 's' : ''}</div>
+                  <div className="text-[13px] font-medium text-on-surface line-clamp-1 text-center w-full">{customer.name.split(' ')[0]}</div>
+                  <div className="text-[12px] text-on-surface-variant mt-1">{customer.count} Order{customer.count !== 1 ? 's' : ''}</div>
                 </div>
               ))}
             </div>

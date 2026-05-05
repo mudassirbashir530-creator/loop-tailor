@@ -16,7 +16,7 @@ import { getMeasurementName } from '../lib/measurements';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage } from '../lib/whatsapp';
-import { createNotification } from '../lib/notifications';
+import { createNotification, sendWhatsappNotification } from '../lib/notifications';
 import { useStaff } from '../hooks/useStaff';
 import { MessageCircle } from 'lucide-react';
 import { OrderTimeline } from '../components/OrderTimeline';
@@ -107,12 +107,26 @@ export default function OrderDetails() {
       });
       toast.success(t('orderDetails.statusUpdated') || 'Status updated successfully');
 
+
       await createNotification(user.uid, {
         title: "Order Status Updated",
         message: `${order.customerName}'s ${order.dressType} is now ${newStatus}`,
         type: 'order_status',
         orderId: order.id
       });
+
+      if (settings.enableWhatsappNotifications && order.phone) {
+        await sendWhatsappNotification({
+          to: order.phone,
+          customerName: order.customerName,
+          dressType: order.dressType || 'Suit',
+          token: order.tokenId || '',
+          shopName: settings.name || 'Loop Tailor',
+          status: newStatus,
+          orderId: id!,
+          shopId: user.uid
+        });
+      }
 
       if (newStatus === ORDER_STATUS.DELIVERED && order.assignedStaffId) {
         const staffMember = staff.find(s => s.id === order.assignedStaffId);
@@ -156,24 +170,19 @@ export default function OrderDetails() {
 
       // In case status was changed directly in the edit modal to Ready or Delivered
       if (editData.status !== order.status) {
-        if (settings.enableWhatsappNotifications && (editData.status === ORDER_STATUS.READY || editData.status === ORDER_STATUS.DELIVERED)) {
+        if (settings.enableWhatsappNotifications && editData.status !== ORDER_STATUS.PENDING) {
           const phoneNumber = editData.phone || order.phone;
           if (phoneNumber) {
-            if (editData.status === ORDER_STATUS.READY) {
-               sendOrderReadyMessage(
-                  editData.customerName || order.customerName,
-                  editData.dressType || order.dressType || 'Suit',
-                  order.tokenId,
-                  settings.name || 'Loop Tailor',
-                  phoneNumber,
-                  settings.messageTemplates
-               );
-            } else if (editData.status === ORDER_STATUS.DELIVERED) {
-               sendWhatsAppMessage(
-                  phoneNumber,
-                  settings.messageTemplates?.delivered || `شکریہ *${editData.customerName || order.customerName}* صاحب! \nOrder #${order.tokenId} deliver ہو گیا۔ \nدوبارہ تشریف لائیں! - ${settings.name || 'Loop Tailor'}`
-               );
-            }
+             await sendWhatsappNotification({
+               to: phoneNumber,
+               customerName: editData.customerName || order.customerName,
+               dressType: editData.dressType || order.dressType || 'Suit',
+               token: order.tokenId,
+               shopName: settings.name || 'Loop Tailor',
+               status: editData.status,
+               orderId: id!,
+               shopId: user.uid
+             });
           }
         }
       }
@@ -261,27 +270,27 @@ export default function OrderDetails() {
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/orders')} className="bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none rounded-xl">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/orders')} className="bg-surface border border-outline-variant shadow-sm hover:bg-surface-variant rounded-full text-on-surface transition-colors">
             {isRTL ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
           </Button>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-widest text-slate-400">{t('orderDetails.token')}</span>
-              <span className="text-2xl font-black text-brand-primary">#{order.tokenId}</span>
+              <span className="text-[12px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.token')}</span>
+              <span className="text-[24px] font-display font-semibold tracking-tight text-primary">#{order.tokenId}</span>
               {order.deliveryType === 'Home Delivery' ? (
-                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md ml-2"><Home className="w-3 h-3"/> Home Delivery</span>
+                <span className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-widest text-[#22C55E] bg-green-100 px-2.5 py-1 rounded-full"><Home className="w-3.5 h-3.5"/> Home Delivery</span>
               ) : order.deliveryType === 'Self Pickup' ? (
-                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md ml-2"><Store className="w-3 h-3"/> Self Pickup</span>
+                <span className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-widest text-blue-600 bg-blue-100 px-2.5 py-1 rounded-full"><Store className="w-3.5 h-3.5"/> Self Pickup</span>
               ) : null}
             </div>
-            <h1 className="text-xl font-bold text-slate-900">{order.customerName}</h1>
+            <h1 className="text-[20px] font-semibold text-on-surface">{order.customerName}</h1>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {order.status !== ORDER_STATUS.DELIVERED && (
             <Button 
               onClick={() => handleUpdateStatus(ORDER_STATUS.DELIVERED)}
-              className="bg-emerald-500 text-white font-black rounded-2xl px-6 h-12 shadow-neu-sm hover:shadow-neu-pressed-sm transition-all border-none"
+              className="bg-primary hover:bg-on-surface text-on-primary font-medium rounded-full px-6 h-12 shadow-sm transition-all border-none"
             >
               <CheckCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
               {t('orderDetails.deliver')}
@@ -291,8 +300,8 @@ export default function OrderDetails() {
             variant="ghost"
             onClick={() => isEditing ? handleSaveEdit() : setIsEditing(true)}
             className={cn(
-              "rounded-2xl font-black h-12 px-6 transition-all border-none",
-              isEditing ? "bg-gray-100 shadow-neu-pressed text-brand-primary" : "bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-slate-700"
+              "rounded-full font-medium h-12 px-6 transition-all border border-outline-variant",
+              isEditing ? "bg-surface-variant text-primary" : "bg-surface hover:bg-surface-variant text-on-surface shadow-sm"
             )}
           >
             {isEditing ? <Save className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <Edit2 className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
@@ -303,15 +312,15 @@ export default function OrderDetails() {
               variant="ghost"
               onClick={handleDeleteOrder}
               disabled={isDeleting}
-              className="rounded-2xl font-black h-12 px-6 border-none text-red-500 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm transition-all"
+              className="rounded-full font-medium h-12 px-6 border border-outline-variant text-error bg-surface hover:bg-error hover:text-white shadow-sm transition-all"
             >
               {isDeleting ? <Loader2 className={cn("h-5 w-5 animate-spin", isRTL ? "ml-2" : "mr-2")} /> : <Trash2 className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
               {t('orderDetails.delete')}
             </Button>
           )}
           {isEditing && (
-            <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="rounded-2xl h-12 w-12 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none">
-              <X className="h-6 w-6 text-slate-500" />
+            <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="rounded-full h-12 w-12 bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-on-surface-variant">
+              <X className="h-6 w-6" />
             </Button>
           )}
         </div>
@@ -322,42 +331,42 @@ export default function OrderDetails() {
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Main Info Card */}
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-transparent border-b border-gray-200/50 p-6">
-              <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <User className="h-5 w-5 text-brand-primary" />
+          <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden">
+            <CardHeader className="bg-surface-container-lowest border-b border-outline-variant p-6">
+              <CardTitle className="text-[18px] font-semibold text-on-surface flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
                 {t('orderDetails.orderInformation')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 grid sm:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.customerDetails')}</span>
-                  <div className="flex items-center gap-3 text-slate-900">
-                    <User className="h-4 w-4 text-brand-primary" />
-                    <span className="font-bold">{order.customerName}</span>
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.customerDetails')}</span>
+                  <div className="flex items-center gap-3 text-on-surface mt-1">
+                    <User className="h-4 w-4 text-primary" />
+                    <span className="font-semibold">{order.customerName}</span>
                   </div>
                   {order.phone && (
-                    <div className="flex items-center gap-3 text-slate-900 mt-2">
-                      <Phone className="h-4 w-4 text-brand-primary" />
-                      <span className="font-bold">{order.phone}</span>
+                    <div className="flex items-center gap-3 text-on-surface mt-2.5">
+                      <Phone className="h-4 w-4 text-primary" />
+                      <span className="font-semibold">{order.phone}</span>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.dressType')}</span>
-                  <div className="text-lg font-black text-slate-900">{order.dressType}</div>
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.dressType')}</span>
+                  <div className="text-[18px] font-semibold text-on-surface mt-1">{order.dressType}</div>
                 </div>
 
-                <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.status')}</span>
-                  <div className="mt-2">
+                <div className="space-y-2">
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.status')}</span>
+                  <div>
                     <select 
                       disabled={!isEditing}
                       value={isEditing ? editData.status : order.status}
                       onChange={(e) => setEditData({...editData, status: e.target.value})}
-                      className="h-12 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-base sm:text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 disabled:opacity-100 disabled:shadow-neu-sm"
+                      className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[15px] font-semibold text-on-surface focus:outline-none focus:border-primary disabled:opacity-100 disabled:bg-surface disabled:border-transparent transition-all"
                     >
                       <option value={ORDER_STATUS.PENDING}>{t('orderDetails.pending')}</option>
                       <option value={ORDER_STATUS.CUTTING}>{t('orders.cutting')}</option>
@@ -369,17 +378,14 @@ export default function OrderDetails() {
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Delivery Type</span>
-                  <div className="mt-2">
+                <div className="space-y-2">
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">Delivery Type</span>
+                  <div>
                     <select 
                       disabled={!isEditing || order.status !== ORDER_STATUS.PENDING}
                       value={isEditing ? (editData.deliveryType || 'Self Pickup') : (order.deliveryType || 'Self Pickup')}
                       onChange={(e) => setEditData({...editData, deliveryType: e.target.value})}
-                      className={cn(
-                        "h-12 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-base sm:text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20",
-                        (!isEditing || order.status !== ORDER_STATUS.PENDING) ? "opacity-100 shadow-neu-sm" : ""
-                      )}
+                      className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[15px] font-semibold text-on-surface focus:outline-none focus:border-primary disabled:opacity-100 disabled:bg-surface disabled:border-transparent transition-all"
                     >
                       <option value="Self Pickup">🏪 Self Pickup</option>
                       <option value="Home Delivery">🏠 Home Delivery</option>
@@ -387,10 +393,10 @@ export default function OrderDetails() {
                   </div>
                 </div>
                 
-                <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Assigned Staff</span>
-                  <div className="flex items-center gap-3 text-slate-900 mt-2">
-                    <User className="h-4 w-4 text-brand-primary" />
+                <div className="space-y-2">
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">Assigned Staff</span>
+                  <div className="flex items-center gap-3 text-on-surface mt-1">
+                    <User className="h-4 w-4 text-primary" />
                     {isEditing ? (
                       <select
                         value={editData.assignedStaffId || ''}
@@ -402,7 +408,7 @@ export default function OrderDetails() {
                             assignedStaffName: selectedStaff ? selectedStaff.name : ''
                           });
                         }}
-                        className="h-10 w-full rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none px-4 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+                        className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[14px] font-semibold text-on-surface focus:outline-none focus:border-primary transition-all"
                       >
                         <option value="">Unassigned</option>
                         {staff.map(w => (
@@ -410,9 +416,9 @@ export default function OrderDetails() {
                         ))}
                       </select>
                     ) : (
-                      <span className="font-bold flex items-center gap-1">
+                      <span className="font-semibold flex items-center gap-1">
                         {order.assignedStaffId 
-                          ? <><span className="text-brand-primary">👤</span> {staff.find(w => w.id === order.assignedStaffId)?.name || order.assignedStaffName || 'Unknown'}</>
+                          ? <><span className="text-primary">👤</span> {staff.find(w => w.id === order.assignedStaffId)?.name || order.assignedStaffName || 'Unknown'}</>
                           : 'Unassigned'}
                       </span>
                     )}
@@ -422,32 +428,32 @@ export default function OrderDetails() {
 
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.rackLocation')}</span>
-                  <div className="flex items-center gap-3 text-slate-900 mt-1">
-                    <MapPin className="h-4 w-4 text-brand-primary" />
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.rackLocation')}</span>
+                  <div className="flex items-center gap-3 text-on-surface mt-1.5">
+                    <MapPin className="h-4 w-4 text-primary" />
                     {isEditing ? (
                       <Input 
                         value={editData.rackLocation}
                         onChange={(e) => setEditData({...editData, rackLocation: e.target.value})}
-                        className="h-10 rounded-xl bg-gray-100 shadow-neu-pressed-sm border-none"
+                        className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-on-surface focus:border-primary shadow-none"
                       />
                     ) : (
-                      <span className="font-bold">{order.rackLocation || t('orderDetails.notAssigned')}</span>
+                      <span className="font-semibold">{order.rackLocation || t('orderDetails.notAssigned')}</span>
                     )}
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.deliveryDate')}</span>
-                  <div className="flex items-center gap-3 text-slate-900 mt-1">
-                    <Calendar className="h-4 w-4 text-brand-primary" />
-                    <span className="font-bold">{formatDate(order.deliveryDate)}</span>
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.deliveryDate')}</span>
+                  <div className="flex items-center gap-3 text-on-surface mt-1.5">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span className="font-semibold">{formatDate(order.deliveryDate)}</span>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.notes')}</span>
-                  <p className="text-sm text-slate-700 font-medium mt-1 bg-gray-100 shadow-neu-pressed-sm p-3 rounded-xl min-h-[60px]">
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.notes')}</span>
+                  <p className="text-[14px] text-on-surface font-medium mt-1.5 bg-surface-container-highest border border-outline-variant p-4 rounded-2xl min-h-[60px]">
                     {order.notes || t('orderDetails.noNotes')}
                   </p>
                 </div>
@@ -457,24 +463,24 @@ export default function OrderDetails() {
 
           {/* Garment Styles Card */}
           {order.garmentStyles && Object.keys(order.garmentStyles).length > 0 && (
-            <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-transparent border-b border-gray-200/50 p-6 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Scissors className="h-5 w-5 text-brand-primary" />
+            <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden">
+              <CardHeader className="bg-surface-container-lowest border-b border-outline-variant p-6 flex flex-row items-center justify-between">
+                <CardTitle className="text-[18px] font-semibold text-on-surface flex items-center gap-2">
+                  <Scissors className="h-5 w-5 text-primary" />
                   Garment Style Selection
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {Object.entries(order.garmentStyles).map(([key, value]) => (
-                    <div key={key} className="bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-4 rounded-xl border border-gray-100 flex flex-col items-center justify-center text-center">
-                      <div className="w-10 h-10 bg-[#F1F5F9] rounded-lg mb-2 flex items-center justify-center text-xl">
+                    <div key={key} className="bg-surface-container-highest shadow-sm p-4 rounded-2xl border border-outline-variant flex flex-col items-center justify-center text-center">
+                      <div className="w-10 h-10 bg-surface rounded-xl mb-3 flex items-center justify-center text-xl shadow-sm border border-outline-variant">
                         {key.toLowerCase() === 'collar' ? '👔' : key.toLowerCase() === 'sleeves' ? '👕' : key.toLowerCase() === 'pocket' ? '👝' : key.toLowerCase() === 'placket' ? '🧵' : '🎽'}
                       </div>
-                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">
+                      <span className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant block mb-1">
                         {key}
                       </span>
-                      <span className="text-sm font-bold text-slate-800 leading-tight block">{String(value)}</span>
+                      <span className="text-[14px] font-semibold text-on-surface leading-tight block">{String(value)}</span>
                     </div>
                   ))}
                 </div>
@@ -483,35 +489,35 @@ export default function OrderDetails() {
           )}
 
           {/* Measurements Card */}
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-transparent border-b border-gray-200/50 p-6 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Ruler className="h-5 w-5 text-brand-primary" />
+          <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden">
+            <CardHeader className="bg-surface-container-lowest border-b border-outline-variant p-6 flex flex-row items-center justify-between">
+              <CardTitle className="text-[18px] font-semibold text-on-surface flex items-center gap-2">
+                <Ruler className="h-5 w-5 text-primary" />
                 {t('orderDetails.measurements')}
               </CardTitle>
               <Button
                 variant="ghost"
                 onClick={() => navigate(`/dashboard/customers/${order.customerId}#measurements`)}
-                className="bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-brand-primary rounded-xl h-9 text-xs font-bold border-none"
+                className="bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-primary rounded-full px-5 h-9 text-[13px] font-medium"
               >
                 {t('orderDetails.edit')}
               </Button>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="mb-6 p-4 bg-brand-primary/10 rounded-2xl border border-brand-primary/20 flex items-start gap-3">
-                <Ruler className="h-5 w-5 text-brand-primary shrink-0 mt-0.5" />
+              <div className="mb-6 p-4 bg-primary-container/50 rounded-2xl border border-primary/20 flex items-start gap-4">
+                <Ruler className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-bold text-brand-primary">Historical Snapshot</p>
-                  <p className="text-xs text-brand-primary/80 mt-1">To update measurements, go to Customer Profile. The measurements shown below are a static record from when the order was placed.</p>
+                  <p className="text-[14px] font-semibold text-on-surface">Historical Snapshot</p>
+                  <p className="text-[13px] text-on-surface-variant mt-1.5 leading-relaxed">To update measurements, go to Customer Profile. The measurements shown below are a static record from when the order was placed.</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {order.measurements && Object.entries(order.measurements).map(([key, value]: [string, any]) => (
-                  <div key={key} className="bg-gray-100 shadow-neu-pressed-sm p-4 rounded-2xl border-none">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">
+                  <div key={key} className="bg-surface-container-highest border border-outline-variant shadow-sm p-4 rounded-2xl">
+                    <span className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant block mb-2">
                       {getMeasurementName(key, isRTL)}
                     </span>
-                    <span className="text-xl font-black text-slate-900">{value}"</span>
+                    <span className="text-[20px] font-display font-semibold text-on-surface">{value}"</span>
                   </div>
                 ))}
               </div>
@@ -521,30 +527,30 @@ export default function OrderDetails() {
 
         <div className="space-y-8">
           {/* Payment Card */}
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+          <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Payment Status</span>
+                <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">Payment Status</span>
                 <span className={cn(
-                  "text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-neu-sm",
-                  (!order.paymentStatus || order.paymentStatus === 'Unpaid') ? "bg-gray-100 text-rose-500" :
-                  order.paymentStatus === 'Partial' ? "bg-gray-100 text-blue-500" :
-                  "bg-gray-100 text-emerald-500"
+                  "text-[11px] font-medium px-3 py-1.5 rounded-full uppercase tracking-widest",
+                  (!order.paymentStatus || order.paymentStatus === 'Unpaid') ? "bg-errorContainer text-on-errorContainer" :
+                  order.paymentStatus === 'Partial' ? "bg-secondary-container text-on-secondary-container" :
+                  "bg-green-100 text-[#22C55E]"
                 )}>
                   {order.paymentStatus || 'Unpaid'}
                 </span>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.totalPrice')}</span>
-                <div className="text-3xl font-black text-slate-900">{settings.currency} {order.price}</div>
+                <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.totalPrice')}</span>
+                <div className="text-[32px] font-display font-semibold tracking-tight text-on-surface">{settings.currency} {order.price}</div>
               </div>
               <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Total Paid</span>
-                <div className="text-xl font-bold text-emerald-600">{settings.currency} {totalPaid}</div>
+                <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">Total Paid</span>
+                <div className="text-[20px] font-semibold text-[#22C55E]">{settings.currency} {totalPaid}</div>
               </div>
-              <div className="pt-6 border-t border-gray-200/50 space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('orderDetails.balanceDue')}</span>
-                <div className="text-2xl font-black text-brand-primary">
+              <div className="pt-6 border-t border-outline-variant space-y-1">
+                <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.balanceDue')}</span>
+                <div className="text-[24px] font-semibold text-primary">
                   {settings.currency} {balanceDue}
                 </div>
               </div>
@@ -552,7 +558,7 @@ export default function OrderDetails() {
               {balanceDue > 0 && (
                 <Button 
                   onClick={() => setIsPaymentModalOpen(true)}
-                  className="w-full bg-brand-primary text-white font-bold rounded-2xl h-12 shadow-neu-sm border-none mt-4"
+                  className="w-full bg-primary text-on-primary font-medium rounded-full h-12 shadow-sm border-none mt-4 hover:bg-on-surface"
                 >
                   Record Payment
                 </Button>
@@ -561,53 +567,53 @@ export default function OrderDetails() {
           </Card>
 
           {/* Timeline Card */}
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
+          <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden">
             <CardContent className="p-8 space-y-6">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary">
+                <div className="h-12 w-12 rounded-full bg-surface-container flex items-center justify-center text-primary">
                   <Clock className="h-5 w-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">{t('orderDetails.createdOn')}</span>
-                  <span className="text-sm font-black text-slate-900">
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant block mb-1">{t('orderDetails.createdOn')}</span>
+                  <span className="text-[14px] font-semibold text-on-surface">
                     {formatDateTime(order.createdAt)}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center text-brand-primary">
+                <div className="h-12 w-12 rounded-full bg-surface-container flex items-center justify-center text-primary">
                   <Hash className="h-5 w-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">{t('orderDetails.systemId')}</span>
-                  <span className="text-xs font-mono font-bold text-slate-500 break-all">{order.id}</span>
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant block mb-1">{t('orderDetails.systemId')}</span>
+                  <span className="text-[12px] font-mono font-medium text-on-surface-variant break-all">{order.id}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Invoice Preview Card */}
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-transparent border-b border-gray-200/50 p-6">
-              <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-brand-primary" />
+          <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden">
+            <CardHeader className="bg-surface-container-lowest border-b border-outline-variant p-6">
+              <CardTitle className="text-[18px] font-semibold text-on-surface flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
                 {t('orderDetails.invoicePreview')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="p-5 rounded-2xl bg-gray-100 shadow-neu-pressed-sm border-none space-y-4">
+              <div className="p-5 rounded-2xl bg-surface-container-highest border border-outline-variant space-y-4 shadow-sm">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="text-sm font-black text-slate-900">{shop?.name || t('orderDetails.yourShop')}</h4>
-                    <p className="text-[10px] text-slate-500">{t('orderDetails.invoicePreview')}</p>
+                    <h4 className="text-[15px] font-semibold text-on-surface">{shop?.name || t('orderDetails.yourShop')}</h4>
+                    <p className="text-[12px] text-on-surface-variant font-medium mt-1">{t('orderDetails.invoicePreview')}</p>
                   </div>
                   <div className={cn(isRTL ? "text-left" : "text-right")}>
                     <span className={cn(
-                      "text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest shadow-neu-sm",
-                      order.status === ORDER_STATUS.DELIVERED ? "bg-gray-100 text-emerald-600" :
-                      order.status === ORDER_STATUS.READY ? "bg-gray-100 text-blue-600" :
-                      (order.status === ORDER_STATUS.QC || order.status === ORDER_STATUS.CUTTING || order.status === ORDER_STATUS.STITCHING) ? "bg-gray-100 text-amber-600" :
-                      "bg-gray-100 text-slate-600"
+                      "text-[10px] font-medium px-3 py-1.5 rounded-full uppercase tracking-widest",
+                      order.status === ORDER_STATUS.DELIVERED ? "bg-secondary-container text-on-secondary-container" :
+                      order.status === ORDER_STATUS.READY ? "bg-blue-100 text-blue-700" :
+                      (order.status === ORDER_STATUS.QC || order.status === ORDER_STATUS.CUTTING || order.status === ORDER_STATUS.STITCHING) ? "bg-orange-100 text-orange-700" :
+                      "bg-surface-container-high text-on-surface-variant"
                     )}>
                       {order.status === ORDER_STATUS.PENDING ? t('orderDetails.pending') :
                        order.status === ORDER_STATUS.CUTTING ? t('orders.cutting') :
@@ -619,20 +625,20 @@ export default function OrderDetails() {
                   </div>
                 </div>
                 
-                <div className="pt-4 border-t border-gray-200/50 space-y-3">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-500 font-bold">{t('orderDetails.customer')}</span>
-                    <span className="font-black text-slate-900">{order.customerName}</span>
+                <div className="pt-4 border-t border-outline-variant space-y-3">
+                  <div className="flex justify-between text-[13px]">
+                    <span className="text-on-surface-variant font-medium">{t('orderDetails.customer')}</span>
+                    <span className="font-semibold text-on-surface">{order.customerName}</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-500 font-bold">{t('orderDetails.totalAmount')}</span>
-                    <span className="font-black text-slate-900">{settings.currency} {order.price}</span>
+                  <div className="flex justify-between text-[13px]">
+                    <span className="text-on-surface-variant font-medium">{t('orderDetails.totalAmount')}</span>
+                    <span className="font-semibold text-on-surface">{settings.currency} {order.price}</span>
                   </div>
                 </div>
 
                 <Button 
                   variant="ghost" 
-                  className="w-full rounded-xl h-12 text-sm font-bold bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-brand-primary border-none mt-2"
+                  className="w-full rounded-xl h-12 text-[14px] font-semibold bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-primary mt-2"
                   onClick={() => navigate(`/dashboard/orders/${order.id}/invoice`)}
                 >
                   {t('orderDetails.viewFullInvoice')}
@@ -642,49 +648,49 @@ export default function OrderDetails() {
           </Card>
 
           {/* WhatsApp Communications Card */}
-          <Card className="border-none shadow-neu bg-gray-100 rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="bg-transparent border-b border-gray-200/50 p-6">
-              <CardTitle className="text-lg font-bold text-[#25D366] flex items-center gap-2">
+          <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden">
+            <CardHeader className="bg-surface-container-lowest border-b border-outline-variant p-6">
+              <CardTitle className="text-[18px] font-semibold text-[#25D366] flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
                 WhatsApp Messages
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               {!order.phone ? (
-                <div className="text-sm font-bold text-slate-500 bg-gray-100 shadow-neu-pressed-sm p-4 rounded-xl text-center">
+                <div className="text-[14px] font-medium text-on-surface-variant bg-surface-container-highest border border-outline-variant p-4 rounded-xl text-center shadow-sm">
                   Customer phone missing
                 </div>
               ) : (
                 <>
                   <Button 
                     onClick={() => sendOrderReadyMessage(order.customerName, order.dressType || 'Suit', order.tokenId, settings?.name || 'Loop Tailor', order.phone, settings?.messageTemplates)}
-                    className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-2xl h-12 shadow-neu-sm border-none flex justify-center items-center gap-2"
+                    className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-medium rounded-full h-12 shadow-sm border-none flex justify-center items-center gap-2"
                   >
                     <MessageCircle className="h-4 w-4" /> Send "Order Ready"
                   </Button>
                   <Button 
                     variant="outline"
                     onClick={() => sendPaymentReminderMessage(order.customerName, balanceDue.toString(), settings?.name || 'Loop Tailor', order.phone, settings?.messageTemplates)}
-                    className="w-full bg-gray-100 hover:bg-gray-50 text-slate-700 font-bold rounded-2xl h-12 shadow-neu-sm hover:shadow-neu-pressed-sm border-none flex justify-center items-center gap-2"
+                    className="w-full bg-surface hover:bg-surface-variant text-on-surface font-medium rounded-full h-12 shadow-sm border border-outline-variant flex justify-center items-center gap-2"
                   >
                     <CreditCard className="h-4 w-4" /> Payment Reminder
                   </Button>
 
                   {showCustomWa ? (
-                    <div className="pt-4 border-t border-gray-200/50 space-y-3">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">Custom Message</span>
+                    <div className="pt-4 border-t border-outline-variant space-y-3">
+                      <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant block">Custom Message</span>
                       <textarea
                         value={customWaMessage}
                         onChange={(e) => setCustomWaMessage(e.target.value)}
                         placeholder="Write a custom message for WhatsApp..."
-                        className="w-full p-4 rounded-xl resize-none bg-gray-100 shadow-neu-pressed-sm border-none focus:ring-0 text-sm font-medium text-slate-700 outline-none"
+                        className="w-full p-4 rounded-2xl resize-none bg-surface-container-highest border border-outline-variant focus:border-primary text-[14px] font-medium text-on-surface outline-none shadow-sm"
                         rows={3}
                       />
                       <div className="flex gap-3">
                         <Button
                           variant="ghost" 
                           onClick={() => setShowCustomWa(false)}
-                          className="flex-1 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm rounded-xl h-10 border-none text-slate-500 font-bold"
+                          className="flex-1 bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm rounded-full h-12 text-on-surface-variant font-medium"
                         >
                           Cancel
                         </Button>
@@ -694,7 +700,7 @@ export default function OrderDetails() {
                             setShowCustomWa(false);
                             setCustomWaMessage('');
                           }}
-                          className="flex-1 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl h-10 shadow-neu-sm border-none font-bold"
+                          className="flex-1 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-full h-12 shadow-sm border-none font-medium"
                           disabled={!customWaMessage.trim()}
                         >
                           Send WhatsApp
@@ -705,7 +711,7 @@ export default function OrderDetails() {
                     <Button 
                       variant="ghost"
                       onClick={() => setShowCustomWa(true)}
-                      className="w-full text-brand-primary font-bold rounded-2xl h-12 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none flex justify-center items-center gap-2"
+                      className="w-full text-primary font-medium rounded-full h-12 bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm flex justify-center items-center gap-2"
                     >
                       <Edit2 className="h-4 w-4" /> Custom Message
                     </Button>
@@ -724,36 +730,36 @@ export default function OrderDetails() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative"
+              className="bg-surface rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-lg relative border border-outline-variant"
             >
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => setIsPaymentModalOpen(false)}
-                className="absolute right-4 top-4 rounded-full bg-slate-100 hover:bg-slate-200 p-2"
+                className="absolute right-4 top-4 rounded-full bg-surface-variant hover:bg-surface-container-highest text-on-surface-variant p-2"
               >
                 <X className="h-5 w-5" />
               </Button>
 
-              <h2 className="text-2xl font-black text-slate-900 mb-6">Record Payment</h2>
+              <h2 className="text-[24px] font-display font-semibold text-on-surface mb-6">Record Payment</h2>
               
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Amount</label>
+                  <label className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest mb-2 block">Amount</label>
                   <Input 
                     type="number" 
                     value={paymentForm.amount}
                     onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
                     placeholder={`Max ${settings.currency} ${balanceDue}`}
-                    className="h-12 bg-gray-50 border-none shadow-inner rounded-xl font-bold"
+                    className="h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface focus:border-primary shadow-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Payment Method</label>
+                  <label className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest mb-2 block">Payment Method</label>
                   <select 
                     value={paymentForm.method}
                     onChange={(e) => setPaymentForm({...paymentForm, method: e.target.value})}
-                    className="w-full h-12 bg-gray-50 border-none shadow-inner rounded-xl font-bold px-4"
+                    className="w-full h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface px-4 focus:outline-none focus:border-primary transition-colors"
                   >
                     <option value="Cash">Cash</option>
                     <option value="Bank Transfer">Bank Transfer</option>
@@ -762,19 +768,19 @@ export default function OrderDetails() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">Note (Optional)</label>
+                  <label className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest mb-2 block">Note (Optional)</label>
                   <Input 
                     type="text" 
                     value={paymentForm.note}
                     onChange={(e) => setPaymentForm({...paymentForm, note: e.target.value})}
                     placeholder="e.g. Paid via Easypaisa"
-                    className="h-12 bg-gray-50 border-none shadow-inner rounded-xl font-bold"
+                    className="h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface focus:border-primary shadow-none"
                   />
                 </div>
 
                 <Button 
                   onClick={handleRecordPayment}
-                  className="w-full bg-brand-primary text-white font-bold rounded-2xl h-12 mt-6"
+                  className="w-full bg-primary hover:bg-on-surface text-on-primary font-medium rounded-full h-12 mt-6 shadow-sm transition-colors"
                 >
                   Confirm Payment
                 </Button>
