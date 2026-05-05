@@ -50,7 +50,7 @@ export default function Layout() {
   };
 
   return (
-    <div className={cn("flex w-full h-screen bg-background text-on-background font-sans overflow-hidden", isRTL ? "font-urdu" : "")}>
+    <div className={cn("flex flex-col lg:flex-row w-full min-h-screen bg-background text-on-background font-sans", isRTL ? "font-urdu" : "")}>
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-surface flex items-center justify-between px-4 z-30 shadow-[0_1px_4px_rgba(0,0,0,0.05)] border-b border-surface-container-highest">
         <span className="logo-text font-bold text-xl text-primary flex items-center gap-2">
@@ -84,7 +84,7 @@ export default function Layout() {
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-[256px] bg-surface-container-low flex-col z-20 border-r border-outline-variant">
+      <aside className="hidden lg:flex w-[256px] bg-surface-container-low flex-col z-20 border-r border-outline-variant lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
         <div className="h-20 flex items-center justify-between px-6 mb-2">
           <Link to="/dashboard" className="flex items-center cursor-pointer gap-3">
             <div className="bg-primary text-on-primary p-2.5 rounded-xl shadow-sm">
@@ -141,8 +141,8 @@ export default function Layout() {
       <MobileBottomNav />
 
       {/* Main Content */}
-      <main className="flex-1 w-full overflow-auto bg-background relative pb-20 pt-16 lg:pt-0 lg:pb-0">
-        <div className="p-4 sm:p-6 lg:p-8 max-w-[1280px] w-full mx-auto min-h-full">
+      <main className="flex-1 w-full bg-background relative pb-20 pt-16 lg:pt-0 lg:pb-0 min-w-0">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-[1280px] w-full mx-auto min-h-fit">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -162,7 +162,7 @@ export default function Layout() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => navigate('/dashboard/orders/new')}
-          className="fixed bottom-24 right-6 lg:bottom-10 lg:right-10 h-14 w-14 bg-primary-container text-on-primary-container rounded-2xl shadow-md hover:shadow-lg flex items-center justify-center z-50 lg:hidden"
+          className="fixed bottom-20 right-4 lg:bottom-4 lg:right-4 h-14 w-14 bg-primary-container text-on-primary-container rounded-2xl shadow-md hover:shadow-lg flex items-center justify-center z-[50] lg:hidden"
         >
           <Plus className="h-7 w-7" />
         </motion.button>

@@ -24,14 +24,14 @@ export const AdminLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gray-100 flex flex-col lg:flex-row font-sans">
       {/* Sidebar */}
-      <div className="w-64 bg-gray-100 shadow-neu border-none flex flex-col z-10">
+      <div className="w-full lg:w-64 bg-gray-100 shadow-neu border-none flex flex-col z-10 lg:sticky lg:top-0 lg:h-screen">
         <div className="h-16 flex items-center px-6 border-b border-gray-200/50">
           <span className="text-xl font-bold text-slate-800">Admin Panel</span>
         </div>
         
-        <nav className="flex-1 px-4 py-6 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href || (item.href !== '/admin' && location.pathname.startsWith(item.href));
             return (
@@ -70,8 +70,8 @@ export const AdminLayout: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-8">
+      <div className="flex-1 flex flex-col min-w-0">
+        <main className="flex-1 p-4 md:p-8">
           <Outlet />
         </main>
       </div>

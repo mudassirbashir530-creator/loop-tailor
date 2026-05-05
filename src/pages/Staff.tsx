@@ -152,123 +152,125 @@ export default function Staff() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
-        </div>
-      ) : filteredStaff.length === 0 ? (
-        <div className="text-center py-20 bg-gray-100 rounded-[2rem] shadow-neu-pressed-sm">
-          <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-slate-700 mb-2">No staff found</h3>
-          <p className="text-slate-500">Add team members to assign them to orders.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {filteredStaff.map((member, idx) => {
-              const RoleIcon = roleIcons[member.role] || UserCircle;
-              return (
-                <motion.div
-                  key={member.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ delay: idx * 0.05 }}
-                >
-                  <Card className="border-none shadow-neu hover:shadow-neu-pressed transition-all duration-300 bg-gray-100 rounded-[2rem] overflow-hidden group">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center gap-4">
-                          <div className="h-14 w-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center">
-                            <span className="text-xl font-black text-brand-primary uppercase">
-                              {member.name.charAt(0)}
-                            </span>
+      <div className="bg-white rounded-xl shadow p-4 mb-4">
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+          </div>
+        ) : filteredStaff.length === 0 ? (
+          <div className="text-center py-20 bg-gray-100 rounded-[2rem] shadow-neu-pressed-sm">
+            <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-slate-700 mb-2">No staff found</h3>
+            <p className="text-slate-500">Add team members to assign them to orders.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {filteredStaff.map((member, idx) => {
+                const RoleIcon = roleIcons[member.role] || UserCircle;
+                return (
+                  <motion.div
+                    key={member.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ delay: idx * 0.05 }}
+                  >
+                    <Card className="border-none shadow-neu hover:shadow-neu-pressed transition-all duration-300 bg-gray-100 rounded-[2rem] overflow-hidden group">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center gap-4">
+                            <div className="h-14 w-14 rounded-2xl bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center">
+                              <span className="text-xl font-black text-brand-primary uppercase">
+                                {member.name.charAt(0)}
+                              </span>
+                            </div>
+                            <div>
+                              <h3 className="font-black text-lg text-slate-900 group-hover:text-brand-primary transition-colors">{member.name}</h3>
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
+                                <RoleIcon className="h-3.5 w-3.5" />
+                                {member.role}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => handleOpenModal(member)}
+                              className="h-8 w-8 rounded-xl bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-brand-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="pt-4 border-t border-gray-200/50 mt-4 grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Phone</div>
+                            <div className="text-sm font-medium text-slate-900">{member.phone || 'N/A'}</div>
                           </div>
                           <div>
-                            <h3 className="font-black text-lg text-slate-900 group-hover:text-brand-primary transition-colors">{member.name}</h3>
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
-                              <RoleIcon className="h-3.5 w-3.5" />
-                              {member.role}
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Salary / Rate</div>
+                            <div className="text-sm font-medium text-slate-900 flex items-center gap-1">
+                              <DollarSign className="h-3.5 w-3.5 text-brand-primary" />
+                              {member.salaryAmount} <span className="text-xs text-slate-500">({member.salaryType === 'fixed' ? 'Monthly' : 'Per Order'})</span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleOpenModal(member)}
-                            className="h-8 w-8 rounded-xl bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-brand-primary opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="pt-4 border-t border-gray-200/50 mt-4 grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Phone</div>
-                          <div className="text-sm font-medium text-slate-900">{member.phone || 'N/A'}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Salary / Rate</div>
-                          <div className="text-sm font-medium text-slate-900 flex items-center gap-1">
-                            <DollarSign className="h-3.5 w-3.5 text-brand-primary" />
-                            {member.salaryAmount} <span className="text-xs text-slate-500">({member.salaryType === 'fixed' ? 'Monthly' : 'Per Order'})</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Payroll Summary Snippet */}
-                      {(() => {
-                        const memberPayroll = payrollEntries.filter(p => p.staffId === member.id);
-                        const totalEarned = memberPayroll.reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
-                        const totalPaid = memberPayroll.filter(p => p.paidStatus === 'paid').reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
-                        const pendingEntries = memberPayroll.filter(p => p.paidStatus === 'pending');
-                        const totalPending = totalEarned - totalPaid;
                         
-                        return (
-                          <div className="pt-4 border-t border-gray-200/50 mt-4 grid grid-cols-2 gap-4 bg-gray-100 min-h-[60px]">
-                             <div>
-                               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Earned</div>
-                               <div className="text-sm font-black text-slate-900">{totalEarned}</div>
-                             </div>
-                             <div>
-                               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Pending Pay</div>
-                               <div className={cn("text-sm font-black", totalPending > 0 ? "text-amber-600" : "text-slate-900")}>{totalPending}</div>
-                             </div>
-                             {pendingEntries.length > 0 && (
-                               <div className="col-span-2 space-y-2 mt-2">
-                                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pending Payouts ({pendingEntries.length})</div>
-                                 <div className="space-y-2 max-h-32 overflow-y-auto">
-                                   {pendingEntries.map(entry => (
-                                      <div key={entry.id} className="flex items-center justify-between p-2 rounded-xl bg-white shadow-neu-sm border border-gray-200/50">
-                                        <div>
-                                          <div className="text-xs font-bold text-slate-900">Order #{entry.tokenId}</div>
-                                          <div className="text-[10px] text-brand-primary font-bold">Amt: {entry.paymentAmount}</div>
-                                        </div>
-                                        <Button
-                                          size="sm"
-                                          onClick={() => handleMarkAsPaid(entry.id)}
-                                          className="h-7 text-[10px] px-3 font-black rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 shadow-neu-sm"
-                                        >
-                                          Mark Paid
-                                        </Button>
-                                      </div>
-                                   ))}
-                                 </div>
+                        {/* Payroll Summary Snippet */}
+                        {(() => {
+                          const memberPayroll = payrollEntries.filter(p => p.staffId === member.id);
+                          const totalEarned = memberPayroll.reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
+                          const totalPaid = memberPayroll.filter(p => p.paidStatus === 'paid').reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
+                          const pendingEntries = memberPayroll.filter(p => p.paidStatus === 'pending');
+                          const totalPending = totalEarned - totalPaid;
+                          
+                          return (
+                            <div className="pt-4 border-t border-gray-200/50 mt-4 grid grid-cols-2 gap-4 bg-gray-100 min-h-[60px]">
+                               <div>
+                                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Earned</div>
+                                 <div className="text-sm font-black text-slate-900">{totalEarned}</div>
                                </div>
-                             )}
-                          </div>
-                         );
-                      })()}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
-      )}
+                               <div>
+                                 <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Pending Pay</div>
+                                 <div className={cn("text-sm font-black", totalPending > 0 ? "text-amber-600" : "text-slate-900")}>{totalPending}</div>
+                               </div>
+                               {pendingEntries.length > 0 && (
+                                 <div className="col-span-2 space-y-2 mt-2">
+                                   <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pending Payouts ({pendingEntries.length})</div>
+                                   <div className="space-y-2 max-h-32 overflow-y-auto">
+                                     {pendingEntries.map(entry => (
+                                        <div key={entry.id} className="flex items-center justify-between p-2 rounded-xl bg-white shadow-neu-sm border border-gray-200/50">
+                                          <div>
+                                            <div className="text-xs font-bold text-slate-900">Order #{entry.tokenId}</div>
+                                            <div className="text-[10px] text-brand-primary font-bold">Amt: {entry.paymentAmount}</div>
+                                          </div>
+                                          <Button
+                                            size="sm"
+                                            onClick={() => handleMarkAsPaid(entry.id)}
+                                            className="h-7 text-[10px] px-3 font-black rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 shadow-neu-sm"
+                                          >
+                                            Mark Paid
+                                          </Button>
+                                        </div>
+                                     ))}
+                                   </div>
+                                 </div>
+                               )}
+                            </div>
+                           );
+                        })()}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
 
       {/* Staff Modal */}
       <AnimatePresence>

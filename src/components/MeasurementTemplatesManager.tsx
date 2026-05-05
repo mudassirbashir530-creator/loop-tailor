@@ -124,8 +124,8 @@ export function MeasurementTemplatesManager() {
   if (loading) return null;
 
   return (
-    <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden mt-8">
-      <CardHeader className="border-b border-gray-200/50 bg-transparent flex flex-row items-center justify-between pb-4">
+    <Card className="bg-white rounded-xl shadow p-4 mb-4 border-none mt-8">
+      <CardHeader className="border-b border-gray-200/50 bg-transparent flex flex-row items-center justify-between pb-4 px-0 pt-0">
         <div>
           <CardTitle className="text-xl">Measurement Templates</CardTitle>
           <p className="text-sm text-slate-500 mt-1">Custom measurement fields for different genders.</p>
@@ -136,7 +136,7 @@ export function MeasurementTemplatesManager() {
           </Button>
         )}
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="px-0 pb-0 pt-4">
         <AnimatePresence mode="wait">
           {(newTemplateMode || editingTemplate) ? (
             <motion.div

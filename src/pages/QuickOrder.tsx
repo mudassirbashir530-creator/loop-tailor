@@ -586,8 +586,7 @@ export default function QuickOrder() {
          <div className="h-px bg-[#E2E8F0] flex-1"></div>
       </div>
 
-      {/* Existing Full Form (Scroll Context) */}
-      <div className="px-4 bg-white rounded-t-[32px] pt-8 pb-10 shadow-[0_-4px_24px_rgba(0,0,0,0.04)] space-y-6">
+      <div className="bg-white rounded-xl shadow p-4 mb-4 space-y-6">
           <TemplateSelector 
             templateHook={templateHook} 
             setOrderData={setOrderData} 

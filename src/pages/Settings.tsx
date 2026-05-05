@@ -115,8 +115,8 @@ export default function Settings() {
         <p className="text-slate-500 mt-2">{t('settings.subtitle')}</p>
       </div>
 
-      <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200/50 bg-transparent">
+      <Card className="bg-white rounded-xl shadow p-4 mb-4 border-none">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-200/50 bg-transparent px-0 pt-0">
           <CardTitle className="text-xl">{t('settings.shopProfile')}</CardTitle>
           {!isEditing && (
             <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
@@ -350,11 +350,11 @@ export default function Settings() {
         </CardContent>
       </Card>
 
-      <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
-        <CardHeader className="border-b border-gray-200/50 bg-transparent">
+      <Card className="bg-white rounded-xl shadow p-4 mb-4 border-none">
+        <CardHeader className="border-b border-gray-200/50 bg-transparent px-0 pt-0">
           <CardTitle className="text-xl">Order Templates</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0 pb-0 pt-4">
           <div className="space-y-4">
             {templates.length === 0 ? (
               <p className="text-sm text-slate-500">No templates saved yet. Save templates from the Quick Order form.</p>
@@ -375,11 +375,11 @@ export default function Settings() {
         </CardContent>
       </Card>
 
-      <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
-        <CardHeader className="border-b border-gray-200/50 bg-transparent">
+      <Card className="bg-white rounded-xl shadow p-4 mb-4 border-none">
+        <CardHeader className="border-b border-gray-200/50 bg-transparent px-0 pt-0">
           <CardTitle className="text-xl">{t('auth.interfaceLanguage')}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0 pb-0 pt-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Button
               variant={language === 'en' ? 'default' : 'outline'}

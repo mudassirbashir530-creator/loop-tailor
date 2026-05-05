@@ -474,8 +474,8 @@ export default function Dashboard() {
 
         {/* Search Bar */}
         <div className="px-4 mb-6 relative z-30">
-          <div className="flex items-center gap-3 relative h-12 bg-surface-container-highest rounded-full px-4 border border-outline-variant">
-            <Search className="h-5 w-5 text-on-surface-variant" />
+          <div className="flex items-center gap-3 relative h-12 bg-white rounded-xl shadow px-4">
+            <Search className="h-5 w-5 text-slate-400" />
             <input 
               type="text"
               placeholder="Search customers, orders, measurements..."
@@ -483,7 +483,7 @@ export default function Dashboard() {
               onChange={(e) => setSearchToken(e.target.value)}
               onFocus={() => { if (searchToken) setShowSearchResults(true); }}
               onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-              className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-on-surface text-[15px] placeholder-on-surface-variant"
+              className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-slate-900 text-[15px] placeholder-slate-400 outline-none"
             />
           </div>
           
@@ -493,26 +493,26 @@ export default function Dashboard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="absolute top-[56px] left-4 right-4 bg-surface rounded-2xl shadow-lg border border-outline-variant max-h-80 overflow-y-auto z-50"
+                className="absolute top-[56px] left-4 right-4 bg-white rounded-xl shadow-lg border border-gray-100 max-h-80 overflow-y-auto z-50 p-2"
               >
                  {searchResults.length > 0 ? (
                     searchResults.map((res) => (
                       <div 
                         key={res.id} 
                         onClick={() => navigate(res.url)} 
-                        className="flex items-center gap-3 p-3.5 border-b border-outline-variant hover:bg-surface-variant cursor-pointer last:border-0"
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
                       >
-                         {res.type === 'customer' && <Users className="h-5 w-5 text-on-surface-variant" />}
-                         {res.type === 'order' && <Scissors className="h-5 w-5 text-on-surface-variant" />}
-                         {res.type === 'measurement' && <FileText className="h-5 w-5 text-on-surface-variant" />}
+                         {res.type === 'customer' && <Users className="h-5 w-5 text-slate-400" />}
+                         {res.type === 'order' && <Scissors className="h-5 w-5 text-slate-400" />}
+                         {res.type === 'measurement' && <FileText className="h-5 w-5 text-slate-400" />}
                          <div>
-                           <div className="text-sm font-medium text-on-surface">{res.title}</div>
-                           <div className="text-xs text-on-surface-variant mt-0.5">{res.subtitle}</div>
+                           <div className="text-sm font-bold text-slate-900">{res.title}</div>
+                           <div className="text-xs text-slate-500 mt-0.5">{res.subtitle}</div>
                          </div>
                       </div>
                     ))
                  ) : (
-                    <div className="p-4 text-center text-sm text-on-surface-variant font-medium">No results found</div>
+                    <div className="p-4 text-center text-sm text-slate-500 font-medium">No results found</div>
                  )}
               </motion.div>
             )}
@@ -521,93 +521,101 @@ export default function Dashboard() {
 
         {/* Featured Card */}
         <div className="px-4 mb-8">
-          <div className="bg-primary-container rounded-3xl p-7 text-on-primary-container relative overflow-hidden shadow-md">
-            <svg className="absolute right-0 bottom-0 opacity-10" width="120" height="120" viewBox="0 0 100 100" fill="currentColor"><circle cx="80" cy="80" r="50"/></svg>
-            <div className="relative z-10">
-              <div className="text-[14px] font-medium opacity-90 mb-1">Total Revenue</div>
-              <div className="text-[36px] font-display font-medium tracking-tight mb-8">{formatCurrency(stats.totalRevenue)}</div>
-              <div className="flex items-center gap-8">
-                <div>
-                  <div className="text-[12px] opacity-80 uppercase tracking-widest font-medium">Active Orders</div>
-                  <div className="text-2xl font-semibold mt-1.5">{stats.activeOrders}</div>
-                </div>
-                <div>
-                  <div className="text-[12px] opacity-80 uppercase tracking-widest font-medium">Completed</div>
-                  <div className="text-2xl font-semibold mt-1.5">{stats.completedOrders}</div>
-                </div>
-              </div>
+          <div className="bg-white rounded-xl shadow p-4">
+            <div className="bg-primary-container rounded-xl p-7 text-on-primary-container relative overflow-hidden shadow-md">
+               <svg className="absolute right-0 bottom-0 opacity-10" width="120" height="120" viewBox="0 0 100 100" fill="currentColor"><circle cx="80" cy="80" r="50"/></svg>
+               <div className="relative z-10">
+                 <div className="text-[14px] font-medium opacity-90 mb-1">Total Revenue</div>
+                 <div className="text-[36px] font-display font-medium tracking-tight mb-8">{formatCurrency(stats.totalRevenue)}</div>
+                 <div className="flex items-center gap-8">
+                   <div>
+                     <div className="text-[12px] opacity-80 uppercase tracking-widest font-medium">Active Orders</div>
+                     <div className="text-2xl font-semibold mt-1.5">{stats.activeOrders}</div>
+                   </div>
+                   <div>
+                     <div className="text-[12px] opacity-80 uppercase tracking-widest font-medium">Completed</div>
+                     <div className="text-2xl font-semibold mt-1.5">{stats.completedOrders}</div>
+                   </div>
+                 </div>
+               </div>
             </div>
           </div>
         </div>
 
         {/* Category Quick Access */}
         <div className="px-4 mb-10">
-          <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
-            {[
-              { label: 'Orders', icon: Scissors, path: '/dashboard/orders', color: 'bg-surface-container-high text-on-surface' },
-              { label: 'Customers', icon: Users, path: '/dashboard/customers', color: 'bg-surface-container-high text-on-surface' },
-              { label: 'Measurements', icon: FileText, path: '/dashboard/customers', color: 'bg-surface-container-high text-on-surface' },
-              { label: 'Designs', icon: TrendingUp, path: '/dashboard/orders/new', color: 'bg-surface-container-high text-on-surface' },
-              { label: 'Payments', icon: Search, path: '/dashboard/reminders', color: 'bg-surface-container-high text-on-surface' },
-            ].map((cat, i) => (
-              <div key={i} className="flex flex-col items-center gap-3 min-w-[72px]" onClick={() => navigate(cat.path)}>
-                <div className={cn("w-14 h-14 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity", cat.color)}>
-                  <cat.icon className="w-6 h-6" />
+          <div className="bg-white rounded-xl shadow p-4">
+            <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
+              {[
+                { label: 'Orders', icon: Scissors, path: '/dashboard/orders', color: 'bg-surface-container-high text-on-surface' },
+                { label: 'Customers', icon: Users, path: '/dashboard/customers', color: 'bg-surface-container-high text-on-surface' },
+                { label: 'Measurements', icon: FileText, path: '/dashboard/customers', color: 'bg-surface-container-high text-on-surface' },
+                { label: 'Designs', icon: TrendingUp, path: '/dashboard/orders/new', color: 'bg-surface-container-high text-on-surface' },
+                { label: 'Payments', icon: Search, path: '/dashboard/payment-reminders', color: 'bg-surface-container-high text-on-surface' },
+              ].map((cat, i) => (
+                <div key={i} className="flex flex-col items-center gap-3 min-w-[72px]" onClick={() => navigate(cat.path)}>
+                  <div className={cn("w-14 h-14 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity", cat.color)}>
+                    <cat.icon className="w-6 h-6" />
+                  </div>
+                  <div className="text-[12px] font-medium text-on-surface-variant">{cat.label}</div>
                 </div>
-                <div className="text-[12px] font-medium text-on-surface-variant">{cat.label}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Today's Orders / Recent */}
         <div className="px-4 mb-8">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-[18px] font-semibold text-on-surface">Today's Orders</h2>
-            <Link to="/dashboard/orders" className="text-[14px] font-medium text-primary border border-outline-variant rounded-full px-4 py-1.5 hover:bg-surface-variant transition-colors">See All</Link>
-          </div>
-          <div className="space-y-3">
-            {recentOrders.length === 0 ? (
-              <div className="text-center text-[15px] text-on-surface-variant py-6 bg-surface rounded-2xl border border-outline-variant">No orders today</div>
-            ) : (
-              recentOrders.map(order => (
-                <div key={order.id} className="bg-surface rounded-2xl p-4 flex items-center gap-4 shadow-sm border border-outline-variant cursor-pointer hover:bg-surface-variant transition-colors" onClick={() => navigate(`/dashboard/orders/${order.id}`)}>
-                  <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-on-surface">
-                    <Scissors className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-[16px] font-medium text-on-surface">{order.customerName}</div>
-                    <div className="text-[14px] text-on-surface-variant mt-0.5">{order.dressType}</div>
-                    <div className="text-[13px] text-on-surface-variant mt-1">{formatDate(order.createdAt)}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[16px] font-semibold text-primary mb-2">{formatCurrency(order.price)}</div>
-                    <div className={cn("text-[12px] font-medium px-3 py-1 rounded-full inline-block", order.status === ORDER_STATUS.DELIVERED ? "bg-secondary-container text-on-secondary-container" : "bg-surface-container-high text-on-surface-variant")}>
-                      {t(`orders.${order.status.toLowerCase()}`)}
+          <div className="bg-white rounded-xl shadow p-4 mb-4">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-[18px] font-semibold text-on-surface">Today's Orders</h2>
+              <Link to="/dashboard/orders" className="text-[14px] font-medium text-primary border border-outline-variant rounded-full px-4 py-1.5 hover:bg-surface-variant transition-colors">See All</Link>
+            </div>
+            <div className="space-y-3">
+              {recentOrders.length === 0 ? (
+                <div className="text-center text-[15px] text-on-surface-variant py-6 bg-surface rounded-xl border border-outline-variant">No orders today</div>
+              ) : (
+                recentOrders.map(order => (
+                  <div key={order.id} className="bg-surface rounded-xl p-4 flex items-center gap-4 border border-outline-variant cursor-pointer hover:bg-surface-variant transition-colors" onClick={() => navigate(`/dashboard/orders/${order.id}`)}>
+                    <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-on-surface">
+                      <Scissors className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-[16px] font-medium text-on-surface">{order.customerName}</div>
+                      <div className="text-[14px] text-on-surface-variant mt-0.5">{order.dressType}</div>
+                      <div className="text-[13px] text-on-surface-variant mt-1">{formatDate(order.createdAt)}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[16px] font-semibold text-primary mb-2">{formatCurrency(order.price)}</div>
+                      <div className={cn("text-[12px] font-medium px-3 py-1 rounded-full inline-block", order.status === ORDER_STATUS.DELIVERED ? "bg-secondary-container text-on-secondary-container" : "bg-surface-container-high text-on-surface-variant")}>
+                        {t(`orders.${order.status.toLowerCase()}`)}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
 
         {/* Top Customers */}
         {topCustomersData.length > 0 && (
           <div className="px-4 pb-8">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-[18px] font-semibold text-on-surface">Top Customers</h2>
-            </div>
-            <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
-              {topCustomersData.map((customer, i) => (
-                <div key={i} onClick={() => { if (customer.id) navigate(`/dashboard/customers/${customer.id}`); }} className="flex flex-col items-center min-w-[88px] bg-surface rounded-2xl p-4 border border-outline-variant shadow-sm cursor-pointer hover:bg-surface-variant transition-colors">
-                  <div className="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface text-xl font-medium mb-3">
-                    {customer.name.charAt(0).toUpperCase()}
+            <div className="bg-white rounded-xl shadow p-4 mb-4">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-[18px] font-semibold text-on-surface">Top Customers</h2>
+              </div>
+              <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
+                {topCustomersData.map((customer, i) => (
+                  <div key={i} onClick={() => { if (customer.id) navigate(`/dashboard/customers/${customer.id}`); }} className="flex flex-col items-center min-w-[88px] bg-surface rounded-xl p-4 border border-outline-variant cursor-pointer hover:bg-surface-variant transition-colors">
+                    <div className="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface text-xl font-medium mb-3">
+                      {customer.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="text-[13px] font-medium text-on-surface line-clamp-1 text-center w-full">{customer.name.split(' ')[0]}</div>
+                    <div className="text-[12px] text-on-surface-variant mt-1">{customer.count} Order{customer.count !== 1 ? 's' : ''}</div>
                   </div>
-                  <div className="text-[13px] font-medium text-on-surface line-clamp-1 text-center w-full">{customer.name.split(' ')[0]}</div>
-                  <div className="text-[12px] text-on-surface-variant mt-1">{customer.count} Order{customer.count !== 1 ? 's' : ''}</div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}

@@ -202,93 +202,95 @@ export default function PaymentReminders() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
-        </div>
-      ) : displayedOrders.length === 0 ? (
-        <div className="text-center py-20 bg-gray-100 rounded-[2rem] shadow-neu-pressed-sm">
-          <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
-          <h3 className="text-xl font-black text-slate-900 mb-2">All Clear!</h3>
-          <p className="text-slate-500 font-medium">You have no unpaid orders matching this filter.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {displayedOrders.map((order, idx) => {
-              const price = Number(order.price) || 0;
-              const advance = Number(order.advancePayment) || 0;
-              const balance = price - advance;
+      <div className="bg-white rounded-xl shadow p-4 mb-4">
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-brand-primary" />
+          </div>
+        ) : displayedOrders.length === 0 ? (
+          <div className="text-center py-20 bg-gray-100 rounded-[2rem] shadow-neu-pressed-sm">
+            <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
+            <h3 className="text-xl font-black text-slate-900 mb-2">All Clear!</h3>
+            <p className="text-slate-500 font-medium">You have no unpaid orders matching this filter.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {displayedOrders.map((order, idx) => {
+                const price = Number(order.price) || 0;
+                const advance = Number(order.advancePayment) || 0;
+                const balance = price - advance;
 
-              return (
-                <motion.div
-                  key={order.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: idx * 0.05 }}
-                >
-                  <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="text-lg font-black text-slate-900 group-hover:text-brand-primary transition-colors flex items-center gap-2">
-                            <User className="h-4 w-4 text-slate-400" />
-                            {order.customerName}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm font-bold text-slate-500 flex items-center gap-1">
-                              <Phone className="h-3 w-3" /> {order.phone}
+                return (
+                  <motion.div
+                    key={order.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: idx * 0.05 }}
+                  >
+                    <Card className="border-none shadow-neu bg-gray-100 rounded-[2rem] overflow-hidden">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-lg font-black text-slate-900 group-hover:text-brand-primary transition-colors flex items-center gap-2">
+                              <User className="h-4 w-4 text-slate-400" />
+                              {order.customerName}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-sm font-bold text-slate-500 flex items-center gap-1">
+                                <Phone className="h-3 w-3" /> {order.phone}
+                              </span>
+                            </div>
+                          </div>
+                          <div className={cn(
+                            "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest",
+                            order.status === 'Pending' ? "bg-slate-200 text-slate-700" :
+                            order.status === 'Stitching' ? "bg-blue-100 text-blue-700" :
+                            order.status === 'Ready' ? "bg-amber-100 text-amber-700" :
+                            "bg-emerald-100 text-emerald-700"
+                          )}>
+                            {order.status}
+                          </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl p-4 shadow-neu-pressed-sm space-y-3 mb-6">
+                          <div className="flex justify-between items-center text-sm font-bold border-b border-gray-100 pb-2">
+                            <span className="text-slate-500">{order.dressType}</span>
+                            <span className="text-slate-900">Due: {order.deliveryDate ? format(new Date(order.deliveryDate), 'MMM d, yyyy') : 'No Date'}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="font-bold text-slate-500">Total Price</span>
+                            <span className="font-black text-slate-900">{settings.currency}{price.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="font-bold text-slate-500">Advance Paid</span>
+                            <span className="font-black text-emerald-600">{settings.currency}{advance.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-base pt-2 border-t border-gray-100">
+                            <span className="font-black text-slate-900">Balance Due</span>
+                            <span className="font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg">
+                              {settings.currency}{balance.toLocaleString()}
                             </span>
                           </div>
                         </div>
-                        <div className={cn(
-                          "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest",
-                          order.status === 'Pending' ? "bg-slate-200 text-slate-700" :
-                          order.status === 'Stitching' ? "bg-blue-100 text-blue-700" :
-                          order.status === 'Ready' ? "bg-amber-100 text-amber-700" :
-                          "bg-emerald-100 text-emerald-700"
-                        )}>
-                          {order.status}
-                        </div>
-                      </div>
 
-                      <div className="bg-white rounded-xl p-4 shadow-neu-pressed-sm space-y-3 mb-6">
-                        <div className="flex justify-between items-center text-sm font-bold border-b border-gray-100 pb-2">
-                          <span className="text-slate-500">{order.dressType}</span>
-                          <span className="text-slate-900">Due: {order.deliveryDate ? format(new Date(order.deliveryDate), 'MMM d, yyyy') : 'No Date'}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="font-bold text-slate-500">Total Price</span>
-                          <span className="font-black text-slate-900">{settings.currency}{price.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="font-bold text-slate-500">Advance Paid</span>
-                          <span className="font-black text-emerald-600">{settings.currency}{advance.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-base pt-2 border-t border-gray-100">
-                          <span className="font-black text-slate-900">Balance Due</span>
-                          <span className="font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg">
-                            {settings.currency}{balance.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-
-                      <Button 
-                        onClick={() => handleSendReminder(order)}
-                        className="w-full h-12 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black shadow-neu hover:shadow-neu-pressed transition-all"
-                      >
-                        <MessageCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> 
-                        Send WhatsApp Reminder
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
-      )}
+                        <Button 
+                          onClick={() => handleSendReminder(order)}
+                          className="w-full h-12 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black shadow-neu hover:shadow-neu-pressed transition-all"
+                        >
+                          <MessageCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> 
+                          Send WhatsApp Reminder
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
