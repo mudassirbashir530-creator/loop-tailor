@@ -1,4 +1,4 @@
-const CACHE_NAME = 'loop-tailor-cache-v3';
+const CACHE_NAME = 'loop-tailor-cache-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -64,13 +64,7 @@ self.addEventListener('fetch', event => {
   // Ensures the user gets the latest index.html when online, falls back to cache when offline.
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-          return response;
-        })
-        .catch(() => caches.match('/index.html'))
+      fetch(request).catch(() => caches.match('/index.html'))
     );
     return;
   }

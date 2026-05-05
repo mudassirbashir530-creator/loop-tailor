@@ -547,7 +547,7 @@ const pages = {
                 <li><span class="check-icon">✓</span> Invoice system</li>
                 <li><span class="check-icon">✓</span> WhatsApp notifications</li>
             </ul>
-            <a href="/signup?plan=free-trial" target="_blank" class="btn-primary" style="margin-top:auto;">Start Free Trial</a>
+            <a href="/login?intent=signup&plan=free-trial" target="_blank" class="btn-primary" style="margin-top:auto;">Start Free Trial</a>
         </div>
 
         <div class="card pricing-card">
@@ -557,7 +557,7 @@ const pages = {
                 <li><span class="check-icon">✓</span> CMS</li>
                 <li><span class="check-icon">✓</span> Worker Assign</li>
             </ul>
-            <a href="/signup?plan=basic" target="_blank" class="btn-outline" style="margin-top:auto;">Get Started</a>
+            <a href="/login?intent=signup&plan=basic" target="_blank" class="btn-outline" style="margin-top:auto;">Get Started</a>
         </div>
         
         <div class="card pricing-card">
@@ -568,7 +568,7 @@ const pages = {
                 <li><span class="check-icon">✓</span> Worker Assign</li>
                 <li><span class="check-icon">✓</span> WhatsApp Integration</li>
             </ul>
-            <a href="/signup?plan=standard" target="_blank" class="btn-outline" style="margin-top:auto;">Get Started</a>
+            <a href="/login?intent=signup&plan=standard" target="_blank" class="btn-outline" style="margin-top:auto;">Get Started</a>
         </div>
         
         <div class="card pricing-card">
@@ -581,7 +581,7 @@ const pages = {
                 <li><span class="check-icon">✓</span> Digital Invoice</li>
                 <li><span class="check-icon">✓</span> Image Upload</li>
             </ul>
-            <a href="/signup?plan=premium" target="_blank" class="btn-outline" style="margin-top:auto;">Get Started</a>
+            <a href="/login?intent=signup&plan=premium" target="_blank" class="btn-outline" style="margin-top:auto;">Get Started</a>
         </div>
     </div>
 </div>`

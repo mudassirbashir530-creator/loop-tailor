@@ -27,10 +27,11 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { Link, useNavigate, Navigate, useSearchParams } from "react-router-dom";
 import { cn } from "../lib/utils";
 import { useImageUpload } from "../hooks/useImageUpload";
+import { normalizePlanStatus } from "../lib/planUtils";
 
 export default function SignUp() {
   const [searchParams] = useSearchParams();
-  const planParam = searchParams.get("plan");
+  const planParam = normalizePlanStatus(searchParams.get("plan"));
 
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");

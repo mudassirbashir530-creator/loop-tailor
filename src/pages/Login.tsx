@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Scissors, Mail, Lock, ArrowRight, ArrowLeft, Loader2, CheckCircle, Smartphone, Shield, Zap, Globe } from 'lucide-react';
+import { Scissors, Mail, Lock, ArrowRight, ArrowLeft, Loader2, CheckCircle, Smartphone, Shield, Zap, Globe, PackageOpen } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import { normalizePlanStatus } from '../lib/planUtils';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -18,6 +19,10 @@ export default function Login() {
   const { t, isRTL, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const searchParams = new URLSearchParams(location.search);
+  const intent = searchParams.get('intent');
+  const plan = normalizePlanStatus(searchParams.get('plan'));
 
   if (user) {
     const from = location.state?.from?.pathname || '/dashboard';
@@ -122,12 +127,19 @@ export default function Login() {
 
           <div className="mb-10">
             <h2 className="text-3xl sm:text-4xl font-display font-black text-slate-900 mb-3">
-              {t('auth.signIn')}
+              {intent === 'signup' ? 'Create an account' : t('auth.signIn')}
             </h2>
             <p className="text-slate-500 font-medium">
-              {t('auth.signInDesc')}
+              {intent === 'signup' ? 'Please log in or create an account to start your subscription.' : t('auth.signInDesc')}
             </p>
           </div>
+
+          {plan && intent === 'signup' && (
+            <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-700 text-sm font-bold border border-emerald-100">
+              <PackageOpen className="h-5 w-5" />
+              You've selected the {plan.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} plan
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
@@ -209,7 +221,7 @@ export default function Login() {
             <p className="text-slate-500 font-medium">
               {t('auth.dontHaveAccount')}
               <Link
-                to="/signup"
+                to={plan ? `/signup?plan=${plan}` : "/signup"}
                 className={cn("text-brand-primary font-bold hover:underline", isRTL ? "mr-2" : "ml-2")}
               >
                 {t('auth.signUp')}

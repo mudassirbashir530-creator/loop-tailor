@@ -61,6 +61,8 @@ const plans = [
   },
 ];
 
+import { normalizePlanStatus } from '../lib/planUtils';
+
 export default function Pricing() {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -123,7 +125,7 @@ export default function Pricing() {
 
                 <Button
                   size="lg"
-                  onClick={() => navigate(`/signup?plan=${plan.planId}`)}
+                  onClick={() => navigate(`/login?intent=signup&plan=${normalizePlanStatus(plan.planId)}`)}
                   className={`w-full h-12 rounded-2xl ${plan.highlight ? "bg-brand-primary hover:bg-brand-primary/90 text-white shadow-xl shadow-brand-primary/20" : "bg-slate-100 hover:bg-slate-200 text-slate-900"} text-base font-bold transition-all mt-auto`}
                 >
                   {plan.buttonText}
