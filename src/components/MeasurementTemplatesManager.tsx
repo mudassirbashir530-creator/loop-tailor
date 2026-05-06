@@ -124,51 +124,53 @@ export function MeasurementTemplatesManager() {
   if (loading) return null;
 
   return (
-    <Card className="bg-white rounded-xl shadow p-4 mb-4 border-none mt-8">
-      <CardHeader className="border-b border-gray-200/50 bg-transparent flex flex-row items-center justify-between pb-4 px-0 pt-0">
+    <Card className="bg-surface rounded-3xl shadow-sm p-5 sm:p-6 border border-outline-variant mt-8">
+      <CardHeader className="border-b border-outline-variant bg-transparent flex flex-row items-center justify-between pb-5 px-0 pt-0">
         <div>
-          <CardTitle className="text-xl">Measurement Templates</CardTitle>
-          <p className="text-sm text-slate-500 mt-1">Custom measurement fields for different genders.</p>
+          <CardTitle className="text-lg font-medium text-on-surface">Measurement Templates</CardTitle>
+          <p className="text-sm text-on-surface-variant mt-1">Custom measurement fields for different genders.</p>
         </div>
         {!newTemplateMode && !editingTemplate && (
-          <Button onClick={handleStartCreate} size="sm" className="bg-brand-primary text-white">
+          <Button onClick={handleStartCreate} size="sm" className="bg-primary hover:bg-primary/90 text-white rounded-xl shadow-soft h-9 px-4">
             <Plus className={cn("h-4 w-4", isRTL ? "ml-1" : "mr-1")} /> New Template
           </Button>
         )}
       </CardHeader>
-      <CardContent className="px-0 pb-0 pt-4">
+      <CardContent className="px-0 pb-0 pt-5">
         <AnimatePresence mode="wait">
           {(newTemplateMode || editingTemplate) ? (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="space-y-6 bg-white p-6 rounded-2xl shadow-neu-inner"
+              className="space-y-6 bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant"
             >
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">Name (English)</label>
-                  <Input 
+                  <label className="text-xs font-semibold text-on-surface uppercase tracking-wider">Name (English)</label>
+                  <input
                     value={formData.nameEn} 
                     onChange={e => setFormData({ ...formData, nameEn: e.target.value })} 
                     placeholder="e.g. Standard Suit"
+                    className="w-full h-11 px-3 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-2 focus:ring-primary/10 text-on-surface font-medium outline-none transition-all shadow-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 text-right block">نام (اردو)</label>
-                  <Input 
+                  <label className="text-xs font-semibold text-on-surface uppercase tracking-wider text-right block">نام (اردو)</label>
+                  <input
                     value={formData.nameUr} 
                     onChange={e => setFormData({ ...formData, nameUr: e.target.value })} 
                     dir="rtl"
                     placeholder="مثال: عام سوٹ"
+                    className="w-full h-11 px-3 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-2 focus:ring-primary/10 text-on-surface font-medium outline-none transition-all shadow-sm font-urdu"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">Gender</label>
+                  <label className="text-xs font-semibold text-on-surface uppercase tracking-wider">Gender</label>
                   <select 
                     value={formData.gender}
                     onChange={e => setFormData({ ...formData, gender: e.target.value as any })}
-                    className="w-full h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
+                    className="w-full h-11 rounded-xl border border-outline-variant bg-surface px-3 text-sm font-medium text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
                   >
                     <option value="male">Male</option>
                     <option value="female">Female</option>
@@ -176,11 +178,11 @@ export function MeasurementTemplatesManager() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700">Unit</label>
+                  <label className="text-xs font-semibold text-on-surface uppercase tracking-wider">Unit</label>
                   <select 
                     value={formData.unit}
                     onChange={e => setFormData({ ...formData, unit: e.target.value as any })}
-                    className="w-full h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
+                    className="w-full h-11 rounded-xl border border-outline-variant bg-surface px-3 text-sm font-medium text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
                   >
                     <option value="inch">Inches (in)</option>
                     <option value="cm">Centimeters (cm)</option>
@@ -190,37 +192,37 @@ export function MeasurementTemplatesManager() {
 
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="font-bold text-slate-900">Fields</h4>
-                  <Button variant="outline" size="sm" onClick={addField}>
+                  <h4 className="font-semibold text-on-surface">Fields</h4>
+                  <Button variant="outline" size="sm" onClick={addField} className="h-9 px-3 rounded-xl border-outline-variant hover:bg-surface-container">
                     <Plus className="h-4 w-4 mr-1" /> Add Field
                   </Button>
                 </div>
                 
                 <div className="space-y-3">
                   {formData.fields.length === 0 ? (
-                    <p className="text-sm text-slate-500 italic text-center py-4">No fields added yet.</p>
+                    <p className="text-sm text-on-surface-variant italic text-center py-4">No fields added yet.</p>
                   ) : (
                     formData.fields.map((field, index) => (
-                      <div key={field.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                      <div key={field.id} className="flex items-center gap-3 bg-surface p-3 rounded-xl border border-outline-variant shadow-sm transition-colors group">
                         <div className="flex flex-col gap-1">
-                          <button onClick={() => moveField(index, 'up')} disabled={index === 0} className="text-slate-400 hover:text-brand-primary disabled:opacity-30">
+                          <button onClick={() => moveField(index, 'up')} disabled={index === 0} className="text-on-surface-variant hover:text-primary disabled:opacity-30 p-1">
                             <GripVertical className="h-4 w-4 rotate-90" />
                           </button>
                         </div>
-                        <Input 
+                        <input
                           placeholder="Label (En)" 
                           value={field.labelEn} 
                           onChange={e => updateField(index, { labelEn: e.target.value })} 
-                          className="flex-1"
+                          className="flex-1 h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest focus:border-primary text-sm font-medium outline-none transition-all"
                         />
-                        <Input 
+                        <input
                           placeholder="لیبل (اردو)" 
                           value={field.labelUr} 
                           onChange={e => updateField(index, { labelUr: e.target.value })} 
                           dir="rtl"
-                          className="flex-1"
+                          className="flex-1 h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest focus:border-primary text-sm font-medium outline-none transition-all font-urdu"
                         />
-                        <Button variant="ghost" size="icon" onClick={() => removeField(index)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                        <Button variant="ghost" size="icon" onClick={() => removeField(index)} className="text-error hover:text-error hover:bg-error/10 h-8 w-8 rounded-lg">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -229,11 +231,11 @@ export function MeasurementTemplatesManager() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <Button variant="ghost" onClick={() => { setNewTemplateMode(false); setEditingTemplate(null); }}>
+              <div className="flex justify-end gap-3 pt-5 border-t border-outline-variant">
+                <Button variant="ghost" className="rounded-xl h-10 px-4 hover:bg-surface-container text-on-surface-variant" onClick={() => { setNewTemplateMode(false); setEditingTemplate(null); }}>
                   Cancel
                 </Button>
-                <Button onClick={handleSave} className="bg-brand-primary text-white">
+                <Button onClick={handleSave} className="bg-primary hover:bg-primary/90 text-white rounded-xl h-10 px-5 shadow-soft font-medium">
                   Save Template
                 </Button>
               </div>
@@ -241,41 +243,41 @@ export function MeasurementTemplatesManager() {
           ) : (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid gap-4">
               {templates.length === 0 ? (
-                <div className="text-center py-8 bg-white rounded-2xl shadow-sm border border-slate-100">
-                  <p className="text-slate-500 font-medium">No custom measurement templates found.</p>
-                  <p className="text-sm text-slate-400">The default system measurements will be used.</p>
+                <div className="text-center py-8 bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant flex flex-col items-center">
+                  <p className="text-on-surface font-medium">No custom measurement templates found.</p>
+                  <p className="text-sm text-on-surface-variant mt-1">The default system measurements will be used.</p>
                 </div>
               ) : (
                 templates.map(template => (
-                  <div key={template.id} className={cn("p-4 rounded-2xl border transition-all", template.isDefault ? "bg-brand-primary/5 border-brand-primary/20 shadow-neu-sm" : "bg-white border-slate-100 hover:shadow-sm")}>
+                  <div key={template.id} className={cn("p-4 sm:p-5 rounded-2xl border transition-all", template.isDefault ? "bg-primary/5 border-primary/20 shadow-soft" : "bg-surface-container-lowest border-outline-variant hover:shadow-sm")}>
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-slate-900">{isRTL ? template.nameUr || template.nameEn : template.nameEn}</h4>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h4 className="font-semibold text-on-surface">{isRTL ? template.nameUr || template.nameEn : template.nameEn}</h4>
                           {template.isDefault && (
-                            <span className="flex items-center text-[10px] uppercase tracking-wider font-black text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">
-                              <CheckCircle2 className="h-3 w-3 mr-1" /> Default {template.gender}
+                            <span className="flex items-center text-[10px] uppercase tracking-widest font-bold text-secondary bg-secondary/10 px-2.5 py-1 rounded-full">
+                              <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Default {template.gender}
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-slate-500 mt-1 capitalize font-medium flex items-center gap-3">
+                        <div className="text-[11px] uppercase tracking-widest text-on-surface-variant mt-2 font-semibold flex items-center gap-2">
                           <span>{template.gender}</span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                          <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
                           <span>{template.fields.length} {template.fields.length === 1 ? 'Field' : 'Fields'}</span>
-                          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                          <span className="uppercase">{template.unit}</span>
+                          <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
+                          <span>{template.unit}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2">
                         {!template.isDefault && (
-                          <Button variant="outline" size="sm" onClick={() => setAsDefault(template)} className="text-xs">
+                          <Button variant="outline" size="sm" onClick={() => setAsDefault(template)} className="text-xs h-8 px-2 sm:px-3 rounded-lg border-outline-variant hover:bg-surface-container">
                             Make Default
                           </Button>
                         )}
-                        <Button variant="ghost" size="icon" onClick={() => handleStartEdit(template)}>
-                          <Edit2 className="h-4 w-4 text-slate-500" />
+                        <Button variant="ghost" size="icon" onClick={() => handleStartEdit(template)} className="h-8 w-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/5">
+                          <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(template.id)} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(template.id)} className="text-error hover:text-error hover:bg-error/10 h-8 w-8 rounded-lg">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

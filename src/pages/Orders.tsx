@@ -226,69 +226,90 @@ export default function Orders() {
   };
 
   return (
-    <div className={cn("page pb-[100px]", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Top Bar */}
-      <div className="bg-white border-b border-[#E2DDD6] px-4 py-4 flex items-center justify-between sticky top-0 z-40">
-        <h1 className="text-xl font-bold text-[#0D3D33]">{t('layout.orders')}</h1>
-      </div>
+    <div className={cn("w-full max-w-6xl mx-auto space-y-6", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Header */}
+      <motion.div 
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-display font-medium tracking-tight text-on-surface">
+            {t('layout.orders')}
+          </h1>
+          <p className="text-sm text-on-surface-variant mt-1">Manage and track your tailoring orders</p>
+        </div>
+        <Button 
+          onClick={() => navigate('/dashboard/orders/new')}
+          className="hidden sm:flex rounded-full shadow-soft hover:shadow-soft-hover transition-all bg-primary text-white h-11 px-6 font-medium w-full sm:w-auto"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Order
+        </Button>
+      </motion.div>
 
       {/* Search & Filters */}
-      <div className="px-4 mt-5 mb-4 space-y-3">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] pointer-events-none" />
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="space-y-4"
+      >
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant transition-colors group-focus-within:text-primary" />
           <input
             type="text"
             placeholder="Search Order ID or Name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-12 pl-12 pr-4 rounded-full border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white text-[#111111] text-sm focus:border-[#0D3D33] focus:outline-none placeholder:text-[#555555] shadow-sm font-bold"
+            className="w-full h-14 pl-12 pr-4 rounded-2xl border border-outline-variant bg-surface text-on-surface text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none placeholder:text-on-surface-variant transition-all shadow-sm"
           />
         </div>
         
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar">
+        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
           {['All', ...Object.values(ORDER_STATUS)].map((statusValue) => (
             <button
               key={statusValue}
               onClick={() => setFilter(statusValue)}
               className={cn(
-                "px-5 py-2 rounded-full text-[13px] font-bold transition-all whitespace-nowrap border uppercase tracking-wider",
+                "px-5 py-2.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap uppercase tracking-wider",
                 filter === statusValue
-                  ? "bg-[#0D3D33] text-white border-[#0D3D33]"
-                  : "bg-white text-[#555555] border-[#E2DDD6] hover:bg-[#F7F5F0]"
+                  ? "bg-primary text-white shadow-soft"
+                  : "bg-surface text-on-surface border border-outline-variant hover:bg-surface-container hover:text-on-surface"
               )}
             >
               {statusValue === 'All' ? 'All Orders' : statusValue}
             </button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Order List */}
-      <div className="px-4 space-y-3">
+      <div className="space-y-4">
         {loading ? (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
              {[1, 2, 3, 4, 5].map((i) => (
-               <div key={i} className="h-24 bg-white rounded-xl border border-[#E2DDD6] animate-pulse"></div>
+               <div key={i} className="h-24 bg-surface rounded-2xl border border-outline-variant animate-pulse"></div>
              ))}
           </div>
         ) : filteredOrders.length === 0 ? (
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="card text-center !py-12 !border-[#E2DDD6] flex flex-col items-center shadow-sm"
+            className="py-16 text-center bg-surface border border-outline-variant rounded-[2rem] flex flex-col items-center shadow-sm"
           >
-            <div className="w-16 h-16 rounded-full bg-[#0D3D33]/10 flex items-center justify-center mb-4">
-              <Scissors className="h-8 w-8 text-[#0D3D33]" />
+            <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-6">
+              <Scissors className="h-8 w-8 text-on-surface-variant" />
             </div>
-            <h3 className="text-lg font-bold text-[#111111]">No orders found</h3>
-            <p className="text-[#555555] text-sm mt-1 mb-6">Create a new order to get started</p>
-            <Link 
-              to="/dashboard/orders/new"
-              className="btn-primary"
+            <h3 className="text-xl font-medium text-on-surface">No orders found</h3>
+            <p className="text-on-surface-variant text-sm mt-2 mb-8">Ready to create a new order?</p>
+            <Button 
+              onClick={() => navigate('/dashboard/orders/new')}
+              className="rounded-full shadow-soft hover:shadow-soft-hover transition-all bg-primary text-white h-12 px-8 font-medium"
             >
-              <Plus className="h-5 w-5 mr-no-rtl ml-auto-rtl mr-2" />
-              New Order
-            </Link>
+              <Plus className="w-5 h-5 mr-2" />
+              Create Order
+            </Button>
           </motion.div>
         ) : (
           <AnimatePresence mode="popLayout">
@@ -298,25 +319,27 @@ export default function Orders() {
                 layout
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: index * 0.03 }}
               >
                 <div 
-                  className="card !m-0 flex items-center gap-4 !border-[#E2DDD6] hover:border-[#0D3D33] transition-all cursor-pointer shadow-sm !p-4" 
+                  className="bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:shadow-md transition-all cursor-pointer shadow-sm p-4 sm:p-5 flex items-center gap-4 group" 
                   onClick={() => navigate(`/dashboard/orders/${order.id}`)}
                 >
-                  <div className="w-14 h-14 rounded-full flex-shrink-0 bg-[#F7F5F0] border border-[#E2DDD6] flex items-center justify-center text-[#555555]">
-                    <Scissors className="w-6 h-6 opacity-80" />
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex-shrink-0 bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                    <Scissors className="w-5 h-5 sm:w-6 sm:h-6 relative rotate-45 transform transition-transform group-hover:rotate-0" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[15px] font-bold text-[#111111] truncate">{order.customerName}</div>
-                    <div className="text-[13px] font-medium text-[#555555] mt-0.5">{order.dressType || 'Custom Order'}</div>
-                    <div className="text-[11px] font-bold text-[#888888] mt-1 flex items-center gap-1"><Hash className="w-3 h-3"/> {order.tokenId || order.id.slice(0,8)}</div>
+                    <div className="text-base sm:text-lg font-medium text-on-surface truncate">{order.customerName}</div>
+                    <div className="text-xs sm:text-sm text-on-surface-variant mt-0.5">{order.dressType || 'Custom Order'}</div>
+                    <div className="text-[10px] sm:text-xs font-semibold text-on-surface-variant/60 uppercase tracking-widest mt-1.5 flex items-center gap-1">
+                      <Hash className="w-3 h-3"/> {order.tokenId || order.id.slice(0,8)}
+                    </div>
                   </div>
                   <div className="text-right flex-shrink-0 flex flex-col items-end gap-2">
-                    <div className="text-[15px] font-bold text-[#0D3D33]">${(order.price || 0).toLocaleString()}</div>
+                    <div className="text-base sm:text-lg font-medium text-on-surface">${(order.price || 0).toLocaleString()}</div>
                     <div className={cn(
-                      "text-[10px] font-bold px-2.5 py-1 rounded-md inline-block uppercase tracking-wide", 
-                      order.status === ORDER_STATUS.DELIVERED ? "bg-[#2ECC71]/10 text-[#2ECC71]" : "bg-[#F7F5F0] text-[#555555] border border-[#E2DDD6]"
+                      "text-[10px] sm:text-[11px] font-semibold px-2.5 py-1.5 rounded-full inline-block uppercase tracking-wider", 
+                      order.status === ORDER_STATUS.DELIVERED ? "bg-secondary/10 text-secondary" : "bg-surface-container-highest text-on-surface-variant"
                     )}>
                       {order.status}
                     </div>
@@ -327,14 +350,6 @@ export default function Orders() {
           </AnimatePresence>
         )}
       </div>
-
-      {/* FAB Button */}
-      <Link 
-        to="/dashboard/orders/new"
-        className="fab-btn fixed bottom-[80px] right-4 z-50 text-white"
-      >
-        <Plus className="w-6 h-6" />
-      </Link>
     </div>
   );
 }

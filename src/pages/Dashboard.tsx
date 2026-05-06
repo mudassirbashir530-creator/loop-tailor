@@ -445,175 +445,234 @@ export default function Dashboard() {
   }
 
   return (
-    <div className={cn("page", loading && "opacity-70 pointer-events-none")}>
+    <div className={cn("w-full max-w-6xl mx-auto space-y-8", loading && "opacity-70 pointer-events-none")}>
       <OnboardingTour />
+      <QuickSetupChecklist />
 
-      {/* Top Bar */}
-      <div className="bg-white border-b border-[#E2DDD6] px-4 py-3 flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="text-xs text-[#555555] font-medium tracking-wider uppercase">Dashboard</span>
-          <span className="text-[18px] font-bold text-[#0D3D33] leading-none mt-1">Hello, {user?.displayName?.split(' ')[0] || 'Tailor'}</span>
+      {/* Header */}
+      <motion.div 
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-display font-medium tracking-tight text-on-surface">
+            {t('dashboard.title')}
+          </h1>
+          <p className="text-sm text-on-surface-variant mt-1">
+            Welcome back, {user?.displayName?.split(' ')[0] || 'Tailor'}
+          </p>
         </div>
-        <div className="w-10 h-10 rounded-full bg-[#E2DDD6] flex items-center justify-center text-[#111111] font-bold border border-[#E2DDD6]">
-          {user?.displayName?.charAt(0)?.toUpperCase()}
+        <div className="flex items-center gap-3">
+          <Button 
+            onClick={() => navigate('/dashboard/orders/new')}
+            className="rounded-full shadow-soft hover:shadow-soft-hover transition-all bg-primary text-white h-11 px-6 font-medium"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Order
+          </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Search Bar */}
-      <div className="px-4 mt-5 mb-3 relative z-30">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#555555]" />
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="relative z-30"
+      >
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant transition-colors group-focus-within:text-primary" />
           <input 
             type="text"
-            placeholder="Search customers, orders..."
+            placeholder="Search customers, orders, measurements..."
             value={searchToken}
             onChange={(e) => setSearchToken(e.target.value)}
             onFocus={() => { if (searchToken) setShowSearchResults(true); }}
             onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-            className="w-full h-[48px] pl-10 pr-4 rounded-xl border border-[#E2DDD6] bg-white text-[#111111] text-sm focus:border-[#0D3D33] focus:outline-none placeholder:text-[#888888]"
+            className="w-full h-14 pl-12 pr-4 rounded-2xl border border-outline-variant bg-surface text-on-surface text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none placeholder:text-on-surface-variant transition-all shadow-sm"
           />
         </div>
         
         <AnimatePresence>
           {showSearchResults && searchToken && (
             <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="absolute top-[52px] left-4 right-4 bg-white rounded-xl shadow-lg border border-[#E2DDD6] max-h-80 overflow-y-auto z-50 p-2"
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              className="absolute top-[calc(100%+8px)] left-0 right-0 bg-surface rounded-2xl shadow-xl border border-outline-variant max-h-96 overflow-y-auto z-50 p-2 overflow-hidden"
             >
                {searchResults.length > 0 ? (
                   searchResults.map((res) => (
                     <div 
                       key={res.id} 
                       onClick={() => navigate(res.url)} 
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#F7F5F0] cursor-pointer"
+                      className="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container transition-colors cursor-pointer"
                     >
-                       {res.type === 'customer' && <Users className="h-5 w-5 text-[#888888]" />}
-                       {res.type === 'order' && <Scissors className="h-5 w-5 text-[#888888]" />}
-                       {res.type === 'measurement' && <FileText className="h-5 w-5 text-[#888888]" />}
+                       <div className="w-10 h-10 rounded-full bg-surface-container-high flexItems-center justify-center text-on-surface-variant">
+                         {res.type === 'customer' && <Users className="h-5 w-5" />}
+                         {res.type === 'order' && <Scissors className="h-5 w-5" />}
+                         {res.type === 'measurement' && <FileText className="h-5 w-5" />}
+                       </div>
                        <div>
-                         <div className="text-sm font-bold text-[#111111]">{res.title}</div>
-                         <div className="text-xs text-[#555555] mt-0.5">{res.subtitle}</div>
+                         <div className="text-sm font-medium text-on-surface">{res.title}</div>
+                         <div className="text-xs text-on-surface-variant mt-0.5">{res.subtitle}</div>
                        </div>
                     </div>
                   ))
                ) : (
-                  <div className="p-4 text-center text-sm text-[#555555] font-medium">No results found</div>
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-on-surface-variant">No results found for "{searchToken}"</p>
+                  </div>
                )}
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
 
-      {/* Revenue Card */}
-      <div className="px-4 mb-5">
-        <div className="bg-[#0D3D33] rounded-2xl p-6 text-white shadow-sm relative overflow-hidden">
-          <div className="absolute right-[-20%] top-[-20%] w-48 h-48 bg-white opacity-[0.03] rounded-full"></div>
-          <div className="absolute left-[-10%] bottom-[-20%] w-32 h-32 bg-white opacity-[0.03] rounded-full"></div>
-          
-          <div className="relative z-10">
-            <div className="text-white/70 text-sm font-medium mb-1">Total Revenue</div>
-            <div className="text-[32px] font-bold leading-tight tracking-tight mb-5">{formatCurrency(stats.totalRevenue)}</div>
-            
-            <div className="flex items-center gap-8 border-t border-white/10 pt-4 mt-2">
-              <div>
-                <div className="text-white/60 text-[11px] uppercase tracking-wider font-semibold mb-1">Active</div>
-                <div className="text-lg font-bold">{stats.activeOrders}</div>
-              </div>
-              <div>
-                <div className="text-white/60 text-[11px] uppercase tracking-wider font-semibold mb-1">Completed</div>
-                <div className="text-lg font-bold">{stats.completedOrders}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="px-4 mb-6">
-        <h3 className="text-sm font-bold text-[#111111] mb-3">Quick Actions</h3>
-        <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
-          {[
-            { label: 'New Order', icon: Scissors, path: '/dashboard/orders/new', bg: 'bg-[#0D3D33]/10', color: 'text-[#0D3D33]' },
-            { label: 'Customers', icon: Users, path: '/dashboard/customers', bg: 'bg-[#2ECC71]/10', color: 'text-[#2ECC71]' },
-            { label: 'Payments', icon: Calendar, path: '/dashboard/payment-reminders', bg: 'bg-[#E53935]/10', color: 'text-[#E53935]' },
-            { label: 'Measurements', icon: FileText, path: '/dashboard/customers', bg: 'bg-blue-50', color: 'text-blue-600' },
-          ].map((cat, i) => (
-            <div 
-              key={i} 
-              onClick={() => navigate(cat.path)}
-              className="flex-shrink-0 card w-[100px] !p-3 flex flex-col items-center justify-center cursor-pointer min-h-[90px] !border-[#E2DDD6] hover:border-[#0D3D33] transition-colors gap-2 !m-0"
-            >
-              <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", cat.bg, cat.color)}>
-                <cat.icon className="w-5 h-5" />
-              </div>
-              <div className="text-[11px] font-bold text-[#111111] text-center">{cat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Today's Orders / Recent */}
-      <div className="px-4 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-[#111111]">Recent Orders</h3>
-          <Link to="/dashboard/orders" className="text-xs font-bold text-[#2ECC71]">See All</Link>
-        </div>
-        <div className="flex flex-col gap-3">
-          {recentOrders.length === 0 ? (
-            <div className="card text-center !py-8 text-[#555555] text-sm">No recent orders found</div>
-          ) : (
-            recentOrders.map(order => (
-              <div 
-                key={order.id} 
-                className="card flex items-center gap-3 cursor-pointer !m-0 !p-3" 
-                onClick={() => navigate(`/dashboard/orders/${order.id}`)}
-              >
-                <div className="w-12 h-12 rounded-xl bg-[#F7F5F0] border border-[#E2DDD6] flex items-center justify-center">
-                  <Scissors className="w-5 h-5 text-[#555555]" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-bold text-[14px] text-[#111111]">{order.customerName}</div>
-                  <div className="text-[12px] text-[#555555] mt-0.5">{order.dressType}</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-[14px] text-[#0D3D33] mb-1">{formatCurrency(order.price)}</div>
-                  <div className={cn("text-[10px] font-bold px-2 py-1 rounded-md inline-block uppercase tracking-wide", 
-                    order.status === ORDER_STATUS.DELIVERED ? "bg-[#2ECC71]/10 text-[#2ECC71]" : "bg-[#F7F5F0] text-[#555555] border border-[#E2DDD6]"
-                  )}>
-                    {t(`orders.${order.status.toLowerCase()}`)}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column (Main Stats + Quick Actions) */}
+        <div className="lg:col-span-2 space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15 }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+          >
+            {/* Revenue Card (Premium style) */}
+            <div className="bg-primary rounded-3xl p-6 text-white shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[160px]">
+              <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
+              <div className="absolute -left-12 -bottom-12 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-white/80 text-sm font-medium flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" /> Total Revenue
                   </div>
                 </div>
+                <div className="text-4xl font-light tracking-tight">{formatCurrency(stats.totalRevenue)}</div>
               </div>
-            ))
+            </div>
+            
+            {/* Secondary Stats Group */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-surface rounded-3xl p-5 border border-outline-variant shadow-sm flex flex-col justify-center">
+                 <div className="text-on-surface-variant text-xs font-medium mb-2 uppercase tracking-wide">Active Orders</div>
+                 <div className="text-3xl font-medium tracking-tight text-on-surface">{stats.activeOrders}</div>
+              </div>
+              <div className="bg-surface rounded-3xl p-5 border border-outline-variant shadow-sm flex flex-col justify-center">
+                 <div className="text-on-surface-variant text-xs font-medium mb-2 uppercase tracking-wide">Completed</div>
+                 <div className="text-3xl font-medium tracking-tight text-on-surface">{stats.completedOrders}</div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-surface rounded-3xl border border-outline-variant shadow-sm p-6"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-medium text-on-surface">Recent Orders</h3>
+              <Link to="/dashboard/orders" className="text-sm font-medium text-primary hover:text-primary-container transition-colors flex items-center gap-1">
+                View all <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            
+            <div className="space-y-4">
+              {recentOrders.length === 0 ? (
+                <div className="py-12 text-center border border-dashed rounded-2xl border-outline">
+                  <p className="text-on-surface-variant">No recent orders.</p>
+                </div>
+              ) : (
+                recentOrders.map((order, i) => (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + (i * 0.05) }}
+                    key={order.id} 
+                    className="flex items-center justify-between p-4 rounded-2xl hover:bg-surface-container transition-colors cursor-pointer group border border-transparent hover:border-outline-variant" 
+                    onClick={() => navigate(`/dashboard/orders/${order.id}`)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <Scissors className="w-5 h-5 text-on-surface-variant relative rotate-45 transform transition-transform group-hover:rotate-0" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-sm sm:text-base text-on-surface line-clamp-1">{order.customerName}</div>
+                        <div className="text-xs text-on-surface-variant mt-0.5">{order.dressType}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium text-sm sm:text-base text-on-surface">{formatCurrency(order.price)}</div>
+                      <div className={cn("text-[10px] sm:text-xs font-medium px-2.5 py-1 rounded-full mt-1 inline-block uppercase tracking-wider", 
+                        order.status === ORDER_STATUS.DELIVERED ? "bg-secondary/10 text-secondary" : "bg-surface-container-highest text-on-surface-variant"
+                      )}>
+                        {t(`orders.${order.status.toLowerCase()}`)}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Right Column (Top Customers + Actions) */}
+        <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="grid grid-cols-2 lg:grid-cols-2 gap-4"
+          >
+             {[
+              { label: 'Customers', icon: Users, path: '/dashboard/customers', bg: 'bg-primary/5', hover: 'hover:bg-primary/10', color: 'text-primary' },
+              { label: 'Payments', icon: Calendar, path: '/dashboard/payment-reminders', bg: 'bg-secondary/5', hover: 'hover:bg-secondary/10', color: 'text-secondary' },
+            ].map((cat, i) => (
+              <div 
+                key={i} 
+                onClick={() => navigate(cat.path)}
+                className={cn("rounded-3xl p-5 border border-outline-variant shadow-sm flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105 hover:shadow-md", cat.hover)}
+              >
+                <div className={cn("w-12 h-12 rounded-full flex items-center justify-center mb-3", cat.bg, cat.color)}>
+                  <cat.icon className="w-6 h-6" />
+                </div>
+                <div className="text-sm font-medium text-on-surface">{cat.label}</div>
+              </div>
+            ))}
+          </motion.div>
+
+          {topCustomersData.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-surface rounded-3xl border border-outline-variant shadow-sm p-6"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-medium text-on-surface">Top Customers</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {topCustomersData.map((customer, i) => (
+                  <div 
+                    key={i} 
+                    onClick={() => { if (customer.id) navigate(`/dashboard/customers/${customer.id}`); }} 
+                    className="flex flex-col items-center p-4 rounded-2xl border border-outline-variant hover:border-primary hover:shadow-sm transition-all cursor-pointer bg-surface-container-lowest"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display font-medium text-xl mb-3">
+                      {customer.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="text-sm font-medium text-on-surface truncate w-full text-center">{customer.name.split(' ')[0]}</div>
+                    <div className="text-xs text-on-surface-variant mt-1">{customer.count} Order{customer.count !== 1 ? 's' : ''}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           )}
         </div>
       </div>
-
-      {/* Top Customers */}
-      {topCustomersData.length > 0 && (
-        <div className="px-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-[#111111]">Top Customers</h3>
-          </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
-            {topCustomersData.map((customer, i) => (
-              <div 
-                key={i} 
-                onClick={() => { if (customer.id) navigate(`/dashboard/customers/${customer.id}`); }} 
-                className="flex-shrink-0 card w-[100px] !p-3 flex flex-col items-center cursor-pointer min-h-[100px] !m-0 !border-[#E2DDD6] hover:border-[#0D3D33]"
-              >
-                <div className="w-12 h-12 rounded-full bg-[#0D3D33] flex items-center justify-center text-white font-bold text-lg mb-2">
-                  {customer.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="text-[12px] font-bold text-[#111111] line-clamp-1 w-full text-center">{customer.name.split(' ')[0]}</div>
-                <div className="text-[11px] text-[#555555] mt-0.5">{customer.count} Order{customer.count !== 1 ? 's' : ''}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

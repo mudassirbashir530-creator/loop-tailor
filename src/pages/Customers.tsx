@@ -105,25 +105,45 @@ export default function Customers() {
   }, [customers, searchTerm, filterTab, ordersPerCustomer]);
 
   return (
-    <div className={cn("page", loading && "opacity-70 pointer-events-none")}>
-      {/* Top Bar */}
-      <div className="bg-white border-b border-[#E2DDD6] px-4 py-4 flex items-center justify-between sticky top-0 z-40">
-        <h1 className="text-xl font-bold text-[#0D3D33]">{t('customers.title')}</h1>
-      </div>
+    <div className={cn("w-full max-w-6xl mx-auto space-y-6", isRTL && "font-urdu", loading && "opacity-70 pointer-events-none")} dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Header */}
+      <motion.div 
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-display font-medium tracking-tight text-on-surface">
+            {t('customers.title')}
+          </h1>
+          <p className="text-sm text-on-surface-variant mt-1">Manage your clients and measurements</p>
+        </div>
+        <Button 
+          onClick={() => setIsAdding(true)}
+          className="hidden sm:flex rounded-full shadow-soft hover:shadow-soft-hover transition-all bg-primary text-white h-11 px-6 font-medium w-full sm:w-auto"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Customer
+        </Button>
+      </motion.div>
 
       {/* Search Bar */}
-      <div className="px-4 mt-5 mb-4">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#555555]" />
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant transition-colors group-focus-within:text-primary" />
           <input
             type="text"
             placeholder={t('customers.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-[48px] pl-11 pr-4 rounded-full border border-[#E2DDD6] bg-white text-[#111111] text-sm focus:border-[#0D3D33] focus:outline-none placeholder:text-[#888888] shadow-sm"
+            className="w-full h-14 pl-12 pr-4 rounded-2xl border border-outline-variant bg-surface text-on-surface text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none placeholder:text-on-surface-variant transition-all shadow-sm"
           />
         </div>
-      </div>
+      </motion.div>
 
       <AnimatePresence>
         {isAdding && (
@@ -131,75 +151,75 @@ export default function Customers() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="px-4 overflow-hidden mb-4"
+            className="overflow-hidden"
           >
-            <div className="card !p-0 overflow-hidden shadow-md">
-              <div className="p-4 border-b border-[#E2DDD6] bg-[#F7F5F0]">
-                <h2 className="text-[16px] font-bold text-[#111111]">{t('customers.newProfile')}</h2>
+            <div className="bg-surface rounded-3xl overflow-hidden shadow-md border border-outline-variant">
+              <div className="p-5 sm:p-6 border-b border-outline-variant bg-surface-container-lowest">
+                <h2 className="text-lg font-medium text-on-surface">{t('customers.newProfile')}</h2>
               </div>
-              <div className="p-4">
-                <form onSubmit={handleAddCustomer} className="flex flex-col gap-4">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[12px] font-bold text-[#555555] uppercase tracking-wide">{t('customers.fullName')}</label>
+              <div className="p-5 sm:p-6">
+                <form onSubmit={handleAddCustomer} className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t('customers.fullName')}</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888]" />
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant" />
                       <input 
                         required 
                         value={newCustomer.name} 
                         onChange={e => setNewCustomer({...newCustomer, name: e.target.value})} 
                         placeholder="e.g. Muhammad Ahmed" 
-                        className="pl-10 h-12 !border-[#E2DDD6]"
+                        className="w-full pl-12 h-12 rounded-xl border border-outline-variant bg-surface text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all"
                       />
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[12px] font-bold text-[#555555] uppercase tracking-wide">{t('customers.phone')}</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t('customers.phone')}</label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888]" />
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant" />
                       <input 
                         required 
                         value={newCustomer.phone} 
                         onChange={e => setNewCustomer({...newCustomer, phone: e.target.value})} 
                         placeholder="e.g. 0300 1234567" 
-                        className="pl-10 h-12 !border-[#E2DDD6]"
+                        className="w-full pl-12 h-12 rounded-xl border border-outline-variant bg-surface text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all"
                       />
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[12px] font-bold text-[#555555] uppercase tracking-wide">{t('customers.address')}</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t('customers.address')}</label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888]" />
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant" />
                       <input 
                         value={newCustomer.address} 
                         onChange={e => setNewCustomer({...newCustomer, address: e.target.value})} 
                         placeholder="e.g. House #123, Street 4, Lahore" 
-                        className="pl-10 h-12 !border-[#E2DDD6]"
+                        className="w-full pl-12 h-12 rounded-xl border border-outline-variant bg-surface text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all"
                       />
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[12px] font-bold text-[#555555] uppercase tracking-wide">{t('customers.notes')}</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t('customers.notes')}</label>
                     <div className="relative">
-                      <Notebook className="absolute left-3 top-4 h-5 w-5 text-[#888888]" />
+                      <Notebook className="absolute left-4 top-4 h-5 w-5 text-on-surface-variant" />
                       <textarea 
                         value={newCustomer.notes} 
                         onChange={e => setNewCustomer({...newCustomer, notes: e.target.value})} 
                         placeholder="Specific preferences, fit styles, etc." 
-                        className="pl-10 !border-[#E2DDD6] min-h-[100px] py-4"
+                        className="w-full pl-12 pt-4 min-h-[120px] rounded-xl border border-outline-variant bg-surface text-on-surface text-sm focus:border-primary focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all resize-y"
                       />
                     </div>
                   </div>
-                  <div className="flex gap-3 mt-2">
+                  <div className="flex gap-3 mt-4">
                     <button 
                       type="button" 
                       onClick={() => setIsAdding(false)}
-                      className="btn-outline flex-1"
+                      className="flex-1 h-12 rounded-xl border border-outline-variant bg-surface text-on-surface font-medium hover:bg-surface-container transition-colors"
                     >
                       {t('customers.discard')}
                     </button>
                     <button 
                       type="submit"
-                      className="btn-primary flex-1"
+                      className="flex-1 h-12 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-colors shadow-soft"
                     >
                       {t('customers.save')}
                     </button>
@@ -212,54 +232,58 @@ export default function Customers() {
       </AnimatePresence>
 
       {/* Filter Tabs */}
-      <div className="px-4 mb-4">
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
+        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
           {['all', 'active', 'inactive'].map((tab) => (
             <button
               key={tab}
               onClick={() => setFilterTab(tab as any)}
               className={cn(
-                "px-5 py-2 rounded-full text-[13px] font-bold transition-all whitespace-nowrap border capitalize",
+                "px-5 py-2.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap uppercase tracking-wider",
                 filterTab === tab
-                  ? "bg-[#0D3D33] text-white border-[#0D3D33]"
-                  : "bg-white text-[#555555] border-[#E2DDD6] hover:bg-[#F7F5F0]"
+                  ? "bg-primary text-white shadow-soft"
+                  : "bg-surface text-on-surface border border-outline-variant hover:bg-surface-container hover:text-on-surface"
               )}
             >
               {tab === 'all' ? 'All Clients' : tab}
             </button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Client List */}
-      <div className="px-4">
+      <div>
         {loading ? (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
              {[1, 2, 3, 4, 5].map((i) => (
-               <div key={i} className="h-20 bg-white rounded-xl border border-[#E2DDD6] animate-pulse"></div>
+               <div key={i} className="h-20 bg-surface rounded-2xl border border-outline-variant animate-pulse"></div>
              ))}
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             <AnimatePresence mode="popLayout">
               {filteredCustomers.length === 0 ? (
                 <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="card text-center !py-12 !border-[#E2DDD6] flex flex-col items-center shadow-sm"
+                  className="py-16 text-center bg-surface border border-outline-variant rounded-[2rem] flex flex-col items-center shadow-sm"
                 >
-                  <div className="w-16 h-16 rounded-full bg-[#F7F5F0] flex items-center justify-center mb-4">
-                    <Users className="h-8 w-8 text-[#555555]" />
+                  <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-6">
+                    <User className="h-8 w-8 text-on-surface-variant" />
                   </div>
-                  <h3 className="text-lg font-bold text-[#111111]">{t('customers.noCustomers')}</h3>
-                  <p className="text-[#555555] text-sm mt-1 mb-6">{t('customers.trySearching')}</p>
-                  <button 
+                  <h3 className="text-xl font-medium text-on-surface">{t('customers.noCustomers')}</h3>
+                  <p className="text-on-surface-variant text-sm mt-2 mb-8">{t('customers.trySearching')}</p>
+                  <Button 
                     onClick={() => setIsAdding(true)}
-                    className="btn-primary"
+                    className="rounded-full shadow-soft hover:shadow-soft-hover transition-all bg-primary text-white h-12 px-8 font-medium"
                   >
-                    <Plus className="h-5 w-5 mr-no-rtl ml-auto-rtl mr-2" />
+                    <Plus className="w-5 h-5 mr-no-rtl ml-auto-rtl mr-2" />
                     {t('customers.addCustomer')}
-                  </button>
+                  </Button>
                 </motion.div>
               ) : (
                 filteredCustomers.map((customer, index) => (
@@ -268,34 +292,34 @@ export default function Customers() {
                     layout
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: index * 0.03 }}
                   >
                     <div 
-                      className="card !m-0 flex items-center justify-between !border-[#E2DDD6] hover:border-[#0D3D33] transition-all cursor-pointer !p-4 shadow-sm"
+                      className="bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:shadow-md transition-all cursor-pointer shadow-sm p-4 sm:p-5 flex items-center justify-between group"
                       onClick={() => navigate(`/dashboard/customers/${customer.id}`)}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-full bg-[#F7F5F0] flex items-center justify-center text-[#111111] font-bold text-lg border border-[#E2DDD6]">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface font-display font-medium text-lg sm:text-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                           {customer.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex flex-col">
-                          <h3 className="text-[15px] font-bold text-[#111111] line-clamp-1">
+                          <h3 className="text-base sm:text-lg font-medium text-on-surface line-clamp-1">
                             {customer.name}
                           </h3>
-                          <div className="flex items-center text-[#555555] text-[13px] mt-0.5">
-                            <Phone className="h-3.5 w-3.5 mr-1" />
+                          <div className="flex items-center text-sm text-on-surface-variant mt-0.5">
+                            <Phone className="h-4 w-4 mr-1.5" />
                             {customer.phone}
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-2">
+                      <div className="flex flex-col items-end gap-2 shrink-0">
                          {ordersPerCustomer[customer.id]?.total > 0 && (
-                            <div className="bg-[#F7F5F0] text-[#555555] border border-[#E2DDD6] px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap">
+                            <div className="bg-surface-container text-on-surface-variant px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap">
                               {ordersPerCustomer[customer.id].total} Order{ordersPerCustomer[customer.id].total !== 1 ? 's' : ''}
                             </div>
                          )}
                          {ordersPerCustomer[customer.id]?.active > 0 && (
-                            <div className="bg-[#2ECC71]/10 text-[#2ECC71] px-2 py-0.5 rounded-md text-[10px] font-bold whitespace-nowrap uppercase tracking-wider">
+                            <div className="bg-secondary/10 text-secondary px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap uppercase tracking-wider">
                               Active
                             </div>
                           )}
@@ -312,7 +336,7 @@ export default function Customers() {
       {/* FAB Button */}
       {!isAdding && (
          <button 
-           className="fab-btn fixed bottom-[80px] right-4 z-50 text-white"
+           className="fixed bottom-[88px] right-4 lg:hidden z-50 w-14 h-14 bg-primary text-white rounded-full shadow-fab flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
            onClick={() => setIsAdding(true)}
          >
            <Plus className="w-6 h-6" />

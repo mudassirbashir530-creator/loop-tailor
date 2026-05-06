@@ -469,58 +469,81 @@ export default function QuickOrder() {
   };
 
   return (
-    <div className={cn("page pb-[100px]", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={cn("w-full max-w-4xl mx-auto pb-32", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Top Bar */}
-      <div className="bg-white border-b border-[#E2DDD6] px-4 py-4 flex items-center justify-between sticky top-0 z-40">
-        <button onClick={() => navigate(-1)} type="button" className="p-2 -ml-2 text-[#111111]">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-surface/90 backdrop-blur-md border-b border-outline-variant px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-40"
+      >
+        <button onClick={() => navigate(-1)} type="button" className="p-2 -ml-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
           {isRTL ? <ArrowRight className="h-6 w-6" /> : <ArrowLeft className="h-6 w-6" />}
         </button>
-        <h1 className="text-xl font-bold text-[#111111]">Customize Order</h1>
+        <h1 className="text-xl font-display font-medium text-on-surface">Customize Order</h1>
         <div className="w-10"></div>
-      </div>
+      </motion.div>
 
-      <div className="px-4 py-4 space-y-6">
+      <div className="px-4 sm:px-6 py-6 space-y-8">
         {preGeneratedToken && (
-          <div className="flex items-center justify-center gap-2 bg-[#2ECC71]/10 text-[#2ECC71] px-4 py-3 rounded-xl border border-[#2ECC71]/20 font-bold text-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center justify-center gap-2 bg-secondary/10 text-secondary px-4 py-3 rounded-2xl border border-secondary/20 font-medium text-sm shadow-soft"
+          >
             <Hash className="h-4 w-4" />
             Order: {preGeneratedToken}
-          </div>
+          </motion.div>
         )}
 
         {/* Product Image Area */}
-        <div className="w-full h-[280px] bg-white rounded-2xl border border-[#E2DDD6] relative flex items-center justify-center overflow-hidden shadow-sm">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="w-full h-[280px] bg-surface rounded-[2rem] border border-outline-variant relative flex items-center justify-center overflow-hidden shadow-sm group"
+        >
           {/* Garment Preview Placeholder */}
-          <div className="absolute inset-0 bg-[#F7F5F0] flex flex-col items-center justify-center">
-             <Scissors className="w-16 h-16 text-[#E2DDD6] mb-4" />
-             <span className="text-[#555555] font-bold">Garment Preview</span>
+          <div className="absolute inset-0 bg-surface-container-lowest flex flex-col items-center justify-center transition-transform group-hover:scale-105">
+             <Scissors className="w-16 h-16 text-outline mb-4" />
+             <span className="text-on-surface-variant font-medium">Garment Preview</span>
           </div>
           
           {/* Color Swatches */}
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col gap-3">
             {[ '#111111', '#0D3D33', '#2ECC71', '#E53935' ].map((color, i) => (
-              <div key={i} className={`w-8 h-8 rounded-full shadow-md cursor-pointer border-2 ${i === 1 ? 'border-white scale-110' : 'border-transparent'}`} style={{ backgroundColor: color }}></div>
+              <div key={i} className={`w-8 h-8 rounded-full shadow-md cursor-pointer border-2 transition-transform hover:scale-110 ${i === 1 ? 'border-surface scale-110' : 'border-transparent'}`} style={{ backgroundColor: color }}></div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Price Row */}
-        <div className="flex justify-between items-center card !m-0 !py-4 shadow-sm">
-          <div className="text-[24px] font-bold text-[#2ECC71]">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="flex justify-between items-center bg-surface rounded-2xl border border-outline-variant shadow-sm px-6 py-5"
+        >
+          <div className="text-3xl font-display font-medium text-secondary">
             {settings.currency} {orderData.price || '0.00'}
           </div>
-          <button type="button" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} className="btn-outline !py-2 !h-10 text-[13px]">
+          <button type="button" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} className="h-10 px-4 rounded-xl border border-outline-variant text-sm font-medium hover:bg-surface-container transition-colors">
             View Details
           </button>
-        </div>
+        </motion.div>
 
         {/* Garment Style Selection */}
-        <div className="card shadow-sm !m-0">
-          <h3 className="text-[16px] font-bold text-[#111111] mb-4 border-b border-[#E2DDD6] pb-3">Garment Style Selection</h3>
-          <div className="space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-surface rounded-3xl border border-outline-variant shadow-sm p-6"
+        >
+          <h3 className="text-lg font-medium text-on-surface mb-5 border-b border-outline-variant pb-4">Garment Style Selection</h3>
+          <div className="space-y-8">
             {STYLE_CATEGORIES.map((category) => (
                <div key={category.id}>
-                 <h4 className="text-xs font-bold text-[#555555] uppercase tracking-widest mb-3" >{category.title}</h4>
-                 <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar">
+                 <h4 className="text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-4" >{category.title}</h4>
+                 <div className="flex overflow-x-auto gap-4 pb-4 hide-scrollbar">
                    {category.options.map(opt => {
                      const isSelected = garmentStyles[category.id] === opt.label;
                      return (
@@ -528,14 +551,14 @@ export default function QuickOrder() {
                          key={opt.id} 
                          onClick={() => setGarmentStyles(prev => ({...prev, [category.id]: opt.label}))}
                          className={cn(
-                           "flex flex-col items-center justify-between p-3 rounded-xl border-2 min-w-[110px] cursor-pointer transition-all",
-                           isSelected ? "border-[#0D3D33] bg-[#0D3D33]/5" : "border-[#E2DDD6] bg-[#F7F5F0] hover:border-[#0D3D33]/30"
+                           "flex flex-col items-center justify-between p-4 rounded-2xl border flex-shrink-0 min-w-[120px] cursor-pointer transition-all",
+                           isSelected ? "border-primary bg-primary/5 shadow-soft" : "border-outline-variant bg-surface hover:border-primary/30 hover:shadow-sm"
                          )}
                        >
-                          <div className="w-16 h-16 bg-white rounded-lg mb-3 flex items-center justify-center text-3xl border border-[#E2DDD6]">
+                          <div className="w-16 h-16 bg-surface rounded-[14px] mb-3 flex items-center justify-center text-3xl border border-outline-variant shadow-sm">
                              {category.id === 'Collar' ? '👔' : category.id === 'Sleeves' ? '👕' : category.id === 'Pocket' ? '👝' : category.id === 'Placket' ? '🧵' : '🎽'}
                           </div>
-                          <div className="text-[12px] font-bold text-center text-[#111111] leading-tight">
+                          <div className="text-[13px] font-medium text-center text-on-surface leading-tight">
                             {opt.label}
                           </div>
                        </div>
@@ -545,15 +568,20 @@ export default function QuickOrder() {
                </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="text-center font-bold text-[#555555] uppercase tracking-widest text-[11px] mb-2 flex items-center gap-2">
-           <div className="h-px bg-[#E2DDD6] flex-1"></div>
+        <div className="text-center font-semibold text-on-surface-variant uppercase tracking-widest text-[11px] flex items-center gap-4 py-2">
+           <div className="h-px bg-outline-variant flex-1"></div>
            Order Details Form
-           <div className="h-px bg-[#E2DDD6] flex-1"></div>
+           <div className="h-px bg-outline-variant flex-1"></div>
         </div>
 
-        <div className="card shadow-sm !m-0 space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="bg-surface rounded-3xl border border-outline-variant shadow-sm p-6 space-y-8"
+        >
             <TemplateSelector 
               templateHook={templateHook} 
               setOrderData={setOrderData} 
@@ -561,11 +589,11 @@ export default function QuickOrder() {
               setGender={setGender}
             />
             
-            <div className="space-y-4">
-               <h3 className="text-[15px] font-bold text-[#111111] border-b border-[#E2DDD6] pb-2">Customer</h3>
-               <div className="space-y-3 relative" ref={dropdownRef}>
-                    <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] pointer-events-none" />
+            <div className="space-y-5">
+               <h3 className="text-lg font-medium text-on-surface border-b border-outline-variant pb-3">Customer</h3>
+               <div className="space-y-4 relative" ref={dropdownRef}>
+                    <div className="relative group/input">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant transition-colors group-focus-within/input:text-primary pointer-events-none" />
                       <input 
                         value={searchQuery} 
                         onChange={e => {
@@ -581,7 +609,7 @@ export default function QuickOrder() {
                         }}
                         onFocus={() => setShowDropdown(true)}
                         placeholder="Search Customer or Name..."
-                        className="w-full h-14 pl-12 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none"
+                        className="w-full h-14 pl-12 pr-4 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-4 focus:ring-primary/10 text-on-surface font-medium placeholder:font-normal placeholder:text-on-surface-variant outline-none transition-all"
                       />
                     </div>
                     <AnimatePresence>
@@ -590,21 +618,21 @@ export default function QuickOrder() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 10 }}
-                          className="absolute z-50 w-full mt-1 bg-white shadow-lg rounded-xl border border-[#E2DDD6] overflow-hidden max-h-60 overflow-y-auto"
+                          className="absolute z-50 w-full mt-2 bg-surface shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl border border-outline-variant overflow-hidden max-h-[280px] overflow-y-auto"
                         >
                           {filteredCustomers.map(customer => (
                             <div 
                               key={customer.id}
                               onClick={() => handleSelectCustomer(customer)}
-                              className="p-3 hover:bg-[#F7F5F0] cursor-pointer border-b border-[#E2DDD6] flex items-center justify-between"
+                              className="p-4 hover:bg-surface-container cursor-pointer border-b border-outline-variant flex items-center justify-between transition-colors last:border-0"
                             >
-                              <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-[#0D3D33]/10 flex items-center justify-center text-[#0D3D33] font-bold text-lg">
+                              <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display font-medium text-xl">
                                   {customer.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                  <div className="font-bold text-[#111111] text-sm">{customer.name}</div>
-                                  <div className="text-xs text-[#555555] flex items-center mt-0.5"><Phone className="h-3.5 w-3.5 mr-1" /> {customer.phone}</div>
+                                  <div className="font-medium text-on-surface text-base">{customer.name}</div>
+                                  <div className="text-sm text-on-surface-variant flex items-center mt-0.5"><Phone className="h-3.5 w-3.5 mr-1.5" /> {customer.phone}</div>
                                 </div>
                               </div>
                             </div>
@@ -613,77 +641,77 @@ export default function QuickOrder() {
                       )}
                     </AnimatePresence>
                </div>
-               <div className="relative">
-                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] pointer-events-none" />
+               <div className="relative group/phone">
+                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant transition-colors group-focus-within/phone:text-primary pointer-events-none" />
                  <input 
                     value={customerData.phone} 
                     onChange={e => setCustomerData({...customerData, phone: e.target.value})}
                     placeholder="Phone Number"
-                    className="w-full h-14 pl-12 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none"
+                    className="w-full h-14 pl-12 pr-4 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-4 focus:ring-primary/10 text-on-surface font-medium placeholder:font-normal placeholder:text-on-surface-variant outline-none transition-all"
                  />
                </div>
             </div>
 
-            <div className="space-y-4">
-               <h3 className="text-[15px] font-bold text-[#111111] border-b border-[#E2DDD6] pb-2">Order Details</h3>
-               <div className="relative">
-                 <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] pointer-events-none" />
+            <div className="space-y-5 pt-4">
+               <h3 className="text-lg font-medium text-on-surface border-b border-outline-variant pb-3">Order Details</h3>
+               <div className="relative group/tag">
+                 <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant transition-colors group-focus-within/tag:text-primary pointer-events-none" />
                  <input 
                     value={orderData.dressType} 
                     onChange={e => setOrderData({...orderData, dressType: e.target.value})}
                     placeholder="Dress Type (e.g. Suit)"
-                    className="w-full h-14 pl-12 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none"
+                    className="w-full h-14 pl-12 pr-4 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-4 focus:ring-primary/10 text-on-surface font-medium placeholder:font-normal placeholder:text-on-surface-variant outline-none transition-all"
                  />
                </div>
-               <div className="relative">
-                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] pointer-events-none" />
+               <div className="relative group/date">
+                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant transition-colors group-focus-within/date:text-primary pointer-events-none" />
                  <input 
                     type="date"
                     value={orderData.deliveryDate} 
                     onChange={e => setOrderData({...orderData, deliveryDate: e.target.value})}
-                    className="w-full h-14 pl-12 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none uppercase"
+                    className="w-full h-14 pl-12 pr-4 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-4 focus:ring-primary/10 text-on-surface font-medium placeholder:font-normal placeholder:text-on-surface-variant outline-none transition-all uppercase"
                  />
                </div>
-               <div className="flex gap-3">
-                 <div className="relative flex-1">
-                   <div className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] font-bold select-none text-sm flex items-center justify-center">$</div>
+               <div className="flex flex-col sm:flex-row gap-4">
+                 <div className="relative flex-1 group/price">
+                   <div className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant font-medium select-none text-base flex items-center justify-center transition-colors group-focus-within/price:text-primary">{settings.currency}</div>
                    <input 
                       type="number"
                       value={orderData.price} 
                       onChange={e => setOrderData({...orderData, price: e.target.value})}
                       placeholder="Total Price"
-                      className="w-full h-14 pl-10 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none"
+                      className="w-full h-14 pl-12 pr-4 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-4 focus:ring-primary/10 text-on-surface font-medium placeholder:font-normal placeholder:text-on-surface-variant outline-none transition-all"
                    />
                  </div>
-                 <div className="relative flex-1">
-                   <div className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] font-bold select-none text-sm flex items-center justify-center">$</div>
+                 <div className="relative flex-1 group/adv">
+                   <div className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant font-medium select-none text-base flex items-center justify-center transition-colors group-focus-within/adv:text-primary">{settings.currency}</div>
                    <input 
                       type="number"
                       value={orderData.advancePayment} 
                       onChange={e => setOrderData({...orderData, advancePayment: e.target.value})}
                       placeholder="Advance Pay"
-                      className="w-full h-14 pl-10 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none"
+                      className="w-full h-14 pl-12 pr-4 rounded-xl border border-outline-variant bg-surface focus:border-primary focus:ring-4 focus:ring-primary/10 text-on-surface font-medium placeholder:font-normal placeholder:text-on-surface-variant outline-none transition-all"
                    />
                  </div>
                </div>
             </div>
 
-            <div className="space-y-4 pt-2">
-              <h3 className="text-[15px] font-bold text-[#111111] border-b border-[#E2DDD6] pb-2">Measurements</h3>
+            <div className="space-y-5 pt-4">
+              <h3 className="text-lg font-medium text-on-surface border-b border-outline-variant pb-3">Measurements</h3>
               {getMeasurementCategoriesForDress(orderData.dressType).map((category) => (
-                <div key={category.id} className="space-y-3 pt-2">
-                   <div className="font-bold text-[12px] text-[#0D3D33] uppercase tracking-widest bg-[#0D3D33]/5 inline-block px-3 py-1 rounded-md">{category.titleEn}</div>
-                   <div className="grid grid-cols-2 gap-3">
+                <div key={category.id} className="space-y-4 pt-2">
+                   <div className="font-semibold text-xs text-primary uppercase tracking-widest bg-primary/10 inline-block px-3 py-1.5 rounded-[8px]">{category.titleEn}</div>
+                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                      {category.items.map((item) => (
-                       <div key={item.id} className="bg-[#F7F5F0] rounded-xl border border-[#E2DDD6] p-3 focus-within:border-[#0D3D33] focus-within:bg-white transition-colors">
-                          <label className="text-[10px] uppercase font-bold text-[#555555] block mb-1.5 leading-none">{item.en}</label>
+                       <div key={item.id} className="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all shadow-sm">
+                          <label className="text-[11px] uppercase font-semibold text-on-surface-variant block mb-2 leading-none">{item.en}</label>
                           <input 
                             type="number"
                             step="0.25"
                             value={measurements[item.id] || ''} 
                             onChange={e => setMeasurements({...measurements, [item.id]: e.target.value === '' ? '' : Number(e.target.value)})}
                             placeholder="0.00"
-                            className="w-full bg-transparent border-none p-0 text-[16px] font-bold text-[#111111] placeholder-[#888888] outline-none"
+                            className="w-full bg-transparent border-none p-0 text-lg font-medium text-on-surface placeholder-on-surface-variant/50 outline-none"
                           />
                        </div>
                      ))}
@@ -692,24 +720,28 @@ export default function QuickOrder() {
               ))}
             </div>
             
-        </div>
+        </motion.div>
       </div>
 
       {/* Action Buttons (Fixed Bottom Bar) */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-[#E2DDD6] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50 flex items-center gap-3">
-        <label className="btn-outline flex-1 !p-0 !min-h-0 flex items-center justify-center gap-2 cursor-pointer h-14 text-sm whitespace-nowrap">
-           <Upload className="w-4 h-4"/> Upload Design
-           <input type="file" accept="image/*" className="hidden" onChange={e => {
-              const file = e.target.files?.[0];
-              if (file) {
-                setReferencePhoto(file);
-                toast.success('Design uploaded.');
-              }
-           }} />
-        </label>
-        <button onClick={handleSubmit} type="button" disabled={isSubmitting} className="btn-primary flex-[1.5] flex items-center justify-center h-14 text-sm">
-          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Order'}
-        </button>
+      <div className="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-surface/90 backdrop-blur-lg border-t border-outline-variant shadow-[0_-8px_32px_rgba(0,0,0,0.06)] z-50 flex items-center justify-center">
+        <div className="w-full max-w-4xl mx-auto flex gap-4">
+          <label className="flex-1 max-w-[200px] h-14 rounded-full border border-outline-variant bg-surface text-on-surface font-medium flex items-center justify-center gap-2 cursor-pointer hover:bg-surface-container transition-colors shadow-soft">
+             <Upload className="w-5 h-5"/> 
+             <span className="hidden sm:inline">Upload Design</span>
+             <span className="sm:hidden">Upload</span>
+             <input type="file" accept="image/*" className="hidden" onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setReferencePhoto(file);
+                  toast.success('Design uploaded.');
+                }
+             }} />
+          </label>
+          <button onClick={handleSubmit} type="button" disabled={isSubmitting} className="flex-[2] h-14 rounded-full bg-primary text-white font-medium flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all shadow-soft disabled:opacity-70 disabled:hover:scale-100">
+            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Order'}
+          </button>
+        </div>
       </div>
     </div>
   );
