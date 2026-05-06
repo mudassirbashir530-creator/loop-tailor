@@ -13,6 +13,7 @@ export default defineConfig(({mode}) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        'formdata-polyfill': path.resolve(__dirname, 'src/lib/empty.ts'),
       },
     },
     server: {
