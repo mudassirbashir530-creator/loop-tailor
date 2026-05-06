@@ -445,182 +445,175 @@ export default function Dashboard() {
   }
 
   return (
-    <>
+    <div className={cn("page", loading && "opacity-70 pointer-events-none")}>
       <OnboardingTour />
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className={cn("bg-background min-h-screen pb-[80px]", loading ? "opacity-70 pointer-events-none animate-pulse" : "")}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 pt-12 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-medium text-lg">
-              {user?.displayName?.charAt(0)?.toUpperCase() || 'T'}
-            </div>
-            <div>
-              <div className="font-semibold text-[18px] text-on-surface leading-tight">
-                Hello, {user?.displayName?.split(' ')[0] || 'Tailor'}
-              </div>
-              <div className="text-[14px] text-on-surface-variant mt-0.5">Good morning</div>
-            </div>
-          </div>
-          <button className="relative p-2.5 rounded-full bg-surface shadow-sm border border-outline-variant">
-            <div className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border border-surface"></div>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-on-surface"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-          </button>
-        </div>
 
-        {/* Search Bar */}
-        <div className="px-4 mb-6 relative z-30">
-          <div className="flex items-center gap-3 relative h-12 bg-white rounded-xl shadow px-4">
-            <Search className="h-5 w-5 text-slate-400" />
-            <input 
-              type="text"
-              placeholder="Search customers, orders, measurements..."
-              value={searchToken}
-              onChange={(e) => setSearchToken(e.target.value)}
-              onFocus={() => { if (searchToken) setShowSearchResults(true); }}
-              onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-              className="flex-1 bg-transparent border-none shadow-none p-0 focus:ring-0 text-slate-900 text-[15px] placeholder-slate-400 outline-none"
-            />
-          </div>
+      {/* Top Bar */}
+      <div className="bg-white border-b border-[#E2DDD6] px-4 py-3 flex items-center justify-between">
+        <div className="flex flex-col">
+          <span className="text-xs text-[#555555] font-medium tracking-wider uppercase">Dashboard</span>
+          <span className="text-[18px] font-bold text-[#0D3D33] leading-none mt-1">Hello, {user?.displayName?.split(' ')[0] || 'Tailor'}</span>
+        </div>
+        <div className="w-10 h-10 rounded-full bg-[#E2DDD6] flex items-center justify-center text-[#111111] font-bold border border-[#E2DDD6]">
+          {user?.displayName?.charAt(0)?.toUpperCase()}
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="px-4 mt-5 mb-3 relative z-30">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#555555]" />
+          <input 
+            type="text"
+            placeholder="Search customers, orders..."
+            value={searchToken}
+            onChange={(e) => setSearchToken(e.target.value)}
+            onFocus={() => { if (searchToken) setShowSearchResults(true); }}
+            onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
+            className="w-full h-[48px] pl-10 pr-4 rounded-xl border border-[#E2DDD6] bg-white text-[#111111] text-sm focus:border-[#0D3D33] focus:outline-none placeholder:text-[#888888]"
+          />
+        </div>
+        
+        <AnimatePresence>
+          {showSearchResults && searchToken && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute top-[52px] left-4 right-4 bg-white rounded-xl shadow-lg border border-[#E2DDD6] max-h-80 overflow-y-auto z-50 p-2"
+            >
+               {searchResults.length > 0 ? (
+                  searchResults.map((res) => (
+                    <div 
+                      key={res.id} 
+                      onClick={() => navigate(res.url)} 
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#F7F5F0] cursor-pointer"
+                    >
+                       {res.type === 'customer' && <Users className="h-5 w-5 text-[#888888]" />}
+                       {res.type === 'order' && <Scissors className="h-5 w-5 text-[#888888]" />}
+                       {res.type === 'measurement' && <FileText className="h-5 w-5 text-[#888888]" />}
+                       <div>
+                         <div className="text-sm font-bold text-[#111111]">{res.title}</div>
+                         <div className="text-xs text-[#555555] mt-0.5">{res.subtitle}</div>
+                       </div>
+                    </div>
+                  ))
+               ) : (
+                  <div className="p-4 text-center text-sm text-[#555555] font-medium">No results found</div>
+               )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Revenue Card */}
+      <div className="px-4 mb-5">
+        <div className="bg-[#0D3D33] rounded-2xl p-6 text-white shadow-sm relative overflow-hidden">
+          <div className="absolute right-[-20%] top-[-20%] w-48 h-48 bg-white opacity-[0.03] rounded-full"></div>
+          <div className="absolute left-[-10%] bottom-[-20%] w-32 h-32 bg-white opacity-[0.03] rounded-full"></div>
           
-          <AnimatePresence>
-            {showSearchResults && searchToken && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="absolute top-[56px] left-4 right-4 bg-white rounded-xl shadow-lg border border-gray-100 max-h-80 overflow-y-auto z-50 p-2"
+          <div className="relative z-10">
+            <div className="text-white/70 text-sm font-medium mb-1">Total Revenue</div>
+            <div className="text-[32px] font-bold leading-tight tracking-tight mb-5">{formatCurrency(stats.totalRevenue)}</div>
+            
+            <div className="flex items-center gap-8 border-t border-white/10 pt-4 mt-2">
+              <div>
+                <div className="text-white/60 text-[11px] uppercase tracking-wider font-semibold mb-1">Active</div>
+                <div className="text-lg font-bold">{stats.activeOrders}</div>
+              </div>
+              <div>
+                <div className="text-white/60 text-[11px] uppercase tracking-wider font-semibold mb-1">Completed</div>
+                <div className="text-lg font-bold">{stats.completedOrders}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="px-4 mb-6">
+        <h3 className="text-sm font-bold text-[#111111] mb-3">Quick Actions</h3>
+        <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+          {[
+            { label: 'New Order', icon: Scissors, path: '/dashboard/orders/new', bg: 'bg-[#0D3D33]/10', color: 'text-[#0D3D33]' },
+            { label: 'Customers', icon: Users, path: '/dashboard/customers', bg: 'bg-[#2ECC71]/10', color: 'text-[#2ECC71]' },
+            { label: 'Payments', icon: Calendar, path: '/dashboard/payment-reminders', bg: 'bg-[#E53935]/10', color: 'text-[#E53935]' },
+            { label: 'Measurements', icon: FileText, path: '/dashboard/customers', bg: 'bg-blue-50', color: 'text-blue-600' },
+          ].map((cat, i) => (
+            <div 
+              key={i} 
+              onClick={() => navigate(cat.path)}
+              className="flex-shrink-0 card w-[100px] !p-3 flex flex-col items-center justify-center cursor-pointer min-h-[90px] !border-[#E2DDD6] hover:border-[#0D3D33] transition-colors gap-2 !m-0"
+            >
+              <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", cat.bg, cat.color)}>
+                <cat.icon className="w-5 h-5" />
+              </div>
+              <div className="text-[11px] font-bold text-[#111111] text-center">{cat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Today's Orders / Recent */}
+      <div className="px-4 mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-[#111111]">Recent Orders</h3>
+          <Link to="/dashboard/orders" className="text-xs font-bold text-[#2ECC71]">See All</Link>
+        </div>
+        <div className="flex flex-col gap-3">
+          {recentOrders.length === 0 ? (
+            <div className="card text-center !py-8 text-[#555555] text-sm">No recent orders found</div>
+          ) : (
+            recentOrders.map(order => (
+              <div 
+                key={order.id} 
+                className="card flex items-center gap-3 cursor-pointer !m-0 !p-3" 
+                onClick={() => navigate(`/dashboard/orders/${order.id}`)}
               >
-                 {searchResults.length > 0 ? (
-                    searchResults.map((res) => (
-                      <div 
-                        key={res.id} 
-                        onClick={() => navigate(res.url)} 
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
-                      >
-                         {res.type === 'customer' && <Users className="h-5 w-5 text-slate-400" />}
-                         {res.type === 'order' && <Scissors className="h-5 w-5 text-slate-400" />}
-                         {res.type === 'measurement' && <FileText className="h-5 w-5 text-slate-400" />}
-                         <div>
-                           <div className="text-sm font-bold text-slate-900">{res.title}</div>
-                           <div className="text-xs text-slate-500 mt-0.5">{res.subtitle}</div>
-                         </div>
-                      </div>
-                    ))
-                 ) : (
-                    <div className="p-4 text-center text-sm text-slate-500 font-medium">No results found</div>
-                 )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Featured Card */}
-        <div className="px-4 mb-8">
-          <div className="bg-white rounded-xl shadow p-4">
-            <div className="bg-primary-container rounded-xl p-7 text-on-primary-container relative overflow-hidden shadow-md">
-               <svg className="absolute right-0 bottom-0 opacity-10" width="120" height="120" viewBox="0 0 100 100" fill="currentColor"><circle cx="80" cy="80" r="50"/></svg>
-               <div className="relative z-10">
-                 <div className="text-[14px] font-medium opacity-90 mb-1">Total Revenue</div>
-                 <div className="text-[36px] font-display font-medium tracking-tight mb-8">{formatCurrency(stats.totalRevenue)}</div>
-                 <div className="flex items-center gap-8">
-                   <div>
-                     <div className="text-[12px] opacity-80 uppercase tracking-widest font-medium">Active Orders</div>
-                     <div className="text-2xl font-semibold mt-1.5">{stats.activeOrders}</div>
-                   </div>
-                   <div>
-                     <div className="text-[12px] opacity-80 uppercase tracking-widest font-medium">Completed</div>
-                     <div className="text-2xl font-semibold mt-1.5">{stats.completedOrders}</div>
-                   </div>
-                 </div>
-               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Category Quick Access */}
-        <div className="px-4 mb-10">
-          <div className="bg-white rounded-xl shadow p-4">
-            <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
-              {[
-                { label: 'Orders', icon: Scissors, path: '/dashboard/orders', color: 'bg-surface-container-high text-on-surface' },
-                { label: 'Customers', icon: Users, path: '/dashboard/customers', color: 'bg-surface-container-high text-on-surface' },
-                { label: 'Measurements', icon: FileText, path: '/dashboard/customers', color: 'bg-surface-container-high text-on-surface' },
-                { label: 'Designs', icon: TrendingUp, path: '/dashboard/orders/new', color: 'bg-surface-container-high text-on-surface' },
-                { label: 'Payments', icon: Search, path: '/dashboard/payment-reminders', color: 'bg-surface-container-high text-on-surface' },
-              ].map((cat, i) => (
-                <div key={i} className="flex flex-col items-center gap-3 min-w-[72px]" onClick={() => navigate(cat.path)}>
-                  <div className={cn("w-14 h-14 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity", cat.color)}>
-                    <cat.icon className="w-6 h-6" />
-                  </div>
-                  <div className="text-[12px] font-medium text-on-surface-variant">{cat.label}</div>
+                <div className="w-12 h-12 rounded-xl bg-[#F7F5F0] border border-[#E2DDD6] flex items-center justify-center">
+                  <Scissors className="w-5 h-5 text-[#555555]" />
                 </div>
-              ))}
-            </div>
+                <div className="flex-1">
+                  <div className="font-bold text-[14px] text-[#111111]">{order.customerName}</div>
+                  <div className="text-[12px] text-[#555555] mt-0.5">{order.dressType}</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-[14px] text-[#0D3D33] mb-1">{formatCurrency(order.price)}</div>
+                  <div className={cn("text-[10px] font-bold px-2 py-1 rounded-md inline-block uppercase tracking-wide", 
+                    order.status === ORDER_STATUS.DELIVERED ? "bg-[#2ECC71]/10 text-[#2ECC71]" : "bg-[#F7F5F0] text-[#555555] border border-[#E2DDD6]"
+                  )}>
+                    {t(`orders.${order.status.toLowerCase()}`)}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Top Customers */}
+      {topCustomersData.length > 0 && (
+        <div className="px-4 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-[#111111]">Top Customers</h3>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+            {topCustomersData.map((customer, i) => (
+              <div 
+                key={i} 
+                onClick={() => { if (customer.id) navigate(`/dashboard/customers/${customer.id}`); }} 
+                className="flex-shrink-0 card w-[100px] !p-3 flex flex-col items-center cursor-pointer min-h-[100px] !m-0 !border-[#E2DDD6] hover:border-[#0D3D33]"
+              >
+                <div className="w-12 h-12 rounded-full bg-[#0D3D33] flex items-center justify-center text-white font-bold text-lg mb-2">
+                  {customer.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="text-[12px] font-bold text-[#111111] line-clamp-1 w-full text-center">{customer.name.split(' ')[0]}</div>
+                <div className="text-[11px] text-[#555555] mt-0.5">{customer.count} Order{customer.count !== 1 ? 's' : ''}</div>
+              </div>
+            ))}
           </div>
         </div>
-
-        {/* Today's Orders / Recent */}
-        <div className="px-4 mb-8">
-          <div className="bg-white rounded-xl shadow p-4 mb-4">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-[18px] font-semibold text-on-surface">Today's Orders</h2>
-              <Link to="/dashboard/orders" className="text-[14px] font-medium text-primary border border-outline-variant rounded-full px-4 py-1.5 hover:bg-surface-variant transition-colors">See All</Link>
-            </div>
-            <div className="space-y-3">
-              {recentOrders.length === 0 ? (
-                <div className="text-center text-[15px] text-on-surface-variant py-6 bg-surface rounded-xl border border-outline-variant">No orders today</div>
-              ) : (
-                recentOrders.map(order => (
-                  <div key={order.id} className="bg-surface rounded-xl p-4 flex items-center gap-4 border border-outline-variant cursor-pointer hover:bg-surface-variant transition-colors" onClick={() => navigate(`/dashboard/orders/${order.id}`)}>
-                    <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-on-surface">
-                      <Scissors className="w-5 h-5" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-[16px] font-medium text-on-surface">{order.customerName}</div>
-                      <div className="text-[14px] text-on-surface-variant mt-0.5">{order.dressType}</div>
-                      <div className="text-[13px] text-on-surface-variant mt-1">{formatDate(order.createdAt)}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[16px] font-semibold text-primary mb-2">{formatCurrency(order.price)}</div>
-                      <div className={cn("text-[12px] font-medium px-3 py-1 rounded-full inline-block", order.status === ORDER_STATUS.DELIVERED ? "bg-secondary-container text-on-secondary-container" : "bg-surface-container-high text-on-surface-variant")}>
-                        {t(`orders.${order.status.toLowerCase()}`)}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Top Customers */}
-        {topCustomersData.length > 0 && (
-          <div className="px-4 pb-8">
-            <div className="bg-white rounded-xl shadow p-4 mb-4">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-[18px] font-semibold text-on-surface">Top Customers</h2>
-              </div>
-              <div className="flex overflow-x-auto gap-4 pb-2 hide-scrollbar">
-                {topCustomersData.map((customer, i) => (
-                  <div key={i} onClick={() => { if (customer.id) navigate(`/dashboard/customers/${customer.id}`); }} className="flex flex-col items-center min-w-[88px] bg-surface rounded-xl p-4 border border-outline-variant cursor-pointer hover:bg-surface-variant transition-colors">
-                    <div className="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface text-xl font-medium mb-3">
-                      {customer.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="text-[13px] font-medium text-on-surface line-clamp-1 text-center w-full">{customer.name.split(' ')[0]}</div>
-                    <div className="text-[12px] text-on-surface-variant mt-1">{customer.count} Order{customer.count !== 1 ? 's' : ''}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-      </motion.div>
-    </>
+      )}
+    </div>
   );
 }

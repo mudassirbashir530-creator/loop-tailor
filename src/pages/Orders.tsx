@@ -226,87 +226,115 @@ export default function Orders() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow p-4 mb-4">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between gap-4 mb-8"
-        >
-          <div className="flex items-center gap-2">
-            <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-surface-variant transition-colors text-on-surface hidden lg:block">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
-            </button>
-            <h1 className="text-[28px] md:text-[32px] font-display font-semibold tracking-tight text-on-surface">{t('layout.orders')}</h1>
-          </div>
-        </motion.div>
+    <div className={cn("page pb-[100px]", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Top Bar */}
+      <div className="bg-white border-b border-[#E2DDD6] px-4 py-4 flex items-center justify-between sticky top-0 z-40">
+        <h1 className="text-xl font-bold text-[#0D3D33]">{t('layout.orders')}</h1>
+      </div>
 
-        {/* Toggle Stats Pills */}
-        <div className="flex gap-3 mb-6">
-          <div className="flex-1 rounded-full bg-primary-container text-on-primary-container text-center py-2.5 text-[14px] font-medium shadow-sm">Total:   {orders.length.toString().padStart(2, '0')}</div>
-          <div className="flex-1 rounded-full bg-surface border border-outline-variant text-on-surface text-center py-2.5 text-[14px] font-medium shadow-sm">Filtered: {filteredOrders.length.toString().padStart(2, '0')}</div>
+      {/* Search & Filters */}
+      <div className="px-4 mt-5 mb-4 space-y-3">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search Order ID or Name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full h-12 pl-12 pr-4 rounded-full border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white text-[#111111] text-sm focus:border-[#0D3D33] focus:outline-none placeholder:text-[#555555] shadow-sm font-bold"
+          />
         </div>
-
-        {/* Filter Row */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="relative w-full sm:w-80 group">
-            <input
-              type="text"
-              placeholder="Enter Order ID"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-12 rounded-full bg-surface-container-highest border border-outline-variant pl-12 pr-4 focus:outline-none focus:border-primary text-on-surface placeholder:text-on-surface-variant transition-all"
-            />
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant" />
-          </div>
-          <div className="relative w-full sm:w-64">
-            <select 
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="w-full h-12 rounded-full bg-surface border border-outline-variant pl-4 pr-10 appearance-none focus:outline-none focus:border-primary text-[14px] font-medium text-on-surface shadow-sm cursor-pointer"
+        
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar">
+          {['All', ...Object.values(ORDER_STATUS)].map((statusValue) => (
+            <button
+              key={statusValue}
+              onClick={() => setFilter(statusValue)}
+              className={cn(
+                "px-5 py-2 rounded-full text-[13px] font-bold transition-all whitespace-nowrap border uppercase tracking-wider",
+                filter === statusValue
+                  ? "bg-[#0D3D33] text-white border-[#0D3D33]"
+                  : "bg-white text-[#555555] border-[#E2DDD6] hover:bg-[#F7F5F0]"
+              )}
             >
-              <option value="All">All Statuses</option>
-              {Object.values(ORDER_STATUS).map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant pointer-events-none" />
-          </div>
+              {statusValue === 'All' ? 'All Orders' : statusValue}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow p-4 mb-4">
-        {/* Order List */}
-        <div className="space-y-3 pb-8">
-          {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-          ) : filteredOrders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 bg-surface rounded-3xl border border-outline-variant shadow-sm mt-4">
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mb-4 text-outline-variant"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
-              <h3 className="text-[18px] font-semibold text-on-surface mb-1">No orders yet</h3>
-              <p className="text-[14px] text-on-surface-variant">Try adjusting your filters or search</p>
+      {/* Order List */}
+      <div className="px-4 space-y-3">
+        {loading ? (
+          <div className="flex flex-col gap-3">
+             {[1, 2, 3, 4, 5].map((i) => (
+               <div key={i} className="h-24 bg-white rounded-xl border border-[#E2DDD6] animate-pulse"></div>
+             ))}
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="card text-center !py-12 !border-[#E2DDD6] flex flex-col items-center shadow-sm"
+          >
+            <div className="w-16 h-16 rounded-full bg-[#0D3D33]/10 flex items-center justify-center mb-4">
+              <Scissors className="h-8 w-8 text-[#0D3D33]" />
             </div>
-          ) : (
-            filteredOrders.map(order => (
-              <div key={order.id} className="bg-surface rounded-3xl p-5 flex items-center gap-4 shadow-sm border border-outline-variant hover:bg-surface-variant hover:border-primary/30 transition-all cursor-pointer" onClick={() => navigate(`/dashboard/orders/${order.id}`)}>
-                <div className="w-14 h-14 rounded-full flex-shrink-0 bg-surface-container flex items-center justify-center text-primary overflow-hidden">
-                  <Scissors className="w-6 h-6 opacity-80" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[16px] font-semibold text-on-surface truncate mb-0.5">{order.dressType || 'Custom Order'}</div>
-                  <div className="text-[13px] font-medium text-on-surface-variant">ID: {order.tokenId || order.id.slice(0,8)}</div>
-                  <div className="text-[13px] text-on-surface-variant mt-0.5">{order.createdAt ? startOfDay(order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt)).toLocaleDateString() : 'N/A'}</div>
-                </div>
-                <div className="text-right flex-shrink-0 flex flex-col items-end gap-2">
-                  <div className="text-[16px] font-bold text-primary mb-1">{(order.price || 0).toLocaleString()}</div>
-                  <div className={cn("text-[11px] font-medium px-3 py-1.5 rounded-full inline-block whitespace-nowrap", order.status === ORDER_STATUS.DELIVERED ? "bg-secondary-container text-on-secondary-container" : "bg-surface-container-high text-on-surface-variant")}>
+            <h3 className="text-lg font-bold text-[#111111]">No orders found</h3>
+            <p className="text-[#555555] text-sm mt-1 mb-6">Create a new order to get started</p>
+            <Link 
+              to="/dashboard/orders/new"
+              className="btn-primary"
+            >
+              <Plus className="h-5 w-5 mr-no-rtl ml-auto-rtl mr-2" />
+              New Order
+            </Link>
+          </motion.div>
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {filteredOrders.map((order, index) => (
+              <motion.div
+                key={order.id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <div 
+                  className="card !m-0 flex items-center gap-4 !border-[#E2DDD6] hover:border-[#0D3D33] transition-all cursor-pointer shadow-sm !p-4" 
+                  onClick={() => navigate(`/dashboard/orders/${order.id}`)}
+                >
+                  <div className="w-14 h-14 rounded-full flex-shrink-0 bg-[#F7F5F0] border border-[#E2DDD6] flex items-center justify-center text-[#555555]">
+                    <Scissors className="w-6 h-6 opacity-80" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[15px] font-bold text-[#111111] truncate">{order.customerName}</div>
+                    <div className="text-[13px] font-medium text-[#555555] mt-0.5">{order.dressType || 'Custom Order'}</div>
+                    <div className="text-[11px] font-bold text-[#888888] mt-1 flex items-center gap-1"><Hash className="w-3 h-3"/> {order.tokenId || order.id.slice(0,8)}</div>
+                  </div>
+                  <div className="text-right flex-shrink-0 flex flex-col items-end gap-2">
+                    <div className="text-[15px] font-bold text-[#0D3D33]">${(order.price || 0).toLocaleString()}</div>
+                    <div className={cn(
+                      "text-[10px] font-bold px-2.5 py-1 rounded-md inline-block uppercase tracking-wide", 
+                      order.status === ORDER_STATUS.DELIVERED ? "bg-[#2ECC71]/10 text-[#2ECC71]" : "bg-[#F7F5F0] text-[#555555] border border-[#E2DDD6]"
+                    )}>
                       {order.status}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
       </div>
+
+      {/* FAB Button */}
+      <Link 
+        to="/dashboard/orders/new"
+        className="fab-btn fixed bottom-[80px] right-4 z-50 text-white"
+      >
+        <Plus className="w-6 h-6" />
+      </Link>
     </div>
   );
 }

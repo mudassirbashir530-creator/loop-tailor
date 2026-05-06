@@ -469,249 +469,248 @@ export default function QuickOrder() {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn("min-h-screen bg-[#F5F7FA] pb-[80px]", isRTL && "font-urdu")}
-      dir={isRTL ? 'rtl' : 'ltr'}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-12 pb-4 bg-[#F5F7FA]">
-        <button onClick={() => navigate(-1)} type="button" className="p-2">
-          {isRTL ? <ArrowRight className="h-6 w-6 text-[#0F172A]" /> : <ArrowLeft className="h-6 w-6 text-[#0F172A]" />}
+    <div className={cn("page pb-[100px]", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Top Bar */}
+      <div className="bg-white border-b border-[#E2DDD6] px-4 py-4 flex items-center justify-between sticky top-0 z-40">
+        <button onClick={() => navigate(-1)} type="button" className="p-2 -ml-2 text-[#111111]">
+          {isRTL ? <ArrowRight className="h-6 w-6" /> : <ArrowLeft className="h-6 w-6" />}
         </button>
-        <h1 className="text-[18px] font-bold text-[#0F172A]">Customize Order</h1>
+        <h1 className="text-xl font-bold text-[#111111]">Customize Order</h1>
         <div className="w-10"></div>
       </div>
 
-      {preGeneratedToken && (
-        <div className="flex items-center justify-center gap-2 px-2 pb-4 text-[#22C55E] text-xs font-bold">
-          <Hash className="h-3 w-3" />
-          Order: {preGeneratedToken}
-        </div>
-      )}
+      <div className="px-4 py-4 space-y-6">
+        {preGeneratedToken && (
+          <div className="flex items-center justify-center gap-2 bg-[#2ECC71]/10 text-[#2ECC71] px-4 py-3 rounded-xl border border-[#2ECC71]/20 font-bold text-sm">
+            <Hash className="h-4 w-4" />
+            Order: {preGeneratedToken}
+          </div>
+        )}
 
-      {/* Product Image Area */}
-      <div className="px-4 mb-6">
-        <div className="w-full h-[320px] bg-white rounded-[24px] shadow-[0_2px_12px_rgba(0,0,0,0.07)] relative flex items-center justify-center overflow-hidden">
+        {/* Product Image Area */}
+        <div className="w-full h-[280px] bg-white rounded-2xl border border-[#E2DDD6] relative flex items-center justify-center overflow-hidden shadow-sm">
           {/* Garment Preview Placeholder */}
-          <div className="absolute inset-0 bg-[#F1F5F9] flex flex-col items-center justify-center">
-             <Scissors className="w-16 h-16 text-[#CBD5E1] mb-4" />
-             <span className="text-[#94A3B8] font-medium">Garment Preview</span>
+          <div className="absolute inset-0 bg-[#F7F5F0] flex flex-col items-center justify-center">
+             <Scissors className="w-16 h-16 text-[#E2DDD6] mb-4" />
+             <span className="text-[#555555] font-bold">Garment Preview</span>
           </div>
           
           {/* Color Swatches */}
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3">
-            {[ '#1E293B', '#22C55E', '#94A3B8', '#DC2626' ].map((color, i) => (
+            {[ '#111111', '#0D3D33', '#2ECC71', '#E53935' ].map((color, i) => (
               <div key={i} className={`w-8 h-8 rounded-full shadow-md cursor-pointer border-2 ${i === 1 ? 'border-white scale-110' : 'border-transparent'}`} style={{ backgroundColor: color }}></div>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Price + View Button Row */}
-      <div className="px-4 mb-6 flex justify-between items-center">
-        <div className="text-[20px] font-bold text-[#22C55E]">
-          {settings.currency} {orderData.price || '0.00'}
-        </div>
-        <button type="button" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} className="bg-[#22C55E] text-white px-6 py-2 rounded-full text-[14px] font-semibold shadow-[0_2px_12px_rgba(34, 197, 94,0.3)]">
-          View Details
-        </button>
-      </div>
-
-      {/* Garment Style Selection */}
-      <div className="px-4 mb-8">
-        <h3 className="text-[16px] font-bold text-[#0F172A] mb-4">Garment Style Selection</h3>
-        <div className="space-y-6">
-          {STYLE_CATEGORIES.map((category) => (
-             <div key={category.id}>
-               <h4 className="text-xs font-bold text-[#64748B] uppercase tracking-widest mb-3" >{category.title}</h4>
-               <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar md:grid md:grid-cols-4 lg:grid-cols-5">
-                 {category.options.map(opt => {
-                   const isSelected = garmentStyles[category.id] === opt.label;
-                   return (
-                     <div 
-                       key={opt.id} 
-                       onClick={() => setGarmentStyles(prev => ({...prev, [category.id]: opt.label}))}
-                       className={cn(
-                         "flex flex-col items-center justify-between p-3 rounded-xl border-2 min-w-[110px] cursor-pointer transition-all bg-white",
-                         isSelected ? "border-[#22C55E] bg-[#22C55E]/5 shadow-sm" : "border-transparent border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-                       )}
-                     >
-                        <div className="w-16 h-16 bg-[#F1F5F9] rounded-lg mb-3 flex items-center justify-center text-3xl">
-                           {category.id === 'Collar' ? '👔' : category.id === 'Sleeves' ? '👕' : category.id === 'Pocket' ? '👝' : category.id === 'Placket' ? '🧵' : '🎽'}
-                        </div>
-                        <div className="text-[12px] font-semibold text-center text-[#334155] leading-tight">
-                          {opt.label}
-                        </div>
-                     </div>
-                   );
-                 })}
-               </div>
-             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="px-4 mb-10 space-y-3">
-        <div className="flex gap-3">
-          <label className="flex-1 bg-[#22C55E] text-white h-12 rounded-full font-semibold text-[14px] shadow-[0_2px_12px_rgba(34, 197, 94,0.3)] flex items-center justify-center gap-2 cursor-pointer">
-             <Upload className="w-4 h-4"/> Upload Design
-             <input type="file" accept="image/*" className="hidden" onChange={e => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setReferencePhoto(file);
-                  toast.success('Design uploaded. Proceed to Details.');
-                }
-             }} />
-          </label>
-          <a href={customerData.phone ? `tel:${customerData.phone}` : '#'} className="flex-1 bg-white border-2 border-[#22C55E] text-[#22C55E] h-12 rounded-full font-semibold text-[14px] flex items-center justify-center gap-2">
-            <Phone className="w-4 h-4"/> Call Customer
-          </a>
-        </div>
-        <div className="flex gap-3">
-          <button type="button" onClick={() => navigate(-1)} className="w-1/3 bg-transparent border border-[#E2E8F0] text-[#64748B] h-12 rounded-full font-semibold text-[14px]">
-            Save Draft
-          </button>
-          <button onClick={handleSubmit} type="button" disabled={isSubmitting} className="w-2/3 bg-[#22C55E] text-white h-12 rounded-full font-bold text-[15px] shadow-[0_2px_12px_rgba(34, 197, 94,0.3)] flex items-center justify-center">
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Order'}
+        {/* Price Row */}
+        <div className="flex justify-between items-center card !m-0 !py-4 shadow-sm">
+          <div className="text-[24px] font-bold text-[#2ECC71]">
+            {settings.currency} {orderData.price || '0.00'}
+          </div>
+          <button type="button" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })} className="btn-outline !py-2 !h-10 text-[13px]">
+            View Details
           </button>
         </div>
-      </div>
 
-      <div className="text-center font-bold text-[#64748B] uppercase tracking-widest text-[10px] mb-2 px-4 flex items-center gap-2">
-         <div className="h-px bg-[#E2E8F0] flex-1"></div>
-         Order Details Form
-         <div className="h-px bg-[#E2E8F0] flex-1"></div>
-      </div>
-
-      <div className="bg-white rounded-xl shadow p-4 mb-4 space-y-6">
-          <TemplateSelector 
-            templateHook={templateHook} 
-            setOrderData={setOrderData} 
-            setMeasurements={setMeasurements} 
-            setGender={setGender}
-          />
-          
-          <div className="space-y-4">
-             <h3 className="section-title">Customer</h3>
-             <div className="space-y-3 relative" ref={dropdownRef}>
-                  <Input 
-                    value={searchQuery} 
-                    onChange={e => {
-                      setSearchQuery(e.target.value);
-                      setShowDropdown(true);
-                      if (e.target.value === '') {
-                        setSelectedCustomerId('');
-                        setCustomerData({ name: '', phone: '', address: '', notes: '' });
-                        setMeasurements({});
-                      } else {
-                        setCustomerData({...customerData, name: e.target.value});
-                      }
-                    }}
-                    onFocus={() => setShowDropdown(true)}
-                    placeholder="Search Customer or Name..."
-                    className="bg-[#F1F5F9] border-none rounded-[12px] h-12"
-                  />
-                  <AnimatePresence>
-                    {showDropdown && searchQuery && filteredCustomers.length > 0 && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute z-50 w-full mt-2 bg-white shadow-[0_8px_30px_rgba(34, 197, 94,0.12)] rounded-[16px] border border-[#F8FAFC] overflow-hidden max-h-60 overflow-y-auto"
-                      >
-                        {filteredCustomers.map(customer => (
-                          <div 
-                            key={customer.id}
-                            onClick={() => handleSelectCustomer(customer)}
-                            className="p-4 hover:bg-[#F5F7FA] cursor-pointer border-b border-[#F8FAFC] flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-[12px] bg-[#F5F7FA] flex items-center justify-center text-[#22C55E] font-bold">
-                                {customer.name.charAt(0).toUpperCase()}
-                              </div>
-                              <div>
-                                <div className="font-bold text-[#0F172A]">{customer.name}</div>
-                                <div className="text-xs text-[#64748B] flex items-center mt-0.5"><Phone className="h-3 w-3 mr-1" /> {customer.phone}</div>
-                              </div>
-                            </div>
+        {/* Garment Style Selection */}
+        <div className="card shadow-sm !m-0">
+          <h3 className="text-[16px] font-bold text-[#111111] mb-4 border-b border-[#E2DDD6] pb-3">Garment Style Selection</h3>
+          <div className="space-y-6">
+            {STYLE_CATEGORIES.map((category) => (
+               <div key={category.id}>
+                 <h4 className="text-xs font-bold text-[#555555] uppercase tracking-widest mb-3" >{category.title}</h4>
+                 <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar">
+                   {category.options.map(opt => {
+                     const isSelected = garmentStyles[category.id] === opt.label;
+                     return (
+                       <div 
+                         key={opt.id} 
+                         onClick={() => setGarmentStyles(prev => ({...prev, [category.id]: opt.label}))}
+                         className={cn(
+                           "flex flex-col items-center justify-between p-3 rounded-xl border-2 min-w-[110px] cursor-pointer transition-all",
+                           isSelected ? "border-[#0D3D33] bg-[#0D3D33]/5" : "border-[#E2DDD6] bg-[#F7F5F0] hover:border-[#0D3D33]/30"
+                         )}
+                       >
+                          <div className="w-16 h-16 bg-white rounded-lg mb-3 flex items-center justify-center text-3xl border border-[#E2DDD6]">
+                             {category.id === 'Collar' ? '👔' : category.id === 'Sleeves' ? '👕' : category.id === 'Pocket' ? '👝' : category.id === 'Placket' ? '🧵' : '🎽'}
                           </div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-             </div>
-             <Input 
-                value={customerData.phone} 
-                onChange={e => setCustomerData({...customerData, phone: e.target.value})}
-                placeholder="Phone Number"
-                className="bg-[#F1F5F9] border-none rounded-[12px] h-12"
-             />
-          </div>
-
-          <div className="space-y-4">
-             <h3 className="section-title">Order Details</h3>
-             <Input 
-                value={orderData.dressType} 
-                onChange={e => setOrderData({...orderData, dressType: e.target.value})}
-                placeholder="Dress Type (e.g. Suit)"
-                className="bg-[#F1F5F9] border-none rounded-[12px] h-12"
-             />
-             <Input 
-                type="date"
-                value={orderData.deliveryDate} 
-                onChange={e => setOrderData({...orderData, deliveryDate: e.target.value})}
-                className="bg-[#F1F5F9] border-none rounded-[12px] h-12"
-             />
-             <div className="flex gap-3">
-               <Input 
-                  type="number"
-                  value={orderData.price} 
-                  onChange={e => setOrderData({...orderData, price: e.target.value})}
-                  placeholder="Total Price"
-                  className="flex-1 bg-[#F1F5F9] border-none rounded-[12px] h-12"
-               />
-               <Input 
-                  type="number"
-                  value={orderData.advancePayment} 
-                  onChange={e => setOrderData({...orderData, advancePayment: e.target.value})}
-                  placeholder="Advance Pay"
-                  className="flex-1 bg-[#F1F5F9] border-none rounded-[12px] h-12"
-               />
-             </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="section-title">Measurements</h3>
-            {getMeasurementCategoriesForDress(orderData.dressType).map((category, index) => (
-              <div key={category.id} className="space-y-3">
-                 <div className="font-bold text-[12px] text-[#64748B] uppercase tracking-widest">{category.titleEn}</div>
-                 <div className="grid grid-cols-2 gap-3">
-                   {category.items.map((item) => (
-                     <div key={item.id}>
-                        <label className="text-[10px] uppercase font-bold text-[#64748B]">{item.en}</label>
-                        <Input 
-                          type="number"
-                          step="0.25"
-                          value={measurements[item.id] || ''} 
-                          onChange={e => setMeasurements({...measurements, [item.id]: e.target.value === '' ? '' : Number(e.target.value)})}
-                          placeholder="0.00"
-                          className="bg-[#F8FAFC] border-[#E2E8F0] rounded-[12px] h-[40px] text-[14px]"
-                        />
-                     </div>
-                   ))}
+                          <div className="text-[12px] font-bold text-center text-[#111111] leading-tight">
+                            {opt.label}
+                          </div>
+                       </div>
+                     );
+                   })}
                  </div>
-              </div>
+               </div>
             ))}
           </div>
-          
-          <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full h-14 bg-[#22C55E] hover:bg-[#0D3D33] text-white rounded-[16px] font-bold text-[16px] shadow-[0_4px_16px_rgba(34, 197, 94,0.3)]">
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Order'}
-          </Button>
+        </div>
 
+        <div className="text-center font-bold text-[#555555] uppercase tracking-widest text-[11px] mb-2 flex items-center gap-2">
+           <div className="h-px bg-[#E2DDD6] flex-1"></div>
+           Order Details Form
+           <div className="h-px bg-[#E2DDD6] flex-1"></div>
+        </div>
+
+        <div className="card shadow-sm !m-0 space-y-6">
+            <TemplateSelector 
+              templateHook={templateHook} 
+              setOrderData={setOrderData} 
+              setMeasurements={setMeasurements} 
+              setGender={setGender}
+            />
+            
+            <div className="space-y-4">
+               <h3 className="text-[15px] font-bold text-[#111111] border-b border-[#E2DDD6] pb-2">Customer</h3>
+               <div className="space-y-3 relative" ref={dropdownRef}>
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] pointer-events-none" />
+                      <input 
+                        value={searchQuery} 
+                        onChange={e => {
+                          setSearchQuery(e.target.value);
+                          setShowDropdown(true);
+                          if (e.target.value === '') {
+                            setSelectedCustomerId('');
+                            setCustomerData({ name: '', phone: '', address: '', notes: '' });
+                            setMeasurements({});
+                          } else {
+                            setCustomerData({...customerData, name: e.target.value});
+                          }
+                        }}
+                        onFocus={() => setShowDropdown(true)}
+                        placeholder="Search Customer or Name..."
+                        className="w-full h-14 pl-12 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none"
+                      />
+                    </div>
+                    <AnimatePresence>
+                      {showDropdown && searchQuery && filteredCustomers.length > 0 && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          className="absolute z-50 w-full mt-1 bg-white shadow-lg rounded-xl border border-[#E2DDD6] overflow-hidden max-h-60 overflow-y-auto"
+                        >
+                          {filteredCustomers.map(customer => (
+                            <div 
+                              key={customer.id}
+                              onClick={() => handleSelectCustomer(customer)}
+                              className="p-3 hover:bg-[#F7F5F0] cursor-pointer border-b border-[#E2DDD6] flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-full bg-[#0D3D33]/10 flex items-center justify-center text-[#0D3D33] font-bold text-lg">
+                                  {customer.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                  <div className="font-bold text-[#111111] text-sm">{customer.name}</div>
+                                  <div className="text-xs text-[#555555] flex items-center mt-0.5"><Phone className="h-3.5 w-3.5 mr-1" /> {customer.phone}</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+               </div>
+               <div className="relative">
+                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] pointer-events-none" />
+                 <input 
+                    value={customerData.phone} 
+                    onChange={e => setCustomerData({...customerData, phone: e.target.value})}
+                    placeholder="Phone Number"
+                    className="w-full h-14 pl-12 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none"
+                 />
+               </div>
+            </div>
+
+            <div className="space-y-4">
+               <h3 className="text-[15px] font-bold text-[#111111] border-b border-[#E2DDD6] pb-2">Order Details</h3>
+               <div className="relative">
+                 <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] pointer-events-none" />
+                 <input 
+                    value={orderData.dressType} 
+                    onChange={e => setOrderData({...orderData, dressType: e.target.value})}
+                    placeholder="Dress Type (e.g. Suit)"
+                    className="w-full h-14 pl-12 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none"
+                 />
+               </div>
+               <div className="relative">
+                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] pointer-events-none" />
+                 <input 
+                    type="date"
+                    value={orderData.deliveryDate} 
+                    onChange={e => setOrderData({...orderData, deliveryDate: e.target.value})}
+                    className="w-full h-14 pl-12 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none uppercase"
+                 />
+               </div>
+               <div className="flex gap-3">
+                 <div className="relative flex-1">
+                   <div className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] font-bold select-none text-sm flex items-center justify-center">$</div>
+                   <input 
+                      type="number"
+                      value={orderData.price} 
+                      onChange={e => setOrderData({...orderData, price: e.target.value})}
+                      placeholder="Total Price"
+                      className="w-full h-14 pl-10 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none"
+                   />
+                 </div>
+                 <div className="relative flex-1">
+                   <div className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#888888] font-bold select-none text-sm flex items-center justify-center">$</div>
+                   <input 
+                      type="number"
+                      value={orderData.advancePayment} 
+                      onChange={e => setOrderData({...orderData, advancePayment: e.target.value})}
+                      placeholder="Advance Pay"
+                      className="w-full h-14 pl-10 pr-4 rounded-xl border border-[#E2DDD6] bg-[#F7F5F0] focus:bg-white focus:border-[#0D3D33] text-[#111111] font-bold placeholder:font-normal placeholder:text-[#555555] outline-none"
+                   />
+                 </div>
+               </div>
+            </div>
+
+            <div className="space-y-4 pt-2">
+              <h3 className="text-[15px] font-bold text-[#111111] border-b border-[#E2DDD6] pb-2">Measurements</h3>
+              {getMeasurementCategoriesForDress(orderData.dressType).map((category) => (
+                <div key={category.id} className="space-y-3 pt-2">
+                   <div className="font-bold text-[12px] text-[#0D3D33] uppercase tracking-widest bg-[#0D3D33]/5 inline-block px-3 py-1 rounded-md">{category.titleEn}</div>
+                   <div className="grid grid-cols-2 gap-3">
+                     {category.items.map((item) => (
+                       <div key={item.id} className="bg-[#F7F5F0] rounded-xl border border-[#E2DDD6] p-3 focus-within:border-[#0D3D33] focus-within:bg-white transition-colors">
+                          <label className="text-[10px] uppercase font-bold text-[#555555] block mb-1.5 leading-none">{item.en}</label>
+                          <input 
+                            type="number"
+                            step="0.25"
+                            value={measurements[item.id] || ''} 
+                            onChange={e => setMeasurements({...measurements, [item.id]: e.target.value === '' ? '' : Number(e.target.value)})}
+                            placeholder="0.00"
+                            className="w-full bg-transparent border-none p-0 text-[16px] font-bold text-[#111111] placeholder-[#888888] outline-none"
+                          />
+                       </div>
+                     ))}
+                   </div>
+                </div>
+              ))}
+            </div>
+            
+        </div>
       </div>
-    </motion.div>
+
+      {/* Action Buttons (Fixed Bottom Bar) */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-[#E2DDD6] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50 flex items-center gap-3">
+        <label className="btn-outline flex-1 !p-0 !min-h-0 flex items-center justify-center gap-2 cursor-pointer h-14 text-sm whitespace-nowrap">
+           <Upload className="w-4 h-4"/> Upload Design
+           <input type="file" accept="image/*" className="hidden" onChange={e => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setReferencePhoto(file);
+                toast.success('Design uploaded.');
+              }
+           }} />
+        </label>
+        <button onClick={handleSubmit} type="button" disabled={isSubmitting} className="btn-primary flex-[1.5] flex items-center justify-center h-14 text-sm">
+          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Order'}
+        </button>
+      </div>
+    </div>
   );
 }
