@@ -6,7 +6,7 @@ export default function Landing() {
   const { user, wasLoggedIn } = useAuth();
 
   if (user || wasLoggedIn) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   useEffect(() => {

@@ -48,7 +48,7 @@ export default function Invoice() {
     
     const unsubOrder = onSnapshot(doc(db, 'shops', user.uid, 'orders', id), (orderSnap) => {
       if (!orderSnap.exists() || orderSnap.data().shopId !== user.uid) {
-        navigate('/dashboard/orders');
+        navigate('/app/orders');
         return;
       }
       setOrder({ id: orderSnap.id, ...orderSnap.data() });
@@ -363,7 +363,7 @@ export default function Invoice() {
   return (
     <div className="max-w-3xl mx-auto space-y-6 px-4 sm:px-0 pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
-        <Button variant="ghost" onClick={() => navigate('/dashboard/orders')} className="h-10 text-slate-500 hover:text-slate-900 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none rounded-xl">
+        <Button variant="ghost" onClick={() => navigate('/app/orders')} className="h-10 text-slate-500 hover:text-slate-900 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none rounded-xl">
           {isRTL ? <ArrowRight className="h-4 w-4 ml-2" /> : <ArrowLeft className="h-4 w-4 mr-2" />} Back to Orders
         </Button>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">

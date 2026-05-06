@@ -14,7 +14,7 @@ export default function TailorManagementSoftware() {
             Transform your tailoring business with Loop Tailor. Manage orders, measurements, and customers with our all-in-one digital platform.
           </p>
           <div className="mt-10">
-            <Link to="/signup" className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-full text-white bg-brand-primary hover:bg-brand-primary/90 transition-colors shadow-lg shadow-brand-primary/20">
+            <Link to="/auth/signup" className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-full text-white bg-brand-primary hover:bg-brand-primary/90 transition-colors shadow-lg shadow-brand-primary/20">
               Try Loop Tailor
             </Link>
           </div>
@@ -59,7 +59,7 @@ export default function TailorManagementSoftware() {
 
         <div className="text-center">
           <h2 className="text-3xl font-display font-bold mb-6 text-slate-900">Ready to digitize your tailoring shop?</h2>
-          <Link to="/signup" className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-full text-white bg-brand-primary hover:bg-brand-primary/90 transition-colors shadow-lg shadow-brand-primary/20">
+          <Link to="/auth/signup" className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-full text-white bg-brand-primary hover:bg-brand-primary/90 transition-colors shadow-lg shadow-brand-primary/20">
             Try Loop Tailor
           </Link>
         </div>

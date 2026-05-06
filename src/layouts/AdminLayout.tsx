@@ -53,7 +53,7 @@ export const AdminLayout: React.FC = () => {
 
         <div className="p-4 border-t border-gray-200/50 space-y-2">
           <Link
-            to="/dashboard"
+            to="/app"
             className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-bold text-slate-500 hover:text-brand-primary hover:shadow-neu-sm transition-all border-none"
           >
             <LayoutDashboard className="w-5 h-5" />

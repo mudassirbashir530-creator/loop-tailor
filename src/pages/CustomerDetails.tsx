@@ -67,7 +67,7 @@ export default function CustomerDetails() {
           emergencyPhone: custSnap.data().emergencyPhone || ''
         });
       } else {
-        navigate('/dashboard/customers');
+        navigate('/app/clients');
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, `customers/${id}`));
 
@@ -126,7 +126,7 @@ export default function CustomerDetails() {
     try {
       await deleteDoc(doc(db, 'shops', user!.uid, 'customers', id!));
       toast.success(t('customerDetails.customerDeleted') || 'Customer deleted successfully');
-      navigate('/dashboard/customers');
+      navigate('/app/clients');
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `customers/${id}`);
       setIsDeletingCustomer(false);
@@ -298,7 +298,7 @@ export default function CustomerDetails() {
     <div className="min-h-screen bg-[#F5F7FA] pb-[80px]">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-12 pb-4 bg-[#F5F7FA]">
-        <button onClick={() => navigate('/dashboard/customers')} className="p-2">
+        <button onClick={() => navigate('/app/clients')} className="p-2">
           <ArrowLeft className="h-6 w-6 text-[#0F172A]" />
         </button>
         <h1 className="text-[18px] font-bold text-[#0F172A]">Customer Detail</h1>
@@ -423,7 +423,7 @@ export default function CustomerDetails() {
               <div className="text-center py-8 text-[#64748B] text-[14px]">No orders found.</div>
             ) : (
               filteredOrders.map(order => (
-                <div key={order.id} className="bg-white rounded-[16px] p-3.5 flex items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]" onClick={() => navigate(`/dashboard/orders/${order.id}`)}>
+                <div key={order.id} className="bg-white rounded-[16px] p-3.5 flex items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]" onClick={() => navigate(`/app/orders/${order.id}`)}>
                   <div className="w-[44px] h-[44px] rounded-[12px] bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
                     <Scissors className="w-5 h-5"/>
                   </div>

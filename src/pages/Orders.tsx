@@ -240,7 +240,7 @@ export default function Orders() {
           <p className="text-sm text-on-surface-variant mt-1">Manage and track your tailoring orders</p>
         </div>
         <Button 
-          onClick={() => navigate('/dashboard/orders/new')}
+          onClick={() => navigate('/app/new-order')}
           className="hidden sm:flex rounded-full shadow-soft hover:shadow-soft-hover transition-all bg-primary text-white h-11 px-6 font-medium w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -304,7 +304,7 @@ export default function Orders() {
             <h3 className="text-xl font-medium text-on-surface">No orders found</h3>
             <p className="text-on-surface-variant text-sm mt-2 mb-8">Ready to create a new order?</p>
             <Button 
-              onClick={() => navigate('/dashboard/orders/new')}
+              onClick={() => navigate('/app/new-order')}
               className="rounded-full shadow-soft hover:shadow-soft-hover transition-all bg-primary text-white h-12 px-8 font-medium"
             >
               <Plus className="w-5 h-5 mr-2" />
@@ -323,7 +323,7 @@ export default function Orders() {
               >
                 <div 
                   className="bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:shadow-md transition-all cursor-pointer shadow-sm p-4 sm:p-5 flex items-center gap-4 group" 
-                  onClick={() => navigate(`/dashboard/orders/${order.id}`)}
+                  onClick={() => navigate(`/app/orders/${order.id}`)}
                 >
                   <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex-shrink-0 bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                     <Scissors className="w-5 h-5 sm:w-6 sm:h-6 relative rotate-45 transform transition-transform group-hover:rotate-0" />

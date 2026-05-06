@@ -25,7 +25,7 @@ export default function Login() {
   const plan = normalizePlanStatus(searchParams.get('plan'));
 
   if (user) {
-    const from = location.state?.from?.pathname || '/dashboard';
+    const from = location.state?.from?.pathname || '/app';
     return <Navigate to={from} replace />;
   }
 
@@ -37,7 +37,7 @@ export default function Login() {
 
     try {
       await signIn(email, password);
-      const from = location.state?.from?.pathname || '/dashboard';
+      const from = location.state?.from?.pathname || '/app';
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please try again.');

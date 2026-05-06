@@ -131,7 +131,7 @@ export default function Dashboard() {
           id: `cust_${c.id}`,
           title: c.name,
           subtitle: c.phone || 'No phone',
-          url: `/dashboard/customers/${c.id}`
+          url: `/app/clients/${c.id}`
         });
       }
     });
@@ -144,7 +144,7 @@ export default function Dashboard() {
           id: `ord_${o.id}`,
           title: `Order #${o.tokenId}`,
           subtitle: o.customerName || 'Unknown Customer',
-          url: `/dashboard/orders/${o.id}`
+          url: `/app/orders/${o.id}`
         });
       }
     });
@@ -157,7 +157,7 @@ export default function Dashboard() {
           id: `meas_${c.id}`,
           title: `${c.name}'s Measurements`,
           subtitle: c.phone || 'No phone',
-          url: `/dashboard/customers/${c.id}#measurements`
+          url: `/app/clients/${c.id}#measurements`
         });
       }
     });
@@ -432,7 +432,7 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-4 mt-4">
             <Button 
-              onClick={() => navigate('/dashboard/orders/new')}
+              onClick={() => navigate('/app/new-order')}
               className="rounded-xl h-14 px-8 font-bold bg-brand-primary shadow-lg text-white"
             >
               <Plus className="h-5 w-5 mr-no-rtl ml-auto-rtl mr-2" />
@@ -465,7 +465,7 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-3">
           <Button 
-            onClick={() => navigate('/dashboard/orders/new')}
+            onClick={() => navigate('/app/new-order')}
             className="rounded-full shadow-soft hover:shadow-soft-hover transition-all bg-primary text-white h-11 px-6 font-medium"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -575,7 +575,7 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-medium text-on-surface">Recent Orders</h3>
-              <Link to="/dashboard/orders" className="text-sm font-medium text-primary hover:text-primary-container transition-colors flex items-center gap-1">
+              <Link to="/app/orders" className="text-sm font-medium text-primary hover:text-primary-container transition-colors flex items-center gap-1">
                 View all <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -593,7 +593,7 @@ export default function Dashboard() {
                     transition={{ delay: 0.2 + (i * 0.05) }}
                     key={order.id} 
                     className="flex items-center justify-between p-4 rounded-2xl hover:bg-surface-container transition-colors cursor-pointer group border border-transparent hover:border-outline-variant" 
-                    onClick={() => navigate(`/dashboard/orders/${order.id}`)}
+                    onClick={() => navigate(`/app/orders/${order.id}`)}
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -628,8 +628,8 @@ export default function Dashboard() {
             className="grid grid-cols-2 lg:grid-cols-2 gap-4"
           >
              {[
-              { label: 'Customers', icon: Users, path: '/dashboard/customers', bg: 'bg-primary/5', hover: 'hover:bg-primary/10', color: 'text-primary' },
-              { label: 'Payments', icon: Calendar, path: '/dashboard/payment-reminders', bg: 'bg-secondary/5', hover: 'hover:bg-secondary/10', color: 'text-secondary' },
+              { label: 'Customers', icon: Users, path: '/app/clients', bg: 'bg-primary/5', hover: 'hover:bg-primary/10', color: 'text-primary' },
+              { label: 'Payments', icon: Calendar, path: '/app/payment-reminders', bg: 'bg-secondary/5', hover: 'hover:bg-secondary/10', color: 'text-secondary' },
             ].map((cat, i) => (
               <div 
                 key={i} 
@@ -658,7 +658,7 @@ export default function Dashboard() {
                 {topCustomersData.map((customer, i) => (
                   <div 
                     key={i} 
-                    onClick={() => { if (customer.id) navigate(`/dashboard/customers/${customer.id}`); }} 
+                    onClick={() => { if (customer.id) navigate(`/app/clients/${customer.id}`); }} 
                     className="flex flex-col items-center p-4 rounded-2xl border border-outline-variant hover:border-primary hover:shadow-sm transition-all cursor-pointer bg-surface-container-lowest"
                   >
                     <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display font-medium text-xl mb-3">

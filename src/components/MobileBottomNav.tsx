@@ -10,16 +10,16 @@ export default function MobileBottomNav() {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   const mainNavItems = [
-    { name: 'Home', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Clients', path: '/dashboard/customers', icon: Users },
-    { name: 'New', path: '/dashboard/orders/new', icon: Plus, isAction: true },
-    { name: 'Orders', path: '/dashboard/orders', icon: Scissors },
+    { name: 'Home', path: '/app', icon: LayoutDashboard },
+    { name: 'Clients', path: '/app/clients', icon: Users },
+    { name: 'New', path: '/app/new-order', icon: Plus, isAction: true },
+    { name: 'Orders', path: '/app/orders', icon: Scissors },
     { name: 'More', isMore: true, icon: Menu },
   ];
 
   const moreMenuSecondaryItems = [
-    { name: 'Staff', path: '/dashboard/staff', icon: UserCheck },
-    { name: 'Settings', path: '/dashboard/settings', icon: Settings },
+    { name: 'Staff', path: '/app/staff', icon: UserCheck },
+    { name: 'Settings', path: '/app/settings', icon: Settings },
   ];
 
   return (
@@ -59,7 +59,7 @@ export default function MobileBottomNav() {
             );
           }
 
-          const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path!));
+          const isActive = location.pathname === item.path || (item.path !== '/app' && location.pathname.startsWith(item.path!));
 
           return (
             <Link

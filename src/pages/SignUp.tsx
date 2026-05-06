@@ -60,7 +60,7 @@ export default function SignUp() {
   }, [planParam]);
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   const handleNext = () => {
@@ -127,7 +127,7 @@ export default function SignUp() {
         selectedPlan || undefined
       );
       await setLanguage(selectedLanguage);
-      navigate("/dashboard");
+      navigate("/app");
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please try again.");
     } finally {
@@ -372,7 +372,7 @@ export default function SignUp() {
 
         <div className="auth-footer">
           {t("auth.alreadyHaveAccount")}{" "}
-          <Link to="/login">{t("auth.logIn")}</Link>
+          <Link to="/auth/login">{t("auth.logIn")}</Link>
         </div>
 
         <div className="mt-6 text-center text-xs text-[#888888]">

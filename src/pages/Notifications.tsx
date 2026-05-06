@@ -45,7 +45,7 @@ export default function Notifications() {
   const handleNotificationClick = (notification: any) => {
     if (!notification.read) markAsRead(notification.id);
     if (notification.orderId) {
-      navigate(`/dashboard/orders/${notification.orderId}`);
+      navigate(`/app/orders/${notification.orderId}`);
     }
   };
 

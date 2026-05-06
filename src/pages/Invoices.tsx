@@ -145,7 +145,7 @@ export default function Invoices() {
                       </div>
                     </div>
                     <div className={cn("text-right", isRTL ? "text-left" : "text-right")}>
-                      <Link to={`/dashboard/orders/${invoice.id}/invoice`}>
+                      <Link to={`/app/orders/${invoice.id}/invoice`}>
                         <Button variant="outline" size="sm" className="rounded-xl font-bold border-slate-200 hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-all">
                           {t('invoices.viewInvoice')}
                         </Button>

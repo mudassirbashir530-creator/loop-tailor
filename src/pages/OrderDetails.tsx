@@ -51,7 +51,7 @@ export default function OrderDetails() {
         setOrder({ id: docSnap.id, ...data });
         setEditData({ ...data });
       } else {
-        navigate('/dashboard/orders');
+        navigate('/app/orders');
       }
       setLoading(false);
     }, (error) => {
@@ -89,7 +89,7 @@ export default function OrderDetails() {
     try {
       await deleteDoc(doc(db, 'shops', user!.uid, 'orders', id!));
       toast.success(t('orderDetails.orderDeleted') || 'Order deleted successfully');
-      navigate('/dashboard/orders');
+      navigate('/app/orders');
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `orders/${id}`);
       setIsDeleting(false);
@@ -270,7 +270,7 @@ export default function OrderDetails() {
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/orders')} className="bg-surface border border-outline-variant shadow-sm hover:bg-surface-variant rounded-full text-on-surface transition-colors">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/app/orders')} className="bg-surface border border-outline-variant shadow-sm hover:bg-surface-variant rounded-full text-on-surface transition-colors">
             {isRTL ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
           </Button>
           <div>
@@ -497,7 +497,7 @@ export default function OrderDetails() {
               </CardTitle>
               <Button
                 variant="ghost"
-                onClick={() => navigate(`/dashboard/customers/${order.customerId}#measurements`)}
+                onClick={() => navigate(`/app/clients/${order.customerId}#measurements`)}
                 className="bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-primary rounded-full px-5 h-9 text-[13px] font-medium"
               >
                 {t('orderDetails.edit')}
@@ -639,7 +639,7 @@ export default function OrderDetails() {
                 <Button 
                   variant="ghost" 
                   className="w-full rounded-xl h-12 text-[14px] font-semibold bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-primary mt-2"
-                  onClick={() => navigate(`/dashboard/orders/${order.id}/invoice`)}
+                  onClick={() => navigate(`/app/orders/${order.id}/invoice`)}
                 >
                   {t('orderDetails.viewFullInvoice')}
                 </Button>

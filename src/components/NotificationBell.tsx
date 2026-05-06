@@ -29,7 +29,7 @@ export default function NotificationBell() {
       markAsRead(notification.id);
     }
     if (notification.orderId) {
-      navigate(`/dashboard/orders/${notification.orderId}`);
+      navigate(`/app/orders/${notification.orderId}`);
     }
     setIsOpen(false);
   };
@@ -155,7 +155,7 @@ export default function NotificationBell() {
               <button 
                 onClick={() => {
                   setIsOpen(false);
-                  navigate('/dashboard/notifications');
+                  navigate('/app/notifications');
                 }}
                 className="w-full py-3 rounded-xl bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm text-sm font-bold text-brand-primary transition-all"
               >

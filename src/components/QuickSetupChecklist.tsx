@@ -64,9 +64,9 @@ export default function QuickSetupChecklist() {
 
   const steps = [
     { label: "Account created", isDone: true, icon: LayoutDashboard },
-    { label: "Update shop settings", isDone: !!settings.phone, icon: Settings, link: "/dashboard/settings" },
-    { label: "Add your first customer", isDone: hasCustomers, icon: Users, link: "/dashboard/customers" },
-    { label: "Create your first order", isDone: hasOrders, icon: FileText, link: "/dashboard/orders/new" },
+    { label: "Update shop settings", isDone: !!settings.phone, icon: Settings, link: "/app/settings" },
+    { label: "Add your first customer", isDone: hasCustomers, icon: Users, link: "/app/clients" },
+    { label: "Create your first order", isDone: hasOrders, icon: FileText, link: "/app/new-order" },
   ];
 
   const allDone = steps.every(s => s.isDone);

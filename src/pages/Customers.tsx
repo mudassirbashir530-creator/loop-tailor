@@ -296,7 +296,7 @@ export default function Customers() {
                   >
                     <div 
                       className="bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:shadow-md transition-all cursor-pointer shadow-sm p-4 sm:p-5 flex items-center justify-between group"
-                      onClick={() => navigate(`/dashboard/customers/${customer.id}`)}
+                      onClick={() => navigate(`/app/clients/${customer.id}`)}
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface font-display font-medium text-lg sm:text-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors">

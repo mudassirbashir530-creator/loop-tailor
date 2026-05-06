@@ -35,12 +35,12 @@ export default function Layout() {
   }, [user]);
 
   const navItems = [
-    { name: t('layout.dashboard'), path: '/dashboard', icon: LayoutDashboard },
-    { name: t('layout.customers'), path: '/dashboard/customers', icon: Users },
-    { name: t('layout.staff') || 'Staff', path: '/dashboard/staff', icon: UserCheck },
-    { name: t('layout.orders'), path: '/dashboard/orders', icon: FileText },
-    { name: 'Reminders', path: '/dashboard/reminders', icon: BellRing },
-    { name: t('layout.settings'), path: '/dashboard/settings', icon: Settings },
+    { name: t('layout.dashboard'), path: '/app', icon: LayoutDashboard },
+    { name: t('layout.customers'), path: '/app/clients', icon: Users },
+    { name: t('layout.staff') || 'Staff', path: '/app/staff', icon: UserCheck },
+    { name: t('layout.orders'), path: '/app/orders', icon: FileText },
+    { name: 'Reminders', path: '/app/reminders', icon: BellRing },
+    { name: t('layout.settings'), path: '/app/settings', icon: Settings },
   ];
 
   const userInitial = user?.email ? user.email[0].toUpperCase() : '?';
@@ -75,7 +75,7 @@ export default function Layout() {
                   <div className="text-xs text-on-surface-variant truncate mt-0.5">{shop.address || t('layout.noAddress')}</div>
                   <div className="text-xs text-on-surface-variant truncate">{shop.phone || t('layout.noPhone')}</div>
                 </div>
-                <Link to="/dashboard/settings" className="block px-6 py-2.5 text-sm font-medium text-on-surface hover:bg-surface-container" onClick={() => setIsMenuOpen(false)}>{t('layout.settings')}</Link>
+                <Link to="/app/settings" className="block px-6 py-2.5 text-sm font-medium text-on-surface hover:bg-surface-container" onClick={() => setIsMenuOpen(false)}>{t('layout.settings')}</Link>
                 <button onClick={() => { logOut(); setIsMenuOpen(false); }} className={cn("block w-full px-6 py-2.5 text-sm font-medium text-error hover:bg-error/5", isRTL ? "text-right" : "text-left")}>{t('layout.signOut')}</button>
               </div>
             )}
@@ -86,7 +86,7 @@ export default function Layout() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-72 bg-surface flex-col z-20 border-r border-outline-variant lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
         <div className="h-20 flex items-center justify-between px-6 mb-4 border-b border-outline-variant">
-          <Link to="/dashboard" className="flex items-center cursor-pointer gap-3">
+          <Link to="/app" className="flex items-center cursor-pointer gap-3">
             <div className="bg-primary text-white p-2.5 rounded-xl shadow-sm">
               <Scissors className="h-5 w-5" />
             </div>
@@ -161,7 +161,7 @@ export default function Layout() {
           animate={{ scale: 1 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => navigate('/dashboard/orders/new')}
+          onClick={() => navigate('/app/new-order')}
           className="fixed bottom-[88px] right-4 lg:bottom-8 lg:right-8 h-14 w-14 bg-primary text-white rounded-full shadow-fab hover:shadow-xl flex items-center justify-center z-[50] lg:hidden"
         >
           <Plus className="h-6 w-6" />

@@ -82,12 +82,12 @@ export default function Header() {
               ))}
               
               <div className="flex items-center gap-3 pl-4 ml-2 border-l border-slate-200">
-                <Link to="/login">
+                <Link to="/auth/login">
                   <Button variant="ghost" className="text-sm font-bold h-10 px-4 rounded-xl hover:bg-slate-100">
                     Sign In
                   </Button>
                 </Link>
-                <Link to="/signup">
+                <Link to="/auth/signup">
                   <Button className="h-10 px-5 text-sm font-bold rounded-xl shadow-md shadow-brand-primary/20 hover:-translate-y-0.5 transition-all">
                     Start Free Trial
                   </Button>
@@ -129,10 +129,10 @@ export default function Header() {
                 ))}
                 
                 <div className="pt-4 flex flex-col gap-3 mt-4 border-t border-slate-100">
-                  <Link to="/login" className="w-full" onClick={() => setIsMenuOpen(false)}>
+                  <Link to="/auth/login" className="w-full" onClick={() => setIsMenuOpen(false)}>
                     <Button variant="outline" className="w-full h-12 text-base font-bold rounded-xl">Sign In</Button>
                   </Link>
-                  <Link to="/signup" className="w-full" onClick={() => setIsMenuOpen(false)}>
+                  <Link to="/auth/signup" className="w-full" onClick={() => setIsMenuOpen(false)}>
                     <Button className="w-full h-12 text-base font-bold rounded-xl shadow-md shadow-brand-primary/20">Start Free Trial</Button>
                   </Link>
                 </div>

@@ -137,7 +137,7 @@ export default function Hero() {
               transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className={cn("flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto z-20 relative", isRTL ? "lg:justify-end" : "lg:justify-start")}
             >
-              <Link to="/signup" className="w-full sm:w-auto">
+              <Link to="/auth/signup" className="w-full sm:w-auto">
                 <Button size="lg" className="group relative overflow-hidden w-full sm:w-auto h-14 px-8 text-base font-bold rounded-full bg-emerald-500 hover:bg-emerald-400 text-white shadow-[0_0_40px_rgba(16,185,129,0.4)] transition-all duration-300 border border-emerald-400">
                   <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-150%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(150%)]">
                     <div className="relative h-full w-8 bg-white/20" />
@@ -148,7 +148,7 @@ export default function Hero() {
                   </span>
                 </Button>
               </Link>
-              <Link to="/login" className="w-full sm:w-auto">
+              <Link to="/auth/login" className="w-full sm:w-auto">
                 <Button 
                   size="lg" 
                   variant="outline"

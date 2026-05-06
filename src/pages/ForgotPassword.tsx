@@ -68,7 +68,7 @@ export default function ForgotPassword() {
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600">
           {t('auth.or')} {' '}
-          <Link to="/login" className="font-medium text-brand-primary hover:text-brand-primary/80 transition-colors">
+          <Link to="/auth/login" className="font-medium text-brand-primary hover:text-brand-primary/80 transition-colors">
             {t('auth.returnToSignIn')}
           </Link>
         </p>
@@ -89,7 +89,7 @@ export default function ForgotPassword() {
               <p className="text-sm text-slate-500 mb-6">
                 Your password has been successfully reset. You can now log in with your new password.
               </p>
-              <Link to="/login">
+              <Link to="/auth/login">
                 <Button className="w-full h-12 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white font-medium shadow-sm transition-all">
                   {t('auth.returnToLogin')}
                 </Button>

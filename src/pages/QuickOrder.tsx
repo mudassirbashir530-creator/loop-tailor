@@ -459,7 +459,7 @@ export default function QuickOrder() {
 
         // 5. Navigate to orders list
         toast.success(t('quickOrder.orderCreated') || 'Order created successfully!');
-        navigate(`/dashboard/orders`);
+        navigate(`/app/orders`);
       }, 2); // Pass maxRetries as 2
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'quick_order');
