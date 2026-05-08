@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Scissors, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Scissors, Facebook, Youtube, Instagram, Linkedin } from 'lucide-react';
 
 export default function WebsiteFooter() {
   return (
@@ -18,10 +18,10 @@ export default function WebsiteFooter() {
               The complete digital management system designed specifically for tailors in Pakistan.
             </p>
             <div className="flex items-center gap-4 text-muted-foreground">
-              <a href="#" className="hover:text-primary transition-colors"><Facebook className="h-5 w-5" /></a>
-              <a href="#" className="hover:text-primary transition-colors"><Twitter className="h-5 w-5" /></a>
-              <a href="#" className="hover:text-primary transition-colors"><Instagram className="h-5 w-5" /></a>
-              <a href="#" className="hover:text-primary transition-colors"><Linkedin className="h-5 w-5" /></a>
+              <a href="https://www.facebook.com/profile.php?id=61575736701852" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors transform hover:scale-110"><Facebook className="h-5 w-5" /></a>
+              <a href="https://www.instagram.com/looptailor/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors transform hover:scale-110"><Instagram className="h-5 w-5" /></a>
+              <a href="https://www.linkedin.com/in/loop-tailor-1b50543ba/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors transform hover:scale-110"><Linkedin className="h-5 w-5" /></a>
+              <a href="https://www.youtube.com/@LoopTailor" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors transform hover:scale-110"><Youtube className="h-5 w-5" /></a>
             </div>
           </div>
           
@@ -40,7 +40,7 @@ export default function WebsiteFooter() {
             <ul className="space-y-3">
               <li><Link to="/blog" className="text-sm text-muted-foreground hover:text-primary transition-colors">Blog</Link></li>
               <li><Link to="/careers" className="text-sm text-muted-foreground hover:text-primary transition-colors">Careers</Link></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Partners</a></li>
+              <li><Link to="/partners" className="text-sm text-muted-foreground hover:text-primary transition-colors">Partners</Link></li>
             </ul>
           </div>
           

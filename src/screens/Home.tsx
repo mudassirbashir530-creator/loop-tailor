@@ -1,13 +1,23 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Clock, CheckCircle, Banknote } from 'lucide-react';
+import { TrendingUp, Clock, CheckCircle, Banknote, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { mockDashboardStats, mockOrders } from '../lib/mockData';
+import { useOrders } from '../hooks/useOrders';
 import { formatCurrency, formatDate } from '../lib/utils';
+import { isToday } from 'date-fns';
 
 export default function Home() {
-  const { totalOrders, pendingOrders, completedToday, revenue } = mockDashboardStats;
+  const { orders, loading } = useOrders();
+
+  const totalOrders = orders.length;
+  const pendingOrders = orders.filter(o => o.status !== 'delivered').length;
+  const completedToday = orders.filter(o => o.status === 'delivered' && isToday(new Date(o.updatedAt))).length;
+  const revenue = orders.reduce((sum, order) => sum + (order.advancePayment || 0) + (order.price - order.remainingPayment), 0);
+
+  if (loading) {
+     return <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>;
+  }
 
   return (
     <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
@@ -56,13 +66,15 @@ export default function Home() {
         </div>
         
         <div className="space-y-4">
-          {mockOrders.slice(0, 5).map(order => (
+          {orders.length === 0 ? (
+             <div className="text-center py-8 text-muted-foreground bg-card rounded-xl border">No orders yet.</div>
+          ) : orders.slice(0, 5).map(order => (
             <Card key={order.id} className="cursor-pointer hover:shadow-md transition-shadow">
               <CardContent className="p-4 flex items-center justify-between">
                 
                 <div className="flex-1">
                   <p className="font-bold text-foreground mb-0.5">{order.customerName}</p>
-                  <p className="text-xs text-muted-foreground">{order.clothingType} • {order.id}</p>
+                  <p className="text-xs text-muted-foreground">{order.clothingType} • {order.id.slice(-6)}</p>
                   <p className="text-xs text-muted-foreground mt-1">Delivery: {formatDate(order.deliveryDate)}</p>
                 </div>
                 

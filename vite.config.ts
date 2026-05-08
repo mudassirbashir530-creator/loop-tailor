@@ -11,10 +11,13 @@ export default defineConfig(({mode}) => {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },
     resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-        'formdata-polyfill': path.resolve(__dirname, 'src/lib/empty.ts'),
-      },
+      alias: [
+        { find: '@', replacement: path.resolve(__dirname, '.') },
+        { find: /^formdata-polyfill.*/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
+        { find: /^whatwg-fetch.*/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
+        { find: /^cross-fetch.*/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
+        { find: /^isomorphic-fetch.*/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') }
+      ],
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.

@@ -2,6 +2,10 @@ import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ShopProvider } from './contexts/ShopContext';
+import { LanguageProvider } from './contexts/LanguageContext';
+
 // Layouts
 import WebsiteLayout from './layouts/WebsiteLayout';
 import AppLayout from './layouts/AppLayout';
@@ -11,6 +15,7 @@ import LandingPage from './pages/website/LandingPage';
 import PricingPage from './pages/website/PricingPage';
 import AboutPage from './pages/website/AboutPage';
 import ContactPage from './pages/website/ContactPage';
+import GenericPage from './pages/website/GenericPage';
 
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
@@ -22,6 +27,7 @@ import Clients from './screens/Clients';
 import Orders from './screens/Orders';
 import NewOrder from './screens/NewOrder';
 import Settings from './screens/Settings';
+import FloatingWhatsApp from './components/FloatingWhatsApp';
 
 function LoadingFallback() {
   return (
@@ -31,37 +37,59 @@ function LoadingFallback() {
   );
 }
 
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <LoadingFallback />;
+  return user ? <>{children}</> : <Navigate to="/auth/login" replace />;
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          {/* Website Routes */}
-          <Route element={<WebsiteLayout />}>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-          </Route>
+    <AuthProvider>
+      <ShopProvider>
+        <LanguageProvider>
+          <BrowserRouter>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                {/* Website Routes */}
+                <Route element={<WebsiteLayout />}>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/pricing" element={<PricingPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/blog" element={<GenericPage title="Blog" />} />
+                  <Route path="/careers" element={<GenericPage title="Careers" />} />
+                  <Route path="/partners" element={<GenericPage title="Partners" />} />
+                  <Route path="/privacy" element={<GenericPage title="Privacy Policy" />} />
+                  <Route path="/terms" element={<GenericPage title="Terms of Service" />} />
+                </Route>
 
-          {/* Auth Routes */}
-          <Route path="/auth/login" element={<LoginPage />} />
-          <Route path="/auth/signup" element={<SignupPage />} />
+                {/* Auth Routes */}
+                <Route path="/auth/login" element={<LoginPage />} />
+                <Route path="/auth/signup" element={<SignupPage />} />
 
-          {/* App Routes */}
-          <Route path="/app" element={<AppLayout />}>
-            <Route index element={<Home />} />
-            <Route path="clients" element={<Clients />} />
-            <Route path="orders" element={<Orders />} />
-            <Route path="new-order" element={<NewOrder />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
+                {/* App Routes */}
+                <Route path="/app" element={
+                  <PrivateRoute>
+                    <AppLayout />
+                  </PrivateRoute>
+                }>
+                  <Route index element={<Home />} />
+                  <Route path="clients" element={<Clients />} />
+                  <Route path="orders" element={<Orders />} />
+                  <Route path="new-order" element={<NewOrder />} />
+                  <Route path="settings" element={<Settings />} />
+                </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
-      <Toaster position="top-center" richColors />
-    </BrowserRouter>
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+            <Toaster position="top-center" richColors />
+            <FloatingWhatsApp />
+          </BrowserRouter>
+        </LanguageProvider>
+      </ShopProvider>
+    </AuthProvider>
   );
 }

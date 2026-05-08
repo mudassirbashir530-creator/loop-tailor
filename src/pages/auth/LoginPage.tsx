@@ -10,18 +10,24 @@ import { toast } from 'sonner';
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  // Using useAuth if needed, otherwise simulated for prompt
+  const { signIn } = useAuth();
   
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate login based on prompt requirements
-    setTimeout(() => {
-      setLoading(false);
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      await signIn(email, password);
       toast.success('Logged in successfully');
       navigate('/app');
-    }, 1000);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to login');
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,7 +52,7 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email Address</label>
-                <Input type="email" required placeholder="name@example.com" />
+                <Input name="email" type="email" required placeholder="name@example.com" />
               </div>
               
               <div className="space-y-2">
@@ -54,7 +60,7 @@ export default function LoginPage() {
                   <label className="text-sm font-medium">Password</label>
                   <a href="#" className="text-sm text-primary hover:underline font-medium">Forgot password?</a>
                 </div>
-                <Input type="password" required placeholder="••••••••" />
+                <Input name="password" type="password" required placeholder="••••••••" />
               </div>
               
               <div className="flex items-center gap-2">

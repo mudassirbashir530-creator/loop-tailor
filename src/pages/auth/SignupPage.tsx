@@ -5,19 +5,26 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { toast } from 'sonner';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [error, setError] = useState('');
   
-  const handleSignup = (e: React.FormEvent<HTMLFormElement>) => {
+  const { signUp } = useAuth();
+  
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     
     const formData = new FormData(e.currentTarget);
     const password = formData.get('password') as string;
     const confirm = formData.get('confirm') as string;
+    const email = formData.get('email') as string;
+    const name = formData.get('name') as string;
+    const phone = formData.get('phone') as string;
+    const shopName = formData.get('shopName') as string;
     
     if (password !== confirm) {
       setError('Passwords do not match');
@@ -26,12 +33,14 @@ export default function SignupPage() {
     
     setLoading(true);
     
-    // Simulate signup
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await signUp(email, password, name, phone, 'en', '', shopName);
       toast.success('Account created successfully!');
       navigate('/app');
-    }, 1500);
+    } catch (error: any) {
+      setError(error.message || 'Failed to create account');
+      setLoading(false);
+    }
   };
 
   return (

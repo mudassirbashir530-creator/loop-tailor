@@ -1,18 +1,28 @@
 import React, { useState } from 'react';
-import { UserPlus, Search, Phone, MapPin, ShoppingBag } from 'lucide-react';
+import { UserPlus, Search, Phone, MapPin, ShoppingBag, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
 import { Button } from '../components/ui/button';
-import { mockCustomers } from '../lib/mockData';
+import { useCustomers } from '../hooks/useCustomers';
 import { formatDate } from '../lib/utils';
 
 export default function Clients() {
   const [search, setSearch] = useState('');
+  const { customers, loading, addCustomer } = useCustomers();
 
-  const filteredCustomers = mockCustomers.filter(c => 
+  const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
     c.phone.includes(search)
   );
+
+  const handleAddMockCustomer = () => {
+    const random = Math.floor(Math.random() * 1000);
+    addCustomer({
+      name: `New Customer ${random}`,
+      phone: `+92 ${Math.floor(3000000000 + Math.random() * 999999999)}`,
+      address: 'Karachi, Pakistan',
+    });
+  }
 
   return (
     <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
@@ -21,13 +31,13 @@ export default function Clients() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Clients</h1>
-          <p className="text-muted-foreground">{mockCustomers.length} total customers</p>
+          <p className="text-muted-foreground">{customers.length} total customers</p>
         </div>
-        <Button size="sm" className="hidden sm:flex gap-2">
+        <Button size="sm" className="hidden sm:flex gap-2" onClick={handleAddMockCustomer}>
           <UserPlus className="h-4 w-4" />
-          Add Client
+          Add Dummy Client
         </Button>
-        <Button size="icon" className="sm:hidden">
+        <Button size="icon" className="sm:hidden" onClick={handleAddMockCustomer}>
           <UserPlus className="h-4 w-4" />
         </Button>
       </div>
@@ -41,7 +51,9 @@ export default function Clients() {
 
       {/* Customer List */}
       <div className="space-y-4">
-        {filteredCustomers.length === 0 ? (
+        {loading ? (
+           <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>
+        ) : filteredCustomers.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground bg-card rounded-2xl border">
             <p>No customers found.</p>
           </div>

@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
-import { Calendar, DollarSign, User } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Calendar, DollarSign, User, Loader2, Download, MessageCircle, Ruler } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
 import { Badge } from '../components/ui/badge';
-import { mockOrders } from '../lib/mockData';
+import { Button } from '../components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
+import { useOrders } from '../hooks/useOrders';
 import { formatCurrency, formatDate, cn } from '../lib/utils';
-import { OrderStatus } from '../lib/types';
+import { OrderStatus, Order } from '../lib/types';
+import { InvoiceTemplate } from '../components/InvoiceTemplate';
+import * as htmlToImage from 'html-to-image';
+import { toast } from 'sonner';
 
 export default function Orders() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const { orders, loading, updateOrderStatus } = useOrders();
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const tabs: { label: string, value: OrderStatus | 'all' }[] = [
     { label: 'All', value: 'all' },
@@ -19,7 +28,7 @@ export default function Orders() {
     { label: 'Delivered', value: 'delivered' },
   ];
 
-  const filteredOrders = mockOrders.filter(o => {
+  const filteredOrders = orders.filter(o => {
     const matchesSearch = o.customerName.toLowerCase().includes(search.toLowerCase()) || 
                           o.id.toLowerCase().includes(search.toLowerCase());
     const matchesTab = activeTab === 'all' || o.status === activeTab;
@@ -27,8 +36,33 @@ export default function Orders() {
   });
 
   const getTabCount = (tab: OrderStatus | 'all') => {
-    if (tab === 'all') return mockOrders.length;
-    return mockOrders.filter(o => o.status === tab).length;
+    if (tab === 'all') return orders.length;
+    return orders.filter(o => o.status === tab).length;
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!invoiceRef.current || !selectedOrder) return;
+    try {
+      setIsDownloading(true);
+      const dataUrl = await htmlToImage.toPng(invoiceRef.current, { quality: 1.0 });
+      const link = document.createElement('a');
+      link.download = `Invoice-${selectedOrder.id.slice(-6)}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("Invoice downloaded!");
+    } catch (err) {
+      toast.error("Failed to generate invoice");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!selectedOrder) return;
+    const phone = selectedOrder.customerPhone.replace(/[^0-9]/g, '');
+    const message = `Hello ${selectedOrder.customerName}, your order for ${selectedOrder.clothingType} is currently ${selectedOrder.status}. Total price: ${formatCurrency(selectedOrder.price)}, Remaining balance: ${formatCurrency(selectedOrder.remainingPayment)}. Delivery expected by ${formatDate(selectedOrder.deliveryDate)}. Thank you!`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -73,18 +107,20 @@ export default function Orders() {
 
       {/* Order List */}
       <div className="space-y-4 pb-12">
-        {filteredOrders.length === 0 ? (
+        {loading ? (
+           <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>
+        ) : filteredOrders.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground bg-card rounded-2xl border">
             <p>No orders found.</p>
           </div>
         ) : (
           filteredOrders.map(order => (
-            <Card key={order.id} className="cursor-pointer hover:shadow-md transition-shadow">
+            <Card key={order.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedOrder(order)}>
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-bold text-foreground text-base leading-tight">{order.customerName}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{order.clothingType} • {order.id}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{order.clothingType} • #{order.id.slice(-6).toUpperCase()}</p>
                   </div>
                   <Badge variant={order.status} className="capitalize">{order.status}</Badge>
                 </div>
@@ -117,6 +153,107 @@ export default function Orders() {
             </Card>
           ))
         )}
+      </div>
+
+      {/* Order Details Modal */}
+      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+          {selectedOrder && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex justify-between items-center text-xl">
+                  Order #{selectedOrder.id.slice(-6).toUpperCase()}
+                  <Badge variant={selectedOrder.status} className="capitalize ml-4 text-sm px-3 py-1">{selectedOrder.status}</Badge>
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-6 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Customer</p>
+                    <p className="font-bold">{selectedOrder.customerName}</p>
+                    <p className="text-sm">{selectedOrder.customerPhone}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Delivery</p>
+                    <p className="font-bold">{formatDate(selectedOrder.deliveryDate)}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                   <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Measurements</p>
+                   {Object.keys(selectedOrder.measurements).length > 0 ? (
+                      <div className="grid grid-cols-3 gap-2 bg-muted/50 p-4 rounded-xl border">
+                        {Object.entries(selectedOrder.measurements).map(([key, value]) => (
+                          <div key={key}>
+                            <p className="text-xs text-muted-foreground capitalize">{key}</p>
+                            <p className="font-semibold text-sm">{value || '-'}</p>
+                          </div>
+                        ))}
+                      </div>
+                   ) : (
+                      <p className="text-sm italic text-muted-foreground">No measurements provided.</p>
+                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Payment Info</p>
+                  <div className="bg-muted/50 p-4 rounded-xl border space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Total Price</span>
+                      <span className="font-medium">{formatCurrency(selectedOrder.price)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Advance</span>
+                      <span>-{formatCurrency(selectedOrder.advancePayment)}</span>
+                    </div>
+                    <div className="w-full h-px bg-border my-2" />
+                    <div className="flex justify-between font-bold text-base">
+                      <span>Remaining Balance</span>
+                      <span className="text-orange-600">{formatCurrency(selectedOrder.remainingPayment)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Update Status</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {['pending', 'stitching', 'ready', 'delivered'].map((status) => (
+                      <Button 
+                        key={status} 
+                        size="sm" 
+                        variant={selectedOrder.status === status ? 'default' : 'outline'}
+                        onClick={() => {
+                          updateOrderStatus(selectedOrder.id, status as OrderStatus);
+                          setSelectedOrder(null);
+                        }}
+                        className="capitalize"
+                      >
+                        {status}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="flex flex-row justify-between sm:justify-end gap-2 w-full pt-4 border-t">
+                <Button variant="outline" className="flex-1 sm:flex-none gap-2 bg-green-50 text-green-700 hover:bg-green-100 border-green-200" onClick={handleWhatsAppShare}>
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">WhatsApp</span>
+                </Button>
+                <Button className="flex-1 sm:flex-none gap-2" onClick={handleDownloadInvoice} disabled={isDownloading}>
+                  {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  Download Invoice
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Hidden container to generate invoice image */}
+      <div className="fixed left-[-9999px]">
+         {selectedOrder && <InvoiceTemplate ref={invoiceRef} order={selectedOrder} />}
       </div>
 
     </div>

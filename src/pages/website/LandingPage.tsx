@@ -22,7 +22,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
             <Link to="/auth/signup">
-              <Button size="lg" className="w-full sm:w-auto">Start Free Trial</Button>
+              <Button size="lg" className="w-full sm:w-auto text-white">Start Free Trial</Button>
             </Link>
             <Link to="/pricing">
               <Button size="lg" variant="outline" className="w-full sm:w-auto">View Pricing</Button>
