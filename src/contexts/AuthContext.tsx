@@ -53,9 +53,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setWasLoggedIn(true);
         try {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-            if (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email)) {
-              if (userDoc.data()?.role !== 'admin' || !userDoc.data()?.isAdmin) {
-                // Auto-fix admin role in Firestore
+          if (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email)) {
+            // Only update admin role if the document exists AND the role isn't already admin.
+            // This prevents a race condition with the initial document creation in saveUserData.
+            if (userDoc.exists() && (!userDoc.data()?.isAdmin || userDoc.data()?.role !== 'admin')) {
+              try {
                 await setDoc(doc(db, 'users', currentUser.uid), {
                   role: 'admin',
                   isAdmin: true,
@@ -64,13 +66,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   trialActive: false,
                   paymentStatus: 'paid'
                 }, { merge: true });
+              } catch (e) {
+                console.warn("Could not auto-upgrade admin, will retry later:", e);
               }
-              setIsAdmin(true);
-            } else if (userDoc.exists() && userDoc.data().role === 'admin') {
-              setIsAdmin(true);
-            } else {
-              setIsAdmin(false);
             }
+            setIsAdmin(true);
+          } else if (userDoc.exists() && userDoc.data()?.role === 'admin') {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
         } catch (error) {
           console.error("Error fetching user role:", error);
           setIsAdmin(false);
@@ -86,68 +91,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return unsubscribe;
   }, []);
 
-  const saveUserData = async (
-    user: User, 
-    provider: string, 
-    name?: string, 
-    phone?: string, 
-    language?: string,
-    photoURL?: string,
-    shopName?: string,
-    shopLogoUrl?: string,
-    shopAddress?: string,
-    plan?: string
-  ) => {
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          uid: user.uid,
-          ownerName: name || user.displayName || 'New User',
-          email: user.email,
-          phone: phone || '',
-          shopName: shopName || 'My Tailor Shop',
-          countryCode: '+92', // default country code
-          photoURL: photoURL || user.photoURL || '',
-          provider: provider,
-          preferred_language: language || 'en',
-          subscriptionPlan: plan || 'free',
-          role: 'user',
-          isAdmin: false,
-          paymentStatus: 'not_paid',
-          subscriptionActive: false,
-          trialActive: true,
-          trialStartDate: serverTimestamp(),
-          createdAt: serverTimestamp(),
-          features: {
-            cms: true,
-            workerAssign: false,
-            whatsapp: false,
-            invoice: false,
-            imageUpload: false,
-            aiSuggestions: false
-          }
-        });
+    const saveUserData = async (
+      user: User, 
+      provider: string, 
+      name?: string, 
+      phone?: string, 
+      language?: string,
+      photoURL?: string,
+      shopName?: string,
+      shopLogoUrl?: string,
+      shopAddress?: string,
+      plan?: string
+    ) => {
+      // 1. Write to Users collection
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            uid: user.uid,
+            ownerName: name || user.displayName || 'New User',
+            email: user.email,
+            phone: phone || '',
+            shopName: shopName || 'My Tailor Shop',
+            countryCode: '+92',
+            photoURL: photoURL || user.photoURL || '',
+            provider: provider,
+            preferred_language: language || 'en',
+            subscriptionPlan: plan || 'free',
+            role: 'user',
+            isAdmin: false,
+            paymentStatus: 'not_paid',
+            subscriptionActive: false,
+            trialActive: true,
+            trialStartDate: serverTimestamp(),
+            createdAt: serverTimestamp(),
+            features: {
+              cms: true,
+              workerAssign: false,
+              whatsapp: false,
+              invoice: false,
+              imageUpload: false,
+              aiSuggestions: false
+            }
+          });
+        }
+      } catch (error) {
+        handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}`);
+        throw error; // Re-throw to prevent moving to the next step if this fails
       }
-
-      // Initialize settings document
-      const settingsRef = doc(db, 'settings', user.uid);
-      const settingsSnap = await getDoc(settingsRef);
-      if (!settingsSnap.exists()) {
-        await setDoc(settingsRef, {
-          name: shopName || name || user.displayName || 'My Tailor Shop',
-          phone: phone || '',
-          logoUrl: shopLogoUrl || '',
-          address: shopAddress || '',
-          createdAt: serverTimestamp(),
-        });
+  
+      // 2. Initialize settings document
+      try {
+        const settingsRef = doc(db, 'settings', user.uid);
+        const settingsSnap = await getDoc(settingsRef);
+        if (!settingsSnap.exists()) {
+          await setDoc(settingsRef, {
+            name: shopName || name || user.displayName || 'My Tailor Shop',
+            phone: phone || '',
+            logoUrl: shopLogoUrl || '',
+            address: shopAddress || '',
+            createdAt: serverTimestamp(),
+          });
+        }
+      } catch (error) {
+        handleFirestoreError(error, OperationType.WRITE, `settings/${user.uid}`);
+        throw error;
       }
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}`);
-    }
-  };
+    };
 
   const signIn = async (email: string, password: string) => {
     await setPersistence(auth, browserLocalPersistence);
