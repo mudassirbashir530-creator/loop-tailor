@@ -1,10 +1,27 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { ShopProvider } from './contexts/ShopContext';
-import Landing from './pages/Landing';
 import { Toaster } from 'sonner';
+
+// Layouts
+import WebsiteLayout from './layouts/WebsiteLayout';
+import AppLayout from './layouts/AppLayout';
+
+// Website Pages
+import LandingPage from './pages/website/LandingPage';
+import PricingPage from './pages/website/PricingPage';
+import AboutPage from './pages/website/AboutPage';
+import ContactPage from './pages/website/ContactPage';
+
+// Auth Pages
+import LoginPage from './pages/auth/LoginPage';
+import SignupPage from './pages/auth/SignupPage';
+
+// App Pages
+import Home from './screens/Home';
+import Clients from './screens/Clients';
+import Orders from './screens/Orders';
+import NewOrder from './screens/NewOrder';
+import Settings from './screens/Settings';
 
 function LoadingFallback() {
   return (
@@ -14,38 +31,37 @@ function LoadingFallback() {
   );
 }
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  if (loading) return <LoadingFallback />;
-  // Assuming login will be in the app or a separate route later
-  return user ? <>{children}</> : <Navigate to="/" replace />;
-}
-
 export default function App() {
   return (
-    <AuthProvider>
-      <ShopProvider>
-        <LanguageProvider>
-          <BrowserRouter>
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                {/* Landing acts as the public entry, routing to public/landing via effect */}
-                <Route path="/" element={<Landing />} />
-                
-                {/* App Wrapper - To be designed from Figma */}
-                <Route path="/app/*" element={
-                  <PrivateRoute>
-                    <div className="text-gray-900 bg-[#F7F5F0] min-h-screen flex items-center justify-center">
-                      <p>Workspace ready for Figma Design rebuild.</p>
-                    </div>
-                  </PrivateRoute>
-                } />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-          <Toaster position="top-center" richColors />
-        </LanguageProvider>
-      </ShopProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          {/* Website Routes */}
+          <Route element={<WebsiteLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+          </Route>
+
+          {/* Auth Routes */}
+          <Route path="/auth/login" element={<LoginPage />} />
+          <Route path="/auth/signup" element={<SignupPage />} />
+
+          {/* App Routes */}
+          <Route path="/app" element={<AppLayout />}>
+            <Route index element={<Home />} />
+            <Route path="clients" element={<Clients />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="new-order" element={<NewOrder />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+      <Toaster position="top-center" richColors />
+    </BrowserRouter>
   );
 }

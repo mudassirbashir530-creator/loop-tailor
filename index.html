@@ -2,18 +2,135 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
-    <meta
-      name="description"
-      content="Loop Tailor helps tailors in Pakistan manage orders, customers, measurements, and deliveries digitally."
-    />
-    <title>Loop Tailor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Open Graph / Brand Logo for Social & Search -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://loop-tailor.pages.dev" />
+    <meta property="og:title" content="Loop Tailor – Smart Tailor Management Software for Tailors & Boutiques" />
+    <meta property="og:description" content="Loop Tailor helps tailors manage orders, measurements, customers, and deliveries digitally. Easy stitching management software for modern tailoring shops." />
+    <meta property="og:image" content="https://loop-tailor.pages.dev/logo.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="Loop Tailor Logo" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>LoopTailor – Smart Tailor Management Software for Tailors & Boutiques</title>
+    <meta name="description" content="LoopTailor is the ultimate tailor management software for boutiques and shops. Manage orders, measurements, customers, and invoices digitally. Best tailoring management system for modern tailors.">
+    <meta name="keywords" content="tailor software, tailoring management system, tailor app, stitching management software, LoopTailor, loop tailor, loptailor, loop teler, darzi software, boutique software, tailoring order management">
+    <link rel="canonical" href="https://loop-tailor.pages.dev/" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Twitter Card data -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@LoopTailor" />
+    <meta name="twitter:title" content="LoopTailor – Smart Tailor Management Software" />
+    <meta name="twitter:description" content="Manage your tailoring business digitally with LoopTailor. Track orders, measurements, and customers with ease." />
+    <meta name="twitter:image" content="https://loop-tailor.pages.dev/logo.png" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "LoopTailor",
+      "url": "https://loop-tailor.pages.dev/",
+      "logo": "https://loop-tailor.pages.dev/logo.png",
+      "sameAs": [
+        "https://facebook.com/looptailor",
+        "https://twitter.com/looptailor",
+        "https://instagram.com/looptailor"
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "LoopTailor",
+      "image": "https://loop-tailor.pages.dev/logo.png",
+      "description": "Smart tailor management software for boutiques and shops.",
+      "brand": {
+        "@type": "Brand",
+        "name": "LoopTailor"
+      },
+      "offers": {
+        "@type": "Offer",
+        "url": "https://loop-tailor.pages.dev/signup",
+        "priceCurrency": "USD",
+        "price": "0",
+        "availability": "https://schema.org/InStock"
+      }
+    }
+    </script>
+    <script>
+      // The issue with `window.fetch` being overwritten by formdata-polyfill is fixed in vite.config.ts by aliasing it to an empty file.
+    </script>
+    <meta name="google-site-verification" content="CY_KIunjykzDWEqpnwB8cfC68vaDjwcdAOizTqXrl8c" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://loop-tailor.pages.dev/"
+      },{
+        "@type": "ListItem",
+        "position": 2,
+        "name": "About",
+        "item": "https://loop-tailor.pages.dev/about"
+      },{
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Blog",
+        "item": "https://loop-tailor.pages.dev/blog"
+      }]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Loop Tailor",
+      "applicationCategory": "BusinessApplication",
+      "description": "Loop Tailor is a smart tailor management software that helps tailoring shops manage customers, measurements, and orders digitally.",
+      "operatingSystem": "Web, Android",
+      "url": "https://loop-tailor.pages.dev",
+      "image": "https://loop-tailor.pages.dev/logo.png",
+      "creator": {
+        "@type": "Organization",
+        "name": "Loop Tailor"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            })
+            .catch(err => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
+

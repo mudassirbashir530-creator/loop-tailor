@@ -5,16 +5,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function isOrderOverdue(dueDate: string, currentDate: Date = new Date()): boolean {
-  if (!dueDate) return false;
-  try {
-    // Normalize to UTC to avoid timezone mismatch
-    const due = new Date(dueDate);
-    const dueUTC = Date.UTC(due.getUTCFullYear(), due.getUTCMonth(), due.getUTCDate());
-    const currentUTC = Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate());
-    
-    return currentUTC > dueUTC;
-  } catch (e) {
-    return false;
-  }
+export function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-PK', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).format(date);
+}
+
+export function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('en-PK', {
+    style: 'currency',
+    currency: 'PKR',
+    maximumFractionDigits: 0
+  }).format(amount);
 }
