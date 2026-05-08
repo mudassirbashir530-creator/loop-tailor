@@ -53,8 +53,9 @@ export function useNotifications() {
     try {
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
+        const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
         const token = await getToken(messaging, {
-           // Providing VAPID key is necessary for some environments, but we'll try without it if the sw works.
+           vapidKey: vapidKey || undefined
         });
         if (token) {
           await setDoc(doc(db, 'fcmTokens', token), {

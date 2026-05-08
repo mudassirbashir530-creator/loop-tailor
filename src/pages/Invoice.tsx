@@ -46,21 +46,21 @@ export default function Invoice() {
   useEffect(() => {
     if (!user || !id) return;
     
-    const unsubOrder = onSnapshot(doc(db, 'shops', user.uid, 'orders', id), (orderSnap) => {
-      if (!orderSnap.exists() || orderSnap.data().shopId !== user.uid) {
+    const unsubOrder = onSnapshot(doc(db, 'orders', id), (orderSnap) => {
+      if (!orderSnap.exists() || orderSnap.data().userId !== user.uid) {
         navigate('/app/orders');
         return;
       }
       setOrder({ id: orderSnap.id, ...orderSnap.data() });
-    }, (error) => handleFirestoreError(error, OperationType.GET, `invoice/${id}`));
+    }, (error) => handleFirestoreError(error, OperationType.GET, `orders/${id}`));
 
-    const unsubShop = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
+    const unsubShop = onSnapshot(doc(db, 'settings', user.uid), (shopSnap) => {
       if (shopSnap.exists()) {
         const data = shopSnap.data();
         setShop(data);
         setEditData(prev => ({ ...prev, shopName: data.name || '', invoiceFooter: data.invoiceFooter || '' }));
       }
-    }, (error) => handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`));
+    });
 
     return () => {
       unsubOrder();
@@ -70,7 +70,7 @@ export default function Invoice() {
 
   useEffect(() => {
     if (!user || !order?.customerId) return;
-    const unsubCustomer = onSnapshot(doc(db, 'shops', user.uid, 'customers', order.customerId), (custSnap) => {
+    const unsubCustomer = onSnapshot(doc(db, 'customers', order.customerId), (custSnap) => {
       if (custSnap.exists()) setCustomer(custSnap.data());
     }, (error) => handleFirestoreError(error, OperationType.GET, `customers/${order.customerId}`));
 
