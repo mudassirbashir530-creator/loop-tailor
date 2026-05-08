@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, getDocs } from 'firebase/firestore';
 
 export interface MeasurementField {
   id: string;
@@ -33,7 +33,7 @@ export function useMeasurementTemplates() {
       return;
     }
 
-    const q = query(collection(db, 'shops', user.uid, 'measurementTemplates'));
+    const q = query(collection(db, 'measurementTemplates'), where('userId', '==', user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const templateData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -52,8 +52,9 @@ export function useMeasurementTemplates() {
   const addTemplate = async (data: Omit<MeasurementTemplate, 'id'>) => {
     if (!user) return null;
     try {
-      const docRef = await addDoc(collection(db, 'shops', user.uid, 'measurementTemplates'), {
+      const docRef = await addDoc(collection(db, 'measurementTemplates'), {
         ...data,
+        userId: user.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -67,7 +68,7 @@ export function useMeasurementTemplates() {
   const updateTemplate = async (id: string, data: Partial<MeasurementTemplate>) => {
     if (!user) return;
     try {
-      await updateDoc(doc(db, 'shops', user.uid, 'measurementTemplates', id), {
+      await updateDoc(doc(db, 'measurementTemplates', id), {
         ...data,
         updatedAt: serverTimestamp()
       });
@@ -80,7 +81,7 @@ export function useMeasurementTemplates() {
   const deleteTemplate = async (id: string) => {
     if (!user) return;
     try {
-      await deleteDoc(doc(db, 'shops', user.uid, 'measurementTemplates', id));
+      await deleteDoc(doc(db, 'measurementTemplates', id));
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, 'measurementTemplates');
       throw error;
@@ -91,16 +92,16 @@ export function useMeasurementTemplates() {
     if (!user) return;
     try {
       // Find current default for this gender and remove it
-      const q = query(collection(db, 'shops', user.uid, 'measurementTemplates'));
+      const q = query(collection(db, 'measurementTemplates'), where('userId', '==', user.uid));
       const snapshot = await getDocs(q);
       const updates = snapshot.docs
         .filter(doc => doc.data().gender === gender && doc.data().isDefault)
-        .map(docData => updateDoc(doc(db, 'shops', user.uid, 'measurementTemplates', docData.id), { isDefault: false }));
+        .map(docData => updateDoc(doc(db, 'measurementTemplates', docData.id), { isDefault: false }));
       
       await Promise.all(updates);
 
       // Set new default
-      await updateDoc(doc(db, 'shops', user.uid, 'measurementTemplates', id), {
+      await updateDoc(doc(db, 'measurementTemplates', id), {
         isDefault: true,
         updatedAt: serverTimestamp()
       });

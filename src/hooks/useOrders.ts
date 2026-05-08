@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, increment, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, increment, orderBy } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Order, OrderStatus } from '../lib/types';
@@ -18,7 +18,8 @@ export function useOrders() {
     }
 
     const q = query(
-      collection(db, 'orders', user.uid, 'items'),
+      collection(db, 'orders'),
+      where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
 
@@ -41,14 +42,14 @@ export function useOrders() {
           advancePayment: data.advancePayment || 0,
           remainingPayment: data.remainingPayment || 0,
           deliveryDate: data.deliveryDate,
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
-          updatedAt: data.updatedAt?.toDate().toISOString() || new Date().toISOString(),
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
         });
       });
       setOrders(ordersData);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, `orders/${user.uid}/items`);
+      handleFirestoreError(error, OperationType.LIST, 'orders');
     });
 
     return () => unsubscribe();
@@ -57,15 +58,16 @@ export function useOrders() {
   const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!user) return null;
     try {
-      const docRef = await addDoc(collection(db, 'orders', user.uid, 'items'), {
+      const docRef = await addDoc(collection(db, 'orders'), {
         ...orderData,
+        userId: user.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
       
       // Update customer totalOrders
       if (orderData.customerId) {
-        await updateDoc(doc(db, 'customers', user.uid, 'items', orderData.customerId), {
+        await updateDoc(doc(db, 'customers', orderData.customerId), {
           totalOrders: increment(1)
         });
       }
@@ -74,21 +76,21 @@ export function useOrders() {
       return docRef.id;
     } catch (error) {
       toast.error("Failed to create order");
-      handleFirestoreError(error, OperationType.CREATE, `orders/${user.uid}/items`);
+      handleFirestoreError(error, OperationType.CREATE, 'orders');
     }
   };
 
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
      if (!user) return;
      try {
-       await updateDoc(doc(db, 'orders', user.uid, 'items', orderId), {
+       await updateDoc(doc(db, 'orders', orderId), {
          status,
          updatedAt: serverTimestamp()
        });
        toast.success("Status updated");
      } catch (error) {
        toast.error("Failed to update status");
-       handleFirestoreError(error, OperationType.UPDATE, `orders/${user.uid}/items/${orderId}`);
+       handleFirestoreError(error, OperationType.UPDATE, `orders/${orderId}`);
      }
   }
 

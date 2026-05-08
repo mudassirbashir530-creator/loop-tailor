@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, addDoc, doc, serverTimestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, doc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Worker } from '../lib/types';
@@ -18,7 +18,8 @@ export function useWorkers() {
     }
 
     const q = query(
-      collection(db, 'workers', user.uid, 'items')
+      collection(db, 'workers'),
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -35,7 +36,7 @@ export function useWorkers() {
       setWorkers(workersData);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, `workers/${user.uid}/items`);
+      handleFirestoreError(error, OperationType.LIST, 'workers');
     });
 
     return () => unsubscribe();
@@ -44,15 +45,16 @@ export function useWorkers() {
   const addWorker = async (workerData: Omit<Worker, 'id' | 'activeOrders'>) => {
     if (!user) return null;
     try {
-      const docRef = await addDoc(collection(db, 'workers', user.uid, 'items'), {
+      const docRef = await addDoc(collection(db, 'workers'), {
         ...workerData,
+        userId: user.uid,
         activeOrders: 0,
       });
       toast.success("Worker added");
       return docRef.id;
     } catch (error) {
       toast.error("Failed to add worker");
-      handleFirestoreError(error, OperationType.CREATE, `workers/${user.uid}/items`);
+      handleFirestoreError(error, OperationType.CREATE, 'workers');
     }
   };
 

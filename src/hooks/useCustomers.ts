@@ -18,7 +18,8 @@ export function useCustomers() {
     }
 
     const q = query(
-      collection(db, 'customers', user.uid, 'items'),
+      collection(db, 'customers'),
+      where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     );
 
@@ -32,33 +33,50 @@ export function useCustomers() {
           phone: data.phone,
           address: data.address,
           totalOrders: data.totalOrders || 0,
-          createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
         });
       });
       setCustomers(customersData);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, `customers/${user.uid}/items`);
+      handleFirestoreError(error, OperationType.LIST, 'customers');
     });
 
     return () => unsubscribe();
   }, [user]);
 
-  const addCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | 'totalOrders'>) => {
+  const addCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'totalOrders'>) => {
     if (!user) return null;
     try {
-      const docRef = await addDoc(collection(db, 'customers', user.uid, 'items'), {
+      const docRef = await addDoc(collection(db, 'customers'), {
         ...data,
+        userId: user.uid,
         totalOrders: 0,
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
       toast.success("Customer added successfully");
       return docRef.id;
     } catch (error) {
       toast.error("Failed to add customer");
-      handleFirestoreError(error, OperationType.CREATE, `customers/${user.uid}/items`);
+      handleFirestoreError(error, OperationType.CREATE, 'customers');
     }
   };
 
-  return { customers, loading, addCustomer };
+  const updateCustomer = async (id: string, updates: Partial<Customer>) => {
+    if (!user) return;
+    try {
+      await updateDoc(doc(db, 'customers', id), {
+        ...updates,
+        updatedAt: serverTimestamp()
+      });
+      toast.success("Customer updated");
+    } catch (error) {
+      toast.error("Failed to update customer");
+      handleFirestoreError(error, OperationType.UPDATE, `customers/${id}`);
+    }
+  };
+
+  return { customers, loading, addCustomer, updateCustomer };
 }

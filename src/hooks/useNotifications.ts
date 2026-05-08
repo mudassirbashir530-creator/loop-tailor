@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db, messaging, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, serverTimestamp, setDoc, addDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, serverTimestamp, setDoc, addDoc } from 'firebase/firestore';
 import { getToken, onMessage } from 'firebase/messaging';
 import { toast } from 'sonner';
 
@@ -25,7 +25,8 @@ export function useNotifications() {
     if (!user) return;
 
     const q = query(
-      collection(db, 'shops', user.uid, 'notifications'),
+      collection(db, 'notifications'),
+      where('userId', '==', user.uid),
       orderBy('createdAt', 'desc'),
       limit(50)
     );
@@ -56,8 +57,9 @@ export function useNotifications() {
            // Providing VAPID key is necessary for some environments, but we'll try without it if the sw works.
         });
         if (token) {
-          await setDoc(doc(db, 'shops', user.uid, 'fcmTokens', token), {
+          await setDoc(doc(db, 'fcmTokens', token), {
             token,
+            userId: user.uid,
             updatedAt: serverTimestamp()
           });
         }
@@ -78,7 +80,7 @@ export function useNotifications() {
   const markAsRead = async (id: string) => {
     if (!user) return;
     try {
-      await updateDoc(doc(db, 'shops', user.uid, 'notifications', id), {
+      await updateDoc(doc(db, 'notifications', id), {
         read: true
       });
     } catch (error) {
@@ -94,7 +96,7 @@ export function useNotifications() {
       
       const batch = writeBatch(db);
       unreadNotifs.forEach(n => {
-        const ref = doc(db, 'shops', user.uid, 'notifications', n.id);
+        const ref = doc(db, 'notifications', n.id);
         batch.update(ref, { read: true });
       });
       await batch.commit();
@@ -106,7 +108,7 @@ export function useNotifications() {
   const deleteNotification = async (id: string) => {
     if (!user) return;
     try {
-      await deleteDoc(doc(db, 'shops', user.uid, 'notifications', id));
+      await deleteDoc(doc(db, 'notifications', id));
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `notifications/${id}`);
     }
@@ -115,8 +117,9 @@ export function useNotifications() {
   const addNotification = async (data: Omit<AppNotification, 'id' | 'read' | 'createdAt'>) => {
     if (!user) return;
     try {
-      await addDoc(collection(db, 'shops', user.uid, 'notifications'), {
+      await addDoc(collection(db, 'notifications'), {
         ...data,
+        userId: user.uid,
         read: false,
         createdAt: serverTimestamp()
       });

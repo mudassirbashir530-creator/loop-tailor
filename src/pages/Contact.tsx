@@ -53,56 +53,34 @@ export default function Contact() {
     
     setIsSubmitting(true);
 
-    let googleScriptSuccess = false;
-    let localApiSuccess = false;
-
-    // 1. Try sending to Google Apps Script
     try {
+      // The `no-cors` mode makes the fetch opaque and often fails to submit actual JSON.
+      // Easiest is to send as form-urlencoded which the script handles.
+      // But we will send it as 'application/x-www-form-urlencoded' using URLSearchParams
+      const data = new URLSearchParams();
+      data.append("name", `${formData.firstName} ${formData.lastName}`.trim());
+      data.append("email", formData.email);
+      data.append("phone", formData.phone);
+      data.append("subject", "Contact Form Submission");
+      data.append("message", formData.message);
+
       await fetch('https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec', {
         method: 'POST',
-        mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({
-          name: `${formData.firstName} ${formData.lastName}`.trim(),
-          email: formData.email,
-          phone: formData.phone,
-          message: formData.message,
-          timestamp: new Date().toISOString()
-        })
-      });
-      // Since no-cors produces an opaque response, we assume success if no exception is thrown
-      googleScriptSuccess = true;
-    } catch (err) {
-      console.error('Error sending to Google Apps Script:', err);
-    }
-
-    // 2. Try sending to local API
-    try {
-      const { error: fetchError } = await safeFetchJSON('/api/contact', {
-        method: 'POST',
-        body: JSON.stringify(formData)
+        body: data.toString(),
+        mode: 'no-cors'
       });
 
-      if (!fetchError) {
-        localApiSuccess = true;
-      } else {
-        console.warn('Local API /api/contact failed or not available:', fetchError);
-      }
-    } catch (err) {
-      console.error('Unexpected error with local API:', err);
-    }
-
-    setIsSubmitting(false);
-
-    // 3. Determine overall success
-    if (googleScriptSuccess || localApiSuccess) {
       setIsSuccess(true);
       setFormData({ firstName: '', lastName: '', phone: '', email: '', message: '' });
       setTimeout(() => setIsSuccess(false), 5000);
-    } else {
+    } catch (err) {
+      console.error('Error sending to Google Apps Script:', err);
       setGlobalError('Failed to send message. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

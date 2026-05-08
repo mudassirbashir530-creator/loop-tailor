@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { FileText, Loader2, Search, Filter, Calendar, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +24,7 @@ export default function Invoices() {
     if (!user) return;
     
     setLoading(true);
-    const q = query(collection(db, 'orders', user.uid, 'items'));
+    const q = query(collection(db, 'orders'), where('userId', '==', user.uid));
     const unsubscribe = onSnapshot(q, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setInvoices(data.sort((a: any, b: any) => {
@@ -34,7 +34,7 @@ export default function Invoices() {
       }));
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'invoices');
+      handleFirestoreError(error, OperationType.GET, 'orders');
       setLoading(false);
     });
 

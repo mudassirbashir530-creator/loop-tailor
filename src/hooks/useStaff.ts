@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, onSnapshot, query, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 
 export interface StaffMember {
   id: string;
@@ -10,7 +10,7 @@ export interface StaffMember {
   role: 'Cutter' | 'Stitcher' | 'Finisher' | 'Other';
   salaryType: 'fixed' | 'per-order';
   salaryAmount: number;
-  shopId?: string;
+  userId?: string;
   createdAt?: any;
 }
 
@@ -26,7 +26,7 @@ export function useStaff() {
       return;
     }
 
-    const q = query(collection(db, 'shops', user.uid, 'staff'));
+    const q = query(collection(db, 'staff'), where('userId', '==', user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const staffData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -42,12 +42,12 @@ export function useStaff() {
     return () => unsubscribe();
   }, [user]);
 
-  const addStaff = async (data: Omit<StaffMember, 'id' | 'createdAt' | 'shopId'>) => {
+  const addStaff = async (data: Omit<StaffMember, 'id' | 'createdAt' | 'userId'>) => {
     if (!user) return null;
     try {
-      const docRef = await addDoc(collection(db, 'shops', user.uid, 'staff'), {
+      const docRef = await addDoc(collection(db, 'staff'), {
         ...data,
-        shopId: user.uid,
+        userId: user.uid,
         createdAt: serverTimestamp()
       });
       return docRef.id;
@@ -60,7 +60,7 @@ export function useStaff() {
   const updateStaff = async (id: string, data: Partial<StaffMember>) => {
     if (!user) return;
     try {
-      await updateDoc(doc(db, 'shops', user.uid, 'staff', id), data);
+      await updateDoc(doc(db, 'staff', id), data);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `staff/${id}`);
       throw error;
@@ -70,7 +70,7 @@ export function useStaff() {
   const deleteStaff = async (id: string) => {
     if (!user) return;
     try {
-      await deleteDoc(doc(db, 'shops', user.uid, 'staff', id));
+      await deleteDoc(doc(db, 'staff', id));
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, `staff/${id}`);
       throw error;

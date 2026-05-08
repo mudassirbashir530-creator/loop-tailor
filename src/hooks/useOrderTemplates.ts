@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 
 export interface OrderTemplate {
@@ -35,7 +35,7 @@ export function useOrderTemplates(shopId: string | undefined): UseOrderTemplates
 
   const fetchTemplates = async () => {
     try {
-      const q = query(collection(db, 'shops', shopId!, 'orderTemplates'));
+      const q = query(collection(db, 'orderTemplates'), where('userId', '==', shopId));
       const snap = await getDocs(q);
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderTemplate));
       // Sort by newest
@@ -55,23 +55,24 @@ export function useOrderTemplates(shopId: string | undefined): UseOrderTemplates
   const saveTemplate = async (data: Omit<OrderTemplate, 'id' | 'createdAt'>) => {
     if (!shopId) return;
     try {
-      await addDoc(collection(db, 'shops', shopId, 'orderTemplates'), {
+      await addDoc(collection(db, 'orderTemplates'), {
         ...data,
+        userId: shopId,
         createdAt: serverTimestamp()
       });
       await fetchTemplates();
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, `shops/${shopId}/orderTemplates`);
+      handleFirestoreError(error, OperationType.CREATE, `orderTemplates`);
     }
   };
 
   const deleteTemplate = async (id: string) => {
     if (!shopId) return;
     try {
-      await deleteDoc(doc(db, 'shops', shopId, 'orderTemplates', id));
+      await deleteDoc(doc(db, 'orderTemplates', id));
       setTemplates(prev => prev.filter(t => t.id !== id));
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `shops/${shopId}/orderTemplates/${id}`);
+      handleFirestoreError(error, OperationType.DELETE, `orderTemplates/${id}`);
     }
   };
 

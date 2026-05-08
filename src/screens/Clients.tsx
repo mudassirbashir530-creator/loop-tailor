@@ -5,24 +5,35 @@ import { SearchBar } from '../components/ui/search-bar';
 import { Button } from '../components/ui/button';
 import { useCustomers } from '../hooks/useCustomers';
 import { formatDate } from '../lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
 
 export default function Clients() {
   const [search, setSearch] = useState('');
   const { customers, loading, addCustomer } = useCustomers();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    address: ''
+  });
 
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
     c.phone.includes(search)
   );
 
-  const handleAddMockCustomer = () => {
-    const random = Math.floor(Math.random() * 1000);
-    addCustomer({
-      name: `New Customer ${random}`,
-      phone: `+92 ${Math.floor(3000000000 + Math.random() * 999999999)}`,
-      address: 'Karachi, Pakistan',
-    });
-  }
+  const handleAddCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.phone) return;
+    setIsSubmitting(true);
+    await addCustomer(formData);
+    setIsSubmitting(false);
+    setIsOpen(false);
+    setFormData({ name: '', phone: '', address: '' });
+  };
 
   return (
     <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
@@ -33,14 +44,57 @@ export default function Clients() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Clients</h1>
           <p className="text-muted-foreground">{customers.length} total customers</p>
         </div>
-        <Button size="sm" className="hidden sm:flex gap-2" onClick={handleAddMockCustomer}>
+        <Button size="sm" className="hidden sm:flex gap-2" onClick={() => setIsOpen(true)}>
           <UserPlus className="h-4 w-4" />
-          Add Dummy Client
+          Add Client
         </Button>
-        <Button size="icon" className="sm:hidden" onClick={handleAddMockCustomer}>
+        <Button size="icon" className="sm:hidden" onClick={() => setIsOpen(true)}>
           <UserPlus className="h-4 w-4" />
         </Button>
       </div>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Client</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddCustomer} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name <span className="text-red-500">*</span></label>
+              <Input 
+                required 
+                value={formData.name} 
+                onChange={e => setFormData({ ...formData, name: e.target.value })} 
+                placeholder="John Doe" 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone <span className="text-red-500">*</span></label>
+              <Input 
+                required 
+                value={formData.phone} 
+                onChange={e => setFormData({ ...formData, phone: e.target.value })} 
+                placeholder="0300 0000000" 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Address</label>
+              <Input 
+                value={formData.address} 
+                onChange={e => setFormData({ ...formData, address: e.target.value })} 
+                placeholder="City, Country" 
+              />
+            </div>
+            <DialogFooter>
+               <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+               <Button type="submit" disabled={isSubmitting}>
+                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                 Save Client
+               </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Search */}
       <SearchBar 
