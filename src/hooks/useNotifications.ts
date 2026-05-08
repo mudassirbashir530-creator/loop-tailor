@@ -26,9 +26,7 @@ export function useNotifications() {
 
     const q = query(
       collection(db, 'notifications'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
-      limit(50)
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -39,7 +37,13 @@ export function useNotifications() {
         notifs.push({ id: docSnap.id, ...data } as AppNotification);
         if (!data.read) unread++;
       });
-      setNotifications(notifs);
+      // Sort client-side
+      notifs.sort((a, b) => {
+         const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+         const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+         return timeB - timeA;
+      });
+      setNotifications(notifs.slice(0, 50));
       setUnreadCount(unread);
     }, (error) => {
       console.error('Error listening to notifications:', error);

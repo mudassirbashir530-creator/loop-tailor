@@ -19,8 +19,7 @@ export function useCustomers() {
 
     const q = query(
       collection(db, 'customers'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -37,10 +36,12 @@ export function useCustomers() {
           updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
         });
       });
+      customersData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setCustomers(customersData);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'customers');
+      console.error(error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

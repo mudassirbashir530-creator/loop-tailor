@@ -6,6 +6,20 @@ import { Badge } from '../components/ui/badge';
 import { useOrders } from '../hooks/useOrders';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { isToday } from 'date-fns';
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+};
 
 export default function Home() {
   const { orders, loading } = useOrders();
@@ -16,20 +30,25 @@ export default function Home() {
   const revenue = orders.reduce((sum, order) => sum + (order.advancePayment || 0) + (order.price - order.remainingPayment), 0);
 
   if (loading) {
-     return <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>;
+     return <div className="min-h-[50vh] flex items-center justify-center"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
   }
 
   return (
-    <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
+    <motion.div 
+      initial="hidden" 
+      animate="visible" 
+      variants={containerVariants} 
+      className="p-4 md:p-8 space-y-8 pb-24"
+    >
       
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back! Here's your overview</p>
-      </div>
+      <motion.div variants={itemVariants}>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+        <p className="text-muted-foreground mt-1">Welcome back! Here's your overview</p>
+      </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
           title="Total Orders"
           value={totalOrders.toString()}
@@ -54,60 +73,70 @@ export default function Home() {
           icon={<Banknote className="h-5 w-5 text-primary" />}
           iconBg="bg-primary/10"
         />
-      </div>
+      </motion.div>
 
       {/* Recent Orders */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
+      <motion.div variants={itemVariants} className="bg-card rounded-2xl shadow-sm border overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-lg font-semibold text-foreground">Recent Orders</h2>
-          <Link to="/app/orders" className="text-sm font-medium text-primary hover:underline">
+          <Link to="/app/orders" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
             View All
           </Link>
         </div>
         
-        <div className="space-y-4">
+        <div className="divide-y divide-border">
           {orders.length === 0 ? (
-             <div className="text-center py-8 text-muted-foreground bg-card rounded-xl border">No orders yet.</div>
-          ) : orders.slice(0, 5).map(order => (
-            <Card key={order.id} className="cursor-pointer hover:shadow-md transition-shadow">
-              <CardContent className="p-4 flex items-center justify-between">
+             <div className="text-center py-12 text-muted-foreground">No orders yet.</div>
+          ) : orders.slice(0, 5).map((order, idx) => (
+            <motion.div 
+              key={order.id} 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
                 
                 <div className="flex-1">
-                  <p className="font-bold text-foreground mb-0.5">{order.customerName}</p>
-                  <p className="text-xs text-muted-foreground">{order.clothingType} • {order.id.slice(-6)}</p>
+                  <p className="font-semibold text-foreground mb-1">{order.customerName}</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="truncate max-w-[120px]">{order.clothingType}</span>
+                    <span>•</span>
+                    <span className="font-mono">{order.id.slice(-6).toUpperCase()}</span>
+                  </div>
                   <p className="text-xs text-muted-foreground mt-1">Delivery: {formatDate(order.deliveryDate)}</p>
                 </div>
                 
                 <div className="flex flex-col items-end gap-2">
-                  <Badge variant={order.status}>{order.status}</Badge>
+                  <Badge variant={order.status} className="capitalize px-2 py-0.5">{order.status}</Badge>
                   <div className="text-right">
-                    <p className="font-bold text-sm">{formatCurrency(order.price)}</p>
+                    <p className="font-bold text-sm tracking-tight">{formatCurrency(order.price)}</p>
                     {order.remainingPayment > 0 && (
-                      <p className="text-xs text-orange-600 font-medium">Bal: {formatCurrency(order.remainingPayment)}</p>
+                      <p className="text-[10px] text-orange-600 font-medium uppercase tracking-wider mt-0.5">Bal: {formatCurrency(order.remainingPayment)}</p>
                     )}
                   </div>
                 </div>
 
-              </CardContent>
-            </Card>
+              </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-    </div>
+    </motion.div>
   );
 }
 
 function StatCard({ title, value, icon, iconBg }: { title: string, value: string, icon: React.ReactNode, iconBg: string }) {
   return (
-    <Card>
-      <CardContent className="p-4 flex flex-col justify-between h-full">
-        <div className={`h-10 w-10 rounded-xl flex items-center justify-center mb-3 ${iconBg}`}>
+    <Card className="hover:shadow-md transition-shadow duration-300">
+      <CardContent className="p-4 md:p-6 flex flex-col justify-between h-full">
+        <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 ${iconBg}`}>
           {icon}
         </div>
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">{title}</p>
-          <p className="text-xl md:text-2xl font-bold text-foreground truncate">{value}</p>
+          <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
+          <p className="text-2xl md:text-3xl font-bold text-foreground tracking-tight truncate">{value}</p>
         </div>
       </CardContent>
     </Card>

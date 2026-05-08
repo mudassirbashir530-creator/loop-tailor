@@ -43,6 +43,12 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return user ? <>{children}</> : <Navigate to="/auth/login" replace />;
 }
 
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <LoadingFallback />;
+  return user ? <Navigate to="/app" replace /> : <>{children}</>;
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -65,8 +71,16 @@ export default function App() {
                 </Route>
 
                 {/* Auth Routes */}
-                <Route path="/auth/login" element={<LoginPage />} />
-                <Route path="/auth/signup" element={<SignupPage />} />
+                <Route path="/auth/login" element={
+                  <PublicRoute>
+                    <LoginPage />
+                  </PublicRoute>
+                } />
+                <Route path="/auth/signup" element={
+                  <PublicRoute>
+                    <SignupPage />
+                  </PublicRoute>
+                } />
                 <Route path="/login" element={<Navigate to="/auth/login" replace />} />
                 <Route path="/signup" element={<Navigate to="/auth/signup" replace />} />
 

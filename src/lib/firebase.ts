@@ -1,7 +1,8 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { getMessaging, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDd2HsiD-yRps2q-FgbH8G5w_Wl1vJMMC8",
@@ -16,8 +17,19 @@ const firebaseConfig = {
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence).catch(console.error);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// Initialize Messaging conditionally (not supported in all browsers i.e Safari)
+let messagingInstance: any = null;
+isSupported().then(supported => {
+  if (supported) {
+    messagingInstance = getMessaging(app);
+  }
+}).catch(console.error);
+
+export const messaging = messagingInstance;
 
 export enum OperationType {
   CREATE = 'create',

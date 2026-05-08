@@ -72,7 +72,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`);
+      console.error(error);
       setLoading(false);
     });
 

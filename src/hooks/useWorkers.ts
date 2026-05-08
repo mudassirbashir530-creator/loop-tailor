@@ -36,7 +36,8 @@ export function useWorkers() {
       setWorkers(workersData);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'workers');
+      console.error(error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

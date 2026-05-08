@@ -77,7 +77,8 @@ export default function UsersList() {
                  const trialStartMillis = typeof user.trialStartDate.toMillis === 'function' 
                     ? user.trialStartDate.toMillis() 
                     : new Date(user.trialStartDate).getTime();
-                 const daysLeft = Math.max(0, Math.ceil((trialStartMillis + thirtyDays - Date.now()) / (1000 * 60 * 60 * 24)));
+                 const now = Date.now();
+                 const daysLeft = Math.max(0, Math.ceil((trialStartMillis + thirtyDays - now) / (1000 * 60 * 60 * 24)));
                  
                  if (daysLeft > 0) {
                    trialDisplay = <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 font-medium">Active ({daysLeft}d left)</span>;

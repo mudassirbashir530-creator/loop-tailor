@@ -20,12 +20,12 @@ export default function NotFound() {
             Sorry, we couldn't find the page you're looking for. It might have been moved or doesn't exist.
           </p>
           <div className="pt-4">
-            <Button asChild className="rounded-2xl h-14 px-8 bg-brand-primary hover:bg-brand-primary/90 font-bold text-base shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
-              <Link to="/">
+            <Link to="/">
+              <Button className="rounded-2xl h-14 px-8 bg-brand-primary hover:bg-brand-primary/90 font-bold text-base shadow-lg shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95">
                 <Home className="mr-2 h-5 w-5" />
                 Back to Home
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
         </motion.div>
       </div>

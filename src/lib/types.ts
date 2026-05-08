@@ -5,6 +5,7 @@ export interface Customer {
   address?: string;
   totalOrders: number;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Worker {
