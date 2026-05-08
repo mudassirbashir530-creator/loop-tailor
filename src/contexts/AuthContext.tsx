@@ -105,19 +105,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!userSnap.exists()) {
         await setDoc(userRef, {
           uid: user.uid,
-          name: name || user.displayName || 'New User',
+          ownerName: name || user.displayName || 'New User',
           email: user.email,
           phone: phone || '',
+          shopName: shopName || 'My Tailor Shop',
+          countryCode: '+92', // default country code
           photoURL: photoURL || user.photoURL || '',
           provider: provider,
           preferred_language: language || 'en',
-          plan: normalizePlanStatus(plan) || null,
+          subscriptionPlan: plan || 'free',
           role: 'user',
           isAdmin: false,
           paymentStatus: 'not_paid',
           subscriptionActive: false,
-          trialActive: false,
-          trialStartDate: null,
+          trialActive: true,
+          trialStartDate: serverTimestamp(),
           createdAt: serverTimestamp(),
           features: {
             cms: true,
@@ -130,11 +132,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
 
-      // Also ensure shop document exists for backward compatibility with existing app logic
-      const shopRef = doc(db, 'shops', user.uid);
-      const shopSnap = await getDoc(shopRef);
-      if (!shopSnap.exists()) {
-        await setDoc(shopRef, {
+      // Initialize settings document
+      const settingsRef = doc(db, 'settings', user.uid);
+      const settingsSnap = await getDoc(settingsRef);
+      if (!settingsSnap.exists()) {
+        await setDoc(settingsRef, {
           name: shopName || name || user.displayName || 'My Tailor Shop',
           phone: phone || '',
           logoUrl: shopLogoUrl || '',

@@ -18,7 +18,7 @@ export function useWorkers() {
     }
 
     const q = query(
-      collection(db, 'shops', user.uid, 'workers')
+      collection(db, 'workers', user.uid, 'items')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -35,7 +35,7 @@ export function useWorkers() {
       setWorkers(workersData);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, `shops/${user.uid}/workers`);
+      handleFirestoreError(error, OperationType.LIST, `workers/${user.uid}/items`);
     });
 
     return () => unsubscribe();
@@ -44,7 +44,7 @@ export function useWorkers() {
   const addWorker = async (workerData: Omit<Worker, 'id' | 'activeOrders'>) => {
     if (!user) return null;
     try {
-      const docRef = await addDoc(collection(db, 'shops', user.uid, 'workers'), {
+      const docRef = await addDoc(collection(db, 'workers', user.uid, 'items'), {
         ...workerData,
         activeOrders: 0,
       });
@@ -52,7 +52,7 @@ export function useWorkers() {
       return docRef.id;
     } catch (error) {
       toast.error("Failed to add worker");
-      handleFirestoreError(error, OperationType.CREATE, `shops/${user.uid}/workers`);
+      handleFirestoreError(error, OperationType.CREATE, `workers/${user.uid}/items`);
     }
   };
 

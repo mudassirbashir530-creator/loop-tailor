@@ -38,7 +38,21 @@ export default function SignupPage() {
       toast.success('Account created successfully!');
       navigate('/app');
     } catch (error: any) {
-      setError(error.message || 'Failed to create account');
+      let errorMessage = 'Failed to create account. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already in use. Please sign in instead.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please use at least 6 characters.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address provided.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Email/password accounts are not enabled. Please contact support or enable it in Firebase Console.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      setError(errorMessage);
       setLoading(false);
     }
   };

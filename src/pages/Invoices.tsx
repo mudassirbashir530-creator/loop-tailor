@@ -24,7 +24,7 @@ export default function Invoices() {
     if (!user) return;
     
     setLoading(true);
-    const q = query(collection(db, 'shops', user.uid, 'orders'));
+    const q = query(collection(db, 'orders', user.uid, 'items'));
     const unsubscribe = onSnapshot(q, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setInvoices(data.sort((a: any, b: any) => {

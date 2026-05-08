@@ -55,7 +55,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const unsubscribe = onSnapshot(doc(db, 'shops', user.uid), (docSnap) => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setSettings({
@@ -72,7 +72,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`);
+      handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`);
       setLoading(false);
     });
 

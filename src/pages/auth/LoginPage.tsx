@@ -25,7 +25,21 @@ export default function LoginPage() {
       toast.success('Logged in successfully');
       navigate('/app');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to login');
+      let errorMessage = 'Failed to login. Please check your credentials.';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password.';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Invalid email or password.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address format.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed login attempts. Please try again later.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
       setLoading(false);
     }
   };
@@ -72,12 +86,6 @@ export default function LoginPage() {
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
-            
-            <div className="mt-8 bg-muted/50 p-4 rounded-xl border text-sm text-center">
-              <p className="font-semibold mb-1">Demo Credentials:</p>
-              <p className="text-muted-foreground">Email: demo@looptailor.com</p>
-              <p className="text-muted-foreground">Password: demo123</p>
-            </div>
             
             <p className="text-center text-sm text-muted-foreground mt-8">
               Don't have an account?{' '}

@@ -46,7 +46,7 @@ export default function Settings() {
   const handleUpdateProfile = async () => {
     if (!user) return;
     try {
-      await updateDoc(doc(db, 'shops', user.uid), {
+      await updateDoc(doc(db, 'settings', user.uid), {
         name: shopName,
         phone: phone,
       });

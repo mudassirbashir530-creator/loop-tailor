@@ -18,7 +18,7 @@ export function useOrders() {
     }
 
     const q = query(
-      collection(db, 'shops', user.uid, 'orders'),
+      collection(db, 'orders', user.uid, 'items'),
       orderBy('createdAt', 'desc')
     );
 
@@ -48,7 +48,7 @@ export function useOrders() {
       setOrders(ordersData);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, `shops/${user.uid}/orders`);
+      handleFirestoreError(error, OperationType.LIST, `orders/${user.uid}/items`);
     });
 
     return () => unsubscribe();
@@ -57,7 +57,7 @@ export function useOrders() {
   const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!user) return null;
     try {
-      const docRef = await addDoc(collection(db, 'shops', user.uid, 'orders'), {
+      const docRef = await addDoc(collection(db, 'orders', user.uid, 'items'), {
         ...orderData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -65,7 +65,7 @@ export function useOrders() {
       
       // Update customer totalOrders
       if (orderData.customerId) {
-        await updateDoc(doc(db, 'shops', user.uid, 'customers', orderData.customerId), {
+        await updateDoc(doc(db, 'customers', user.uid, 'items', orderData.customerId), {
           totalOrders: increment(1)
         });
       }
@@ -74,21 +74,21 @@ export function useOrders() {
       return docRef.id;
     } catch (error) {
       toast.error("Failed to create order");
-      handleFirestoreError(error, OperationType.CREATE, `shops/${user.uid}/orders`);
+      handleFirestoreError(error, OperationType.CREATE, `orders/${user.uid}/items`);
     }
   };
 
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
      if (!user) return;
      try {
-       await updateDoc(doc(db, 'shops', user.uid, 'orders', orderId), {
+       await updateDoc(doc(db, 'orders', user.uid, 'items', orderId), {
          status,
          updatedAt: serverTimestamp()
        });
        toast.success("Status updated");
      } catch (error) {
        toast.error("Failed to update status");
-       handleFirestoreError(error, OperationType.UPDATE, `shops/${user.uid}/orders/${orderId}`);
+       handleFirestoreError(error, OperationType.UPDATE, `orders/${user.uid}/items/${orderId}`);
      }
   }
 

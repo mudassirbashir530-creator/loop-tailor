@@ -18,7 +18,7 @@ export function useCustomers() {
     }
 
     const q = query(
-      collection(db, 'shops', user.uid, 'customers'),
+      collection(db, 'customers', user.uid, 'items'),
       orderBy('createdAt', 'desc')
     );
 
@@ -38,7 +38,7 @@ export function useCustomers() {
       setCustomers(customersData);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, `shops/${user.uid}/customers`);
+      handleFirestoreError(error, OperationType.LIST, `customers/${user.uid}/items`);
     });
 
     return () => unsubscribe();
@@ -47,7 +47,7 @@ export function useCustomers() {
   const addCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | 'totalOrders'>) => {
     if (!user) return null;
     try {
-      const docRef = await addDoc(collection(db, 'shops', user.uid, 'customers'), {
+      const docRef = await addDoc(collection(db, 'customers', user.uid, 'items'), {
         ...data,
         totalOrders: 0,
         createdAt: serverTimestamp(),
@@ -56,7 +56,7 @@ export function useCustomers() {
       return docRef.id;
     } catch (error) {
       toast.error("Failed to add customer");
-      handleFirestoreError(error, OperationType.CREATE, `shops/${user.uid}/customers`);
+      handleFirestoreError(error, OperationType.CREATE, `customers/${user.uid}/items`);
     }
   };
 
