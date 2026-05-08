@@ -57,17 +57,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Only update admin role if the document exists AND the role isn't already admin.
             // This prevents a race condition with the initial document creation in saveUserData.
             if (userDoc.exists() && (!userDoc.data()?.isAdmin || userDoc.data()?.role !== 'admin')) {
-              try {
-                await setDoc(doc(db, 'users', currentUser.uid), {
-                  role: 'admin',
-                  isAdmin: true,
-                  plan: 'premium',
-                  subscriptionActive: true,
-                  trialActive: false,
-                  paymentStatus: 'paid'
-                }, { merge: true });
-              } catch (e) {
-                console.warn("Could not auto-upgrade admin, will retry later:", e);
+              // Retry logic for admin upgrade to prevent race conditions (Bug 3 Fix)
+              let retries = 3;
+              while (retries > 0) {
+                try {
+                  await setDoc(doc(db, 'users', currentUser.uid), {
+                    role: 'admin',
+                    isAdmin: true,
+                    plan: 'premium',
+                    subscriptionActive: true,
+                    trialActive: false,
+                    paymentStatus: 'paid'
+                  }, { merge: true });
+                  break; // Success
+                } catch (e) {
+                  retries--;
+                  if (retries === 0) {
+                    console.warn("Could not auto-upgrade admin, will retry later:", e);
+                  } else {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                  }
+                }
               }
             }
             setIsAdmin(true);
@@ -163,10 +173,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     await setPersistence(auth, browserLocalPersistence);
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    await saveUserData(userCredential.user, 'password');
+    await signInWithEmailAndPassword(auth, email, password);
+    // Removed saveUserData call to prevent unnecessary writes and permission errors (Bug 2 Fix)
   };
 
+  // NOTE: If you receive an 'auth/operation-not-allowed' error, you must enable 
+  // "Email/Password" sign-in method in your Firebase Console under Authentication. (Bug 4 Fix)
   const signUp = async (
     email: string, 
     password: string, 
