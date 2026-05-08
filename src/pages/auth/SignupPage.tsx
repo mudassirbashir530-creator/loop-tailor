@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Scissors, ArrowLeft, Check } from 'lucide-react';
+import { Scissors, ArrowLeft, Check, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -34,6 +34,7 @@ export default function SignupPage() {
     setLoading(true);
     
     try {
+      // 1. Auth is handled inside signUp, and Firestore write happens AFTER auth finishes in that function
       await signUp(email, password, name, phone, 'en', '', shopName);
       toast.success('Account created successfully!');
       navigate('/app');
@@ -46,7 +47,7 @@ export default function SignupPage() {
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = 'Invalid email address provided.';
       } else if (error.code === 'auth/operation-not-allowed') {
-        errorMessage = 'Email/password accounts are not enabled. Please contact support or enable it in Firebase Console.';
+        errorMessage = 'Email/password accounts are not enabled. Please enable "Email/Password" provider in Firebase Console under Authentication -> Sign-in method.';
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = 'Network error. Please check your internet connection.';
       } else if (error.message) {
@@ -76,6 +77,13 @@ export default function SignupPage() {
             </div>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-6 p-4 rounded-md bg-destructive/15 border border-destructive/30 text-destructive flex gap-3 text-sm items-start">
+                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                <p className="leading-tight">{error}</p>
+              </div>
+            )}
+            
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Shop Name</label>
@@ -104,7 +112,7 @@ export default function SignupPage() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">Confirm</label>
-                  <Input name="confirm" type="password" required placeholder="••••••••" error={error} />
+                  <Input name="confirm" type="password" required placeholder="••••••••" />
                 </div>
               </div>
               

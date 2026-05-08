@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Scissors, ArrowLeft } from 'lucide-react';
+import { Scissors, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -9,12 +9,14 @@ import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { signIn } = useAuth();
   
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
@@ -39,7 +41,7 @@ export default function LoginPage() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      toast.error(errorMessage);
+      setError(errorMessage);
       setLoading(false);
     }
   };
@@ -63,6 +65,13 @@ export default function LoginPage() {
             </div>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-6 p-4 rounded-md bg-destructive/15 border border-destructive/30 text-destructive flex gap-3 text-sm items-start">
+                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                <p className="leading-tight">{error}</p>
+              </div>
+            )}
+            
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email Address</label>
