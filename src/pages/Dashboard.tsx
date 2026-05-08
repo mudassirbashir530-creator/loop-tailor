@@ -171,7 +171,7 @@ export default function Dashboard() {
 
     let isFirstLoad = true;
 
-    const unsubscribeCustomers = onSnapshot(collection(db, 'shops', user.uid, 'customers'), (customersSnap) => {
+    const unsubscribeCustomers = onSnapshot(query(collection(db, 'customers'), where('userId', '==', user.uid)), (customersSnap) => {
       let newCust = 0;
       const loadedCustomers: any[] = [];
       customersSnap.forEach(doc => {
@@ -188,7 +188,7 @@ export default function Dashboard() {
       handleFirestoreError(error, OperationType.GET, 'dashboard_customers');
     });
 
-    const unsubscribeOrders = onSnapshot(collection(db, 'shops', user.uid, 'orders'), (ordersSnap) => {
+    const unsubscribeOrders = onSnapshot(query(collection(db, 'orders'), where('userId', '==', user.uid)), (ordersSnap) => {
       let active = 0;
       let completed = 0;
       let pendingPay = 0;
@@ -292,7 +292,7 @@ export default function Dashboard() {
                   orderId: order.id,
                   customerId: order.customerId
                });
-               updateDoc(doc(db, 'shops', user.uid, 'orders', order.id), {
+               updateDoc(doc(db, 'orders', order.id), {
                   lastNotifiedDate: todayStr
                }).catch(console.error);
             }

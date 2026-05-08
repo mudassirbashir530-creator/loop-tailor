@@ -98,6 +98,27 @@ service cloud.firestore {
       allow delete: if isOwner();
     }
 
+    match /measurements/{measurementId} {
+      allow read: if isOwner();
+      allow create: if isCreatingWithOwner();
+      allow update: if isOwner() && incoming().userId == existing().userId;
+      allow delete: if isOwner();
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isOwner();
+      allow create: if isCreatingWithOwner();
+      allow update: if isOwner() && incoming().userId == existing().userId;
+      allow delete: if isOwner();
+    }
+
+    match /payroll/{payrollId} {
+      allow read: if isOwner();
+      allow create: if isCreatingWithOwner();
+      allow update: if isOwner() && incoming().userId == existing().userId;
+      allow delete: if isOwner();
+    }
+
     match /fcmTokens/{tokenId} {
       allow read: if isOwner();
       allow create: if isCreatingWithOwner();

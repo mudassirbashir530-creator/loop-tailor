@@ -47,14 +47,14 @@ export default function Settings() {
   useEffect(() => {
     if (!user) return;
     
-    const unsubscribe = onSnapshot(doc(db, 'shops', user.uid), (docSnap) => {
+    const unsubscribe = onSnapshot(doc(db, 'settings', user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as any;
         setShop(prev => ({ ...prev, ...data, uiTheme: data.uiTheme || 'neumorphic' }));
         setEditData(prev => ({ ...prev, ...data, uiTheme: data.uiTheme || 'neumorphic' }));
       }
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`);
+      handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`);
     });
 
     return () => unsubscribe();
@@ -69,12 +69,12 @@ export default function Settings() {
         ...editData,
         name: editData.name || shop.name, // Ensure name is always included
       };
-      await setDoc(doc(db, 'shops', user.uid), payload, { merge: true });
+      await setDoc(doc(db, 'settings', user.uid), payload, { merge: true });
       setShop(payload);
       setIsEditing(false);
       toast.success(t('settings.settingsSaved') || 'Settings saved successfully');
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `shops/${user.uid}`);
+      handleFirestoreError(error, OperationType.UPDATE, `settings/${user.uid}`);
     } finally {
       setSaving(false);
     }

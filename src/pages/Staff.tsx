@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStaff, StaffMember } from '../hooks/useStaff';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { collection, query, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -33,7 +33,7 @@ export default function Staff() {
 
   useEffect(() => {
     if (!user) return;
-    const unsubscribe = onSnapshot(collection(db, 'shops', user.uid, 'payroll'), (snap) => {
+    const unsubscribe = onSnapshot(query(collection(db, 'payroll'), where('userId', '==', user.uid)), (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setPayrollEntries(data);
     }, (error) => handleFirestoreError(error, OperationType.GET, 'payroll'));
@@ -44,7 +44,7 @@ export default function Staff() {
   const handleMarkAsPaid = async (payrollId: string) => {
     if (!user) return;
     try {
-      await updateDoc(doc(db, 'shops', user.uid, 'payroll', payrollId), {
+      await updateDoc(doc(db, 'payroll', payrollId), {
         paidStatus: 'paid',
         paidAt: serverTimestamp()
       });

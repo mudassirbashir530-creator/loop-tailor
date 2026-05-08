@@ -22,7 +22,7 @@ export default function Layout() {
     if (!user) return;
     const fetchShop = async () => {
       try {
-        const docSnap = await getDoc(doc(db, 'shops', user.uid));
+        const docSnap = await getDoc(doc(db, 'settings', user.uid));
         if (docSnap.exists()) {
           const data = docSnap.data() as any;
           setShop({ name: data.name || '', phone: data.phone || '', address: data.address || '' });

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, getDocs, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -31,7 +31,7 @@ export default function Customers() {
     setLoading(true);
     let customersData: any[] = [];
     
-    const unsubscribeCustomers = onSnapshot(collection(db, 'shops', user.uid, 'customers'), (snap) => {
+    const unsubscribeCustomers = onSnapshot(query(collection(db, 'customers'), where('userId', '==', user.uid)), (snap) => {
       customersData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
       setCustomers(customersData);
       setLoading(false);
@@ -40,7 +40,7 @@ export default function Customers() {
       setLoading(false);
     });
 
-    const unsubscribeOrders = onSnapshot(collection(db, 'shops', user.uid, 'orders'), (snap) => {
+    const unsubscribeOrders = onSnapshot(query(collection(db, 'orders'), where('userId', '==', user.uid)), (snap) => {
       const counts: Record<string, { active: number, total: number }> = {};
       snap.forEach(doc => {
         const order = doc.data();
@@ -68,8 +68,8 @@ export default function Customers() {
     if (!user || !newCustomer.name || !newCustomer.phone) return;
 
     try {
-      await addDoc(collection(db, 'shops', user.uid, 'customers'), {
-        shopId: user.uid,
+      await addDoc(collection(db, 'customers'), {
+        userId: user.uid,
         ...newCustomer,
         createdAt: serverTimestamp()
       });

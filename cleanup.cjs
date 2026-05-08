@@ -1,44 +1,41 @@
 const fs = require('fs');
+const glob = require('glob'); // maybe not needed if we hardcode files
+
 const files = [
   'src/pages/Dashboard.tsx',
-  'src/pages/Orders.tsx',
-  'src/pages/OrderDetails.tsx',
-  'src/pages/QuickOrder.tsx',
-  'src/pages/Customers.tsx',
-  'src/pages/CustomerDetails.tsx',
-  'src/pages/Settings.tsx',
-  'src/pages/Login.tsx',
-  'src/pages/SignUp.tsx',
-  'src/pages/ForgotPassword.tsx',
   'src/pages/Staff.tsx',
-  'src/pages/InstallApp.tsx',
-  'src/pages/Invoice.tsx',
-  'src/pages/Invoices.tsx',
+  'src/pages/QuickOrder.tsx',
+  'src/pages/Orders.tsx',
+  'src/pages/Customers.tsx',
   'src/pages/PaymentReminders.tsx',
-  'src/pages/Notifications.tsx',
-  'src/pages/Updates.tsx',
-  'src/pages/MobileApp.tsx',
-  'src/pages/AdminPanel.tsx',
-  'src/layouts/AppLayout.tsx',
-  'src/components/BottomNav.tsx',
-  'src/components/MobileBottomNav.tsx',
-  'src/components/Layout.tsx',
-  'src/components/PublicLayout.tsx',
-  'src/components/MeasurementTemplatesManager.tsx',
-  'src/components/OrderTemplates.tsx',
-  'src/components/OrderTimeline.tsx',
+  'src/pages/CustomerDetails.tsx',
+  'src/pages/OrderDetails.tsx',
+  'src/pages/Settings.tsx',
   'src/components/QuickSetupChecklist.tsx',
-  'src/components/NotificationBell.tsx',
-  'src/components/OnboardingTour.tsx',
-  'src/components/UpdateNotification.tsx',
-  'src/components/ErrorBoundary.tsx',
+  'src/components/Layout.tsx'
 ];
 
-files.forEach(f => {
-  if (fs.existsSync(f)) fs.unlinkSync(f);
-});
+for (const file of files) {
+  if (!fs.existsSync(file)) continue;
+  let content = fs.readFileSync(file, 'utf8');
 
-if (fs.existsSync('src/screens')) {
-  fs.rmSync('src/screens', { recursive: true, force: true });
+  // We will do some specific replacements
+  
+  // collection(db, 'shops', user.uid, 'orders') -> query(collection(db, 'orders'), where('userId', '==', user.uid))
+  content = content.replace(/collection\(db,\s*'shops',\s*user\!?\.uid,\s*'orders'\)/g, "query(collection(db, 'orders'), where('userId', '==', user.uid))");
+  
+  // collection(db, 'shops', user.uid, 'customers') -> query(collection(db, 'customers'), where('userId', '==', user.uid))
+  content = content.replace(/collection\(db,\s*'shops',\s*user\!?\.uid,\s*'customers'\)/g, "query(collection(db, 'customers'), where('userId', '==', user.uid))");
+  
+  // collection(db, 'shops', user.uid, 'measurements') -> query(collection(db, 'measurements'), where('userId', '==', user.uid))
+  content = content.replace(/collection\(db,\s*'shops',\s*user\!?\.uid,\s*'measurements'\)/g, "query(collection(db, 'measurements'), where('userId', '==', user.uid))");
+
+  // collection(db, 'shops', user.uid, 'payroll') -> query(collection(db, 'payroll'), where('userId', '==', user.uid))
+  content = content.replace(/collection\(db,\s*'shops',\s*user\!?\.uid,\s*'payroll'\)/g, "query(collection(db, 'payroll'), where('userId', '==', user.uid))");
+  
+  // collection(db, 'shops', user.uid, 'payments') -> query(collection(db, 'payments'), where('userId', '==', user.uid))
+  content = content.replace(/collection\(db,\s*'shops',\s*user\!?\.uid,\s*'payments'\)/g, "query(collection(db, 'payments'), where('userId', '==', user.uid))");
+  
+  fs.writeFileSync(file, content, 'utf8');
+  console.log('Modified', file);
 }
-console.log('Cleanup done');

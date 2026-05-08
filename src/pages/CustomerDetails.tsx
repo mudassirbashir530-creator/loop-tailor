@@ -55,8 +55,8 @@ export default function CustomerDetails() {
     
     setLoading(true);
     
-    const unsubCustomer = onSnapshot(doc(db, 'shops', user.uid, 'customers', id), (custSnap) => {
-      if (custSnap.exists() && custSnap.data().shopId === user.uid) {
+    const unsubCustomer = onSnapshot(doc(db, 'customers', id), (custSnap) => {
+      if (custSnap.exists() && custSnap.data().userId === user.uid) {
         setCustomer({ id: custSnap.id, ...custSnap.data() });
         setEditCustomerData({
           name: custSnap.data().name || '',
@@ -71,7 +71,7 @@ export default function CustomerDetails() {
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, `customers/${id}`));
 
-    const qMeasurements = query(collection(db, 'shops', user.uid, 'measurements'), where('customerId', '==', id));
+    const qMeasurements = query(collection(db, 'measurements'), where('userId', '==', user.uid), where('customerId', '==', id));
     const unsubMeasurements = onSnapshot(qMeasurements, (measSnap) => {
       const loadedSets: Record<string, any> = {};
       measSnap.docs.forEach((d) => {
@@ -98,7 +98,8 @@ export default function CustomerDetails() {
       });
     }, (error) => handleFirestoreError(error, OperationType.GET, `measurements`));
 
-    const q = query(collection(db, 'shops', user.uid, 'orders'), where('customerId', '==', id));
+
+    const q = query(collection(db, 'orders'), where('userId', '==', user.uid), where('customerId', '==', id));
     const unsubOrders = onSnapshot(q, (ordSnap) => {
       const data = ordSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setOrders(data.sort((a: any, b: any) => {
@@ -124,7 +125,7 @@ export default function CustomerDetails() {
     
     setIsDeletingCustomer(true);
     try {
-      await deleteDoc(doc(db, 'shops', user!.uid, 'customers', id!));
+      await deleteDoc(doc(db, 'customers', id!));
       toast.success(t('customerDetails.customerDeleted') || 'Customer deleted successfully');
       navigate('/app/clients');
     } catch (error) {
@@ -140,18 +141,18 @@ export default function CustomerDetails() {
     setSaveSuccess(false);
     try {
       const docId = `${id}__${activeSet}`;
-      await setDoc(doc(db, 'shops', user.uid, 'measurements', docId), {
+      await setDoc(doc(db, 'measurements', docId), {
         ...measurements, // Save current state
-        shopId: user.uid,
+        userId: user.uid,
         customerId: id,
         setName: activeSet,
         updatedAt: serverTimestamp()
       }, { merge: true });
 
       if (activeSet === 'Shalwar Kameez') {
-         await setDoc(doc(db, 'shops', user.uid, 'measurements', id), {
+         await setDoc(doc(db, 'measurements', id), {
             ...measurements,
-            shopId: user.uid,
+            userId: user.uid,
             customerId: id,
             updatedAt: serverTimestamp()
          }, { merge: true });
@@ -172,10 +173,10 @@ export default function CustomerDetails() {
     if (!window.confirm(`Are you sure you want to delete the ${setName} measurements?`)) return;
     try {
       if (setName === 'Shalwar Kameez') {
-        const legacyRef = doc(db, 'shops', user.uid, 'measurements', id);
+        const legacyRef = doc(db, 'measurements', id);
         await deleteDoc(legacyRef);
       }
-      const newRef = doc(db, 'shops', user.uid, 'measurements', `${id}__${setName}`);
+      const newRef = doc(db, 'measurements', `${id}__${setName}`);
       await deleteDoc(newRef);
       toast.success('Measurement set deleted');
       if (activeSet === setName) setActiveSet('Shalwar Kameez');
@@ -195,12 +196,12 @@ export default function CustomerDetails() {
     e.preventDefault();
     if (!user || !id) return;
     try {
-      await updateDoc(doc(db, 'shops', user.uid, 'customers', id), {
+      await updateDoc(doc(db, 'customers', id), {
         ...editCustomerData,
-        shopId: user.uid,
+        userId: user.uid,
         updatedAt: serverTimestamp()
       });
-      setCustomer({ ...customer, ...editCustomerData, shopId: user.uid });
+      setCustomer({ ...customer, ...editCustomerData, userId: user.uid });
       setIsEditingCustomer(false);
       toast.success(t('customerDetails.customerUpdated') || 'Customer updated successfully');
     } catch (error) {
@@ -219,8 +220,8 @@ export default function CustomerDetails() {
       // Get next token ID
       const tokenId = await generateTokenId(user.uid);
 
-      const orderRef = await addDoc(collection(db, 'shops', user.uid, 'orders'), {
-        shopId: user.uid,
+      const orderRef = await addDoc(collection(db, 'orders'), {
+        userId: user.uid,
         customerId: id,
         customerName: customer.name,
         tokenId,

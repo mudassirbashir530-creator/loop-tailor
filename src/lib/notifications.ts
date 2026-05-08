@@ -10,8 +10,9 @@ export async function createNotification(shopId: string, data: {
 }) {
   if (!shopId) return;
   try {
-    await addDoc(collection(db, 'shops', shopId, 'notifications'), {
+    await addDoc(collection(db, 'notifications'), {
       ...data,
+      userId: shopId,
       read: false,
       createdAt: serverTimestamp()
     });

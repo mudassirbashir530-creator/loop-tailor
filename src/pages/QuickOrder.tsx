@@ -146,7 +146,7 @@ export default function QuickOrder() {
     if (!user) return;
     const fetchCustomers = async () => {
       try {
-        const q = query(collection(db, 'shops', user.uid, 'customers'));
+        const q = query(collection(db, 'customers'), where('userId', '==', user.uid));
         const snap = await getDocs(q);
         const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setCustomers(data);
@@ -233,7 +233,7 @@ export default function QuickOrder() {
 
     // Fetch measurements
     try {
-      const qMeas = query(collection(db, 'shops', user!.uid, 'measurements'), where('customerId', '==', customer.id));
+      const qMeas = query(collection(db, 'measurements'), where('userId', '==', user!.uid), where('customerId', '==', customer.id));
       const measSnap = await getDocs(qMeas);
       const loadedSets: Record<string, any> = {};
       measSnap.docs.forEach((d) => {
@@ -319,7 +319,8 @@ export default function QuickOrder() {
         
         if (!customerId && customerData.phone) {
           const q = query(
-            collection(db, 'shops', user.uid, 'customers'), 
+            collection(db, 'customers'), 
+            where('userId', '==', user.uid),
             where('phone', '==', customerData.phone),
             limit(1)
           );
@@ -331,17 +332,17 @@ export default function QuickOrder() {
 
         if (customerId) {
           // Update existing customer name/address if changed
-          await updateDoc(doc(db, 'shops', user.uid, 'customers', customerId), {
+          await updateDoc(doc(db, 'customers', customerId), {
             name: customerData.name,
             address: customerData.address,
-            shopId: user.uid,
+            userId: user.uid,
             updatedAt: serverTimestamp()
           });
         } else {
           // Create new customer
-          const customerRef = await addDoc(collection(db, 'shops', user.uid, 'customers'), {
+          const customerRef = await addDoc(collection(db, 'customers'), {
             ...customerData,
-            shopId: user.uid,
+            userId: user.uid,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           });
@@ -352,9 +353,9 @@ export default function QuickOrder() {
         if (Object.keys(measurements).length > 0) {
           const setName = selectedMeasurementSet || 'Shalwar Kameez';
           const docId = `${customerId}__${setName}`;
-          await setDoc(doc(db, 'shops', user.uid, 'measurements', docId), {
+          await setDoc(doc(db, 'measurements', docId), {
             ...measurements,
-            shopId: user.uid,
+            userId: user.uid,
             customerId: customerId,
             setName: setName,
             updatedAt: serverTimestamp()
@@ -362,9 +363,9 @@ export default function QuickOrder() {
 
           // Backward compatibility for Shalwar Kameez
           if (setName === 'Shalwar Kameez') {
-             await setDoc(doc(db, 'shops', user.uid, 'measurements', customerId), {
+             await setDoc(doc(db, 'measurements', customerId), {
                 ...measurements,
-                shopId: user.uid,
+                userId: user.uid,
                 customerId: customerId,
                 updatedAt: serverTimestamp()
              }, { merge: true });
@@ -386,8 +387,8 @@ export default function QuickOrder() {
         }] : [];
 
         // 3. Create Order
-        const orderRef = await addDoc(collection(db, 'shops', user.uid, 'orders'), {
-          shopId: user.uid,
+        const orderRef = await addDoc(collection(db, 'orders'), {
+          userId: user.uid,
           tokenId,
           customerId,
           customerName: customerData.name,

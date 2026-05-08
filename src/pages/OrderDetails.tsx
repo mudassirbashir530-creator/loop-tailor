@@ -45,8 +45,8 @@ export default function OrderDetails() {
     
     setLoading(true);
     
-    const unsubOrder = onSnapshot(doc(db, 'shops', user.uid, 'orders', id), (docSnap) => {
-      if (docSnap.exists()) {
+    const unsubOrder = onSnapshot(doc(db, 'orders', id), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().userId === user.uid) {
         const data = docSnap.data();
         setOrder({ id: docSnap.id, ...data });
         setEditData({ ...data });
@@ -59,13 +59,13 @@ export default function OrderDetails() {
       setLoading(false);
     });
 
-    const unsubShop = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
+    const unsubShop = onSnapshot(doc(db, 'settings', user.uid), (shopSnap) => {
       if (shopSnap.exists()) {
         setShop(shopSnap.data());
       }
-    }, (error) => handleFirestoreError(error, OperationType.GET, `shops/${user.uid}`));
+    }, (error) => handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`));
 
-    const qPayments = query(collection(db, 'shops', user.uid, 'payments'), where('orderId', '==', id));
+    const qPayments = query(collection(db, 'payments'), where('userId', '==', user.uid), where('orderId', '==', id));
     const unsubPayments = onSnapshot(qPayments, (paymentsSnap) => {
       const pData = paymentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setPaymentsList(pData.sort((a: any, b: any) => {
@@ -87,7 +87,7 @@ export default function OrderDetails() {
     
     setIsDeleting(true);
     try {
-      await deleteDoc(doc(db, 'shops', user!.uid, 'orders', id!));
+      await deleteDoc(doc(db, 'orders', id!));
       toast.success(t('orderDetails.orderDeleted') || 'Order deleted successfully');
       navigate('/app/orders');
     } catch (error) {
@@ -100,7 +100,7 @@ export default function OrderDetails() {
     try {
       const history = { ...(order.statusHistory || {}) };
       history[newStatus] = new Date().toISOString();
-      await updateDoc(doc(db, 'shops', user.uid, 'orders', id!), { 
+      await updateDoc(doc(db, 'orders', id!), { 
         status: newStatus, 
         statusHistory: history,
         updatedAt: serverTimestamp() 
@@ -132,7 +132,8 @@ export default function OrderDetails() {
         const staffMember = staff.find(s => s.id === order.assignedStaffId);
         if (staffMember) {
           try {
-            await addDoc(collection(db, 'shops', user.uid, 'payroll'), {
+            await addDoc(collection(db, 'payroll'), {
+              userId: user.uid,
               staffId: staffMember.id,
               staffName: staffMember.name,
               orderId: id,
@@ -160,7 +161,7 @@ export default function OrderDetails() {
       if (editData.status !== order.status) {
         history[editData.status] = new Date().toISOString();
       }
-      await updateDoc(doc(db, 'shops', user.uid, 'orders', id!), {
+      await updateDoc(doc(db, 'orders', id!), {
         ...editData,
         statusHistory: history,
         updatedAt: serverTimestamp()
@@ -206,7 +207,8 @@ export default function OrderDetails() {
     }
 
     try {
-      await addDoc(collection(db, 'shops', user!.uid, 'payments'), {
+      await addDoc(collection(db, 'payments'), {
+        userId: user!.uid,
         orderId: id,
         amount,
         method: paymentForm.method,
@@ -225,7 +227,7 @@ export default function OrderDetails() {
       };
       const newPayments = [...(order.payments || []), newPaymentLog];
 
-      await updateDoc(doc(db, 'shops', user!.uid, 'orders', id!), {
+      await updateDoc(doc(db, 'orders', id!), {
         payments: newPayments,
         paymentStatus: newPaymentStatus,
         updatedAt: serverTimestamp()

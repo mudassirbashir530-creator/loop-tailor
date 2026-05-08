@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useShop } from '../contexts/ShopContext';
 import { db } from '../lib/firebase';
-import { doc, getDoc, updateDoc, collection, limit, query, getDocs, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, limit, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { CheckCircle2, ChevronRight, Settings, Users, PlusCircle, LayoutDashboard, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
@@ -34,11 +34,11 @@ export default function QuickSetupChecklist() {
   useEffect(() => {
     if (!user || !isVisible) return;
     
-    const custUnsub = onSnapshot(query(collection(db, 'shops', user.uid, 'customers'), limit(1)), (snap) => {
+    const custUnsub = onSnapshot(query(collection(db, 'customers'), where('userId', '==', user.uid), limit(1)), (snap) => {
       setHasCustomers(!snap.empty);
     });
 
-    const ordersUnsub = onSnapshot(query(collection(db, 'shops', user.uid, 'orders'), limit(1)), (snap) => {
+    const ordersUnsub = onSnapshot(query(collection(db, 'orders'), where('userId', '==', user.uid), limit(1)), (snap) => {
       setHasOrders(!snap.empty);
     });
 

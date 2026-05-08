@@ -42,7 +42,7 @@ export default function Orders() {
     if (!user) return;
     
     setLoading(true);
-    const q = query(collection(db, 'shops', user.uid, 'orders'));
+    const q = query(collection(db, 'orders'), where('userId', '==', user.uid));
     const unsubscribe = onSnapshot(q, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setOrders(data.sort((a: any, b: any) => {
@@ -66,7 +66,7 @@ export default function Orders() {
       const history = { ...(order.statusHistory || {}) };
       history[newStatus] = new Date().toISOString();
 
-      await updateDoc(doc(db, 'shops', user!.uid, 'orders', orderId), { 
+      await updateDoc(doc(db, 'orders', orderId), { 
         status: newStatus, 
         statusHistory: history,
         updatedAt: serverTimestamp() 
@@ -115,7 +115,8 @@ export default function Orders() {
             const staffMember = staff.find(s => s.id === order.assignedStaffId);
             if (staffMember) {
               try {
-                await addDoc(collection(db, 'shops', user.uid, 'payroll'), {
+                await addDoc(collection(db, 'payroll'), {
+                  userId: user.uid,
                   staffId: staffMember.id,
                   staffName: staffMember.name,
                   orderId: order.id,
