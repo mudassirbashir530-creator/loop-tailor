@@ -141,24 +141,28 @@ export default function NewOrder() {
 
       const assignedWorker = workers.find(w => w.id === workerId);
       
-      const orderData = {
-        customerId: selectedCustomer.id,
-        customerName: selectedCustomer.name,
-        customerPhone: selectedCustomer.phone,
-        workerId: workerId || undefined,
-        workerName: assignedWorker?.name || undefined,
+      // Clean up data for Firestore (No undefined values)
+      const orderData: any = {
+        customerId: selectedCustomer.id || '',
+        customerName: selectedCustomer.name || '',
+        customerPhone: selectedCustomer.phone || '',
         status: 'pending' as OrderStatus,
-        clothingType: actualClothingType,
-        designNotes: designNotes,
-        measurements: measurements,
-        price: price,
-        advancePayment: advance,
-        remainingPayment: Math.max(0, price - advance),
-        deliveryDate: deliveryDate,
-        referencePhotoUrl,
-        sampleDesignUrl,
-        // if notes needed
+        clothingType: actualClothingType || '',
+        designNotes: designNotes || '',
+        measurements: measurements || {},
+        price: Number(price) || 0,
+        advancePayment: Number(advance) || 0,
+        remainingPayment: Math.max(0, Number(price) - Number(advance)),
+        deliveryDate: deliveryDate || '',
       };
+
+      if (workerId) {
+        orderData.workerId = workerId;
+        orderData.workerName = assignedWorker?.name || '';
+      }
+      
+      if (referencePhotoUrl) orderData.referencePhotoUrl = referencePhotoUrl;
+      if (sampleDesignUrl) orderData.sampleDesignUrl = sampleDesignUrl;
 
       const docId = await addOrder(orderData);
       

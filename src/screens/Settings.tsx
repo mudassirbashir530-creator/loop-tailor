@@ -8,7 +8,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import { useAuth } from '../contexts/AuthContext';
 import { useShop } from '../contexts/ShopContext';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
 import { openWhatsApp } from '../lib/whatsapp';
@@ -51,7 +51,12 @@ export default function Settings() {
   
   const [shopName, setShopName] = useState(settings?.name || '');
   const [phone, setPhone] = useState(settings?.phone || '');
+  const [ownerName, setOwnerName] = useState(settings?.ownerName || '');
+  const [whatsappNumber, setWhatsappNumber] = useState(settings?.whatsappNumber || '');
+  const [address, setAddress] = useState(settings?.address || '');
+  const [businessDescription, setBusinessDescription] = useState(settings?.businessDescription || '');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   const [isCountryCodeOpen, setIsCountryCodeOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
@@ -99,22 +104,30 @@ export default function Settings() {
 
   const handleUpdateProfile = async () => {
     if (!user) return;
+    setIsSaving(true);
     try {
-      await updateDoc(doc(db, 'settings', user.uid), {
+      await setDoc(doc(db, 'settings', user.uid), {
         name: shopName,
         phone: phone,
-      });
-      toast.success("Profile updated");
+        ownerName: ownerName,
+        whatsappNumber: whatsappNumber,
+        address: address,
+        businessDescription: businessDescription
+      }, { merge: true });
+      toast.success("Profile updated perfectly");
       setIsEditingProfile(false);
     } catch (error) {
       toast.error("Failed to update profile");
+      console.error(error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const saveSettingsField = async (field: string, value: any) => {
     if (!user) return;
     try {
-      await updateDoc(doc(db, 'settings', user.uid), { [field]: value });
+      await setDoc(doc(db, 'settings', user.uid), { [field]: value }, { merge: true });
       toast.success("Settings saved");
     } catch (error) {
       toast.error("Failed to save settings");
@@ -220,20 +233,38 @@ export default function Settings() {
       </div>
 
       <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
-        <DialogContent>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Shop Name</label>
               <Input value={shopName} onChange={e => setShopName(e.target.value)} placeholder="Al-Madina Tailors" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Phone</label>
+              <label className="text-sm font-medium">Owner Name</label>
+              <Input value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="John Doe" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone Number</label>
               <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="0300 1234567" />
             </div>
-            <Button onClick={handleUpdateProfile} className="w-full">Save Changes</Button>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">WhatsApp Number</label>
+              <Input value={whatsappNumber} onChange={e => setWhatsappNumber(e.target.value)} placeholder="Same as phone" />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium">Address</label>
+              <Input value={address} onChange={e => setAddress(e.target.value)} placeholder="Shop 12, Main Street" />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-medium">Business Description</label>
+              <Textarea value={businessDescription} onChange={e => setBusinessDescription(e.target.value)} placeholder="Specialists in..." className="resize-none h-24" />
+            </div>
+            <Button onClick={handleUpdateProfile} disabled={isSaving} className="mt-4 md:col-span-2">
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

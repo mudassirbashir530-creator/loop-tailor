@@ -1,19 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
-  --color-primary: #0D3D33;
-  --color-secondary: #0D3D33;
-  --color-accent: #2ECC71;
-  --color-background: #F7F5F0;
-  --color-card: #FFFFFF;
-  --color-foreground: #111111;
-  --color-text-dark: #111111;
-  --color-text-light: #555555;
-  --color-border: #E2DDD6;
-  --color-error: #E53935;
-  --color-destructive: #E53935;
-  --color-destructive-foreground: #FFFFFF;
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
 
   --color-status-pending: #FFA726;
   --color-status-stitching: #42A5F5;
@@ -39,7 +37,7 @@
     --primary-foreground: #FFFFFF;
     --secondary: #0D3D33;
     --secondary-foreground: #FFFFFF;
-    --muted: #F7F5F0;
+    --muted: #EBE8E0;
     --muted-foreground: #555555;
     --accent: #2ECC71;
     --accent-foreground: #FFFFFF;
@@ -50,6 +48,28 @@
     --ring: #0D3D33;
     --radius: 0.75rem;
   }
+  
+  .dark {
+    --background: #121212;
+    --foreground: #F7F5F0;
+    --card: #1E1E1E;
+    --card-foreground: #F7F5F0;
+    --popover: #1E1E1E;
+    --popover-foreground: #F7F5F0;
+    --primary: #2ECC71;
+    --primary-foreground: #111111;
+    --secondary: #2ECC71;
+    --secondary-foreground: #111111;
+    --muted: #2A2A2A;
+    --muted-foreground: #A0A0A0;
+    --accent: #198754;
+    --accent-foreground: #FFFFFF;
+    --destructive: #EF5350;
+    --destructive-foreground: #FFFFFF;
+    --border: #333333;
+    --input: #333333;
+    --ring: #2ECC71;
+  }
 }
 
 @layer base {
@@ -57,7 +77,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased transition-colors duration-300;
   }
 }
 
@@ -69,3 +89,4 @@
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+

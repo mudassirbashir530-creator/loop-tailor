@@ -8,6 +8,9 @@ interface ShopSettings {
   name: string;
   phone: string;
   address: string;
+  ownerName?: string;
+  whatsappNumber?: string;
+  businessDescription?: string;
   logoUrl: string;
   invoiceFooter: string;
   currency: string;
@@ -72,6 +75,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: data.name || '',
           phone: data.phone || '',
           address: data.address || '',
+          ownerName: data.ownerName || '',
+          whatsappNumber: data.whatsappNumber || '',
+          businessDescription: data.businessDescription || '',
           logoUrl: data.logoUrl || '',
           invoiceFooter: data.invoiceFooter || '',
           currency: data.currency || APP_CONFIG.defaultCurrency,

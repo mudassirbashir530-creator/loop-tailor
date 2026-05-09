@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, orderBy, getDocs } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Customer } from '../lib/types';
@@ -81,5 +81,16 @@ export function useCustomers() {
     }
   };
 
-  return { customers, loading, addCustomer, updateCustomer };
+  const deleteCustomer = async (id: string) => {
+     if (!user) return;
+     try {
+        await deleteDoc(doc(db, 'customers', id));
+        toast.success("Customer deleted");
+     } catch (error) {
+        toast.error("Failed to delete customer");
+        handleFirestoreError(error, OperationType.DELETE, `customers/${id}`);
+     }
+  };
+
+  return { customers, loading, addCustomer, updateCustomer, deleteCustomer };
 }
