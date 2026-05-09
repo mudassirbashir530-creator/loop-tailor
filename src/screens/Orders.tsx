@@ -6,6 +6,7 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { useOrders } from '../hooks/useOrders';
+import { useShop } from '../contexts/ShopContext';
 import { formatCurrency, formatDate, cn } from '../lib/utils';
 import { OrderStatus, Order } from '../lib/types';
 import { InvoiceTemplate } from '../components/InvoiceTemplate';
@@ -17,6 +18,7 @@ export default function Orders() {
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const { orders, loading, updateOrderStatus } = useOrders();
+  const { settings } = useShop();
   const invoiceRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -59,8 +61,29 @@ export default function Orders() {
 
   const handleWhatsAppShare = () => {
     if (!selectedOrder) return;
-    const phone = selectedOrder.customerPhone.replace(/[^0-9]/g, '');
-    const message = `Hello ${selectedOrder.customerName}, your order for ${selectedOrder.clothingType} is currently ${selectedOrder.status}. Total price: ${formatCurrency(selectedOrder.price)}, Remaining balance: ${formatCurrency(selectedOrder.remainingPayment)}. Delivery expected by ${formatDate(selectedOrder.deliveryDate)}. Thank you!`;
+    const phone = selectedOrder.customerPhone.replace(/[^0-9+]/g, ''); // KEEP PLUS
+    let templateType = 'orderReceived';
+    if (selectedOrder.status === 'stitching') templateType = 'stitchingStarted';
+    if (selectedOrder.status === 'ready') templateType = 'readyForDelivery';
+    if (selectedOrder.status === 'delivered') templateType = 'deliveredSuccessfully';
+    
+    // allow 'paymentPending' logic if you want but status maps usually to these
+    let rawMessage = settings?.templates?.[templateType];
+    
+    if (!rawMessage) {
+       // fallback
+       rawMessage = `Hello {customerName}, your order for {clothingType} is currently ${selectedOrder.status}. Total price: {totalPrice}, Remaining balance: {remainingAmount}. Delivery expected by {deliveryDate}. Thank you!`;
+    }
+
+    const message = rawMessage
+      .replace(/{customerName}/g, selectedOrder.customerName)
+      .replace(/{orderId}/g, selectedOrder.id.slice(-6).toUpperCase())
+      .replace(/{clothingType}/g, selectedOrder.clothingType)
+      .replace(/{totalPrice}/g, formatCurrency(selectedOrder.price))
+      .replace(/{advanceAmount}/g, formatCurrency(selectedOrder.advancePayment))
+      .replace(/{remainingAmount}/g, formatCurrency(selectedOrder.remainingPayment))
+      .replace(/{deliveryDate}/g, formatDate(selectedOrder.deliveryDate));
+
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };

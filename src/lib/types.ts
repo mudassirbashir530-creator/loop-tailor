@@ -2,7 +2,11 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
+  whatsappPhone?: string;
+  countryCode?: string;
   address?: string;
+  gender?: string;
+  notes?: string;
   totalOrders: number;
   createdAt: string;
   updatedAt?: string;
@@ -28,6 +32,8 @@ export interface Order {
   clothingType: string;
   measurements: Record<string, string>;
   images?: string[];
+  referencePhotoUrl?: string;
+  sampleDesignUrl?: string;
   designNotes?: string;
   price: number;
   advancePayment: number;

@@ -62,9 +62,11 @@ export default function Settings() {
 
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [templates, setTemplates] = useState({
-    newOrder: 'Hi {customerName}, your order #{orderId} has been confirmed. Delivery date is {deliveryDate}. Remaining amount: {remainingAmount}.',
-    readyForDelivery: 'Hi {customerName}, your order #{orderId} is ready for delivery! Please visit the shop or contact us.',
-    paymentReminder: 'Hi {customerName}, a friendly reminder for remaining payment of {remainingAmount} for order #{orderId}.'
+    orderReceived: 'Hi {customerName}, your order #{orderId} for {clothingType} has been received. Total: {totalPrice}, Advance: {advanceAmount}. Delivery expected by {deliveryDate}.',
+    stitchingStarted: 'Hi {customerName}, great news! Stitching for your order #{orderId} has started.',
+    readyForDelivery: 'Hi {customerName}, your order #{orderId} is ready for delivery! Please collect it. Remaining amount: {remainingAmount}.',
+    paymentPending: 'Hi {customerName}, a friendly reminder for remaining payment of {remainingAmount} for order #{orderId}.',
+    deliveredSuccessfully: 'Hi {customerName}, your order #{orderId} has been delivered successfully. Thank you for choosing us!'
   });
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -241,15 +243,23 @@ export default function Settings() {
         <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>WhatsApp Templates</DialogTitle>
-            <DialogDescription>Use variables: {'{customerName}'}, {'{orderId}'}, {'{deliveryDate}'}, {'{remainingAmount}'}</DialogDescription>
+            <DialogDescription>Use variables: {'{customerName}'}, {'{orderId}'}, {'{clothingType}'}, {'{totalPrice}'}, {'{advanceAmount}'}, {'{deliveryDate}'}, {'{remainingAmount}'}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">New Order Created</label>
+              <label className="text-sm font-medium text-foreground">Order Received</label>
               <Textarea 
-                value={templates.newOrder} 
-                onChange={e => setTemplates({...templates, newOrder: e.target.value})} 
-                className="h-24 resize-none"
+                value={templates.orderReceived} 
+                onChange={e => setTemplates({...templates, orderReceived: e.target.value})} 
+                className="h-20 resize-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Stitching Started</label>
+              <Textarea 
+                value={templates.stitchingStarted} 
+                onChange={e => setTemplates({...templates, stitchingStarted: e.target.value})} 
+                className="h-20 resize-none"
               />
             </div>
             <div className="space-y-2">
@@ -257,15 +267,23 @@ export default function Settings() {
               <Textarea 
                 value={templates.readyForDelivery} 
                 onChange={e => setTemplates({...templates, readyForDelivery: e.target.value})} 
-                className="h-24 resize-none"
+                className="h-20 resize-none"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Payment Reminder</label>
+              <label className="text-sm font-medium text-foreground">Payment Pending</label>
               <Textarea 
-                value={templates.paymentReminder} 
-                onChange={e => setTemplates({...templates, paymentReminder: e.target.value})} 
-                className="h-24 resize-none"
+                value={templates.paymentPending} 
+                onChange={e => setTemplates({...templates, paymentPending: e.target.value})} 
+                className="h-20 resize-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Delivered Successfully</label>
+              <Textarea 
+                value={templates.deliveredSuccessfully} 
+                onChange={e => setTemplates({...templates, deliveredSuccessfully: e.target.value})} 
+                className="h-20 resize-none"
               />
             </div>
             <Button onClick={() => {
