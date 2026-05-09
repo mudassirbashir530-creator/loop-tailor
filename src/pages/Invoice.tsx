@@ -6,11 +6,13 @@ import { useShop } from '../contexts/ShopContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
-import { ArrowLeft, ArrowRight, Download, Share2, Edit2, MessageCircle, FileText, Save, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Download, Share2, Edit2, FileText, Save, Image as ImageIcon } from 'lucide-react';
+import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 import { format } from 'date-fns';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { cn } from '../lib/utils';
+import { openWhatsApp } from '../lib/whatsapp';
 import { toast } from 'sonner';
 
 const toDate = (val: any) => {
@@ -215,13 +217,10 @@ export default function Invoice() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        const encodedMessage = encodeURIComponent(messageText);
-        
         if (customer?.phone) {
-          const cleanPhone = customer.phone.replace(/[^\d+]/g, '').replace(/^\+/, '');
-          window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
+          openWhatsApp(customer.phone, messageText);
         } else {
-          window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+          openWhatsApp('', messageText);
         }
       }
     } catch (error) {
@@ -378,7 +377,7 @@ export default function Invoice() {
           )}
           
           <Button variant="ghost" onClick={handleWhatsAppShare} disabled={isGenerating} className="rounded-xl h-10 px-4 bg-[#25D366] text-white hover:bg-[#128C7E] shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-black flex-1 sm:flex-none">
-            <MessageCircle className="h-4 w-4 mr-2" /> {isGenerating ? 'Wait...' : 'WhatsApp'}
+            <WhatsAppIcon className="h-4 w-4 mr-2" /> {isGenerating ? 'Wait...' : 'WhatsApp'}
           </Button>
           
           <Button variant="ghost" onClick={handleShare} disabled={isSharing} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-bold text-slate-700">

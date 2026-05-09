@@ -13,7 +13,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn, isOrderOverdue } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/config';
 import { toast } from 'sonner';
-import { sendOrderReadyMessage } from '../lib/whatsapp';
 import { useStaff } from '../hooks/useStaff';
 import { User } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications';

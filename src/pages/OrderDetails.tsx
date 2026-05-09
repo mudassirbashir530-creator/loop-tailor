@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage } from '../lib/whatsapp';
 import { createNotification, sendWhatsappNotification } from '../lib/notifications';
 import { useStaff } from '../hooks/useStaff';
-import { MessageCircle } from 'lucide-react';
+import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 import { OrderTimeline } from '../components/OrderTimeline';
 
 export default function OrderDetails() {
@@ -653,7 +653,7 @@ export default function OrderDetails() {
           <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden">
             <CardHeader className="bg-surface-container-lowest border-b border-outline-variant p-6">
               <CardTitle className="text-[18px] font-semibold text-[#25D366] flex items-center gap-2">
-                <MessageCircle className="h-5 w-5" />
+                <WhatsAppIcon className="h-5 w-5 fill-current" />
                 WhatsApp Messages
               </CardTitle>
             </CardHeader>
@@ -668,7 +668,7 @@ export default function OrderDetails() {
                     onClick={() => sendOrderReadyMessage(order.customerName, order.dressType || 'Suit', order.tokenId, settings?.name || 'Loop Tailor', order.phone, settings?.messageTemplates)}
                     className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-medium rounded-full h-12 shadow-sm border-none flex justify-center items-center gap-2"
                   >
-                    <MessageCircle className="h-4 w-4" /> Send "Order Ready"
+                    <WhatsAppIcon className="h-4 w-4 fill-current" /> Send "Order Ready"
                   </Button>
                   <Button 
                     variant="outline"

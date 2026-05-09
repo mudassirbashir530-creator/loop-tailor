@@ -27,6 +27,7 @@ import Clients from './screens/Clients';
 import Orders from './screens/Orders';
 import NewOrder from './screens/NewOrder';
 import Settings from './screens/Settings';
+import Invoice from './pages/Invoice';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 
 function LoadingFallback() {
@@ -50,6 +51,15 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  React.useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'system';
+    if (savedTheme === 'dark' || (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <ShopProvider>
@@ -93,6 +103,7 @@ export default function App() {
                   <Route index element={<Home />} />
                   <Route path="clients" element={<Clients />} />
                   <Route path="orders" element={<Orders />} />
+                  <Route path="invoice/:id" element={<Invoice />} />
                   <Route path="new-order" element={<NewOrder />} />
                   <Route path="settings" element={<Settings />} />
                 </Route>

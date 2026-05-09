@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { HelpCircle, ChevronDown, ChevronUp, MessageCircle, X } from 'lucide-react';
+import { HelpCircle, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { useShop } from '../contexts/ShopContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
+import { openWhatsApp } from '../lib/whatsapp';
 
 const FAQs = [
   {
@@ -42,9 +44,8 @@ export default function HelpButton() {
   }
 
   const handleWhatsapp = () => {
-    // Override requested phone number
-    const shopPhone = "923321379924";
-    window.open(`https://wa.me/${shopPhone}?text=Hi! I need some help with Loop Tailor.`, '_blank');
+    const shopPhone = "03321379924";
+    openWhatsApp(shopPhone, "Hi! I need some help with Loop Tailor.");
   };
 
   return (
@@ -97,7 +98,7 @@ export default function HelpButton() {
                 onClick={handleWhatsapp}
                 className="w-full h-12 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black shadow-neu hover:shadow-neu-pressed transition-all flex items-center justify-center gap-2"
               >
-                <MessageCircle className="h-5 w-5" /> Chat on WhatsApp
+                <WhatsAppIcon className="h-5 w-5" /> Chat on WhatsApp
               </Button>
             </div>
           </motion.div>

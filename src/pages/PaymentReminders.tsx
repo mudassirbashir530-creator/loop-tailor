@@ -7,7 +7,9 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Search, Loader2, BellRing, User, Phone, CheckCircle2, MessageCircle, AlertCircle } from 'lucide-react';
+import { Search, Loader2, BellRing, User, Phone, CheckCircle2, AlertCircle } from 'lucide-react';
+import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
+import { openWhatsApp } from '../lib/whatsapp';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
@@ -106,19 +108,13 @@ export default function PaymentReminders() {
     return sum + (price - advance);
   }, 0);
 
-  const getWhatsAppLink = (order: any) => {
+  const handleSendReminder = (order: any) => {
     const cleanPhone = order.phone.replace(/[^\d+]/g, '').replace('+', '');
     const price = Number(order.price) || 0;
     const advance = Number(order.advancePayment) || 0;
     const balance = price - advance;
-    
-    // Assalam o Alaikum {customerName}! Aapka {dressType} tayyar hai. Total: {currency}{price} | Advance: {currency}{advance} | Baaki: {currency}{balance}. Please contact us. - {shopName}
     const message = `Assalam o Alaikum ${order.customerName}! Aapka ${order.dressType} tayyar hai. Total: ${settings.currency}${price} | Advance: ${settings.currency}${advance} | Baaki: ${settings.currency}${balance}. Please contact us. - ${settings.name}`;
-    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-  };
-
-  const handleSendReminder = (order: any) => {
-    window.open(getWhatsAppLink(order), '_blank');
+    openWhatsApp(cleanPhone, message);
   };
 
   const handleSendAllReminders = () => {
@@ -126,7 +122,7 @@ export default function PaymentReminders() {
     if (window.confirm(`Are you sure you want to send ${displayedOrders.length} reminders? This will open WhatsApp for each one in sequence.`)) {
       displayedOrders.forEach((order, index) => {
         setTimeout(() => {
-          window.open(getWhatsAppLink(order), '_blank');
+          handleSendReminder(order);
         }, index * 1500);
       });
     }
@@ -279,7 +275,7 @@ export default function PaymentReminders() {
                           onClick={() => handleSendReminder(order)}
                           className="w-full h-12 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-black shadow-neu hover:shadow-neu-pressed transition-all"
                         >
-                          <MessageCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> 
+                          <WhatsAppIcon className={cn("h-5 w-5 fill-current", isRTL ? "ml-2" : "mr-2")} /> 
                           Send WhatsApp Reminder
                         </Button>
                       </CardContent>

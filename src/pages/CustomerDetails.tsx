@@ -215,8 +215,8 @@ export default function CustomerDetails() {
     if (!user || !id || !customer) return;
     setIsUploading(true);
     try {
-      let referencePhotoUrl = '';
-      let sampleDesignUrl = '';
+      const referencePhotoUrl = '';
+      const sampleDesignUrl = '';
 
       // Get next token ID
       const tokenId = await generateTokenId(user.uid);
@@ -275,6 +275,10 @@ export default function CustomerDetails() {
     }
   };
 
+  // Visual filters for Orders list
+  const [orderFilter, setOrderFilter] = useState<'All' | 'Complete' | 'Not Complete'>('All');
+  const [activeTab, setActiveTab] = useState<'Orders' | 'Measurements'>('Orders');
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 space-y-4">
@@ -285,10 +289,6 @@ export default function CustomerDetails() {
   }
 
   if (!customer) return null;
-
-  // Visual filters for Orders list
-  const [orderFilter, setOrderFilter] = useState<'All' | 'Complete' | 'Not Complete'>('All');
-  const [activeTab, setActiveTab] = useState<'Orders' | 'Measurements'>('Orders');
 
   const filteredOrders = orders.filter(o => {
     if (orderFilter === 'All') return true;

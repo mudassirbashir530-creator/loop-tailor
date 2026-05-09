@@ -85,36 +85,31 @@ export function useImageUpload(): UseImageUploadReturn {
     setProgress(0);
 
     try {
-      // Create FormData to send the file
-      const formData = new FormData();
-      formData.append('image', file);
+      const compressedBlob = await compressImage(file);
+      const storageRef = ref(storage, `${path}/${Date.now()}_${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, compressedBlob);
 
-      setProgress(50); // Show some progress while uploading
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const currentProgress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setProgress(currentProgress);
+          },
+          (err) => {
+            setError(err.message || 'Upload failed');
+            setUploading(false);
+            reject(err);
+          },
+          async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setUploadedUrl(downloadURL);
+            setUploading(false);
+            setProgress(100);
+            resolve(downloadURL);
+          }
+        );
       });
-
-      setProgress(90); // Almost done
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to upload image';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          // If response is not JSON
-        }
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      
-      setUploadedUrl(data.url);
-      setUploading(false);
-      setProgress(100);
-      return data.url;
     } catch (err: any) {
       setError(err.message || 'Upload failed');
       setUploading(false);

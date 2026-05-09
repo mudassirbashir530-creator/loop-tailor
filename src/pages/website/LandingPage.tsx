@@ -1,10 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Sparkles, Package, Users, MessageSquare, FileText, BarChart3, Scissors, CheckCircle, Star } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function LandingPage() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-screen" />; // Wait for auth state
+  }
+
+  if (user) {
+    return <Navigate to="/app" replace />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}

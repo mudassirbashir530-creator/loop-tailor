@@ -438,8 +438,8 @@ export default function QuickOrder() {
         }
 
         // 5. Upload Files (BETA - Disabled for now)
-        let referencePhotoUrl = '';
-        let sampleDesignUrl = '';
+        const referencePhotoUrl = '';
+        const sampleDesignUrl = '';
 
         /* BETA: Image upload is disabled
         if (referencePhoto) {

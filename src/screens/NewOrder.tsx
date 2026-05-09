@@ -10,6 +10,17 @@ import { useOrders } from '../hooks/useOrders';
 import { formatCurrency } from '../lib/utils';
 import { OrderStatus } from '../lib/types';
 
+const PRODUCT_TYPES: Record<string, string[]> = {
+  'Shalwar Kameez': ['Length', 'Shoulder', 'Sleeve', 'Collar', 'Chest', 'Waist', 'Hip', 'Bottom Length', 'Bottom Opening', 'Trouser Waist'],
+  'Kurta': ['Length', 'Shoulder', 'Sleeve', 'Collar', 'Chest', 'Waist', 'Hip'],
+  'Pant': ['Length', 'Waist', 'Hip', 'Thigh', 'Knee', 'Bottom'],
+  'Coat': ['Length', 'Shoulder', 'Sleeve', 'Chest', 'Waist', 'Hip', 'Cross Back'],
+  'Sherwani': ['Length', 'Shoulder', 'Sleeve', 'Collar', 'Chest', 'Waist', 'Hip'],
+  'Waistcoat': ['Length', 'Shoulder', 'Chest', 'Waist', 'Hip'],
+  'Blazer': ['Length', 'Shoulder', 'Sleeve', 'Chest', 'Waist', 'Hip'],
+  'Custom': ['Length', 'Shoulder', 'Sleeve', 'Chest', 'Waist', 'Hip']
+};
+
 export default function NewOrder() {
   const navigate = useNavigate();
   const { customers, loading: loadingCustomers } = useCustomers();
@@ -19,6 +30,7 @@ export default function NewOrder() {
   const [loading, setLoading] = useState(false);
   const [price, setPrice] = useState(0);
   const [advance, setAdvance] = useState(0);
+  const [selectedType, setSelectedType] = useState('Shalwar Kameez');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,6 +42,12 @@ export default function NewOrder() {
     
     const workerId = formData.get('workerId') as string;
     const worker = workers.find(w => w.id === workerId);
+    
+    const measurements: Record<string, string> = {};
+    const measureFields = PRODUCT_TYPES[selectedType] || PRODUCT_TYPES['Custom'];
+    measureFields.forEach(field => {
+      measurements[field.toLowerCase().replace(' ', '_')] = formData.get(`measure_${field}`) as string || '';
+    });
 
     const orderData = {
       customerId,
@@ -38,16 +56,9 @@ export default function NewOrder() {
       workerId: workerId || undefined,
       workerName: worker?.name || undefined,
       status: 'pending' as OrderStatus,
-      clothingType: formData.get('clothingType') as string,
+      clothingType: selectedType === 'Custom' ? (formData.get('customClothingType') as string || 'Custom') : selectedType,
       designNotes: formData.get('designNotes') as string,
-      measurements: {
-        shoulder: formData.get('shoulder') as string,
-        chest: formData.get('chest') as string,
-        waist: formData.get('waist') as string,
-        hip: formData.get('hip') as string,
-        length: formData.get('length') as string,
-        sleeve: formData.get('sleeve') as string,
-      },
+      measurements,
       price: price,
       advancePayment: advance,
       remainingPayment: Math.max(0, price - advance),
@@ -96,8 +107,24 @@ export default function NewOrder() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Clothing Type</label>
-              <Input name="clothingType" placeholder="e.g. Shalwar Kameez, Pant Coat" required />
+              <select 
+                value={selectedType}
+                onChange={e => setSelectedType(e.target.value)}
+                className="w-full h-12 rounded-xl border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" 
+                required
+              >
+                {Object.keys(PRODUCT_TYPES).map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
             </div>
+            
+            {selectedType === 'Custom' && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Custom Type Name</label>
+                <Input name="customClothingType" placeholder="e.g. T-Shirt" required />
+              </div>
+            )}
             
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Assign Worker (Optional)</label>
@@ -123,12 +150,12 @@ export default function NewOrder() {
         {/* Card 3: Measurements */}
         <FormCard title="Measurements (Inches)" icon={<Ruler className="h-5 w-5" />}>
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground uppercase">Shoulder</label><Input name="shoulder" type="number" step="0.25" placeholder="0.0" /></div>
-            <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground uppercase">Chest</label><Input name="chest" type="number" step="0.25" placeholder="0.0" /></div>
-            <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground uppercase">Waist</label><Input name="waist" type="number" step="0.25" placeholder="0.0" /></div>
-            <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground uppercase">Hip</label><Input name="hip" type="number" step="0.25" placeholder="0.0" /></div>
-            <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground uppercase">Length</label><Input name="length" type="number" step="0.25" placeholder="0.0" /></div>
-            <div className="space-y-1.5"><label className="text-xs font-medium text-muted-foreground uppercase">Sleeve</label><Input name="sleeve" type="number" step="0.25" placeholder="0.0" /></div>
+            {(PRODUCT_TYPES[selectedType] || PRODUCT_TYPES['Custom']).map(field => (
+              <div key={field} className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground uppercase">{field}</label>
+                <Input name={`measure_${field}`} type="number" step="0.25" placeholder="0.0" />
+              </div>
+            ))}
           </div>
         </FormCard>
 

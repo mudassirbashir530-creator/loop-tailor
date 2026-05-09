@@ -13,6 +13,12 @@ interface ShopSettings {
   currency: string;
   uiTheme: 'neumorphic' | 'minimalist' | 'elegant';
   enableWhatsappNotifications?: boolean;
+  countryCode?: string;
+  templates?: {
+    newOrder?: string;
+    readyForDelivery?: string;
+    paymentReminder?: string;
+  };
   messageTemplates?: {
     orderReady?: string;
     delivered?: string;
@@ -71,6 +77,8 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
           currency: data.currency || APP_CONFIG.defaultCurrency,
           uiTheme: data.uiTheme || 'neumorphic',
           enableWhatsappNotifications: !!data.enableWhatsappNotifications,
+          countryCode: data.countryCode || '+92',
+          templates: data.templates || undefined,
           messageTemplates: data.messageTemplates || undefined,
         });
       }

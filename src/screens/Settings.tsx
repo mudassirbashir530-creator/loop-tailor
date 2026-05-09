@@ -11,6 +11,7 @@ import { useShop } from '../contexts/ShopContext';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
+import { openWhatsApp } from '../lib/whatsapp';
 
 const COUNTRY_CODES = [
   { code: '+92', name: 'Pakistan', flag: '🇵🇰' },
@@ -394,7 +395,7 @@ export default function Settings() {
 
             <Button 
               className="w-full mt-4 bg-[#25D366] hover:bg-[#20bd5a] text-white" 
-              onClick={() => window.open('https://wa.me/923321379924', '_blank')}
+              onClick={() => openWhatsApp('03321379924', 'Hi! I need some help with Loop Tailor.')}
             >
               <WhatsAppIcon className="mr-2 h-5 w-5 fill-current" />
               Chat on WhatsApp

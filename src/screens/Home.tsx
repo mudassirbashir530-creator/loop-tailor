@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp, Clock, CheckCircle, Banknote, Loader2 } from 'lucide-react';
-import { Card, CardContent } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { useOrders } from '../hooks/useOrders';
 import { formatCurrency, formatDate } from '../lib/utils';
-import { isToday } from 'date-fns';
-import { motion } from 'framer-motion';
+import { isToday, subDays, format } from 'date-fns';
+import { motion, Variants } from 'motion/react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1,
@@ -16,7 +17,7 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
 };
@@ -28,6 +29,18 @@ export default function Home() {
   const pendingOrders = orders.filter(o => o.status !== 'delivered').length;
   const completedToday = orders.filter(o => o.status === 'delivered' && isToday(new Date(o.updatedAt))).length;
   const revenue = orders.reduce((sum, order) => sum + (order.advancePayment || 0) + (order.price - order.remainingPayment), 0);
+
+  const chartData = useMemo(() => {
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = subDays(new Date(), i);
+      const dateStr = format(d, 'MMM dd');
+      const dayOrders = orders.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === d.toDateString());
+      const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.advancePayment || 0) + (order.price - order.remainingPayment), 0);
+      data.push({ name: dateStr, revenue: dayRevenue, orders: dayOrders.length });
+    }
+    return data;
+  }, [orders]);
 
   if (loading) {
      return <div className="min-h-[50vh] flex items-center justify-center"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
@@ -73,6 +86,25 @@ export default function Home() {
           icon={<Banknote className="h-5 w-5 text-primary" />}
           iconBg="bg-primary/10"
         />
+      </motion.div>
+
+      {/* Analytics Chart */}
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Revenue (Last 7 Days)</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
+                <Tooltip cursor={{fill: '#f4f4f5'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                <Bar dataKey="revenue" fill="currentColor" className="fill-primary" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </motion.div>
 
       {/* Recent Orders */}

@@ -26,15 +26,8 @@ export interface Order {
   workerName?: string;
   status: OrderStatus;
   clothingType: string;
-  measurements: {
-    shoulder?: string;
-    chest?: string;
-    waist?: string;
-    hip?: string;
-    length?: string;
-    sleeve?: string;
-    neck?: string;
-  };
+  measurements: Record<string, string>;
+  images?: string[];
   designNotes?: string;
   price: number;
   advancePayment: number;
