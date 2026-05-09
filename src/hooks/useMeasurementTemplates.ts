@@ -28,8 +28,6 @@ export function useMeasurementTemplates() {
 
   useEffect(() => {
     if (!user) {
-      setTemplates([]);
-      setLoading(false);
       return;
     }
 

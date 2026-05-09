@@ -44,16 +44,20 @@ const ShopContext = createContext<ShopContextType>({
 export const useShop = () => useContext(ShopContext);
 
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [settings, setSettings] = useState<ShopSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!user) {
       setSettings(defaultSettings);
       setLoading(false);
       return;
     }
+
+    setLoading(true);
 
     const unsubscribe = onSnapshot(doc(db, 'settings', user.uid), (docSnap) => {
       if (docSnap.exists()) {

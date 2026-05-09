@@ -12,8 +12,8 @@ export function useOrders() {
 
   useEffect(() => {
     if (!user) {
-      setOrders([]);
-      setLoading(false);
+      // Don't change data if auth is still resolving, to avoid flash.
+      // But if user is truly null, we can set it empty.
       return;
     }
 

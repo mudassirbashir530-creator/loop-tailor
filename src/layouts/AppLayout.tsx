@@ -18,9 +18,9 @@ export default function AppLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-background font-sans flex flex-col md:flex-row">
+    <div className="min-h-screen bg-background font-sans flex flex-col lg:flex-row">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card min-h-screen sticky top-0">
+      <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card min-h-screen sticky top-0">
         <div className="p-6 flex items-center gap-3 border-b">
           <div className="bg-primary text-white p-2 rounded-lg">
             <Scissors className="h-6 w-6" />
@@ -65,7 +65,7 @@ export default function AppLayout() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 pb-24 md:pb-0 overflow-y-auto w-full md:max-w-none max-w-screen-xl mx-auto">
+      <main className="flex-1 pb-24 lg:pb-0 overflow-y-auto w-full lg:max-w-none max-w-screen-xl mx-auto">
         <Outlet />
       </main>
 

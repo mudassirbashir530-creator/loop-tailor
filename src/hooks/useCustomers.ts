@@ -12,8 +12,6 @@ export function useCustomers() {
 
   useEffect(() => {
     if (!user) {
-      setCustomers([]);
-      setLoading(false);
       return;
     }
 

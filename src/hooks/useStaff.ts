@@ -21,8 +21,6 @@ export function useStaff() {
 
   useEffect(() => {
     if (!user) {
-      setStaff([]);
-      setLoading(false);
       return;
     }
 

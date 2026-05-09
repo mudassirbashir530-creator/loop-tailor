@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 
@@ -25,15 +25,8 @@ export function useOrderTemplates(shopId: string | undefined): UseOrderTemplates
   const [templates, setTemplates] = useState<OrderTemplate[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!shopId) {
-      setLoading(false);
-      return;
-    }
-    fetchTemplates();
-  }, [shopId]);
-
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
+    if (!shopId) return;
     try {
       const q = query(collection(db, 'orderTemplates'), where('userId', '==', shopId));
       const snap = await getDocs(q);
@@ -50,7 +43,14 @@ export function useOrderTemplates(shopId: string | undefined): UseOrderTemplates
     } finally {
       setLoading(false);
     }
-  };
+  }, [shopId]);
+
+  useEffect(() => {
+    if (!shopId) {
+      return;
+    }
+    fetchTemplates();
+  }, [shopId, fetchTemplates]);
 
   const saveTemplate = async (data: Omit<OrderTemplate, 'id' | 'createdAt'>) => {
     if (!shopId) return;

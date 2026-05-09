@@ -9,13 +9,13 @@ export default function BottomNav() {
   const navItems = [
     { icon: Home, label: 'Home', path: '/app' },
     { icon: Users, label: 'Clients', path: '/app/clients' },
-    { icon: Plus, label: 'New', path: '/app/new-order', isCenter: true },
+    { icon: Plus, label: 'New Order', path: '/app/new-order', isCenter: true },
     { icon: Package, label: 'Orders', path: '/app/orders' },
     { icon: Settings, label: 'Settings', path: '/app/settings' },
   ];
 
   return (
-    <div className="fixed bottom-0 w-full bg-card border-t border-border z-40 md:hidden pb-safe">
+    <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 lg:hidden pb-safe rounded-t-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || 

@@ -5,16 +5,13 @@ import { auth, db } from '../lib/firebase';
 import { toast } from 'sonner';
 
 export function usePushNotifications() {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [permission, setPermission] = useState<NotificationPermission>(() => 
+    'Notification' in window ? Notification.permission : 'default'
+  );
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Check current permission status on mount
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
-    }
-  }, []);
+
 
   const requestPermission = async () => {
     try {

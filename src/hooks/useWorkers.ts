@@ -12,8 +12,6 @@ export function useWorkers() {
 
   useEffect(() => {
     if (!user) {
-      setWorkers([]);
-      setLoading(false);
       return;
     }
 
