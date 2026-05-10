@@ -14,16 +14,18 @@ interface UploadResponse {
   format: string;
 }
 
+import { CloudinaryImage } from './types';
+
 /**
  * Uploads an image file to Cloudinary using the unsigned upload preset.
  * @param file The file to upload
  * @param onProgress Optional callback for upload progress
- * @returns {Promise<string>} The secure URL of the uploaded image
+ * @returns {Promise<CloudinaryImage>} The secure URL and public ID of the uploaded image
  */
 export async function uploadToCloudinary(
   file: File | Blob,
   onProgress?: (progress: number) => void
-): Promise<string> {
+): Promise<CloudinaryImage> {
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
     throw new Error('Cloudinary configuration is missing. Check your environment variables.');
   }
@@ -49,7 +51,10 @@ export async function uploadToCloudinary(
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const response: UploadResponse = JSON.parse(xhr.responseText);
-          resolve(response.secure_url);
+          resolve({
+            url: response.secure_url,
+            publicId: response.public_id
+          });
         } catch (e) {
           reject(new Error('Failed to parse Cloudinary response.'));
         }

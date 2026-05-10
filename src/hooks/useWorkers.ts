@@ -36,7 +36,7 @@ export function useWorkers() {
       setWorkers(workersData);
       setLoading(false);
     }, (error) => {
-      console.error(error);
+      handleFirestoreError(error, OperationType.LIST, 'workers');
       setLoading(false);
     });
 

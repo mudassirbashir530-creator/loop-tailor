@@ -34,7 +34,9 @@ export function useCustomers() {
             gender: data.gender || 'male',
             notes: data.notes || '',
             address: data.address || '',
+            profileImage: data.profileImage || null,
             totalOrders: data.totalOrders || 0,
+            createdBy: data.createdBy || data.userId || '',
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
             updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
           });
@@ -44,14 +46,14 @@ export function useCustomers() {
       setCustomers(customersData);
       setLoading(false);
     }, (error) => {
-      console.error(error);
+      handleFirestoreError(error, OperationType.LIST, 'customers');
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, [user]);
 
-  const addCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'totalOrders'>) => {
+  const addCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'totalOrders' | 'createdBy'>) => {
     if (!user) return null;
     try {
       const docRef = await addDoc(collection(db, 'customers'), {

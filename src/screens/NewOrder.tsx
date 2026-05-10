@@ -11,12 +11,10 @@ import { useCustomers } from '../hooks/useCustomers';
 import { useWorkers } from '../hooks/useWorkers';
 import { useOrders } from '../hooks/useOrders';
 import { formatCurrency, generateTokenId } from '../lib/utils';
-import { OrderStatus } from '../lib/types';
-import { motion, AnimatePresence } from 'framer-motion';
-import { getMeasurementCategoriesForDress } from '../lib/measurements';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
+import { getMeasurementCategoriesForDress } from '../lib/measurements';
 
 export const CLOTHING_CATEGORIES = [
   { group: 'Men', options: ['Shalwar Kameez', 'Kurta', 'Waistcoat', 'Pant', 'Shirt', 'Coat', 'Blazer', 'Sherwani', 'Prince Coat', 'Safari Suit'] },
@@ -26,6 +24,8 @@ export const CLOTHING_CATEGORIES = [
 ];
 
 import { uploadToCloudinary } from '../lib/cloudinary';
+import { CloudinaryImage, OrderStatus } from '../lib/types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function ImagePreview({ file, onRemove, progress }: { file: File, onRemove: () => void, progress?: number }) {
   const [url, setUrl] = useState<string>('');
@@ -162,8 +162,8 @@ export default function NewOrder() {
     
     setLoading(true);
     try {
-      const uploadedReferenceUrls: string[] = [];
-      const uploadedDesignUrls: string[] = [];
+      const uploadedReferenceImages: CloudinaryImage[] = [];
+      const uploadedDesignImages: CloudinaryImage[] = [];
       
       const actualClothingType = clothingType === 'Custom Design' ? (customClothingType || 'Custom Design') : clothingType;
       
@@ -172,10 +172,10 @@ export default function NewOrder() {
         const file = referenceImages[i];
         const progressId = `ref-${i}`;
         try {
-          const url = await uploadToCloudinary(file, (p) => {
+          const img = await uploadToCloudinary(file, (p) => {
             setUploadProgress(prev => ({ ...prev, [progressId]: p }));
           });
-          uploadedReferenceUrls.push(url);
+          uploadedReferenceImages.push(img);
         } catch (e) {
           console.error("Cloudinary ref upload failed:", e);
           toast.error(`Failed to upload reference image ${i + 1}`);
@@ -187,10 +187,10 @@ export default function NewOrder() {
         const file = designImages[i];
         const progressId = `design-${i}`;
         try {
-          const url = await uploadToCloudinary(file, (p) => {
+          const img = await uploadToCloudinary(file, (p) => {
             setUploadProgress(prev => ({ ...prev, [progressId]: p }));
           });
-          uploadedDesignUrls.push(url);
+          uploadedDesignImages.push(img);
         } catch (e) {
           console.error("Cloudinary design upload failed:", e);
           toast.error(`Failed to upload design image ${i + 1}`);
@@ -211,8 +211,8 @@ export default function NewOrder() {
         advancePayment: Number(advance) || 0,
         remainingPayment: Math.max(0, Number(price) - Number(advance)),
         deliveryDate: deliveryDate || '',
-        referenceImages: uploadedReferenceUrls,
-        designImages: uploadedDesignUrls,
+        referenceImages: uploadedReferenceImages,
+        designImages: uploadedDesignImages,
         createdBy: user?.uid,
       };
 
@@ -222,8 +222,8 @@ export default function NewOrder() {
       }
       
       // Compatibility with old code/other parts if needed
-      if (uploadedReferenceUrls.length > 0) orderData.referencePhotoUrl = uploadedReferenceUrls[0];
-      if (uploadedDesignUrls.length > 0) orderData.sampleDesignUrl = uploadedDesignUrls[0];
+      if (uploadedReferenceImages.length > 0) orderData.referencePhotoUrl = uploadedReferenceImages[0].url;
+      if (uploadedDesignImages.length > 0) orderData.sampleDesignUrl = uploadedDesignImages[0].url;
 
       const docId = await addOrder(orderData);
       

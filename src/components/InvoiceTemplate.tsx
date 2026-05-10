@@ -19,14 +19,23 @@ export const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
     >
       {/* Header */}
       <div className="flex justify-between items-start border-b-2 border-gray-100 pb-6 mb-8">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-4">
+          {settings.shopLogo ? (
+            <img 
+              src={typeof settings.shopLogo === 'string' ? settings.shopLogo : settings.shopLogo.url} 
+              className="h-16 w-16 rounded-xl object-cover bg-gray-50 border shadow-sm" 
+              alt="Logo"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
             <div className="bg-primary text-white p-2 rounded">
               <Scissors className="h-6 w-6" />
             </div>
-            <span className="font-bold text-2xl text-primary">{settings.name || 'Loop Tailor Shop'}</span>
+          )}
+          <div>
+            <span className="font-bold text-2xl text-primary block">{settings.name || 'Loop Tailor Shop'}</span>
+            <p className="text-gray-600 text-sm mt-0.5">{settings.phone}</p>
           </div>
-          <p className="text-gray-600">{settings.phone}</p>
         </div>
         <div className="text-right">
           <h1 className="text-3xl font-light text-gray-400 tracking-widest uppercase mb-2">Invoice</h1>

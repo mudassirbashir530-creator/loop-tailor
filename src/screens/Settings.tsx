@@ -12,6 +12,9 @@ import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
 import { openWhatsApp } from '../lib/whatsapp';
+import { uploadToCloudinary } from '../lib/cloudinary';
+import { CloudinaryImage } from '../lib/types';
+import { Camera, Upload, X as CloseIcon, Loader2 } from 'lucide-react';
 
 const COUNTRY_CODES = [
   { code: '+92', name: 'Pakistan', flag: '🇵🇰' },
@@ -57,6 +60,9 @@ export default function Settings() {
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [address, setAddress] = useState('');
   const [businessDescription, setBusinessDescription] = useState('');
+  const [shopLogo, setShopLogo] = useState<string | CloudinaryImage | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -89,6 +95,7 @@ export default function Settings() {
       setWhatsappNumber(settings.whatsappNumber || '');
       setAddress(settings.address || '');
       setBusinessDescription(settings.businessDescription || '');
+      setShopLogo(settings.shopLogo || null);
       setSelectedCountryCode(settings.countryCode || '+92');
       if (settings.templates) {
         setTemplates(prev => ({ ...prev, ...settings.templates }));
@@ -116,16 +123,24 @@ export default function Settings() {
     if (!user) return;
     setIsSaving(true);
     try {
+      let finalLogo = shopLogo;
+      if (logoFile) {
+        finalLogo = await uploadToCloudinary(logoFile, setUploadProgress);
+      }
+
       await setDoc(doc(db, 'settings', user.uid), {
         name: shopName,
         phone: phone,
         ownerName: ownerName,
         whatsappNumber: whatsappNumber,
         address: address,
-        businessDescription: businessDescription
+        businessDescription: businessDescription,
+        shopLogo: finalLogo
       }, { merge: true });
       toast.success("Profile updated perfectly");
       setIsEditingProfile(false);
+      setLogoFile(null);
+      setUploadProgress(0);
     } catch (error) {
       toast.error("Failed to update profile");
       console.error(error);
@@ -182,9 +197,18 @@ export default function Settings() {
       <div className="bg-primary rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
         <div className="flex items-center gap-4 relative z-10">
-          <div className="h-16 w-16 rounded-full bg-white text-primary flex items-center justify-center text-xl font-bold shadow-sm uppercase">
-            {shopName?.substring(0, 2) || user?.displayName?.substring(0, 2) || 'LT'}
-          </div>
+          {settings?.shopLogo ? (
+            <img 
+              src={typeof settings.shopLogo === 'string' ? settings.shopLogo : settings.shopLogo.url} 
+              className="h-16 w-16 rounded-full border-2 border-white/50 object-cover bg-white shadow-sm" 
+              alt="logo" 
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="h-16 w-16 rounded-full bg-white text-primary flex items-center justify-center text-xl font-bold shadow-sm uppercase shrink-0">
+              {shopName?.substring(0, 2) || user?.displayName?.substring(0, 2) || 'LT'}
+            </div>
+          )}
           <div>
             <h2 className="text-xl font-bold">{shopName || user?.displayName || 'Your Tailor Shop'}</h2>
             <p className="text-primary-foreground/80 text-sm">{phone || user?.email}</p>
@@ -258,6 +282,52 @@ export default function Settings() {
             <DialogTitle className="text-xl">Shop Profile</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="md:col-span-2 space-y-2 mb-4">
+              <label className="text-sm font-semibold text-foreground">Shop Logo</label>
+              <div className="flex items-center gap-6">
+                <div className="relative group">
+                  <label className="relative flex-shrink-0 w-24 h-24 border-2 border-dashed rounded-xl cursor-pointer hover:bg-muted/50 transition-all flex items-center justify-center overflow-hidden bg-muted/20">
+                    {logoFile || shopLogo ? (
+                      <img 
+                        src={logoFile ? URL.createObjectURL(logoFile) : (typeof shopLogo === 'string' ? shopLogo : shopLogo?.url)} 
+                        className="w-full h-full object-cover" 
+                        alt="logo" 
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <Upload className="w-6 h-6 text-muted-foreground group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] text-muted-foreground mt-1">Upload</span>
+                      </div>
+                    )}
+                    <input type="file" className="hidden" accept="image/*" onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) setLogoFile(file);
+                    }} />
+                  </label>
+                  {(logoFile || shopLogo) && (
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setLogoFile(null);
+                        setShopLogo(null);
+                      }}
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <CloseIcon className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <p className="text-xs text-muted-foreground">Upload your shop logo. This will appear on all invoices and WhatsApp shares.</p>
+                  {uploadProgress > 0 && (
+                    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className="bg-primary h-full transition-all" style={{ width: `${uploadProgress}%` }} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground">Shop Name</label>
               <Input value={shopName} onChange={e => setShopName(e.target.value)} placeholder="Al-Madina Tailors" />

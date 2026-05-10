@@ -7,7 +7,7 @@ import { useCustomers } from '../hooks/useCustomers';
 import { formatDate } from '../lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
-import { Customer } from '../lib/types';
+import { Customer, CloudinaryImage } from '../lib/types';
 import { toast } from 'sonner';
 import { uploadToCloudinary } from '../lib/cloudinary';
 
@@ -22,7 +22,16 @@ export default function Clients() {
   
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    phone: string;
+    whatsappPhone: string;
+    countryCode: string;
+    address: string;
+    gender: string;
+    notes: string;
+    profileImage: string | CloudinaryImage | null;
+  }>({
     name: '',
     phone: '',
     whatsappPhone: '',
@@ -30,7 +39,7 @@ export default function Clients() {
     address: '',
     gender: 'male',
     notes: '',
-    profileImage: ''
+    profileImage: null
   });
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -41,7 +50,7 @@ export default function Clients() {
   );
 
   const resetForm = () => {
-    setFormData({ name: '', phone: '', whatsappPhone: '', countryCode: '+92', address: '', gender: 'male', notes: '', profileImage: '' });
+    setFormData({ name: '', phone: '', whatsappPhone: '', countryCode: '+92', address: '', gender: 'male', notes: '', profileImage: null });
     setProfileImageFile(null);
     setUploadProgress(0);
   };
@@ -60,7 +69,8 @@ export default function Clients() {
       countryCode: c.countryCode || '+92',
       address: c.address || '',
       gender: c.gender || 'male',
-      notes: c.notes || ''
+      notes: c.notes || '',
+      profileImage: c.profileImage || null
     });
     setIsEditOpen(true);
   };
@@ -78,12 +88,12 @@ export default function Clients() {
     }
     setIsSubmitting(true);
     try {
-      let profileImageUrl = '';
+      let finalProfileImage: CloudinaryImage | null = null;
       if (profileImageFile) {
-        profileImageUrl = await uploadToCloudinary(profileImageFile, setUploadProgress);
+        finalProfileImage = await uploadToCloudinary(profileImageFile, setUploadProgress);
       }
       
-      await addCustomer({ ...formData, profileImage: profileImageUrl });
+      await addCustomer({ ...formData, profileImage: finalProfileImage });
       setIsAddOpen(false);
       resetForm();
       toast.success("Customer added successfully");
@@ -105,12 +115,12 @@ export default function Clients() {
     }
     setIsSubmitting(true);
     try {
-      let profileImageUrl = formData.profileImage;
+      let finalProfileImage = formData.profileImage;
       if (profileImageFile) {
-        profileImageUrl = await uploadToCloudinary(profileImageFile, setUploadProgress);
+        finalProfileImage = await uploadToCloudinary(profileImageFile, setUploadProgress);
       }
       
-      await updateCustomer(selectedCustomer.id, { ...formData, profileImage: profileImageUrl });
+      await updateCustomer(selectedCustomer.id, { ...formData, profileImage: finalProfileImage });
       setIsEditOpen(false);
       setSelectedCustomer(null);
       toast.success("Customer updated successfully");
@@ -197,23 +207,37 @@ export default function Clients() {
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium">Profile Image</label>
                 <div className="flex items-center gap-4">
-                  <label className="relative flex-shrink-0 w-20 h-20 border-2 border-dashed rounded-full cursor-pointer hover:bg-muted/50 transition-colors flex items-center justify-center overflow-hidden">
-                    {profileImageFile || formData.profileImage ? (
-                      <img 
-                        src={profileImageFile ? URL.createObjectURL(profileImageFile) : formData.profileImage} 
-                        className="w-full h-full object-cover" 
-                        alt="profile" 
-                      />
-                    ) : (
-                      <Upload className="w-6 h-6 text-muted-foreground" />
+                  <div className="relative group">
+                    <label className="relative flex-shrink-0 w-20 h-20 border-2 border-dashed rounded-full cursor-pointer hover:bg-muted/50 transition-all flex items-center justify-center overflow-hidden">
+                      {profileImageFile || formData.profileImage ? (
+                        <img 
+                          src={profileImageFile ? URL.createObjectURL(profileImageFile) : (typeof formData.profileImage === 'string' ? formData.profileImage : formData.profileImage?.url)} 
+                          className="w-full h-full object-cover" 
+                          alt="profile" 
+                        />
+                      ) : (
+                        <Upload className="w-6 h-6 text-muted-foreground group-hover:scale-110 transition-transform" />
+                      )}
+                      <input type="file" className="hidden" accept="image/*" onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) setProfileImageFile(file);
+                      }} />
+                    </label>
+                    {(profileImageFile || formData.profileImage) && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setProfileImageFile(null);
+                          setFormData(prev => ({ ...prev, profileImage: null }));
+                        }}
+                        className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     )}
-                    <input type="file" className="hidden" accept="image/*" onChange={e => {
-                      const file = e.target.files?.[0];
-                      if (file) setProfileImageFile(file);
-                    }} />
-                  </label>
+                  </div>
                   <div className="flex-1">
-                    <p className="text-xs text-muted-foreground mb-2">Upload a professional profile photo for your client.</p>
+                    <p className="text-xs text-muted-foreground mb-2">Upload a profile photo. High quality JPG or PNG works best.</p>
                     {uploadProgress > 0 && (
                       <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                         <div className="bg-primary h-full transition-all" style={{ width: `${uploadProgress}%` }} />
@@ -277,23 +301,37 @@ export default function Clients() {
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium">Profile Image</label>
                 <div className="flex items-center gap-4">
-                  <label className="relative flex-shrink-0 w-20 h-20 border-2 border-dashed rounded-full cursor-pointer hover:bg-muted/50 transition-colors flex items-center justify-center overflow-hidden">
-                    {profileImageFile || formData.profileImage ? (
-                      <img 
-                        src={profileImageFile ? URL.createObjectURL(profileImageFile) : formData.profileImage} 
-                        className="w-full h-full object-cover" 
-                        alt="profile" 
-                      />
-                    ) : (
-                      <Upload className="w-6 h-6 text-muted-foreground" />
+                  <div className="relative group">
+                    <label className="relative flex-shrink-0 w-20 h-20 border-2 border-dashed rounded-full cursor-pointer hover:bg-muted/50 transition-all flex items-center justify-center overflow-hidden">
+                      {profileImageFile || formData.profileImage ? (
+                        <img 
+                          src={profileImageFile ? URL.createObjectURL(profileImageFile) : (typeof formData.profileImage === 'string' ? formData.profileImage : formData.profileImage?.url)} 
+                          className="w-full h-full object-cover" 
+                          alt="profile" 
+                        />
+                      ) : (
+                        <Upload className="w-6 h-6 text-muted-foreground group-hover:scale-110 transition-transform" />
+                      )}
+                      <input type="file" className="hidden" accept="image/*" onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) setProfileImageFile(file);
+                      }} />
+                    </label>
+                    {(profileImageFile || formData.profileImage) && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setProfileImageFile(null);
+                          setFormData(prev => ({ ...prev, profileImage: null }));
+                        }}
+                        className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     )}
-                    <input type="file" className="hidden" accept="image/*" onChange={e => {
-                      const file = e.target.files?.[0];
-                      if (file) setProfileImageFile(file);
-                    }} />
-                  </label>
+                  </div>
                   <div className="flex-1">
-                    <p className="text-xs text-muted-foreground mb-2">Upload a professional profile photo for your client.</p>
+                    <p className="text-xs text-muted-foreground mb-2">Upload a profile photo. High quality JPG or PNG works best.</p>
                     {uploadProgress > 0 && (
                       <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                         <div className="bg-primary h-full transition-all" style={{ width: `${uploadProgress}%` }} />
@@ -364,9 +402,14 @@ export default function Clients() {
                 <CardContent className="p-0">
                   <div className="p-5 flex gap-4">
                     {customer.profileImage ? (
-                      <img src={customer.profileImage} className="h-12 w-12 shrink-0 rounded-full object-cover border" alt={customer.name} />
+                      <img 
+                        src={typeof customer.profileImage === 'string' ? customer.profileImage : customer.profileImage.url} 
+                        className="h-12 w-12 shrink-0 rounded-full object-cover border bg-muted shadow-inner" 
+                        alt={customer.name} 
+                        referrerPolicy="no-referrer"
+                      />
                     ) : (
-                      <div className="h-12 w-12 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
+                      <div className="h-12 w-12 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg shadow-inner">
                         {(customer.name || 'C').charAt(0).toUpperCase()}
                       </div>
                     )}

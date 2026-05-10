@@ -42,6 +42,7 @@ export function useOrders() {
             advancePayment: data.advancePayment || 0,
             remainingPayment: data.remainingPayment || 0,
             deliveryDate: data.deliveryDate || '',
+            createdBy: data.createdBy || data.userId || '',
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
             updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
           });
@@ -53,14 +54,14 @@ export function useOrders() {
       setOrders(ordersData);
       setLoading(false);
     }, (error) => {
-      console.error(error);
+      handleFirestoreError(error, OperationType.LIST, 'orders');
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, [user]);
 
-  const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>) => {
     if (!user) return null;
     try {
       const docRef = await addDoc(collection(db, 'orders'), {

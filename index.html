@@ -81,8 +81,20 @@
     }
     </script>
     <script>
-      // The issue with `window.fetch` being overwritten by formdata-polyfill is fixed in vite.config.ts by aliasing it to an empty file.
-      // We avoid redefine window.fetch here to prevent "only a getter" errors in sandboxed environments.
+      // Some polyfills try to overwrite window.fetch. In sandboxed environments, 
+      // window.fetch might be a read-only getter, which causes a TypeError.
+      // We try to head this off early.
+      (function() {
+        try {
+          var desc = Object.getOwnPropertyDescriptor(window, 'fetch');
+          if (desc && !desc.writable && !desc.set && desc.configurable) {
+            // If it's a getter-only but configurable, we might be able to make it writable
+            // but usually we just want to avoid anything trying to set it.
+            // Since we can't easily stop other scripts from SETTING it without Proxy,
+            // we have aliased common polyfills in vite.config.ts.
+          }
+        } catch (e) {}
+      })();
     </script>
     <meta name="google-site-verification" content="CY_KIunjykzDWEqpnwB8cfC68vaDjwcdAOizTqXrl8c" />
     <script type="application/ld+json">

@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { APP_CONFIG } from '../lib/config';
+import { CloudinaryImage } from '../lib/types';
 
 interface ShopSettings {
   name: string;
@@ -12,6 +13,7 @@ interface ShopSettings {
   whatsappNumber?: string;
   businessDescription?: string;
   logoUrl: string;
+  shopLogo?: string | CloudinaryImage;
   invoiceFooter: string;
   currency: string;
   uiTheme: 'neumorphic' | 'minimalist' | 'elegant';
@@ -81,6 +83,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
               whatsappNumber: data.whatsappNumber || '',
               businessDescription: data.businessDescription || '',
               logoUrl: data.logoUrl || '',
+              shopLogo: data.shopLogo || null,
               invoiceFooter: data.invoiceFooter || '',
               currency: data.currency || APP_CONFIG.defaultCurrency,
               uiTheme: data.uiTheme || 'neumorphic',
@@ -97,7 +100,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
       }
     }, (error) => {
-      console.error(error);
+      handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`);
       setLoading(false);
     });
 

@@ -1,3 +1,8 @@
+export interface CloudinaryImage {
+  url: string;
+  publicId: string;
+}
+
 export interface Customer {
   id: string;
   name: string;
@@ -7,7 +12,7 @@ export interface Customer {
   address?: string;
   gender?: string;
   notes?: string;
-  profileImage?: string;
+  profileImage?: string | CloudinaryImage;
   totalOrders: number;
   createdBy: string;
   createdAt: string;
@@ -33,11 +38,11 @@ export interface Order {
   status: OrderStatus;
   clothingType: string;
   measurements: Record<string, string>;
-  referenceImages?: string[];
-  designImages?: string[];
+  referenceImages?: CloudinaryImage[];
+  designImages?: CloudinaryImage[];
   referencePhotoUrl?: string;
   sampleDesignUrl?: string;
-  invoiceImage?: string;
+  invoiceImage?: string | CloudinaryImage;
   designNotes?: string;
   price: number;
   advancePayment: number;

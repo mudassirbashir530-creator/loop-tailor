@@ -8,8 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useOrders } from '../hooks/useOrders';
 import { useShop } from '../contexts/ShopContext';
 import { formatCurrency, formatDate, cn } from '../lib/utils';
-import { OrderStatus, Order } from '../lib/types';
+import { OrderStatus, Order, CloudinaryImage } from '../lib/types';
 import { InvoiceTemplate } from '../components/InvoiceTemplate';
+import { ImagePreviewModal } from '../components/ImagePreviewModal';
 import * as htmlToImage from 'html-to-image';
 import { toast } from 'sonner';
 import { uploadToCloudinary } from '../lib/cloudinary';
@@ -20,6 +21,7 @@ export default function Orders() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ url: string, type: 'reference' | 'design' | 'invoice', index?: number } | null>(null);
   const { orders, loading, updateOrderStatus } = useOrders();
   const { settings } = useShop();
   const invoiceRef = useRef<HTMLDivElement>(null);
@@ -73,18 +75,18 @@ export default function Orders() {
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], `invoice-${selectedOrder.id.slice(-6)}.png`, { type: 'image/png' });
       
-      const imageUrl = await uploadToCloudinary(file);
+      const cloudinaryImg = await uploadToCloudinary(file);
       
       // Update order with invoice image URL
       await updateDoc(doc(db, 'orders', selectedOrder.id), {
-        invoiceImage: imageUrl
+        invoiceImage: cloudinaryImg
       });
       
       // Update local state
-      setSelectedOrder({ ...selectedOrder, invoiceImage: imageUrl });
+      setSelectedOrder({ ...selectedOrder, invoiceImage: cloudinaryImg });
       
       const phone = selectedOrder.customerPhone.replace(/[^0-9+]/g, '');
-      const message = `Hello ${selectedOrder.customerName}, here is your invoice for order #${selectedOrder.id.slice(-6).toUpperCase()}: ${imageUrl}`;
+      const message = `Hello ${selectedOrder.customerName}, here is your invoice for order #${selectedOrder.id.slice(-6).toUpperCase()}: ${cloudinaryImg.url}`;
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank');
       
@@ -125,6 +127,83 @@ export default function Orders() {
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
+
+  const handleDeleteImage = async () => {
+    if (!selectedOrder || !previewImage) return;
+    
+    setLoadingImageAction(true);
+    try {
+      let updatedFields: any = {};
+      
+      if (previewImage.type === 'reference') {
+        const images = selectedOrder.referenceImages || [];
+        const newImages = images.filter((_, i) => i !== previewImage.index);
+        updatedFields.referenceImages = newImages;
+        if (previewImage.index === 0) {
+          updatedFields.referencePhotoUrl = newImages.length > 0 ? newImages[0].url : "";
+        }
+      } else if (previewImage.type === 'design') {
+        const images = selectedOrder.designImages || [];
+        const newImages = images.filter((_, i) => i !== previewImage.index);
+        updatedFields.designImages = newImages;
+        if (previewImage.index === 0) {
+          updatedFields.sampleDesignUrl = newImages.length > 0 ? newImages[0].url : "";
+        }
+      } else if (previewImage.type === 'invoice') {
+        updatedFields.invoiceImage = null;
+      }
+      
+      await updateDoc(doc(db, 'orders', selectedOrder.id), updatedFields);
+      setSelectedOrder({ ...selectedOrder, ...updatedFields });
+      setPreviewImage(null);
+      toast.success("Image deleted successfully");
+    } catch (e) {
+      toast.error("Failed to delete image");
+    } finally {
+      setLoadingImageAction(false);
+    }
+  };
+
+  const handleReplaceImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedOrder || !previewImage) return;
+
+    setLoadingImageAction(true);
+    try {
+      const cloudinaryImg = await uploadToCloudinary(file);
+      let updatedFields: any = {};
+      
+      if (previewImage.type === 'reference') {
+        const images = [...(selectedOrder.referenceImages || [])];
+        images[previewImage.index!] = cloudinaryImg;
+        updatedFields.referenceImages = images;
+        if (previewImage.index === 0) {
+          updatedFields.referencePhotoUrl = cloudinaryImg.url;
+        }
+      } else if (previewImage.type === 'design') {
+        const images = [...(selectedOrder.designImages || [])];
+        images[previewImage.index!] = cloudinaryImg;
+        updatedFields.designImages = images;
+        if (previewImage.index === 0) {
+          updatedFields.sampleDesignUrl = cloudinaryImg.url;
+        }
+      } else if (previewImage.type === 'invoice') {
+        updatedFields.invoiceImage = cloudinaryImg;
+      }
+      
+      await updateDoc(doc(db, 'orders', selectedOrder.id), updatedFields);
+      setSelectedOrder({ ...selectedOrder, ...updatedFields });
+      setPreviewImage(prev => prev ? { ...prev, url: cloudinaryImg.url } : null);
+      toast.success("Image replaced successfully");
+    } catch (e) {
+      toast.error("Failed to replace image");
+    } finally {
+      setLoadingImageAction(false);
+    }
+  };
+
+  const [loadingImageAction, setLoadingImageAction] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500 flex flex-col h-full">
@@ -284,12 +363,22 @@ export default function Orders() {
                        <div className="grid grid-cols-2 gap-2">
                          {selectedOrder.referenceImages && selectedOrder.referenceImages.length > 0 ? (
                            selectedOrder.referenceImages.map((img, i) => (
-                             <a key={i} href={img} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border block group relative">
-                               <img src={img} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt="ref" />
+                             <div 
+                               key={i} 
+                               onClick={() => setPreviewImage({ url: typeof img === 'string' ? img : img.url, type: 'reference', index: i })}
+                               className="aspect-square rounded-lg overflow-hidden border cursor-pointer group relative"
+                             >
+                               <img 
+                                 src={typeof img === 'string' ? img : img.url} 
+                                 className="w-full h-full object-cover transition-transform group-hover:scale-110" 
+                                 alt="ref" 
+                                 loading="lazy"
+                                 referrerPolicy="no-referrer"
+                               />
                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                 <ExternalLink className="w-4 h-4 text-white" />
+                                 <ImageIcon className="w-5 h-5 text-white" />
                                </div>
-                             </a>
+                             </div>
                            ))
                          ) : (
                            <div className="col-span-2 aspect-[2/1] bg-muted rounded-xl border flex flex-col items-center justify-center text-muted-foreground">
@@ -305,12 +394,22 @@ export default function Orders() {
                        <div className="grid grid-cols-2 gap-2">
                          {selectedOrder.designImages && selectedOrder.designImages.length > 0 ? (
                            selectedOrder.designImages.map((img, i) => (
-                             <a key={i} href={img} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border block group relative">
-                               <img src={img} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt="design" />
+                             <div 
+                               key={i} 
+                               onClick={() => setPreviewImage({ url: typeof img === 'string' ? img : img.url, type: 'design', index: i })}
+                               className="aspect-square rounded-lg overflow-hidden border cursor-pointer group relative"
+                             >
+                               <img 
+                                 src={typeof img === 'string' ? img : img.url} 
+                                 className="w-full h-full object-cover transition-transform group-hover:scale-110" 
+                                 alt="design" 
+                                 loading="lazy"
+                                 referrerPolicy="no-referrer"
+                               />
                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                 <ExternalLink className="w-4 h-4 text-white" />
+                                 <ImageIcon className="w-5 h-5 text-white" />
                                </div>
-                             </a>
+                             </div>
                            ))
                          ) : (
                            <div className="col-span-2 aspect-[2/1] bg-muted rounded-xl border flex flex-col items-center justify-center text-muted-foreground">
@@ -325,14 +424,23 @@ export default function Orders() {
                   {selectedOrder.invoiceImage && (
                     <div className="space-y-2 pt-2">
                        <p className="text-xs font-semibold text-muted-foreground">Invoice Preview</p>
-                       <a href={selectedOrder.invoiceImage} target="_blank" rel="noreferrer" className="block w-full aspect-[4/3] rounded-xl overflow-hidden border relative group">
-                         <img src={selectedOrder.invoiceImage} className="w-full h-full object-cover" alt="invoice" />
+                       <div 
+                         onClick={() => setPreviewImage({ url: typeof selectedOrder.invoiceImage === 'string' ? selectedOrder.invoiceImage : (selectedOrder.invoiceImage as CloudinaryImage).url, type: 'invoice' })}
+                         className="block w-full aspect-[4/3] rounded-xl overflow-hidden border relative group cursor-pointer"
+                       >
+                         <img 
+                           src={typeof selectedOrder.invoiceImage === 'string' ? selectedOrder.invoiceImage : (selectedOrder.invoiceImage as CloudinaryImage).url} 
+                           className="w-full h-full object-cover" 
+                           alt="invoice" 
+                           loading="lazy"
+                           referrerPolicy="no-referrer"
+                         />
                          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                            <div className="bg-white/90 p-2 rounded-full text-black shadow-lg">
-                             <ExternalLink className="w-5 h-5" />
+                             <ImageIcon className="w-5 h-5" />
                            </div>
                          </div>
-                       </a>
+                       </div>
                     </div>
                   )}
                 </div>
@@ -390,6 +498,33 @@ export default function Orders() {
       <div className="fixed left-[-9999px]">
          {selectedOrder && <InvoiceTemplate ref={invoiceRef} order={selectedOrder} />}
       </div>
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <ImagePreviewModal 
+          isOpen={!!previewImage}
+          onClose={() => setPreviewImage(null)}
+          imageUrl={previewImage.url}
+          title={`${previewImage.type.charAt(0).toUpperCase() + previewImage.type.slice(1)} Image`}
+          onDelete={handleDeleteImage}
+          onReplace={() => fileInputRef.current?.click()}
+        />
+      )}
+      
+      <input 
+        type="file" 
+        className="hidden" 
+        ref={fileInputRef} 
+        accept="image/*" 
+        onChange={handleReplaceImage} 
+      />
+
+      {loadingImageAction && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center gap-2">
+          <Loader2 className="w-6 h-6 text-white animate-spin" />
+          <span className="text-white font-medium">Updating Image...</span>
+        </div>
+      )}
 
     </div>
   );
