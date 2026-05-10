@@ -128,7 +128,7 @@ export default function Settings() {
         finalLogo = await uploadToCloudinary(logoFile, setUploadProgress);
       }
 
-      await setDoc(doc(db, 'settings', user.uid), {
+      const updateData: any = {
         name: shopName,
         phone: phone,
         ownerName: ownerName,
@@ -136,7 +136,17 @@ export default function Settings() {
         address: address,
         businessDescription: businessDescription,
         shopLogo: finalLogo
-      }, { merge: true });
+      };
+
+      // Remove undefined values to prevent Firestore error
+      Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+      // Update settings collection
+      await setDoc(doc(db, 'settings', user.uid), updateData, { merge: true });
+      
+      // Update users collection as well (per user request)
+      await setDoc(doc(db, 'users', user.uid), updateData, { merge: true });
+
       toast.success("Profile updated perfectly");
       setIsEditingProfile(false);
       setLogoFile(null);

@@ -61,14 +61,19 @@ export function useWorkers() {
   const addWorker = async (workerData: Omit<Worker, 'id' | 'activeOrders' | 'completedOrders' | 'totalEarnings' | 'userId' | 'createdAt'>) => {
     if (!user) return null;
     try {
-      const docRef = await addDoc(collection(db, 'workers'), {
+      const dataToSave: any = {
         ...workerData,
         userId: user.uid,
+        createdBy: user.uid,
         activeOrders: 0,
         completedOrders: 0,
         totalEarnings: 0,
         createdAt: serverTimestamp(),
-      });
+      };
+      
+      Object.keys(dataToSave).forEach(key => dataToSave[key] === undefined && delete dataToSave[key]);
+
+      const docRef = await addDoc(collection(db, 'workers'), dataToSave);
       toast.success("Worker added perfectly");
       return docRef.id;
     } catch (error) {
@@ -80,10 +85,14 @@ export function useWorkers() {
   const updateWorker = async (id: string, workerData: Partial<Worker>) => {
     if (!user) return;
     try {
-      await updateDoc(doc(db, 'workers', id), {
+      const dataToUpdate: any = {
         ...workerData,
         updatedAt: serverTimestamp(),
-      });
+      };
+      
+      Object.keys(dataToUpdate).forEach(key => dataToUpdate[key] === undefined && delete dataToUpdate[key]);
+
+      await updateDoc(doc(db, 'workers', id), dataToUpdate);
       toast.success("Worker updated successfully");
     } catch (error) {
       toast.error("Failed to update worker");
