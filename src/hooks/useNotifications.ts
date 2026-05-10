@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { db, messaging, handleFirestoreError, OperationType } from '../lib/firebase';
+import { db, getMessagingInstance, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, query, where, orderBy, limit, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, serverTimestamp, setDoc, addDoc } from 'firebase/firestore';
-import { getToken, onMessage } from 'firebase/messaging';
+import { getToken, onMessage, Messaging } from 'firebase/messaging';
 import { toast } from 'sonner';
 
 export interface AppNotification {
@@ -20,6 +20,11 @@ export function useNotifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [messaging, setMessaging] = useState<Messaging | null>(null);
+
+  useEffect(() => {
+    getMessagingInstance().then(setMessaging).catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -80,7 +85,7 @@ export function useNotifications() {
        toast.success(`${payload.notification?.title}: ${payload.notification?.body}`);
     });
     return () => unsubscribe();
-  }, []);
+  }, [messaging]);
 
   const markAsRead = async (id: string) => {
     if (!user) return;

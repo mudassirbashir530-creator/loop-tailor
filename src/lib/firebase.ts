@@ -22,14 +22,13 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // Initialize Messaging conditionally (not supported in all browsers i.e Safari)
-let messagingInstance: any = null;
-isSupported().then(supported => {
+export const getMessagingInstance = async () => {
+  const supported = await isSupported();
   if (supported) {
-    messagingInstance = getMessaging(app);
+    return getMessaging(app);
   }
-}).catch(console.error);
-
-export const messaging = messagingInstance;
+  return null;
+};
 
 export enum OperationType {
   CREATE = 'create',

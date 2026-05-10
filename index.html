@@ -2,6 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      window.addEventListener('error', function(event) {
+        console.error('CRITICAL EARLY ERROR:', event.message, event.filename, event.lineno, event.colno, event.error);
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('CRITICAL EARLY REJECTION:', event.reason);
+      });
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -74,6 +82,7 @@
     </script>
     <script>
       // The issue with `window.fetch` being overwritten by formdata-polyfill is fixed in vite.config.ts by aliasing it to an empty file.
+      // We avoid redefine window.fetch here to prevent "only a getter" errors in sandboxed environments.
     </script>
     <meta name="google-site-verification" content="CY_KIunjykzDWEqpnwB8cfC68vaDjwcdAOizTqXrl8c" />
     <script type="application/ld+json">

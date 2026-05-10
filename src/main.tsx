@@ -9,6 +9,21 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
+// Global Error Handlers
+window.addEventListener('error', (event) => {
+  console.error('Global Error Captured:', {
+    message: event.message,
+    source: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+    error: event.error
+  });
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled Promise Rejection:', event.reason);
+});
+
 // Add this to your main JS file (from user prompt)
 document.addEventListener('DOMContentLoaded', () => {
   const hamburger = document.querySelector('.hamburger-btn');

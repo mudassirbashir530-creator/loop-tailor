@@ -13,10 +13,11 @@ export default defineConfig(({mode}) => {
     resolve: {
       alias: [
         { find: '@', replacement: path.resolve(__dirname, '.') },
-        { find: /^formdata-polyfill.*/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
-        { find: /^whatwg-fetch.*/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
-        { find: /^cross-fetch.*/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
-        { find: /^isomorphic-fetch.*/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') }
+        { find: /^formdata-polyfill(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
+        { find: /^whatwg-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
+        { find: /^cross-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
+        { find: /^isomorphic-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
+        { find: /^node-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') }
       ],
     },
     server: {

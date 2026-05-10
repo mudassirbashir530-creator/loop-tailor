@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, User, Scissors, Ruler, DollarSign, Loader2, Search, Plus, 
-  CheckCircle2, Camera, UserSquare2, ChevronRight, X 
+  CheckCircle2, Camera, UserSquare2, ChevronRight, X, Check, Upload 
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -239,38 +239,48 @@ export default function NewOrder() {
                     )}
                     
                     {!selectedCustomer && (
-                      <div className="relative" ref={dropdownRef}>
-                        <div className="relative group">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-                          <Input 
-                            value={customerSearch}
-                            onChange={(e) => { setCustomerSearch(e.target.value); setShowCustomerDropdown(true); }}
-                            onFocus={() => setShowCustomerDropdown(true)}
-                            placeholder="Search by Name, Phone or ID..."
-                            className="pl-10 h-12 text-base rounded-xl"
-                          />
+                      <div className="space-y-4">
+                        <div className="relative" ref={dropdownRef}>
+                          <div className="relative group">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+                            <Input 
+                              value={customerSearch}
+                              onChange={(e) => { setCustomerSearch(e.target.value); setShowCustomerDropdown(true); }}
+                              onFocus={() => setShowCustomerDropdown(true)}
+                              placeholder="Search by Name, Phone or ID..."
+                              className="pl-10 h-12 text-base rounded-xl"
+                            />
+                          </div>
+                          <AnimatePresence>
+                            {showCustomerDropdown && (
+                              <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} className="absolute z-50 w-full mt-2 bg-popover text-popover-foreground shadow-xl rounded-xl border overflow-hidden">
+                                <div className="max-h-60 overflow-y-auto p-1">
+                                  {filteredCustomers.length > 0 ? filteredCustomers.map(c => (
+                                    <div key={c.id} onClick={() => { setSelectedCustomer(c); setShowCustomerDropdown(false); setCustomerSearch(''); }} className="p-3 hover:bg-accent cursor-pointer rounded-lg flex flex-col transition-colors">
+                                      <span className="font-medium">{c.name}</span>
+                                      <span className="text-xs text-muted-foreground">{c.phone}</span>
+                                    </div>
+                                  )) : (
+                                    <div className="p-4 text-center text-muted-foreground text-sm">No exact matches found.</div>
+                                  )}
+                                </div>
+                                <div className="p-2 border-t bg-muted/30">
+                                  <Button variant="ghost" className="w-full text-primary justify-start gap-2" onClick={() => { setIsCreatingCustomer(true); setShowCustomerDropdown(false); setNewCustomer({ ...newCustomer, name: customerSearch }); }}>
+                                    <Plus className="w-4 h-4" /> Create "{customerSearch || 'New Customer'}"
+                                  </Button>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
-                        <AnimatePresence>
-                          {showCustomerDropdown && (
-                            <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} className="absolute z-50 w-full mt-2 bg-popover text-popover-foreground shadow-xl rounded-xl border overflow-hidden">
-                              <div className="max-h-60 overflow-y-auto p-1">
-                                {filteredCustomers.length > 0 ? filteredCustomers.map(c => (
-                                  <div key={c.id} onClick={() => { setSelectedCustomer(c); setShowCustomerDropdown(false); setCustomerSearch(''); }} className="p-3 hover:bg-accent cursor-pointer rounded-lg flex flex-col transition-colors">
-                                    <span className="font-medium">{c.name}</span>
-                                    <span className="text-xs text-muted-foreground">{c.phone}</span>
-                                  </div>
-                                )) : (
-                                  <div className="p-4 text-center text-muted-foreground text-sm">No exact matches found.</div>
-                                )}
-                              </div>
-                              <div className="p-2 border-t bg-muted/30">
-                                <Button variant="ghost" className="w-full text-primary justify-start gap-2" onClick={() => { setIsCreatingCustomer(true); setShowCustomerDropdown(false); setNewCustomer(prev => ({...prev, name: customerSearch})); }}>
-                                  <Plus className="w-4 h-4" /> Create "{customerSearch || 'New Customer'}"
-                                </Button>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                        <div className="flex items-center gap-2">
+                          <div className="h-[1px] flex-1 bg-border" />
+                          <span className="text-xs text-muted-foreground uppercase font-semibold">Or</span>
+                          <div className="h-[1px] flex-1 bg-border" />
+                        </div>
+                        <Button variant="outline" className="w-full h-12 rounded-xl gap-2 border-dashed border-primary/50 text-primary hover:bg-primary/5" onClick={() => setIsCreatingCustomer(true)}>
+                          <Plus className="w-5 h-5" /> Add New Customer
+                        </Button>
                       </div>
                     )}
                   </div>
