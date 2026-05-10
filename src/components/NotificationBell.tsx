@@ -83,29 +83,29 @@ export default function NotificationBell() {
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
             className={cn(
-              "absolute mt-4 w-80 max-sm:w-[calc(100vw-32px)] bg-gray-100 rounded-3xl shadow-neu border-none py-2 z-[60]",
+              "absolute mt-4 w-80 max-sm:w-[calc(100vw-32px)] bg-popover text-popover-foreground rounded-2xl shadow-2xl border border-border py-2 z-[60]",
               isRTL ? "left-0 max-sm:right-[-50px] max-sm:left-auto" : "right-0 max-sm:right-[-60px]"
             )}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/50">
-              <h3 className="font-bold text-slate-900 text-lg">Notifications</h3>
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <h3 className="font-bold text-foreground text-lg">Notifications</h3>
               {unreadCount > 0 && (
                 <button 
                   onClick={(e) => { e.stopPropagation(); markAllRead(); }}
-                  className="text-xs font-bold text-brand-primary hover:text-brand-primary/80 transition-colors"
+                  className="text-xs font-bold text-primary hover:underline transition-colors"
                 >
                   Mark all as read
                 </button>
               )}
             </div>
 
-            <div className="max-h-[350px] overflow-y-auto px-4 py-2 space-y-2 no-scrollbar">
+            <div className="max-h-[350px] overflow-y-auto px-2 py-2 space-y-1 no-scrollbar">
               {notifications.length === 0 ? (
-                <div className="py-8 text-center px-4">
-                  <div className="h-12 w-12 rounded-full bg-gray-100 shadow-neu-pressed-sm flex items-center justify-center mx-auto mb-3">
-                    <Bell className="h-5 w-5 text-slate-300" />
+                <div className="py-12 text-center px-4">
+                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <Bell className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <p className="text-sm font-bold text-slate-500">No notifications yet</p>
+                  <p className="text-sm font-medium text-muted-foreground">No notifications yet</p>
                 </div>
               ) : (
                 notifications.map((notification) => (
@@ -113,27 +113,27 @@ export default function NotificationBell() {
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
                     className={cn(
-                      "flex items-start gap-4 p-4 rounded-2xl cursor-pointer transition-all border-none relative group",
-                      !notification.read ? "bg-white shadow-neu-sm" : "bg-gray-100 hover:shadow-neu-sm"
+                      "flex items-start gap-4 p-4 rounded-xl cursor-pointer transition-all border border-transparent relative group",
+                      !notification.read ? "bg-primary/5 hover:bg-primary/10 border-primary/10" : "hover:bg-muted"
                     )}
                   >
                     {!notification.read && (
-                      <div className={cn("absolute top-5 h-2 w-2 rounded-full bg-brand-primary", isRTL ? "right-2" : "left-2")} />
+                      <div className={cn("absolute top-5 h-2 w-2 rounded-full bg-primary", isRTL ? "right-2" : "left-2")} />
                     )}
                     <div className={cn(
-                      "h-10 w-10 shrink-0 rounded-xl flex items-center justify-center bg-gray-100 shadow-neu-sm",
-                      !notification.read ? "ml-2" : ""
+                      "h-10 w-10 shrink-0 rounded-lg flex items-center justify-center",
+                      !notification.read ? "bg-white shadow-sm" : "bg-muted"
                     )}>
                       {getIcon(notification.type)}
                     </div>
-                    <div className="flex-1 min-w-0 pr-8">
-                      <p className="text-sm font-bold text-slate-900 truncate">
+                    <div className="flex-1 min-w-0 pr-6">
+                      <p className="text-sm font-semibold text-foreground truncate">
                         {notification.title}
                       </p>
-                      <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                         {notification.message}
                       </p>
-                      <span className="text-[10px] font-bold text-slate-400 mt-2 block">
+                      <span className="text-[10px] font-medium text-muted-foreground mt-2 block">
                         {formatTime(notification.createdAt)}
                       </span>
                     </div>

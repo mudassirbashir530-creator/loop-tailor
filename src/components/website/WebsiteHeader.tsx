@@ -45,7 +45,7 @@ export default function WebsiteHeader() {
               <Button variant="ghost" size="sm">Log in</Button>
             </Link>
             <Link to="/auth/signup">
-              <Button size="sm">Get Started</Button>
+              <Button size="sm" style={{ color: '#ebe5e5' }}>Get Started</Button>
             </Link>
           </div>
         </nav>

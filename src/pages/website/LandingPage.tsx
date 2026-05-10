@@ -167,7 +167,7 @@ export default function LandingPage() {
               <Button size="lg" className="bg-white text-primary hover:bg-white/90">Start Free Trial</Button>
             </Link>
             <Link to="/contact">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">Contact Sales</Button>
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" style={{ backgroundColor: '#0d0702' }}>Contact Sales</Button>
             </Link>
           </div>
         </div>
