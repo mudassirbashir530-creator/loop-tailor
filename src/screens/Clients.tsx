@@ -145,20 +145,24 @@ export default function Clients() {
           <form onSubmit={handleAddSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Name <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium text-foreground">Name <span className="text-red-500">*</span></label>
                 <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="John Doe" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Phone <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium text-foreground">Phone <span className="text-red-500">*</span></label>
                 <Input required value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="0300 0000000" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">WhatsApp</label>
+                <label className="text-sm font-medium text-foreground">WhatsApp</label>
                 <Input value={formData.whatsappPhone} onChange={e => setFormData({ ...formData, whatsappPhone: e.target.value })} placeholder="Same as phone if empty" />
               </div>
               <div className="space-y-2">
-                 <label className="text-sm font-medium">Gender</label>
-                 <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+                 <label className="text-sm font-medium text-foreground">Gender</label>
+                 <select 
+                   value={formData.gender} 
+                   onChange={e => setFormData({...formData, gender: e.target.value})} 
+                   className="w-full h-12 rounded-xl border border-input bg-background px-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-all shadow-sm cursor-pointer"
+                 >
                    <option value="male">Male</option>
                    <option value="female">Female</option>
                    <option value="other">Other</option>
@@ -193,20 +197,24 @@ export default function Clients() {
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Name <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium text-foreground">Name <span className="text-red-500">*</span></label>
                 <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="John Doe" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Phone <span className="text-red-500">*</span></label>
+                <label className="text-sm font-medium text-foreground">Phone <span className="text-red-500">*</span></label>
                 <Input required value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="0300 0000000" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">WhatsApp</label>
+                <label className="text-sm font-medium text-foreground">WhatsApp</label>
                 <Input value={formData.whatsappPhone} onChange={e => setFormData({ ...formData, whatsappPhone: e.target.value })} placeholder="Same as phone if empty" />
               </div>
               <div className="space-y-2">
-                 <label className="text-sm font-medium">Gender</label>
-                 <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+                 <label className="text-sm font-medium text-foreground">Gender</label>
+                 <select 
+                   value={formData.gender} 
+                   onChange={e => setFormData({...formData, gender: e.target.value})} 
+                   className="w-full h-12 rounded-xl border border-input bg-background px-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-all shadow-sm cursor-pointer"
+                 >
                    <option value="male">Male</option>
                    <option value="female">Female</option>
                    <option value="other">Other</option>

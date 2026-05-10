@@ -303,20 +303,34 @@ export default function NewOrder() {
                           </div>
                           <AnimatePresence>
                             {showCustomerDropdown && (
-                              <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 5 }} className="absolute z-50 w-full mt-2 bg-popover text-popover-foreground shadow-xl rounded-xl border overflow-hidden">
-                                <div className="max-h-60 overflow-y-auto p-1">
+                              <motion.div 
+                                initial={{ opacity: 0, y: 5 }} 
+                                animate={{ opacity: 1, y: 0 }} 
+                                exit={{ opacity: 0, y: 5 }} 
+                                className="absolute z-50 w-full mt-2 bg-popover text-popover-foreground shadow-2xl rounded-xl border border-border overflow-hidden"
+                              >
+                                <div className="max-h-60 overflow-y-auto p-1 py-2">
                                   {filteredCustomers.length > 0 ? filteredCustomers.map(c => (
-                                    <div key={c.id} onClick={() => { setSelectedCustomer(c); setShowCustomerDropdown(false); setCustomerSearch(''); }} className="p-3 hover:bg-accent cursor-pointer rounded-lg flex flex-col transition-colors">
-                                      <span className="font-medium">{c.name}</span>
+                                    <div 
+                                      key={c.id} 
+                                      onClick={() => { setSelectedCustomer(c); setShowCustomerDropdown(false); setCustomerSearch(''); }} 
+                                      className="px-4 py-3 hover:bg-muted cursor-pointer rounded-lg flex flex-col transition-colors mx-1"
+                                    >
+                                      <span className="font-semibold text-foreground">{c.name}</span>
                                       <span className="text-xs text-muted-foreground">{c.phone}</span>
                                     </div>
                                   )) : (
                                     <div className="p-4 text-center text-muted-foreground text-sm">No exact matches found.</div>
                                   )}
                                 </div>
-                                <div className="p-2 border-t bg-muted/30">
-                                  <Button variant="ghost" className="w-full text-primary justify-start gap-2" onClick={() => { setIsCreatingCustomer(true); setShowCustomerDropdown(false); setNewCustomer({ ...newCustomer, name: customerSearch }); }}>
-                                    <Plus className="w-4 h-4" /> Create "{customerSearch || 'New Customer'}"
+                                <div className="p-2 border-t bg-muted/40">
+                                  <Button 
+                                    variant="ghost" 
+                                    className="w-full text-primary justify-start gap-2 hover:bg-primary/10 transition-colors" 
+                                    onClick={() => { setIsCreatingCustomer(true); setShowCustomerDropdown(false); setNewCustomer({ ...newCustomer, name: customerSearch }); }}
+                                  >
+                                    <Plus className="w-4 h-4 font-bold" /> 
+                                    <span className="font-medium">Create "{customerSearch || 'New Customer'}"</span>
                                   </Button>
                                 </div>
                               </motion.div>
@@ -381,17 +395,17 @@ export default function NewOrder() {
              </CardHeader>
              <CardContent className="space-y-6">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Clothing Type</label>
+                  <label className="text-sm font-semibold text-foreground">Clothing Type</label>
                   <select 
                     value={clothingType}
                     onChange={(e) => {
                       setClothingType(e.target.value);
                       if (e.target.value !== 'Custom Design') setCustomClothingType('');
                     }}
-                    className="w-full h-12 rounded-xl border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="w-full h-12 rounded-xl border border-input bg-background px-4 text-sm focus:ring-2 focus:ring-primary focus:border-transparent focus:outline-none transition-all shadow-sm cursor-pointer"
                   >
                      {CLOTHING_CATEGORIES.map(cat => (
-                        <optgroup key={cat.group} label={cat.group}>
+                        <optgroup key={cat.group} label={cat.group} className="font-bold">
                            {cat.options.map(opt => (
                               <option key={opt} value={opt}>{opt}</option>
                            ))}
@@ -421,7 +435,7 @@ export default function NewOrder() {
                                    type="number" step="0.25" placeholder="0.00"
                                    value={measurements[item.id] || ''}
                                    onChange={e => setMeasurements({...measurements, [item.id]: e.target.value})}
-                                   className="h-11 rounded-lg bg-surface-container-lowest focus-visible:ring-primary/20 transition-all font-medium text-base shadow-sm group-hover:border-primary/50" 
+                                   className="h-11 rounded-lg bg-background font-semibold text-base shadow-sm focus:ring-primary h-12" 
                                  />
                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground select-none pointer-events-none">in</span>
                                </div>

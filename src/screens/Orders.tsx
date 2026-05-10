@@ -238,17 +238,17 @@ export default function Orders() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Update Status</label>
-                  <div className="flex gap-2 flex-wrap">
-                    {['pending', 'stitching', 'ready', 'delivered'].map((status) => (
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Update Order Status</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {(['pending', 'stitching', 'ready', 'delivered'] as OrderStatus[]).map((status) => (
                       <Button 
                         key={status} 
                         size="sm" 
                         variant={selectedOrder.status === status ? 'default' : 'outline'}
                         onClick={async () => {
                           try {
-                            await updateOrderStatus(selectedOrder.id, status as OrderStatus);
+                            await updateOrderStatus(selectedOrder.id, status);
                             setSelectedOrder(null);
                             toast.success(`Status updated to ${status}`);
                           } catch (e) {
@@ -256,7 +256,10 @@ export default function Orders() {
                             toast.error("Failed to update status");
                           }
                         }}
-                        className="capitalize"
+                        className={cn(
+                          "capitalize h-10 font-semibold transition-all",
+                          selectedOrder.status === status ? "shadow-md shadow-primary/20" : "hover:border-primary/50"
+                        )}
                       >
                         {status}
                       </Button>

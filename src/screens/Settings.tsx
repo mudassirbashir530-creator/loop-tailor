@@ -253,37 +253,37 @@ export default function Settings() {
       </div>
 
       <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-xl">Shop Profile</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Shop Name</label>
+              <label className="text-sm font-semibold text-foreground">Shop Name</label>
               <Input value={shopName} onChange={e => setShopName(e.target.value)} placeholder="Al-Madina Tailors" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Owner Name</label>
+              <label className="text-sm font-semibold text-foreground">Owner Name</label>
               <Input value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="John Doe" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Phone Number</label>
+              <label className="text-sm font-semibold text-foreground">Phone Number</label>
               <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="0300 1234567" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">WhatsApp Number</label>
+              <label className="text-sm font-semibold text-foreground">WhatsApp Number</label>
               <Input value={whatsappNumber} onChange={e => setWhatsappNumber(e.target.value)} placeholder="Same as phone" />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium">Address</label>
+              <label className="text-sm font-semibold text-foreground">Address</label>
               <Input value={address} onChange={e => setAddress(e.target.value)} placeholder="Shop 12, Main Street" />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium">Business Description</label>
-              <Textarea value={businessDescription} onChange={e => setBusinessDescription(e.target.value)} placeholder="Specialists in..." className="resize-none h-24" />
+              <label className="text-sm font-semibold text-foreground">Business Description</label>
+              <Textarea value={businessDescription} onChange={e => setBusinessDescription(e.target.value)} placeholder="Specialists in..." className="resize-none h-28" />
             </div>
-            <Button onClick={handleUpdateProfile} disabled={isSaving} className="mt-4 md:col-span-2">
-              {isSaving ? "Saving..." : "Save Changes"}
+            <Button onClick={handleUpdateProfile} disabled={isSaving} className="mt-6 md:col-span-2 h-12 text-base font-semibold shadow-lg shadow-primary/20">
+              {isSaving ? "Saving..." : "Save Profile Changes"}
             </Button>
           </div>
         </DialogContent>
@@ -291,56 +291,45 @@ export default function Settings() {
       
       {/* Templates Dialog */}
       <Dialog open={isTemplatesOpen} onOpenChange={setIsTemplatesOpen}>
-        <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>WhatsApp Templates</DialogTitle>
-            <DialogDescription>Use variables: {'{customerName}'}, {'{orderId}'}, {'{clothingType}'}, {'{totalPrice}'}, {'{advanceAmount}'}, {'{deliveryDate}'}, {'{remainingAmount}'}</DialogDescription>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-xl">WhatsApp Templates</DialogTitle>
+            <DialogDescription className="mt-2 p-3 bg-muted/50 rounded-lg border border-border">
+              <span className="font-semibold block mb-1">Available Variables:</span>
+              <code className="text-xs text-primary">{'{customerName}'}, {'{orderId}'}, {'{clothingType}'}, {'{totalPrice}'}, {'{advanceAmount}'}, {'{deliveryDate}'}, {'{remainingAmount}'}</code>
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Order Received</label>
+              <label className="text-sm font-semibold text-foreground">Order Received</label>
               <Textarea 
                 value={templates.orderReceived} 
                 onChange={e => setTemplates({...templates, orderReceived: e.target.value})} 
-                className="h-20 resize-none"
+                className="h-24 resize-none"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Stitching Started</label>
+              <label className="text-sm font-semibold text-foreground">Stitching Started</label>
               <Textarea 
                 value={templates.stitchingStarted} 
                 onChange={e => setTemplates({...templates, stitchingStarted: e.target.value})} 
-                className="h-20 resize-none"
+                className="h-24 resize-none"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Ready for Delivery</label>
+              <label className="text-sm font-semibold text-foreground">Ready for Delivery</label>
               <Textarea 
                 value={templates.readyForDelivery} 
                 onChange={e => setTemplates({...templates, readyForDelivery: e.target.value})} 
-                className="h-20 resize-none"
+                className="h-24 resize-none"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Payment Pending</label>
-              <Textarea 
-                value={templates.paymentPending} 
-                onChange={e => setTemplates({...templates, paymentPending: e.target.value})} 
-                className="h-20 resize-none"
-              />
+            <div className="space-y-2 text-right">
+                <Button onClick={() => {
+                  saveSettingsField('templates', templates);
+                  setIsTemplatesOpen(false);
+                }} className="shadow-lg">Save All Templates</Button>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Delivered Successfully</label>
-              <Textarea 
-                value={templates.deliveredSuccessfully} 
-                onChange={e => setTemplates({...templates, deliveredSuccessfully: e.target.value})} 
-                className="h-20 resize-none"
-              />
-            </div>
-            <Button onClick={() => {
-              saveSettingsField('templates', templates);
-              setIsTemplatesOpen(false);
-            }} className="w-full">Save Templates</Button>
           </div>
         </DialogContent>
       </Dialog>
