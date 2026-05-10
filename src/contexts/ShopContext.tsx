@@ -69,26 +69,33 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
 
     const unsubscribe = onSnapshot(doc(db, 'settings', user.uid), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setSettings({
-          name: data.name || '',
-          phone: data.phone || '',
-          address: data.address || '',
-          ownerName: data.ownerName || '',
-          whatsappNumber: data.whatsappNumber || '',
-          businessDescription: data.businessDescription || '',
-          logoUrl: data.logoUrl || '',
-          invoiceFooter: data.invoiceFooter || '',
-          currency: data.currency || APP_CONFIG.defaultCurrency,
-          uiTheme: data.uiTheme || 'neumorphic',
-          enableWhatsappNotifications: !!data.enableWhatsappNotifications,
-          countryCode: data.countryCode || '+92',
-          templates: data.templates || undefined,
-          messageTemplates: data.messageTemplates || undefined,
-        });
+      try {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data) {
+            setSettings({
+              name: data.name || '',
+              phone: data.phone || '',
+              address: data.address || '',
+              ownerName: data.ownerName || '',
+              whatsappNumber: data.whatsappNumber || '',
+              businessDescription: data.businessDescription || '',
+              logoUrl: data.logoUrl || '',
+              invoiceFooter: data.invoiceFooter || '',
+              currency: data.currency || APP_CONFIG.defaultCurrency,
+              uiTheme: data.uiTheme || 'neumorphic',
+              enableWhatsappNotifications: !!data.enableWhatsappNotifications,
+              countryCode: data.countryCode || '+92',
+              templates: data.templates || undefined,
+              messageTemplates: data.messageTemplates || undefined,
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error processing shop settings:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }, (error) => {
       console.error(error);
       setLoading(false);

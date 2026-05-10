@@ -50,23 +50,32 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return user ? <Navigate to="/app" replace /> : <>{children}</>;
 }
 
+import ErrorBoundary from './components/ErrorBoundary';
+
+import { safeStorage } from './lib/safeStorage';
+
 export default function App() {
   React.useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'system';
-    if (savedTheme === 'dark' || (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    try {
+      const savedTheme = safeStorage.getItem('theme') || 'system';
+      if (savedTheme === 'dark' || (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (e) {
+      console.warn("Theme initial load error:", e);
     }
   }, []);
 
   return (
-    <AuthProvider>
-      <ShopProvider>
-        <LanguageProvider>
-          <BrowserRouter>
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ShopProvider>
+          <LanguageProvider>
+            <BrowserRouter>
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
                 {/* Website Routes */}
                 <Route element={<WebsiteLayout />}>
                   <Route path="/" element={<LandingPage />} />
@@ -118,5 +127,6 @@ export default function App() {
         </LanguageProvider>
       </ShopProvider>
     </AuthProvider>
+    </ErrorBoundary>
   );
 }

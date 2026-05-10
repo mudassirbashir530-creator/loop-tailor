@@ -39,24 +39,28 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
+import { safeStorage } from '../lib/safeStorage';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [wasLoggedIn, setWasLoggedIn] = useState(() => localStorage.getItem('wasLoggedIn') === 'true');
+  const [wasLoggedIn, setWasLoggedIn] = useState(() => safeStorage.getItem('wasLoggedIn') === 'true');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        localStorage.setItem('wasLoggedIn', 'true');
+        safeStorage.setItem('wasLoggedIn', 'true');
         setWasLoggedIn(true);
         try {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          const userData = userDoc.exists() ? userDoc.data() : null;
+          
           if (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email)) {
             // Only update admin role if the document exists AND the role isn't already admin.
             // This prevents a race condition with the initial document creation in saveUserData.
-            if (userDoc.exists() && (!userDoc.data()?.isAdmin || userDoc.data()?.role !== 'admin')) {
+            if (userDoc.exists() && (!userData?.isAdmin || userData?.role !== 'admin')) {
               // Retry logic for admin upgrade to prevent race conditions (Bug 3 Fix)
               let retries = 3;
               while (retries > 0) {
@@ -91,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsAdmin(false);
         }
       } else {
-        localStorage.removeItem('wasLoggedIn');
+        safeStorage.removeItem('wasLoggedIn');
         setWasLoggedIn(false);
         setIsAdmin(false);
       }

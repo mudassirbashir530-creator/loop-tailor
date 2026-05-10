@@ -44,26 +44,28 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+import { safeStorage } from '../lib/safeStorage';
+
 export default function Settings() {
   const navigate = useNavigate();
   const { user, logOut } = useAuth();
-  const { settings } = useShop();
+  const { settings, loading: settingsLoading } = useShop();
   
-  const [shopName, setShopName] = useState(settings?.name || '');
-  const [phone, setPhone] = useState(settings?.phone || '');
-  const [ownerName, setOwnerName] = useState(settings?.ownerName || '');
-  const [whatsappNumber, setWhatsappNumber] = useState(settings?.whatsappNumber || '');
-  const [address, setAddress] = useState(settings?.address || '');
-  const [businessDescription, setBusinessDescription] = useState(settings?.businessDescription || '');
+  const [shopName, setShopName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [ownerName, setOwnerName] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [address, setAddress] = useState('');
+  const [businessDescription, setBusinessDescription] = useState('');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
   const [isCountryCodeOpen, setIsCountryCodeOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
-  const [selectedCountryCode, setSelectedCountryCode] = useState(settings?.countryCode || '+92');
+  const [selectedCountryCode, setSelectedCountryCode] = useState('+92');
 
   const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
-  const [theme, setTheme] = useState<'light'|'dark'|'system'>((localStorage.getItem('theme') as any) || 'system');
+  const [theme, setTheme] = useState<'light'|'dark'|'system'>('system');
 
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [templates, setTemplates] = useState({
@@ -80,17 +82,25 @@ export default function Settings() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      getDoc(doc(db, 'settings', user.uid)).then(d => {
-        if (d.exists()) {
-          const data = d.data();
-          if (data.countryCode) setSelectedCountryCode(data.countryCode);
-          if (data.templates) setTemplates(data.templates);
-          if (data.notificationsEnabled !== undefined) setNotificationsEnabled(data.notificationsEnabled);
-        }
-      });
+    if (settings) {
+      setShopName(settings.name || '');
+      setPhone(settings.phone || '');
+      setOwnerName(settings.ownerName || '');
+      setWhatsappNumber(settings.whatsappNumber || '');
+      setAddress(settings.address || '');
+      setBusinessDescription(settings.businessDescription || '');
+      setSelectedCountryCode(settings.countryCode || '+92');
+      if (settings.templates) {
+        setTemplates(prev => ({ ...prev, ...settings.templates }));
+      }
+      setNotificationsEnabled(settings.enableWhatsappNotifications ?? true);
+      
+      const savedTheme = safeStorage.getItem('theme') as any;
+      if (savedTheme) {
+        setTheme(savedTheme);
+      }
     }
-  }, [user]);
+  }, [settings]);
 
   const handleLogout = async () => {
     try {
@@ -130,19 +140,29 @@ export default function Settings() {
       await setDoc(doc(db, 'settings', user.uid), { [field]: value }, { merge: true });
       toast.success("Settings saved");
     } catch (error) {
+      console.error(`Failed to save ${field}:`, error);
       toast.error("Failed to save settings");
     }
   }
 
   const handleThemeChange = (newTheme: 'light'|'dark'|'system') => {
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    if (newTheme === 'dark' || (newTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    try {
+      setTheme(newTheme);
+      safeStorage.setItem('theme', newTheme);
+      
+      const isDark = newTheme === 'dark' || (newTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
+      toast.success(`Theme switched to ${newTheme}`);
+    } catch (error) {
+      console.error("Theme switch failed:", error);
+      toast.error("Failed to update appearance settings");
     }
-    toast.success("Appearance updated");
   }
 
   const filteredCountries = COUNTRY_CODES.filter(c => 

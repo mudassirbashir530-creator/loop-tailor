@@ -57,12 +57,20 @@ export default function Invoice() {
     }, (error) => handleFirestoreError(error, OperationType.GET, `orders/${id}`));
 
     const unsubShop = onSnapshot(doc(db, 'settings', user.uid), (shopSnap) => {
-      if (shopSnap.exists()) {
-        const data = shopSnap.data();
-        setShop(data);
-        setEditData(prev => ({ ...prev, shopName: data.name || '', invoiceFooter: data.invoiceFooter || '' }));
+      try {
+        if (shopSnap.exists()) {
+          const data = shopSnap.data();
+          setShop(data);
+          setEditData(prev => ({ 
+            ...prev, 
+            shopName: data.name || '', 
+            invoiceFooter: data.invoiceFooter || '' 
+          }));
+        }
+      } catch (err) {
+        console.error("Error processing shop doc:", err);
       }
-    });
+    }, (error) => handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`));
 
     return () => {
       unsubOrder();
@@ -259,12 +267,14 @@ export default function Invoice() {
       <div className={cn("grid grid-cols-2 gap-4", isCapture ? "mb-10" : "mb-6 sm:mb-8")}>
         <div className="space-y-1">
           <h3 className={cn("font-black text-slate-400 uppercase tracking-widest", isCapture ? "text-sm" : "text-xs sm:text-sm")}>{t('invoice.billTo') || 'BILL TO'}</h3>
-          <p className={cn("font-bold text-slate-900 leading-tight", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{customer.name}</p>
-          <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base truncate max-w-[140px] sm:max-w-none")}>{customer.phone}</p>
+          <p className={cn("font-bold text-slate-900 leading-tight", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{customer?.name || 'Customer'}</p>
+          <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base truncate max-w-[140px] sm:max-w-none")}>{customer?.phone || 'No phone'}</p>
         </div>
         <div className={cn("space-y-1", isRTL ? "text-left" : "text-right")}>
           <h3 className={cn("font-black text-slate-400 uppercase tracking-widest", isCapture ? "text-sm" : "text-xs sm:text-sm")}>{t('invoice.delivery') || 'DOCUMENT DATE'}</h3>
-          <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{format(toDate(order.deliveryDate), 'MMM dd, yyyy')}</p>
+          <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>
+            {order?.deliveryDate ? format(toDate(order.deliveryDate), 'MMM dd, yyyy') : 'No Date'}
+          </p>
           <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base")}>Issued: {format(new Date(), 'MMM dd, yyyy')}</p>
         </div>
       </div>
@@ -276,10 +286,10 @@ export default function Invoice() {
         </div>
         <div className="flex justify-between items-center py-3 px-1">
           <div>
-            <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{order.dressType}</p>
+            <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{order?.clothingType || order?.dressType || 'Tailoring'}</p>
             <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base")}>{t('invoice.customTailoring') || 'Custom Tailoring'}</p>
           </div>
-          <p className={cn("font-black text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{settings.currency} {safeNum(order.price).toLocaleString()}</p>
+          <p className={cn("font-black text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{settings?.currency} {safeNum(order?.price).toLocaleString()}</p>
         </div>
       </div>
 

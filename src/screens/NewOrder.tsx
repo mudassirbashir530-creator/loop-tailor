@@ -53,7 +53,35 @@ export default function NewOrder() {
   
   // Images
   const [referencePhoto, setReferencePhoto] = useState<File | null>(null);
+  const [referencePhotoUrl, setReferencePhotoUrl] = useState<string>('');
   const [bodyPhoto, setBodyPhoto] = useState<File | null>(null);
+  const [bodyPhotoUrl, setBodyPhotoUrl] = useState<string>('');
+
+  useEffect(() => {
+    let url: string | null = null;
+    if (referencePhoto) {
+      url = URL.createObjectURL(referencePhoto);
+      setReferencePhotoUrl(url);
+    } else {
+      setReferencePhotoUrl('');
+    }
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [referencePhoto]);
+
+  useEffect(() => {
+    let url: string | null = null;
+    if (bodyPhoto) {
+      url = URL.createObjectURL(bodyPhoto);
+      setBodyPhotoUrl(url);
+    } else {
+      setBodyPhotoUrl('');
+    }
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [bodyPhoto]);
 
   // Payment State
   const [price, setPrice] = useState(0);
@@ -86,21 +114,32 @@ export default function NewOrder() {
     setLoading(true);
     try {
       const custId = await addCustomer({
-        name: newCustomer.name,
-        phone: newCustomer.phone,
-        whatsappPhone: newCustomer.whatsappPhone,
-        address: newCustomer.address,
-        countryCode: newCustomer.countryCode,
-        gender: newCustomer.gender,
-        notes: newCustomer.notes
+        name: newCustomer.name || '',
+        phone: newCustomer.phone || '',
+        whatsappPhone: newCustomer.whatsappPhone || '',
+        address: newCustomer.address || '',
+        countryCode: newCustomer.countryCode || '+92',
+        gender: newCustomer.gender || 'male',
+        notes: newCustomer.notes || ''
       });
       if (custId) {
-        setSelectedCustomer({ id: custId, ...newCustomer });
+        setSelectedCustomer({ 
+          id: custId, 
+          name: newCustomer.name || '',
+          phone: newCustomer.phone || '',
+          whatsappPhone: newCustomer.whatsappPhone || '',
+          address: newCustomer.address || '',
+          countryCode: newCustomer.countryCode || '+92',
+          gender: newCustomer.gender || 'male',
+          notes: newCustomer.notes || ''
+        });
         setIsCreatingCustomer(false);
         setCustomerSearch('');
+        toast.success("Customer created and selected");
       }
     } catch (e) {
-      console.error(e);
+      console.error("Create customer error:", e);
+      toast.error("Failed to create customer");
     } finally {
       setLoading(false);
     }
@@ -117,31 +156,42 @@ export default function NewOrder() {
       toast.error('Please select a customer first.');
       return;
     }
-    if (!deliveryDate || price <= 0) {
-      toast.error('Please fill delivery date and valid price.');
+    if (!deliveryDate) {
+      toast.error('Please select a delivery date.');
+      return;
+    }
+    if (price <= 0) {
+      toast.error('Please enter a valid price.');
       return;
     }
     
     setLoading(true);
     try {
-      let referencePhotoUrl = '';
-      let sampleDesignUrl = ''; // using bodyPhoto as sampleDesignUrl or reference body
+      let uploadedReferencePhotoUrl = '';
+      let uploadedBodyPhotoUrl = ''; 
       
-      const actualClothingType = clothingType === 'Custom Design' ? customClothingType : clothingType;
+      const actualClothingType = clothingType === 'Custom Design' ? (customClothingType || 'Custom Design') : clothingType;
       
-      // Auto-generate order ID if possible, but let useOrders handle DB doc
       const orderRefId = `ORDER_${Date.now()}`; 
       
       if (referencePhoto) {
-        referencePhotoUrl = await uploadImage(referencePhoto, `orders/${user?.uid}/${orderRefId}/reference_${referencePhoto.name}`);
+        try {
+          uploadedReferencePhotoUrl = await uploadImage(referencePhoto, `orders/${user?.uid}/${orderRefId}/reference_${referencePhoto.name}`);
+        } catch (uploadError) {
+          console.error("Reference photo upload failed:", uploadError);
+          // Continue anyway, or toast warning
+        }
       }
       if (bodyPhoto) {
-        sampleDesignUrl = await uploadImage(bodyPhoto, `orders/${user?.uid}/${orderRefId}/body_${bodyPhoto.name}`);
+        try {
+          uploadedBodyPhotoUrl = await uploadImage(bodyPhoto, `orders/${user?.uid}/${orderRefId}/body_${bodyPhoto.name}`);
+        } catch (uploadError) {
+          console.error("Body photo upload failed:", uploadError);
+        }
       }
 
-      const assignedWorker = workers.find(w => w.id === workerId);
+      const assignedWorker = workers && workerId ? workers.find(w => w.id === workerId) : null;
       
-      // Clean up data for Firestore (No undefined values)
       const orderData: any = {
         customerId: selectedCustomer.id || '',
         customerName: selectedCustomer.name || '',
@@ -161,17 +211,17 @@ export default function NewOrder() {
         orderData.workerName = assignedWorker?.name || '';
       }
       
-      if (referencePhotoUrl) orderData.referencePhotoUrl = referencePhotoUrl;
-      if (sampleDesignUrl) orderData.sampleDesignUrl = sampleDesignUrl;
+      if (uploadedReferencePhotoUrl) orderData.referencePhotoUrl = uploadedReferencePhotoUrl;
+      if (uploadedBodyPhotoUrl) orderData.sampleDesignUrl = uploadedBodyPhotoUrl;
 
       const docId = await addOrder(orderData);
       
       if (docId) {
-         navigate('/app/orders');
+         navigate('/app/orders', { replace: true });
       }
     } catch (error) {
        console.error("Order submit failed:", error);
-       toast.error("Failed to create order");
+       toast.error("An unexpected error occurred while creating the order");
     } finally {
       setLoading(false);
     }
@@ -227,11 +277,11 @@ export default function NewOrder() {
                        <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between">
                          <div className="flex items-center gap-3">
                            <div className="w-10 h-10 bg-primary/20 text-primary rounded-full flex items-center justify-center font-bold">
-                             {selectedCustomer.name.charAt(0).toUpperCase()}
+                             {(selectedCustomer.name || 'C').charAt(0).toUpperCase()}
                            </div>
                            <div>
-                             <p className="font-semibold">{selectedCustomer.name}</p>
-                             <p className="text-sm text-muted-foreground">{selectedCustomer.phone}</p>
+                             <p className="font-semibold">{selectedCustomer.name || 'Unnamed Customer'}</p>
+                             <p className="text-sm text-muted-foreground">{selectedCustomer.phone || 'No phone'}</p>
                            </div>
                          </div>
                          <Button variant="ghost" size="sm" onClick={() => setSelectedCustomer(null)}>Change</Button>
@@ -423,7 +473,7 @@ export default function NewOrder() {
                         {referencePhoto ? (
                            <>
                              <div className="absolute inset-0 bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"><span className="text-sm font-medium">Change Image</span></div>
-                             <img src={URL.createObjectURL(referencePhoto)} className="absolute inset-0 w-full h-full object-cover" alt="ref" />
+                             <img src={referencePhotoUrl} className="absolute inset-0 w-full h-full object-cover" alt="ref" />
                            </>
                         ) : (
                            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-muted-foreground">
@@ -441,7 +491,7 @@ export default function NewOrder() {
                         {bodyPhoto ? (
                            <>
                              <div className="absolute inset-0 bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"><span className="text-sm font-medium">Change Image</span></div>
-                             <img src={URL.createObjectURL(bodyPhoto)} className="absolute inset-0 w-full h-full object-cover" alt="body" />
+                             <img src={bodyPhotoUrl} className="absolute inset-0 w-full h-full object-cover" alt="body" />
                            </>
                         ) : (
                            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-muted-foreground">

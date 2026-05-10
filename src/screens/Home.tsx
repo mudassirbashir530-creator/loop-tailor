@@ -22,21 +22,36 @@ const itemVariants: Variants = {
   visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
 };
 
+const safeNum = (val: any) => Number(val) || 0;
+
 export default function Home() {
   const { orders, loading } = useOrders();
 
-  const totalOrders = orders.length;
-  const pendingOrders = orders.filter(o => o.status !== 'delivered').length;
-  const completedToday = orders.filter(o => o.status === 'delivered' && isToday(new Date(o.updatedAt))).length;
-  const revenue = orders.reduce((sum, order) => sum + (order.advancePayment || 0) + (order.price - order.remainingPayment), 0);
+  const totalOrders = orders?.length || 0;
+  const pendingOrders = orders ? orders.filter(o => o.status !== 'delivered').length : 0;
+  const completedToday = orders ? orders.filter(o => o && o.status === 'delivered' && o.updatedAt && isToday(new Date(o.updatedAt))).length : 0;
+  const revenue = orders ? orders.reduce((sum, order) => {
+    if (!order) return sum;
+    return sum + (safeNum(order.advancePayment)) + (safeNum(order.price) - safeNum(order.remainingPayment));
+  }, 0) : 0;
 
   const chartData = useMemo(() => {
+    if (!orders) return [];
     const data = [];
     for (let i = 6; i >= 0; i--) {
       const d = subDays(new Date(), i);
       const dateStr = format(d, 'MMM dd');
-      const dayOrders = orders.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === d.toDateString());
-      const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.advancePayment || 0) + (order.price - order.remainingPayment), 0);
+      const dayOrders = orders.filter(o => {
+        if (!o || !o.createdAt) return false;
+        try {
+          return new Date(o.createdAt).toDateString() === d.toDateString();
+        } catch (e) {
+          return false;
+        }
+      });
+      const dayRevenue = dayOrders.reduce((sum, order) => {
+        return sum + (safeNum(order.advancePayment)) + (safeNum(order.price) - safeNum(order.remainingPayment));
+      }, 0);
       data.push({ name: dateStr, revenue: dayRevenue, orders: dayOrders.length });
     }
     return data;

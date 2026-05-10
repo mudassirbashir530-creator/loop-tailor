@@ -24,12 +24,14 @@ export function useWorkers() {
       const workersData: Worker[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        workersData.push({
-          id: doc.id,
-          name: data.name,
-          phone: data.phone,
-          activeOrders: data.activeOrders || 0,
-        });
+        if (data) {
+          workersData.push({
+            id: doc.id,
+            name: data.name || 'Unnamed Worker',
+            phone: data.phone || '',
+            activeOrders: data.activeOrders || 0,
+          });
+        }
       });
       setWorkers(workersData);
       setLoading(false);

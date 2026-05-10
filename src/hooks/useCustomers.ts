@@ -24,19 +24,21 @@ export function useCustomers() {
       const customersData: Customer[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        customersData.push({
-          id: doc.id,
-          name: data.name,
-          phone: data.phone,
-          whatsappPhone: data.whatsappPhone,
-          countryCode: data.countryCode,
-          gender: data.gender,
-          notes: data.notes,
-          address: data.address,
-          totalOrders: data.totalOrders || 0,
-          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
-          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
-        });
+        if (data) {
+          customersData.push({
+            id: doc.id,
+            name: data.name || 'Unnamed',
+            phone: data.phone || 'No phone',
+            whatsappPhone: data.whatsappPhone || '',
+            countryCode: data.countryCode || '+92',
+            gender: data.gender || 'male',
+            notes: data.notes || '',
+            address: data.address || '',
+            totalOrders: data.totalOrders || 0,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
+          });
+        }
       });
       customersData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setCustomers(customersData);

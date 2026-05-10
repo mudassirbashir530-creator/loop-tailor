@@ -71,10 +71,17 @@ export default function Clients() {
        return;
     }
     setIsSubmitting(true);
-    await addCustomer(formData);
-    setIsSubmitting(false);
-    setIsAddOpen(false);
-    resetForm();
+    try {
+      await addCustomer(formData);
+      setIsAddOpen(false);
+      resetForm();
+      toast.success("Customer added successfully");
+    } catch (e) {
+      console.error("Add customer error:", e);
+      toast.error("Failed to add customer");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -85,19 +92,33 @@ export default function Clients() {
        return;
     }
     setIsSubmitting(true);
-    await updateCustomer(selectedCustomer.id, formData);
-    setIsSubmitting(false);
-    setIsEditOpen(false);
-    setSelectedCustomer(null);
+    try {
+      await updateCustomer(selectedCustomer.id, formData);
+      setIsEditOpen(false);
+      setSelectedCustomer(null);
+      toast.success("Customer updated successfully");
+    } catch (e) {
+      console.error("Edit customer error:", e);
+      toast.error("Failed to update customer");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDeleteSubmit = async () => {
     if (!selectedCustomer) return;
     setIsSubmitting(true);
-    await deleteCustomer(selectedCustomer.id);
-    setIsSubmitting(false);
-    setIsDeleteOpen(false);
-    setSelectedCustomer(null);
+    try {
+      await deleteCustomer(selectedCustomer.id);
+      setIsDeleteOpen(false);
+      setSelectedCustomer(null);
+      toast.success("Customer deleted successfully");
+    } catch (e) {
+      console.error("Delete customer error:", e);
+      toast.error("Failed to delete customer");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -261,13 +282,13 @@ export default function Clients() {
                 <CardContent className="p-0">
                   <div className="p-5 flex gap-4">
                     <div className="h-12 w-12 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
-                      {customer.name.charAt(0).toUpperCase()}
+                      {(customer.name || 'C').charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base truncate">{customer.name}</h3>
+                      <h3 className="font-semibold text-base truncate">{customer.name || 'Unnamed'}</h3>
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
                         <Phone className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{customer.phone}</span>
+                        <span className="truncate">{customer.phone || 'No phone'}</span>
                       </div>
                       {customer.address && (
                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">

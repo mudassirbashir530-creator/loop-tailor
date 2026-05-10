@@ -142,16 +142,16 @@ export default function Orders() {
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-bold text-foreground text-base leading-tight">{order.customerName}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{order.clothingType} • #{order.id.slice(-6).toUpperCase()}</p>
+                    <p className="font-bold text-foreground text-base leading-tight">{order?.customerName || 'Unnamed'}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{order?.clothingType || 'Tailoring'} • #{order?.id?.slice(-6).toUpperCase() || '??????'}</p>
                   </div>
-                  <Badge variant={order.status} className="capitalize">{order.status}</Badge>
+                  <Badge variant={order?.status || 'pending'} className="capitalize">{order?.status || 'pending'}</Badge>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-y-2 mt-2">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Calendar className="h-3.5 w-3.5" />
-                    <span>{formatDate(order.deliveryDate)}</span>
+                    <span>{order?.deliveryDate ? formatDate(order.deliveryDate) : 'No date'}</span>
                   </div>
                   
                   {order.workerName && (
@@ -194,12 +194,12 @@ export default function Orders() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Customer</p>
-                    <p className="font-bold">{selectedOrder.customerName}</p>
-                    <p className="text-sm">{selectedOrder.customerPhone}</p>
+                    <p className="font-bold">{selectedOrder?.customerName || 'Unnamed'}</p>
+                    <p className="text-sm">{selectedOrder?.customerPhone || 'No phone'}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Delivery</p>
-                    <p className="font-bold">{formatDate(selectedOrder.deliveryDate)}</p>
+                    <p className="font-bold">{selectedOrder?.deliveryDate ? formatDate(selectedOrder.deliveryDate) : 'No date'}</p>
                   </div>
                 </div>
 
@@ -246,9 +246,15 @@ export default function Orders() {
                         key={status} 
                         size="sm" 
                         variant={selectedOrder.status === status ? 'default' : 'outline'}
-                        onClick={() => {
-                          updateOrderStatus(selectedOrder.id, status as OrderStatus);
-                          setSelectedOrder(null);
+                        onClick={async () => {
+                          try {
+                            await updateOrderStatus(selectedOrder.id, status as OrderStatus);
+                            setSelectedOrder(null);
+                            toast.success(`Status updated to ${status}`);
+                          } catch (e) {
+                            console.error("Update status error:", e);
+                            toast.error("Failed to update status");
+                          }
                         }}
                         className="capitalize"
                       >
