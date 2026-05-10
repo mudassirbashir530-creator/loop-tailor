@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, Crown, Bell, MessageSquare, Globe, Palette, HelpCircle, LogOut, ChevronRight, Moon, Sun, Smartphone, Check } from 'lucide-react';
+import { Store, Crown, Bell, MessageSquare, Globe, Palette, HelpCircle, LogOut, ChevronRight, Moon, Sun, Smartphone, Check, UserCircle } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -229,6 +229,12 @@ export default function Settings() {
                 title="Shop Profile" 
                 subtitle="Edit name and details" 
                 onClick={() => setIsEditingProfile(true)}
+              />
+              <SettingsRow 
+                icon={<UserCircle className="h-5 w-5 text-purple-500" />} 
+                title="Workers Management" 
+                subtitle="Manage your staff and performance" 
+                onClick={() => navigate('/app/workers')}
               />
               <SettingsRow 
                 icon={<Crown className="h-5 w-5 text-accent" />} 

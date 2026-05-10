@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, addDoc, doc, serverTimestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, doc, serverTimestamp, orderBy, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Worker } from '../lib/types';
@@ -29,7 +29,22 @@ export function useWorkers() {
             id: doc.id,
             name: data.name || 'Unnamed Worker',
             phone: data.phone || '',
+            whatsappPhone: data.whatsappPhone || '',
+            countryCode: data.countryCode || '+92',
+            role: data.role || 'tailor',
+            salaryType: data.salaryType || 'monthly',
+            salaryAmount: data.salaryAmount || 0,
+            speciality: data.speciality || '',
+            address: data.address || '',
+            notes: data.notes || '',
+            joiningDate: data.joiningDate || new Date().toISOString(),
+            profileImage: data.profileImage || null,
+            status: data.status || 'available',
             activeOrders: data.activeOrders || 0,
+            completedOrders: data.completedOrders || 0,
+            totalEarnings: data.totalEarnings || 0,
+            userId: data.userId || '',
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
           });
         }
       });
@@ -43,15 +58,18 @@ export function useWorkers() {
     return () => unsubscribe();
   }, [user]);
 
-  const addWorker = async (workerData: Omit<Worker, 'id' | 'activeOrders'>) => {
+  const addWorker = async (workerData: Omit<Worker, 'id' | 'activeOrders' | 'completedOrders' | 'totalEarnings' | 'userId' | 'createdAt'>) => {
     if (!user) return null;
     try {
       const docRef = await addDoc(collection(db, 'workers'), {
         ...workerData,
         userId: user.uid,
         activeOrders: 0,
+        completedOrders: 0,
+        totalEarnings: 0,
+        createdAt: serverTimestamp(),
       });
-      toast.success("Worker added");
+      toast.success("Worker added perfectly");
       return docRef.id;
     } catch (error) {
       toast.error("Failed to add worker");
@@ -59,5 +77,30 @@ export function useWorkers() {
     }
   };
 
-  return { workers, loading, addWorker };
+  const updateWorker = async (id: string, workerData: Partial<Worker>) => {
+    if (!user) return;
+    try {
+      await updateDoc(doc(db, 'workers', id), {
+        ...workerData,
+        updatedAt: serverTimestamp(),
+      });
+      toast.success("Worker updated successfully");
+    } catch (error) {
+      toast.error("Failed to update worker");
+      handleFirestoreError(error, OperationType.UPDATE, 'workers');
+    }
+  };
+
+  const deleteWorker = async (id: string) => {
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, 'workers', id));
+      toast.success("Worker deleted");
+    } catch (error) {
+      toast.error("Failed to delete worker");
+      handleFirestoreError(error, OperationType.DELETE, 'workers');
+    }
+  };
+
+  return { workers, loading, addWorker, updateWorker, deleteWorker };
 }

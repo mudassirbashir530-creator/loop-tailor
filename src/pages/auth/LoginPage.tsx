@@ -91,7 +91,7 @@ export default function LoginPage() {
                 <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Remember me for 30 days</label>
               </div>
               
-              <Button type="submit" fullWidth size="lg" disabled={loading} className="mt-2">
+              <Button type="submit" fullWidth size="lg" disabled={loading} className="mt-2 text-[#eddcdc]">
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>

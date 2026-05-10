@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
-import { Home, Users, Plus, Package, Settings, Scissors } from 'lucide-react';
+import { Home, Users, Plus, Package, Settings, Scissors, UserCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -12,6 +12,7 @@ export default function AppLayout() {
   const navItems = [
     { icon: Home, label: 'Dashboard', path: '/app' },
     { icon: Users, label: 'Clients', path: '/app/clients' },
+    { icon: UserCircle, label: 'Workers', path: '/app/workers' },
     { icon: Package, label: 'Orders', path: '/app/orders' },
     { icon: Plus, label: 'New Order', path: '/app/new-order' },
     { icon: Settings, label: 'Settings', path: '/app/settings' },

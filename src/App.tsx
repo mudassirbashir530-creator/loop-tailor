@@ -24,6 +24,7 @@ import SignupPage from './pages/auth/SignupPage';
 // App Pages
 import Home from './screens/Home';
 import Clients from './screens/Clients';
+import Workers from './screens/Workers';
 import Orders from './screens/Orders';
 import NewOrder from './screens/NewOrder';
 import Settings from './screens/Settings';
@@ -111,6 +112,7 @@ export default function App() {
                 }>
                   <Route index element={<Home />} />
                   <Route path="clients" element={<Clients />} />
+                  <Route path="workers" element={<Workers />} />
                   <Route path="orders" element={<Orders />} />
                   <Route path="invoice/:id" element={<Invoice />} />
                   <Route path="new-order" element={<NewOrder />} />

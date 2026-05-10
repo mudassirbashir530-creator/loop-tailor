@@ -19,11 +19,30 @@ export interface Customer {
   updatedAt?: string;
 }
 
+export type WorkerRole = 'tailor' | 'master' | 'helper' | 'cutter' | 'embroidery' | 'other';
+export type WorkerStatus = 'available' | 'busy' | 'on_leave' | 'offline';
+export type SalaryType = 'monthly' | 'per_order';
+
 export interface Worker {
   id: string;
   name: string;
   phone: string;
+  whatsappPhone?: string;
+  countryCode?: string;
+  role: WorkerRole;
+  salaryType: SalaryType;
+  salaryAmount: number;
+  speciality?: string;
+  address?: string;
+  notes?: string;
+  joiningDate: string;
+  profileImage?: string | CloudinaryImage;
+  status: WorkerStatus;
   activeOrders: number;
+  completedOrders: number;
+  totalEarnings?: number;
+  userId: string;
+  createdAt: string;
 }
 
 export type OrderStatus = "pending" | "stitching" | "ready" | "delivered";

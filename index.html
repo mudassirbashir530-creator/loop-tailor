@@ -81,19 +81,24 @@
     }
     </script>
     <script>
-      // Some polyfills try to overwrite window.fetch. In sandboxed environments, 
-      // window.fetch might be a read-only getter, which causes a TypeError.
-      // We try to head this off early.
+      // Protection against polyfills overwriting window.fetch and related objects
       (function() {
-        try {
-          var desc = Object.getOwnPropertyDescriptor(window, 'fetch');
-          if (desc && !desc.writable && !desc.set && desc.configurable) {
-            // If it's a getter-only but configurable, we might be able to make it writable
-            // but usually we just want to avoid anything trying to set it.
-            // Since we can't easily stop other scripts from SETTING it without Proxy,
-            // we have aliased common polyfills in vite.config.ts.
-          }
-        } catch (e) {}
+        var targets = ['fetch', 'Headers', 'Request', 'Response'];
+        targets.forEach(function(name) {
+          try {
+            var original = window[name];
+            if (original) {
+              Object.defineProperty(window, name, {
+                get: function() { return original; },
+                set: function(v) { 
+                  console.warn('Attempt to overwrite window.' + name + ' blocked.'); 
+                },
+                configurable: true,
+                enumerable: true
+              });
+            }
+          } catch (e) {}
+        });
       })();
     </script>
     <meta name="google-site-verification" content="CY_KIunjykzDWEqpnwB8cfC68vaDjwcdAOizTqXrl8c" />

@@ -123,7 +123,7 @@ export default function SignupPage() {
                 </label>
               </div>
               
-              <Button type="submit" fullWidth size="lg" disabled={loading} className="mt-4">
+              <Button type="submit" fullWidth size="lg" disabled={loading} className="mt-4 text-[#eddcdc]">
                 {loading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>

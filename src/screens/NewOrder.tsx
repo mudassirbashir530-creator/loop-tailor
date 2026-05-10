@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, User, Scissors, Ruler, DollarSign, Loader2, Search, Plus, 
-  CheckCircle2, Camera, UserSquare2, ChevronRight, X, Check, Upload 
+  CheckCircle2, Camera, UserSquare2, ChevronRight, X, Check, Upload, Briefcase
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -10,7 +10,7 @@ import { Button } from '../components/ui/button';
 import { useCustomers } from '../hooks/useCustomers';
 import { useWorkers } from '../hooks/useWorkers';
 import { useOrders } from '../hooks/useOrders';
-import { formatCurrency, generateTokenId } from '../lib/utils';
+import { formatCurrency, generateTokenId, cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
@@ -90,11 +90,17 @@ export default function NewOrder() {
   const [deliveryDate, setDeliveryDate] = useState('');
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const workerDropdownRef = useRef<HTMLDivElement>(null);
+  const [workerSearch, setWorkerSearch] = useState('');
+  const [showWorkerDropdown, setShowWorkerDropdown] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowCustomerDropdown(false);
+      }
+      if (workerDropdownRef.current && !workerDropdownRef.current.contains(event.target as Node)) {
+        setShowWorkerDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -597,13 +603,102 @@ export default function NewOrder() {
                         <label className="text-sm font-medium text-muted-foreground">Delivery Date *</label>
                         <Input type="date" value={deliveryDate} onChange={e => setDeliveryDate(e.target.value)} required className="h-12 rounded-xl" />
                      </div>
-                     <div className="space-y-1.5">
-                       <label className="text-sm font-medium text-muted-foreground">Assign Staff (Optional)</label>
-                       <select value={workerId} onChange={e => setWorkerId(e.target.value)} className="w-full h-12 rounded-xl border border-input bg-transparent px-3 text-sm">
-                         <option value="">Unassigned</option>
-                         {workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                       </select>
-                     </div>
+                     <div className="space-y-2">
+                        <label className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                          <Briefcase className="w-4 h-4" /> 
+                          Assign Worker (Optional)
+                        </label>
+                        <div className="relative group">
+                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                           <Input 
+                             placeholder="Search worker..." 
+                             className="pl-9 h-11 rounded-xl"
+                             onChange={(e) => {
+                               setWorkerSearch(e.target.value);
+                               setShowWorkerDropdown(true);
+                             }}
+                             onFocus={() => setShowWorkerDropdown(true)}
+                             value={workerId ? (workers.find(w => w.id === workerId)?.name || "") : workerSearch}
+                           />
+                           
+                           <AnimatePresence>
+                             {showWorkerDropdown && (
+                               <motion.div 
+                                 initial={{ opacity: 0, scale: 0.95 }}
+                                 animate={{ opacity: 1, scale: 1 }}
+                                 exit={{ opacity: 0, scale: 0.95 }}
+                                 className="absolute z-50 w-full bottom-full mb-2 bg-popover rounded-2xl border border-border shadow-2xl overflow-hidden"
+                                 ref={workerDropdownRef}
+                               >
+                                 <div className="max-h-[200px] overflow-y-auto p-2 space-y-1">
+                                    <button 
+                                      type="button"
+                                      className="w-full text-left p-3 hover:bg-muted rounded-xl flex items-center justify-between transition-colors"
+                                      onClick={() => {
+                                        setWorkerId('');
+                                        setWorkerSearch('');
+                                        setShowWorkerDropdown(false);
+                                      }}
+                                    >
+                                      <span className="font-bold text-muted-foreground text-xs uppercase tracking-widest">Unassigned</span>
+                                      {!workerId && <Check className="w-4 h-4 text-primary" />}
+                                    </button>
+                                    
+                                    {workers.filter(w => 
+                                      w.name.toLowerCase().includes(workerSearch.toLowerCase()) || 
+                                      w.speciality?.toLowerCase().includes(workerSearch.toLowerCase()) ||
+                                      w.role.toLowerCase().includes(workerSearch.toLowerCase())
+                                    ).map(worker => (
+                                      <button 
+                                        key={worker.id}
+                                        type="button"
+                                        className={cn(
+                                          "w-full text-left p-2 hover:bg-muted rounded-xl flex items-center gap-3 transition-colors",
+                                          workerId === worker.id && "bg-primary/5 border-primary/20 border text-primary"
+                                        )}
+                                        onClick={() => {
+                                          setWorkerId(worker.id);
+                                          setWorkerSearch(worker.name);
+                                          setShowWorkerDropdown(false);
+                                        }}
+                                      >
+                                        <div className="relative shrink-0">
+                                          {worker.profileImage ? (
+                                            <img 
+                                              src={typeof worker.profileImage === 'string' ? worker.profileImage : worker.profileImage.url} 
+                                              className="h-8 w-8 rounded-lg object-cover bg-muted" 
+                                              alt={worker.name} 
+                                            />
+                                          ) : (
+                                            <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px]">
+                                              {worker.name.charAt(0).toUpperCase()}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-bold truncate text-[13px]">{worker.name}</p>
+                                          <p className="text-[10px] text-muted-foreground truncate uppercase font-bold opacity-70">
+                                            {worker.role} {worker.speciality && `| ${worker.speciality}`}
+                                          </p>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                           <div className="flex items-center gap-1 justify-end">
+                                              <span className={cn(
+                                                "w-1.5 h-1.5 rounded-full",
+                                                worker.activeOrders > 3 ? "bg-red-500" : worker.activeOrders > 0 ? "bg-amber-500" : "bg-green-500"
+                                              )} />
+                                              <span className="text-xs font-black">{worker.activeOrders}</span>
+                                           </div>
+                                           <p className="text-[8px] font-bold text-muted-foreground uppercase opacity-50">Active</p>
+                                        </div>
+                                      </button>
+                                    ))}
+                                 </div>
+                               </motion.div>
+                             )}
+                           </AnimatePresence>
+                        </div>
+                      </div>
                    </div>
                 </div>
 
@@ -612,12 +707,12 @@ export default function NewOrder() {
            
            <div className="flex justify-between items-center pt-4">
               <Button variant="outline" onClick={prevStep} disabled={loading}>Back</Button>
-              <Button onClick={handleSubmit} size="lg" disabled={loading} className="gap-2 px-8 w-full sm:w-auto text-base">
+              <Button onClick={handleSubmit} size="lg" disabled={loading} className="gap-2 px-8 w-full sm:w-auto text-base shadow-lg shadow-primary/20">
                  {loading ? <Loader2 className="w-5 h-5 animate-spin"/> : <CheckCircle2 className="w-5 h-5" />} 
                  Complete Order
               </Button>
            </div>
-         </motion.div>
+        </motion.div>
       )}
 
     </div>

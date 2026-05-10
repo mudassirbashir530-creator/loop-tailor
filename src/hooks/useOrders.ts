@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, increment, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, getDoc, serverTimestamp, increment, orderBy } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Order, OrderStatus } from '../lib/types';
@@ -79,6 +79,13 @@ export function useOrders() {
         });
       }
 
+      // Update worker activeOrders
+      if (orderData.workerId) {
+        await updateDoc(doc(db, 'workers', orderData.workerId), {
+          activeOrders: increment(1)
+        });
+      }
+
       toast.success("Order created successfully");
       return docRef.id;
     } catch (error) {
@@ -90,10 +97,50 @@ export function useOrders() {
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
      if (!user) return;
      try {
-       await updateDoc(doc(db, 'orders', orderId), {
+       const orderRef = doc(db, 'orders', orderId);
+       const orderSnap = await getDoc(orderRef);
+       const previousData = orderSnap.data();
+       const previousStatus = previousData?.status;
+       const workerId = previousData?.workerId;
+
+       await updateDoc(orderRef, {
          status,
          updatedAt: serverTimestamp()
        });
+
+       // Update worker stats if status changed
+       if (workerId && previousStatus !== status) {
+         const workerRef = doc(db, 'workers', workerId);
+         
+         // If moving TO delivered/ready/completed from active state
+         const terminalStates = ['delivered', 'completed', 'ready'];
+         const isActive = (s: string) => !terminalStates.includes(s) && s !== 'cancelled';
+         const isTerminal = (s: string) => terminalStates.includes(s);
+
+         if (isActive(previousStatus) && isTerminal(status)) {
+           // Decrease active, Increase completed
+           const updates: any = {
+             activeOrders: increment(-1),
+             completedOrders: increment(1)
+           };
+
+           // Handle salary if per_order
+           const workerSnap = await getDoc(workerRef);
+           const workerData = workerSnap.data();
+           if (workerData?.salaryType === 'per_order') {
+             updates.totalEarnings = increment(workerData.salaryAmount || 0);
+           }
+
+           await updateDoc(workerRef, updates);
+         } else if (isTerminal(previousStatus) && isActive(status)) {
+           // Move back to active (rare)
+           await updateDoc(workerRef, {
+             activeOrders: increment(1),
+             completedOrders: increment(-1)
+           });
+         }
+       }
+
        toast.success("Status updated");
      } catch (error) {
        toast.error("Failed to update status");
