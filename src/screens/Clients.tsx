@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Search, Phone, MapPin, ShoppingBag, Loader2, Edit, Trash2, Check } from 'lucide-react';
+import { UserPlus, Search, Phone, MapPin, ShoppingBag, Loader2, Edit, Trash2, Check, Camera, Upload, X } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
 import { Button } from '../components/ui/button';
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '../components/ui/input';
 import { Customer } from '../lib/types';
 import { toast } from 'sonner';
+import { uploadToCloudinary } from '../lib/cloudinary';
 
 export default function Clients() {
   const [search, setSearch] = useState('');
@@ -28,8 +29,11 @@ export default function Clients() {
     countryCode: '+92',
     address: '',
     gender: 'male',
-    notes: ''
+    notes: '',
+    profileImage: ''
   });
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -37,7 +41,9 @@ export default function Clients() {
   );
 
   const resetForm = () => {
-    setFormData({ name: '', phone: '', whatsappPhone: '', countryCode: '+92', address: '', gender: 'male', notes: '' });
+    setFormData({ name: '', phone: '', whatsappPhone: '', countryCode: '+92', address: '', gender: 'male', notes: '', profileImage: '' });
+    setProfileImageFile(null);
+    setUploadProgress(0);
   };
 
   const openAddModal = () => {
@@ -72,7 +78,12 @@ export default function Clients() {
     }
     setIsSubmitting(true);
     try {
-      await addCustomer(formData);
+      let profileImageUrl = '';
+      if (profileImageFile) {
+        profileImageUrl = await uploadToCloudinary(profileImageFile, setUploadProgress);
+      }
+      
+      await addCustomer({ ...formData, profileImage: profileImageUrl });
       setIsAddOpen(false);
       resetForm();
       toast.success("Customer added successfully");
@@ -81,6 +92,7 @@ export default function Clients() {
       toast.error("Failed to add customer");
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -93,7 +105,12 @@ export default function Clients() {
     }
     setIsSubmitting(true);
     try {
-      await updateCustomer(selectedCustomer.id, formData);
+      let profileImageUrl = formData.profileImage;
+      if (profileImageFile) {
+        profileImageUrl = await uploadToCloudinary(profileImageFile, setUploadProgress);
+      }
+      
+      await updateCustomer(selectedCustomer.id, { ...formData, profileImage: profileImageUrl });
       setIsEditOpen(false);
       setSelectedCustomer(null);
       toast.success("Customer updated successfully");
@@ -102,6 +119,7 @@ export default function Clients() {
       toast.error("Failed to update customer");
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -176,6 +194,34 @@ export default function Clients() {
                 <label className="text-sm font-medium">Notes</label>
                 <Input value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} placeholder="Preferences..." />
               </div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium">Profile Image</label>
+                <div className="flex items-center gap-4">
+                  <label className="relative flex-shrink-0 w-20 h-20 border-2 border-dashed rounded-full cursor-pointer hover:bg-muted/50 transition-colors flex items-center justify-center overflow-hidden">
+                    {profileImageFile || formData.profileImage ? (
+                      <img 
+                        src={profileImageFile ? URL.createObjectURL(profileImageFile) : formData.profileImage} 
+                        className="w-full h-full object-cover" 
+                        alt="profile" 
+                      />
+                    ) : (
+                      <Upload className="w-6 h-6 text-muted-foreground" />
+                    )}
+                    <input type="file" className="hidden" accept="image/*" onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) setProfileImageFile(file);
+                    }} />
+                  </label>
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground mb-2">Upload a professional profile photo for your client.</p>
+                    {uploadProgress > 0 && (
+                      <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className="bg-primary h-full transition-all" style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
             <DialogFooter className="mt-6">
                <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)}>Cancel</Button>
@@ -227,6 +273,34 @@ export default function Clients() {
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium">Notes</label>
                 <Input value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} placeholder="Preferences..." />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium">Profile Image</label>
+                <div className="flex items-center gap-4">
+                  <label className="relative flex-shrink-0 w-20 h-20 border-2 border-dashed rounded-full cursor-pointer hover:bg-muted/50 transition-colors flex items-center justify-center overflow-hidden">
+                    {profileImageFile || formData.profileImage ? (
+                      <img 
+                        src={profileImageFile ? URL.createObjectURL(profileImageFile) : formData.profileImage} 
+                        className="w-full h-full object-cover" 
+                        alt="profile" 
+                      />
+                    ) : (
+                      <Upload className="w-6 h-6 text-muted-foreground" />
+                    )}
+                    <input type="file" className="hidden" accept="image/*" onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) setProfileImageFile(file);
+                    }} />
+                  </label>
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground mb-2">Upload a professional profile photo for your client.</p>
+                    {uploadProgress > 0 && (
+                      <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className="bg-primary h-full transition-all" style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
             <DialogFooter className="mt-6">
@@ -289,9 +363,13 @@ export default function Clients() {
               <Card key={customer.id} className="group hover:border-primary/50 transition-colors overflow-hidden">
                 <CardContent className="p-0">
                   <div className="p-5 flex gap-4">
-                    <div className="h-12 w-12 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
-                      {(customer.name || 'C').charAt(0).toUpperCase()}
-                    </div>
+                    {customer.profileImage ? (
+                      <img src={customer.profileImage} className="h-12 w-12 shrink-0 rounded-full object-cover border" alt={customer.name} />
+                    ) : (
+                      <div className="h-12 w-12 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
+                        {(customer.name || 'C').charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-base truncate">{customer.name || 'Unnamed'}</h3>
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">

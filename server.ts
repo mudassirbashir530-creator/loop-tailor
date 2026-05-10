@@ -41,21 +41,40 @@ const upload = multer({
 });
 
 // Initialize Firebase Admin (requires GOOGLE_APPLICATION_CREDENTIALS in production)
+let db: admin.firestore.Firestore | null = null;
+
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
+    db = admin.firestore();
   } else {
-    // Fallback for development without credentials
-    admin.initializeApp();
+    // If no credentials, try to initialize but don't crash if it fails
+    if (admin.apps.length === 0) {
+      admin.initializeApp();
+    }
+    db = admin.firestore();
   }
 } catch (error) {
   console.warn("Firebase Admin initialization warning:", error);
 }
 
-const db = admin.firestore();
+// Utility to get Firestore instance securely
+const getDb = () => {
+  if (!db) {
+    // Attempt lazy init if not already done
+    try {
+      if (admin.apps.length > 0) {
+        db = admin.firestore();
+      }
+    } catch (e) {
+      console.error("Failed to get Firestore instance:", e);
+    }
+  }
+  return db;
+};
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -140,6 +159,11 @@ async function startServer() {
       // 1. Generate a secure random 6-digit OTP
       // Using crypto.randomInt for cryptographically secure random numbers
       const otp = crypto.randomInt(100000, 999999).toString();
+      const firestore = getDb();
+
+      if (!firestore) {
+         return res.status(500).json({ error: "Database not available" });
+      }
 
       // 2. Set expiration time (10 minutes from now)
       const expiresAt = new Date();
@@ -147,7 +171,7 @@ async function startServer() {
 
       // 3. Save OTP temporarily in Firestore
       // We use the email as the document ID or store it in a dedicated collection
-      await db.collection('password_resets').doc(email.toLowerCase()).set({
+      await firestore.collection('password_resets').doc(email.toLowerCase()).set({
         otp,
         email: email.toLowerCase(),
         expiresAt: admin.firestore.Timestamp.fromDate(expiresAt),
@@ -220,7 +244,12 @@ async function startServer() {
         return res.status(400).json({ error: "Password must be at least 6 characters" });
       }
 
-      const resetDoc = await db.collection('password_resets').doc(email.toLowerCase()).get();
+      const firestore = getDb();
+      if (!firestore) {
+        return res.status(500).json({ error: "Database not available" });
+      }
+
+      const resetDoc = await firestore.collection('password_resets').doc(email.toLowerCase()).get();
 
       if (!resetDoc.exists) {
         return res.status(400).json({ error: "Invalid or expired OTP" });
@@ -281,15 +310,18 @@ async function startServer() {
 
       // 1. Save the message to Firestore so it's never lost
       try {
-        await db.collection('contact_messages').add({
-          firstName,
-          lastName,
-          email,
-          phone: phone || '',
-          message,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          status: 'new'
-        });
+        const firestore = getDb();
+        if (firestore) {
+          await firestore.collection('contact_messages').add({
+            firstName,
+            lastName,
+            email,
+            phone: phone || '',
+            message,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            status: 'new'
+          });
+        }
       } catch (dbError) {
         console.error("Failed to save contact message to Firestore:", dbError);
         // Continue anyway to try sending the email
@@ -381,7 +413,12 @@ async function startServer() {
          return res.status(500).json({ error: "Firebase Admin is not configured" });
       }
 
-      const tokensRef = db.collection('shops').doc(shopId).collection('fcmTokens');
+      const firestore = getDb();
+      if (!firestore) {
+        return res.status(500).json({ error: "Database not available" });
+      }
+
+      const tokensRef = firestore.collection('shops').doc(shopId).collection('fcmTokens');
       const tokensSnap = await tokensRef.get();
       
       if (tokensSnap.empty) {
@@ -423,8 +460,9 @@ async function startServer() {
         });
         
         // Remove failed tokens from Firestore
-        if (failedTokens.length > 0) {
-          const batch = db.batch();
+        const firestore = getDb();
+        if (failedTokens.length > 0 && firestore) {
+          const batch = firestore.batch();
           tokensSnap.forEach(doc => {
             if (failedTokens.includes(doc.data().token)) {
               batch.delete(doc.ref);

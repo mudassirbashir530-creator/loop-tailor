@@ -15,8 +15,7 @@ import { OrderStatus } from '../lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMeasurementCategoriesForDress } from '../lib/measurements';
 import { useAuth } from '../contexts/AuthContext';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { toast } from 'sonner';
 
 export const CLOTHING_CATEGORIES = [
@@ -25,6 +24,35 @@ export const CLOTHING_CATEGORIES = [
   { group: 'Kids', options: ['Kids Kurta', 'Kids Suit', 'School Uniform'] },
   { group: 'Other', options: ['Alteration', 'Custom Design', 'Repair', 'Other'] }
 ];
+
+import { uploadToCloudinary } from '../lib/cloudinary';
+
+function ImagePreview({ file, onRemove, progress }: { file: File, onRemove: () => void, progress?: number }) {
+  const [url, setUrl] = useState<string>('');
+
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(file);
+    setUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
+
+  return (
+    <div className="relative aspect-square rounded-lg overflow-hidden border">
+      {url && <img src={url} className="w-full h-full object-cover" alt="preview" />}
+      <button 
+        onClick={onRemove}
+        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 shadow-sm hover:scale-110 transition-transform"
+      >
+        <X className="w-3 h-3" />
+      </button>
+      {progress !== undefined && progress < 100 && (
+        <div className="absolute inset-x-0 bottom-0 bg-black/60 h-1">
+          <div className="bg-primary h-full transition-all" style={{ width: `${progress}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function NewOrder() {
   const navigate = useNavigate();
@@ -35,6 +63,7 @@ export default function NewOrder() {
   
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
   // Customer State
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -51,37 +80,9 @@ export default function NewOrder() {
   const [measurements, setMeasurements] = useState<Record<string, string>>({});
   const [measurementNotes, setMeasurementNotes] = useState('');
   
-  // Images
-  const [referencePhoto, setReferencePhoto] = useState<File | null>(null);
-  const [referencePhotoUrl, setReferencePhotoUrl] = useState<string>('');
-  const [bodyPhoto, setBodyPhoto] = useState<File | null>(null);
-  const [bodyPhotoUrl, setBodyPhotoUrl] = useState<string>('');
-
-  useEffect(() => {
-    let url: string | null = null;
-    if (referencePhoto) {
-      url = URL.createObjectURL(referencePhoto);
-      setReferencePhotoUrl(url);
-    } else {
-      setReferencePhotoUrl('');
-    }
-    return () => {
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [referencePhoto]);
-
-  useEffect(() => {
-    let url: string | null = null;
-    if (bodyPhoto) {
-      url = URL.createObjectURL(bodyPhoto);
-      setBodyPhotoUrl(url);
-    } else {
-      setBodyPhotoUrl('');
-    }
-    return () => {
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [bodyPhoto]);
+  // Images (Multiple support)
+  const [referenceImages, setReferenceImages] = useState<File[]>([]);
+  const [designImages, setDesignImages] = useState<File[]>([]);
 
   // Payment State
   const [price, setPrice] = useState(0);
@@ -145,12 +146,6 @@ export default function NewOrder() {
     }
   };
 
-  const uploadImage = async (file: File, path: string) => {
-    const fileRef = ref(storage, path);
-    await uploadBytes(fileRef, file);
-    return await getDownloadURL(fileRef);
-  };
-
   const handleSubmit = async () => {
     if (!selectedCustomer) {
       toast.error('Please select a customer first.');
@@ -167,26 +162,38 @@ export default function NewOrder() {
     
     setLoading(true);
     try {
-      let uploadedReferencePhotoUrl = '';
-      let uploadedBodyPhotoUrl = ''; 
+      const uploadedReferenceUrls: string[] = [];
+      const uploadedDesignUrls: string[] = [];
       
       const actualClothingType = clothingType === 'Custom Design' ? (customClothingType || 'Custom Design') : clothingType;
       
-      const orderRefId = `ORDER_${Date.now()}`; 
-      
-      if (referencePhoto) {
+      // Upload Reference Images
+      for (let i = 0; i < referenceImages.length; i++) {
+        const file = referenceImages[i];
+        const progressId = `ref-${i}`;
         try {
-          uploadedReferencePhotoUrl = await uploadImage(referencePhoto, `orders/${user?.uid}/${orderRefId}/reference_${referencePhoto.name}`);
-        } catch (uploadError) {
-          console.error("Reference photo upload failed:", uploadError);
-          // Continue anyway, or toast warning
+          const url = await uploadToCloudinary(file, (p) => {
+            setUploadProgress(prev => ({ ...prev, [progressId]: p }));
+          });
+          uploadedReferenceUrls.push(url);
+        } catch (e) {
+          console.error("Cloudinary ref upload failed:", e);
+          toast.error(`Failed to upload reference image ${i + 1}`);
         }
       }
-      if (bodyPhoto) {
+
+      // Upload Design Images
+      for (let i = 0; i < designImages.length; i++) {
+        const file = designImages[i];
+        const progressId = `design-${i}`;
         try {
-          uploadedBodyPhotoUrl = await uploadImage(bodyPhoto, `orders/${user?.uid}/${orderRefId}/body_${bodyPhoto.name}`);
-        } catch (uploadError) {
-          console.error("Body photo upload failed:", uploadError);
+          const url = await uploadToCloudinary(file, (p) => {
+            setUploadProgress(prev => ({ ...prev, [progressId]: p }));
+          });
+          uploadedDesignUrls.push(url);
+        } catch (e) {
+          console.error("Cloudinary design upload failed:", e);
+          toast.error(`Failed to upload design image ${i + 1}`);
         }
       }
 
@@ -204,6 +211,9 @@ export default function NewOrder() {
         advancePayment: Number(advance) || 0,
         remainingPayment: Math.max(0, Number(price) - Number(advance)),
         deliveryDate: deliveryDate || '',
+        referenceImages: uploadedReferenceUrls,
+        designImages: uploadedDesignUrls,
+        createdBy: user?.uid,
       };
 
       if (workerId) {
@@ -211,8 +221,9 @@ export default function NewOrder() {
         orderData.workerName = assignedWorker?.name || '';
       }
       
-      if (uploadedReferencePhotoUrl) orderData.referencePhotoUrl = uploadedReferencePhotoUrl;
-      if (uploadedBodyPhotoUrl) orderData.sampleDesignUrl = uploadedBodyPhotoUrl;
+      // Compatibility with old code/other parts if needed
+      if (uploadedReferenceUrls.length > 0) orderData.referencePhotoUrl = uploadedReferenceUrls[0];
+      if (uploadedDesignUrls.length > 0) orderData.sampleDesignUrl = uploadedDesignUrls[0];
 
       const docId = await addOrder(orderData);
       
@@ -224,6 +235,7 @@ export default function NewOrder() {
        toast.error("An unexpected error occurred while creating the order");
     } finally {
       setLoading(false);
+      setUploadProgress({});
     }
   };
 
@@ -480,41 +492,61 @@ export default function NewOrder() {
                    />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                    <div className="space-y-3">
-                     <label className="text-sm font-medium flex items-center gap-2"><Camera className="w-4 h-4"/> Reference Design</label>
-                     <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer hover:bg-muted/50 transition-colors border-muted-foreground/30 hover:border-primary/50 relative overflow-hidden group">
-                        {referencePhoto ? (
-                           <>
-                             <div className="absolute inset-0 bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"><span className="text-sm font-medium">Change Image</span></div>
-                             <img src={referencePhotoUrl} className="absolute inset-0 w-full h-full object-cover" alt="ref" />
-                           </>
-                        ) : (
-                           <div className="flex flex-col items-center justify-center pt-5 pb-6 text-muted-foreground">
-                             <Upload className="w-8 h-8 mb-2 opacity-50" />
-                             <p className="text-sm font-medium">Upload Design Image</p>
-                           </div>
-                        )}
-                        <input type="file" className="hidden" accept="image/*" onChange={e => e.target.files && setReferencePhoto(e.target.files[0])} />
+                     <label className="text-sm font-medium flex items-center gap-2 text-primary">
+                       <Camera className="w-4 h-4" /> Reference Designs (Max 3)
                      </label>
+                     <div className="grid grid-cols-3 gap-2">
+                       {referenceImages.map((file, idx) => (
+                         <ImagePreview 
+                           key={`ref-${idx}`} 
+                           file={file} 
+                           onRemove={() => setReferenceImages(prev => prev.filter((_, i) => i !== idx))}
+                           progress={uploadProgress[`ref-${idx}`]}
+                         />
+                       ))}
+                       {referenceImages.length < 3 && (
+                         <label className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                           <Plus className="w-6 h-6 text-muted-foreground" />
+                           <span className="text-[10px] text-muted-foreground mt-1">Add</span>
+                           <input 
+                             type="file" 
+                             className="hidden" 
+                             accept="image/*" 
+                             onChange={e => e.target.files?.[0] && setReferenceImages(prev => [...prev, e.target.files![0]])} 
+                           />
+                         </label>
+                       )}
+                     </div>
                    </div>
                    
                    <div className="space-y-3">
-                     <label className="text-sm font-medium flex items-center gap-2"><UserSquare2 className="w-4 h-4"/> Body Reference</label>
-                     <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer hover:bg-muted/50 transition-colors border-muted-foreground/30 hover:border-primary/50 relative overflow-hidden group">
-                        {bodyPhoto ? (
-                           <>
-                             <div className="absolute inset-0 bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"><span className="text-sm font-medium">Change Image</span></div>
-                             <img src={bodyPhotoUrl} className="absolute inset-0 w-full h-full object-cover" alt="body" />
-                           </>
-                        ) : (
-                           <div className="flex flex-col items-center justify-center pt-5 pb-6 text-muted-foreground">
-                             <Upload className="w-8 h-8 mb-2 opacity-50" />
-                             <p className="text-sm font-medium">Upload Body Image</p>
-                           </div>
-                        )}
-                        <input type="file" className="hidden" accept="image/*" onChange={e => e.target.files && setBodyPhoto(e.target.files[0])} />
+                     <label className="text-sm font-medium flex items-center gap-2 text-primary">
+                       <UserSquare2 className="w-4 h-4" /> Design Samples / Body Reference (Max 3)
                      </label>
+                     <div className="grid grid-cols-3 gap-2">
+                       {designImages.map((file, idx) => (
+                         <ImagePreview 
+                           key={`design-${idx}`} 
+                           file={file} 
+                           onRemove={() => setDesignImages(prev => prev.filter((_, i) => i !== idx))}
+                           progress={uploadProgress[`design-${idx}`]}
+                         />
+                       ))}
+                       {designImages.length < 3 && (
+                         <label className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                           <Plus className="w-6 h-6 text-muted-foreground" />
+                           <span className="text-[10px] text-muted-foreground mt-1">Add</span>
+                           <input 
+                             type="file" 
+                             className="hidden" 
+                             accept="image/*" 
+                             onChange={e => e.target.files?.[0] && setDesignImages(prev => [...prev, e.target.files![0]])} 
+                           />
+                         </label>
+                       )}
+                     </div>
                    </div>
                 </div>
                 

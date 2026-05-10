@@ -57,6 +57,7 @@ export function useCustomers() {
       const docRef = await addDoc(collection(db, 'customers'), {
         ...data,
         userId: user.uid,
+        createdBy: user.uid,
         totalOrders: 0,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),

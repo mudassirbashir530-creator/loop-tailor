@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Calendar, DollarSign, User, Loader2, Download, MessageCircle, Ruler } from 'lucide-react';
+import { Calendar, DollarSign, User, Loader2, Download, MessageCircle, Ruler, Image as ImageIcon, ExternalLink, Share2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
 import { Badge } from '../components/ui/badge';
@@ -12,6 +12,9 @@ import { OrderStatus, Order } from '../lib/types';
 import { InvoiceTemplate } from '../components/InvoiceTemplate';
 import * as htmlToImage from 'html-to-image';
 import { toast } from 'sonner';
+import { uploadToCloudinary } from '../lib/cloudinary';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export default function Orders() {
   const [search, setSearch] = useState('');
@@ -21,6 +24,7 @@ export default function Orders() {
   const { settings } = useShop();
   const invoiceRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   const tabs: { label: string, value: OrderStatus | 'all' }[] = [
     { label: 'All', value: 'all' },
@@ -56,6 +60,40 @@ export default function Orders() {
       toast.error("Failed to generate invoice");
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleShareInvoice = async () => {
+    if (!invoiceRef.current || !selectedOrder) return;
+    try {
+      setIsSharing(true);
+      const dataUrl = await htmlToImage.toPng(invoiceRef.current, { quality: 0.95 });
+      
+      // Convert dataUrl to File
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `invoice-${selectedOrder.id.slice(-6)}.png`, { type: 'image/png' });
+      
+      const imageUrl = await uploadToCloudinary(file);
+      
+      // Update order with invoice image URL
+      await updateDoc(doc(db, 'orders', selectedOrder.id), {
+        invoiceImage: imageUrl
+      });
+      
+      // Update local state
+      setSelectedOrder({ ...selectedOrder, invoiceImage: imageUrl });
+      
+      const phone = selectedOrder.customerPhone.replace(/[^0-9+]/g, '');
+      const message = `Hello ${selectedOrder.customerName}, here is your invoice for order #${selectedOrder.id.slice(-6).toUpperCase()}: ${imageUrl}`;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+      
+      toast.success("Invoice shared to Cloudinary and WhatsApp!");
+    } catch (err) {
+      console.error("Share error:", err);
+      toast.error("Failed to share invoice");
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -239,6 +277,67 @@ export default function Orders() {
                 </div>
 
                 <div className="space-y-3">
+                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Images</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <p className="text-xs font-semibold text-muted-foreground">Reference Designs</p>
+                       <div className="grid grid-cols-2 gap-2">
+                         {selectedOrder.referenceImages && selectedOrder.referenceImages.length > 0 ? (
+                           selectedOrder.referenceImages.map((img, i) => (
+                             <a key={i} href={img} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border block group relative">
+                               <img src={img} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt="ref" />
+                               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                 <ExternalLink className="w-4 h-4 text-white" />
+                               </div>
+                             </a>
+                           ))
+                         ) : (
+                           <div className="col-span-2 aspect-[2/1] bg-muted rounded-xl border flex flex-col items-center justify-center text-muted-foreground">
+                             <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+                             <p className="text-xs">No reference images</p>
+                           </div>
+                         )}
+                       </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                       <p className="text-xs font-semibold text-muted-foreground">Design Samples</p>
+                       <div className="grid grid-cols-2 gap-2">
+                         {selectedOrder.designImages && selectedOrder.designImages.length > 0 ? (
+                           selectedOrder.designImages.map((img, i) => (
+                             <a key={i} href={img} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border block group relative">
+                               <img src={img} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt="design" />
+                               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                 <ExternalLink className="w-4 h-4 text-white" />
+                               </div>
+                             </a>
+                           ))
+                         ) : (
+                           <div className="col-span-2 aspect-[2/1] bg-muted rounded-xl border flex flex-col items-center justify-center text-muted-foreground">
+                             <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+                             <p className="text-xs">No design samples</p>
+                           </div>
+                         )}
+                       </div>
+                    </div>
+                  </div>
+                  
+                  {selectedOrder.invoiceImage && (
+                    <div className="space-y-2 pt-2">
+                       <p className="text-xs font-semibold text-muted-foreground">Invoice Preview</p>
+                       <a href={selectedOrder.invoiceImage} target="_blank" rel="noreferrer" className="block w-full aspect-[4/3] rounded-xl overflow-hidden border relative group">
+                         <img src={selectedOrder.invoiceImage} className="w-full h-full object-cover" alt="invoice" />
+                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                           <div className="bg-white/90 p-2 rounded-full text-black shadow-lg">
+                             <ExternalLink className="w-5 h-5" />
+                           </div>
+                         </div>
+                       </a>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Update Order Status</label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {(['pending', 'stitching', 'ready', 'delivered'] as OrderStatus[]).map((status) => (
@@ -268,14 +367,18 @@ export default function Orders() {
                 </div>
               </div>
 
-              <DialogFooter className="flex flex-row justify-between sm:justify-end gap-2 w-full pt-4 border-t">
+              <DialogFooter className="flex flex-row flex-wrap justify-between sm:justify-end gap-2 w-full pt-4 border-t">
                 <Button variant="outline" className="flex-1 sm:flex-none gap-2 bg-green-50 text-green-700 hover:bg-green-100 border-green-200" onClick={handleWhatsAppShare}>
                   <MessageCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">WhatsApp</span>
+                  <span className="hidden sm:inline">Status Update</span>
+                </Button>
+                <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={handleShareInvoice} disabled={isSharing}>
+                  {isSharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+                  Share Invoice
                 </Button>
                 <Button className="flex-1 sm:flex-none gap-2" onClick={handleDownloadInvoice} disabled={isDownloading}>
                   {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                  Download Invoice
+                  Download png
                 </Button>
               </DialogFooter>
             </>

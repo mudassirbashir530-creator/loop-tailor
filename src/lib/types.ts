@@ -7,7 +7,9 @@ export interface Customer {
   address?: string;
   gender?: string;
   notes?: string;
+  profileImage?: string;
   totalOrders: number;
+  createdBy: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -31,14 +33,17 @@ export interface Order {
   status: OrderStatus;
   clothingType: string;
   measurements: Record<string, string>;
-  images?: string[];
+  referenceImages?: string[];
+  designImages?: string[];
   referencePhotoUrl?: string;
   sampleDesignUrl?: string;
+  invoiceImage?: string;
   designNotes?: string;
   price: number;
   advancePayment: number;
   remainingPayment: number;
   deliveryDate: string;
+  createdBy: string;
   createdAt: string;
   updatedAt: string;
 }

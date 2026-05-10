@@ -87,4 +87,4 @@ async function testConnection() {
     }
   }
 }
-testConnection();
+testConnection().catch(err => console.debug("Firebase connection test skipped or failed:", err));
