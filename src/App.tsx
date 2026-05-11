@@ -16,6 +16,8 @@ import PricingPage from './pages/website/PricingPage';
 import AboutPage from './pages/website/AboutPage';
 import ContactPage from './pages/website/ContactPage';
 import GenericPage from './pages/website/GenericPage';
+import PrivacyPolicyPage from './pages/website/PrivacyPolicyPage';
+import TermsAndConditionsPage from './pages/website/TermsAndConditionsPage';
 
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
@@ -86,8 +88,8 @@ export default function App() {
                   <Route path="/blog" element={<GenericPage title="Blog" />} />
                   <Route path="/careers" element={<GenericPage title="Careers" />} />
                   <Route path="/partners" element={<GenericPage title="Partners" />} />
-                  <Route path="/privacy" element={<GenericPage title="Privacy Policy" />} />
-                  <Route path="/terms" element={<GenericPage title="Terms of Service" />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                  <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
                 </Route>
 
                 {/* Auth Routes */}
