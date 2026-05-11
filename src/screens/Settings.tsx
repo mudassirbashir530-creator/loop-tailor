@@ -8,7 +8,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import { useAuth } from '../contexts/AuthContext';
 import { useShop } from '../contexts/ShopContext';
-import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
 import { openWhatsApp } from '../lib/whatsapp';
@@ -32,6 +32,21 @@ const COUNTRY_CODES = [
   { code: '+82', name: 'South Korea', flag: '🇰🇷' },
   { code: '+65', name: 'Singapore', flag: '🇸🇬' },
   { code: '+27', name: 'South Africa', flag: '🇿🇦' },
+  { code: '+64', name: 'New Zealand', flag: '🇳🇿' },
+  { code: '+55', name: 'Brazil', flag: '🇧🇷' },
+  { code: '+52', name: 'Mexico', flag: '🇲🇽' },
+  { code: '+34', name: 'Spain', flag: '🇪🇸' },
+  { code: '+39', name: 'Italy', flag: '🇮🇹' },
+  { code: '+7', name: 'Russia', flag: '🇷🇺' },
+  { code: '+90', name: 'Turkey', flag: '🇹🇷' },
+  { code: '+62', name: 'Indonesia', flag: '🇮🇩' },
+  { code: '+60', name: 'Malaysia', flag: '🇲🇾' },
+  { code: '+63', name: 'Philippines', flag: '🇵🇭' },
+  { code: '+66', name: 'Thailand', flag: '🇹🇭' },
+  { code: '+84', name: 'Vietnam', flag: '🇻🇳' },
+  { code: '+880', name: 'Bangladesh', flag: '🇧🇩' },
+  { code: '+94', name: 'Sri Lanka', flag: '🇱🇰' },
+  { code: '+977', name: 'Nepal', flag: '🇳🇵' },
 ];
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -63,9 +78,15 @@ export default function Settings() {
   const [shopLogo, setShopLogo] = useState<string | CloudinaryImage | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isEditingProfile, setIsEditingProfileState] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
+  const isEditingProfileRef = React.useRef(false);
+
+  const setIsEditingProfile = (val: boolean) => {
+    isEditingProfileRef.current = val;
+    setIsEditingProfileState(val);
+  };
+
   const [isCountryCodeOpen, setIsCountryCodeOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [selectedCountryCode, setSelectedCountryCode] = useState('+92');
@@ -88,22 +109,47 @@ export default function Settings() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   useEffect(() => {
-    if (settings) {
-      setShopName(settings.name || '');
-      setPhone(settings.phone || '');
-      setOwnerName(settings.ownerName || '');
-      setWhatsappNumber(settings.whatsappNumber || '');
-      setAddress(settings.address || '');
-      setBusinessDescription(settings.businessDescription || '');
-      setShopLogo(settings.shopLogo || null);
-      setSelectedCountryCode(settings.countryCode || '+92');
+    if (!user) return;
+    
+    // Auto load profile when Settings opens from users collection
+    const unsubscribe = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+      if (docSnap.exists() && !isEditingProfileRef.current) {
+        const data = docSnap.data();
+        setShopName(data.shopName || '');
+        setPhone(data.phone || '');
+        setOwnerName(data.ownerName || '');
+        setWhatsappNumber(data.whatsappNumber || '');
+        setAddress(data.address || '');
+        setBusinessDescription(data.businessDescription || '');
+        setShopLogo(data.shopLogo || null);
+        setSelectedCountryCode(data.countryCode || '+92');
+        if (data.theme) {
+          setTheme(data.theme);
+          safeStorage.setItem('theme', data.theme);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    if (settings && !isEditingProfileRef.current) {
+      setShopName(prev => prev || settings.name || '');
+      setPhone(prev => prev || settings.phone || '');
+      setOwnerName(prev => prev || settings.ownerName || '');
+      setWhatsappNumber(prev => prev || settings.whatsappNumber || '');
+      setAddress(prev => prev || settings.address || '');
+      setBusinessDescription(prev => prev || settings.businessDescription || '');
+      setShopLogo(prev => prev || settings.shopLogo || null);
+      setSelectedCountryCode(prev => prev || settings.countryCode || '+92');
       if (settings.templates) {
         setTemplates(prev => ({ ...prev, ...settings.templates }));
       }
       setNotificationsEnabled(settings.enableWhatsappNotifications ?? true);
       
       const savedTheme = safeStorage.getItem('theme') as any;
-      if (savedTheme) {
+      if (savedTheme && theme === 'system') {
         setTheme(savedTheme);
       }
     }
@@ -120,40 +166,69 @@ export default function Settings() {
   };
 
   const handleUpdateProfile = async () => {
-    if (!user) return;
+    if (!user?.uid) {
+      toast.error("You must be logged in to update your profile");
+      return;
+    }
+    
+    // Basic validation
+    if (!shopName?.trim()) {
+      toast.error("Shop name is required");
+      return;
+    }
+    
     setIsSaving(true);
     try {
-      let finalLogo = shopLogo;
+      let finalLogoUrl = typeof shopLogo === 'string' ? shopLogo : (shopLogo?.url || null);
       if (logoFile) {
-        finalLogo = await uploadToCloudinary(logoFile, setUploadProgress);
+        const uploadedLogo = await uploadToCloudinary(logoFile, setUploadProgress);
+        finalLogoUrl = typeof uploadedLogo === 'string' ? uploadedLogo : (uploadedLogo?.url || null);
       }
 
-      const updateData: any = {
-        name: shopName,
-        phone: phone,
-        ownerName: ownerName,
-        whatsappNumber: whatsappNumber,
-        address: address,
-        businessDescription: businessDescription,
-        shopLogo: finalLogo
+      const updateDataSettings: any = {
+        name: shopName || "",
+        phone: phone || "",
+        ownerName: ownerName || "",
+        whatsappNumber: whatsappNumber || "",
+        address: address || "",
+        businessDescription: businessDescription || "",
+        shopLogo: finalLogoUrl,
+        countryCode: selectedCountryCode || "+92"
+      };
+
+      const updateDataUsers: any = {
+        uid: user.uid,
+        shopName: shopName || "",
+        ownerName: ownerName || "",
+        email: user.email || "",
+        phone: phone || "",
+        whatsappNumber: whatsappNumber || "",
+        countryCode: selectedCountryCode || "+92",
+        address: address || "",
+        businessDescription: businessDescription || "",
+        shopLogo: finalLogoUrl,
+        theme: theme || "system",
+        subscriptionPlan: user.email === "mudassirbashir530@gmail.com" ? "Premium Plan" : "Free Plan",
+        updatedAt: serverTimestamp()
       };
 
       // Remove undefined values to prevent Firestore error
-      Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+      Object.keys(updateDataSettings).forEach(key => updateDataSettings[key] === undefined && delete updateDataSettings[key]);
+      Object.keys(updateDataUsers).forEach(key => updateDataUsers[key] === undefined && delete updateDataUsers[key]);
 
-      // Update settings collection
-      await setDoc(doc(db, 'settings', user.uid), updateData, { merge: true });
+      // Save to users collection (primary)
+      await setDoc(doc(db, 'users', user.uid), updateDataUsers, { merge: true });
       
-      // Update users collection as well (per user request)
-      await setDoc(doc(db, 'users', user.uid), updateData, { merge: true });
+      // Save to settings collection for backward compatibility
+      await setDoc(doc(db, 'settings', user.uid), updateDataSettings, { merge: true });
 
-      toast.success("Profile updated perfectly");
+      toast.success("Profile updated successfully");
       setIsEditingProfile(false);
       setLogoFile(null);
       setUploadProgress(0);
-    } catch (error) {
-      toast.error("Failed to update profile");
-      console.error(error);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update profile");
+      console.error("Profile update error:", error);
     } finally {
       setIsSaving(false);
     }
@@ -164,13 +239,14 @@ export default function Settings() {
     try {
       await setDoc(doc(db, 'settings', user.uid), { [field]: value }, { merge: true });
       toast.success("Settings saved");
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to save ${field}:`, error);
-      toast.error("Failed to save settings");
+      toast.error(error.message || "Failed to save settings");
     }
   }
 
-  const handleThemeChange = (newTheme: 'light'|'dark'|'system') => {
+  const handleThemeChange = async (newTheme: 'light'|'dark'|'system') => {
+    if (!user) return;
     try {
       setTheme(newTheme);
       safeStorage.setItem('theme', newTheme);
@@ -183,10 +259,12 @@ export default function Settings() {
         document.documentElement.classList.remove('dark');
       }
       
+      await setDoc(doc(db, 'users', user.uid), { theme: newTheme, updatedAt: serverTimestamp() }, { merge: true });
+
       toast.success(`Theme switched to ${newTheme}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Theme switch failed:", error);
-      toast.error("Failed to update appearance settings");
+      toast.error(error.message || "Failed to update appearance settings");
     }
   }
 
@@ -440,6 +518,9 @@ export default function Settings() {
                   onClick={() => {
                      setSelectedCountryCode(country.code);
                      saveSettingsField('countryCode', country.code);
+                     if (user) {
+                       setDoc(doc(db, 'users', user.uid), { countryCode: country.code, updatedAt: serverTimestamp() }, { merge: true });
+                     }
                      setIsCountryCodeOpen(false);
                   }}
                 >
