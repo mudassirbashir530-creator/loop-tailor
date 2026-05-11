@@ -58,7 +58,7 @@ export function OrderTimeline({ currentStatus, statusHistory = {} }: OrderTimeli
                     isCompleted || isCurrent ? "bg-primary" : "bg-surface-container-highest"
                   )}
                 >
-                  <Icon className={cn("h-5 w-5", isCompleted || isCurrent ? "text-on-primary" : "text-on-surface-variant")} />
+                  <Icon className={cn("h-5 w-5", isCompleted || isCurrent ? "text-primary-foreground" : "text-on-surface-variant")} />
                 </div>
               </div>
               <div className="mt-4 text-center">

@@ -476,8 +476,8 @@ export default function Orders() {
               </div>
 
               <DialogFooter className="flex flex-row flex-wrap justify-between sm:justify-end gap-2 w-full pt-4 border-t">
-                <Button variant="outline" className="flex-1 sm:flex-none gap-2 bg-green-50 text-green-700 hover:bg-green-100 border-green-200" onClick={handleWhatsAppShare}>
-                  <MessageCircle className="h-4 w-4" />
+                <Button variant="ghost" className="flex-1 sm:flex-none gap-2 bg-[#25D366] text-white hover:bg-[#128C7E] hover:text-white border-none transition-colors" onClick={handleWhatsAppShare}>
+                  <MessageCircle className="h-4 w-4 text-white" />
                   <span className="hidden sm:inline">Status Update</span>
                 </Button>
                 <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={handleShareInvoice} disabled={isSharing}>

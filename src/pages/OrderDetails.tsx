@@ -292,7 +292,7 @@ export default function OrderDetails() {
           {order.status !== ORDER_STATUS.DELIVERED && (
             <Button 
               onClick={() => handleUpdateStatus(ORDER_STATUS.DELIVERED)}
-              className="bg-primary hover:bg-on-surface text-on-primary font-medium rounded-full px-6 h-12 shadow-sm transition-all border-none"
+              className="bg-primary hover:bg-on-surface text-primary-foreground font-medium rounded-full px-6 h-12 shadow-sm transition-all border-none"
             >
               <CheckCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
               {t('orderDetails.deliver')}
@@ -560,7 +560,7 @@ export default function OrderDetails() {
               {balanceDue > 0 && (
                 <Button 
                   onClick={() => setIsPaymentModalOpen(true)}
-                  className="w-full bg-primary text-on-primary font-medium rounded-full h-12 shadow-sm border-none mt-4 hover:bg-on-surface"
+                  className="w-full bg-primary text-primary-foreground font-medium rounded-full h-12 shadow-sm border-none mt-4 hover:bg-on-surface"
                 >
                   Record Payment
                 </Button>
@@ -782,7 +782,7 @@ export default function OrderDetails() {
 
                 <Button 
                   onClick={handleRecordPayment}
-                  className="w-full bg-primary hover:bg-on-surface text-on-primary font-medium rounded-full h-12 mt-6 shadow-sm transition-colors"
+                  className="w-full bg-primary hover:bg-on-surface text-primary-foreground font-medium rounded-full h-12 mt-6 shadow-sm transition-colors"
                 >
                   Confirm Payment
                 </Button>
