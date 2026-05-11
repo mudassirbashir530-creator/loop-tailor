@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, AlertTriangle, Lock, CreditCard, Activity, Database, MessageSquare, ShieldAlert, Ban, Bookmark, Scale, MapPin } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertTriangle, Lock, CreditCard, Activity, Database, MessageSquare, ShieldAlert, Ban, Bookmark, Scale, MapPin, Mail } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const sections = [
