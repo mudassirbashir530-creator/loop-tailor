@@ -167,7 +167,7 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect }) => {
           media.map((item) => (
             <div key={item.id} className="bg-gray-100 rounded-[2rem] shadow-neu border-none overflow-hidden group">
               <div className="aspect-square bg-gray-200 relative">
-                <img src={item.url} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                <img src={item.url} alt={item.name} className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                   {onSelect ? (
                     <button

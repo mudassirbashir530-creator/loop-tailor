@@ -385,6 +385,7 @@ export default function Settings() {
                       <img 
                         src={logoFile ? URL.createObjectURL(logoFile) : (typeof shopLogo === 'string' ? shopLogo : shopLogo?.url)} 
                         className="w-full h-full object-cover" 
+                        referrerPolicy="no-referrer"
                         alt="logo" 
                       />
                     ) : (

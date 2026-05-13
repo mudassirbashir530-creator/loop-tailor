@@ -213,6 +213,7 @@ export default function Clients() {
                         <img 
                           src={profileImageFile ? URL.createObjectURL(profileImageFile) : (typeof formData.profileImage === 'string' ? formData.profileImage : formData.profileImage?.url)} 
                           className="w-full h-full object-cover" 
+                          referrerPolicy="no-referrer"
                           alt="profile" 
                         />
                       ) : (
@@ -307,6 +308,7 @@ export default function Clients() {
                         <img 
                           src={profileImageFile ? URL.createObjectURL(profileImageFile) : (typeof formData.profileImage === 'string' ? formData.profileImage : formData.profileImage?.url)} 
                           className="w-full h-full object-cover" 
+                          referrerPolicy="no-referrer"
                           alt="profile" 
                         />
                       ) : (

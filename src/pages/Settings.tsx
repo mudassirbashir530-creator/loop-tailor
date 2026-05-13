@@ -152,7 +152,7 @@ export default function Settings() {
                   <div className="flex items-center gap-6">
                     <div className="h-24 w-24 rounded-2xl bg-surface-container border border-outline-variant flex items-center justify-center overflow-hidden relative shadow-sm">
                       {editData.logoUrl ? (
-                        <img src={editData.logoUrl} alt="Logo Preview" className="h-full w-full object-contain" />
+                        <img src={editData.logoUrl} alt="Logo Preview" className="h-full w-full object-contain" referrerPolicy="no-referrer" />
                       ) : (
                         <ImageIcon className="h-8 w-8 text-on-surface-variant/50" />
                       )}
@@ -297,7 +297,7 @@ export default function Settings() {
                 <div className="flex items-center gap-5 py-2">
                   <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-surface-container border border-outline-variant shadow-sm flex items-center justify-center overflow-hidden">
                     {shop.logoUrl ? (
-                      <img src={shop.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                      <img src={shop.logoUrl} alt="Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
                     ) : (
                       <Store className="w-8 h-8 text-on-surface-variant/50"/>
                     )}

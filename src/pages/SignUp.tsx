@@ -195,7 +195,7 @@ export default function SignUp() {
                     />
                     <div className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden bg-white border-2 border-[#E2DDD6]">
                       {profileUpload.preview ? (
-                        <img src={profileUpload.preview} alt="Profile" className="w-full h-full object-cover" />
+                        <img src={profileUpload.preview} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
                         <Camera className="text-gray-400 h-6 w-6" />
                       )}
@@ -305,6 +305,7 @@ export default function SignUp() {
                         src={logoUpload.preview}
                         alt="Logo"
                         className="h-full object-contain p-2"
+                        referrerPolicy="no-referrer"
                       />
                       <button
                         type="button"

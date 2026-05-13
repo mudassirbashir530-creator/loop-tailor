@@ -667,6 +667,7 @@ export default function NewOrder() {
                                             <img 
                                               src={typeof worker.profileImage === 'string' ? worker.profileImage : worker.profileImage.url} 
                                               className="h-8 w-8 rounded-lg object-cover bg-muted" 
+                                              referrerPolicy="no-referrer"
                                               alt={worker.name} 
                                             />
                                           ) : (

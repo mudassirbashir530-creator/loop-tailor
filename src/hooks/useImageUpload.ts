@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage } from '../lib/firebase';
+import { uploadToCloudinary } from '../lib/cloudinary';
+import { CloudinaryImage } from '../lib/types';
 
 export interface UseImageUploadReturn {
   file: File | null;
@@ -10,7 +10,7 @@ export interface UseImageUploadReturn {
   uploadedUrl: string | null;
   error: string | null;
   selectFile: (file: File) => void;
-  uploadToStorage: (path: string) => Promise<string | null>;
+  uploadToStorage: (path?: string) => Promise<string | null>;
   reset: () => void;
 }
 
@@ -78,7 +78,7 @@ export function useImageUpload(): UseImageUploadReturn {
     });
   };
 
-  const uploadToStorage = async (path: string): Promise<string | null> => {
+  const uploadToStorage = async (path?: string): Promise<string | null> => {
     if (!file) return null;
     setUploading(true);
     setError(null);
@@ -86,30 +86,17 @@ export function useImageUpload(): UseImageUploadReturn {
 
     try {
       const compressedBlob = await compressImage(file);
-      const storageRef = ref(storage, `${path}/${Date.now()}_${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, compressedBlob);
-
-      return new Promise((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const currentProgress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setProgress(currentProgress);
-          },
-          (err) => {
-            setError(err.message || 'Upload failed');
-            setUploading(false);
-            reject(err);
-          },
-          async () => {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            setUploadedUrl(downloadURL);
-            setUploading(false);
-            setProgress(100);
-            resolve(downloadURL);
-          }
-        );
+      const compressedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
+      
+      const imgInfo = await uploadToCloudinary(compressedFile, (progressValue) => {
+        setProgress(progressValue);
       });
+      
+      const finalUrl = typeof imgInfo === 'string' ? imgInfo : imgInfo.url;
+      setUploadedUrl(finalUrl);
+      setUploading(false);
+      setProgress(100);
+      return finalUrl;
     } catch (err: any) {
       setError(err.message || 'Upload failed');
       setUploading(false);

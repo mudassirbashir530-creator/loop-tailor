@@ -317,7 +317,7 @@ export const ArticleEditor: React.FC = () => {
               </div>
               {formData.featuredImage && (
                 <div className="mt-4 aspect-video rounded-2xl overflow-hidden bg-gray-200 border-none shadow-neu-pressed-sm">
-                  <img src={formData.featuredImage} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={formData.featuredImage} alt="Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 </div>
               )}
             </div>

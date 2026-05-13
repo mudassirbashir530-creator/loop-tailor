@@ -428,6 +428,7 @@ export default function Workers() {
                          <img 
                            src={profileImageFile ? URL.createObjectURL(profileImageFile) : (typeof formData.profileImage === 'string' ? formData.profileImage : formData.profileImage?.url)} 
                            className="w-full h-full object-cover" 
+                           referrerPolicy="no-referrer"
                            alt="preview" 
                          />
                        ) : (
@@ -600,7 +601,7 @@ export default function Workers() {
                        {profileImageFile ? (
                          <img src={URL.createObjectURL(profileImageFile)} className="w-full h-full object-cover" alt="preview" />
                        ) : formData.profileImage ? (
-                         <img src={typeof formData.profileImage === 'string' ? formData.profileImage : formData.profileImage.url} className="w-full h-full object-cover" alt="current" />
+                         <img src={typeof formData.profileImage === 'string' ? formData.profileImage : formData.profileImage.url} className="w-full h-full object-cover" referrerPolicy="no-referrer" alt="current" />
                        ) : (
                          <Camera className="w-8 h-8 text-muted-foreground group-hover:scale-110 transition-transform" />
                        )}
