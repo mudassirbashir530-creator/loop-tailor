@@ -98,6 +98,7 @@ export function useImageUpload(): UseImageUploadReturn {
       setProgress(100);
       return finalUrl;
     } catch (err: any) {
+      console.error("❌ useImageUpload: Upload failed", err);
       setError(err.message || 'Upload failed');
       setUploading(false);
       return null;

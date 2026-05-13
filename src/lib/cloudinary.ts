@@ -26,8 +26,13 @@ export async function uploadToCloudinary(
   file: File | Blob,
   onProgress?: (progress: number) => void
 ): Promise<CloudinaryImage> {
+  const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
-    throw new Error('Cloudinary configuration is missing. Check your environment variables.');
+    const errorMsg = `Cloudinary config missing: CLOUD_NAME=${CLOUD_NAME || 'missing'}, UPLOAD_PRESET=${UPLOAD_PRESET || 'missing'}. Please check your environment variables (\`.env\`).`;
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   // Pre-compression/resize could be added here if needed using a library or Canvas
@@ -51,21 +56,24 @@ export async function uploadToCloudinary(
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const response: UploadResponse = JSON.parse(xhr.responseText);
+          console.log('✅ Cloudinary upload successful:', response.secure_url);
           resolve({
             url: response.secure_url,
             publicId: response.public_id
           });
         } catch (e) {
+          console.error('❌ Failed to parse Cloudinary response:', xhr.responseText);
           reject(new Error('Failed to parse Cloudinary response.'));
         }
       } else {
-        const errorMsg = `Upload failed with status ${xhr.status}: ${xhr.statusText}`;
-        console.error(errorMsg, xhr.responseText);
+        const errorMsg = `Cloudinary upload failed (Status ${xhr.status}): ${xhr.responseText}`;
+        console.error('❌ ' + errorMsg);
         reject(new Error(errorMsg));
       }
     };
 
     xhr.onerror = () => {
+      console.error('❌ Network error occurred during Cloudinary upload.');
       reject(new Error('Network error occurred during upload.'));
     };
 
