@@ -150,9 +150,12 @@ export default function Workers() {
     }
     setIsSubmitting(true);
     try {
-      let finalProfileImage: CloudinaryImage | null = null;
+      let finalProfileImage: string | null = null;
       if (profileImageFile) {
-        finalProfileImage = await uploadToCloudinary(profileImageFile, setUploadProgress);
+        const uploadedImg = await uploadToCloudinary(profileImageFile, setUploadProgress);
+        finalProfileImage = typeof uploadedImg === 'string' ? uploadedImg : (uploadedImg?.url || null);
+      } else {
+        finalProfileImage = typeof formData.profileImage === 'string' ? formData.profileImage : (formData.profileImage?.url || null);
       }
       
       await addWorker({ ...formData, profileImage: finalProfileImage });
@@ -175,9 +178,12 @@ export default function Workers() {
     }
     setIsSubmitting(true);
     try {
-      let finalProfileImage = formData.profileImage;
+      let finalProfileImage: string | null = null;
       if (profileImageFile) {
-        finalProfileImage = await uploadToCloudinary(profileImageFile, setUploadProgress);
+        const uploadedImg = await uploadToCloudinary(profileImageFile, setUploadProgress);
+        finalProfileImage = typeof uploadedImg === 'string' ? uploadedImg : (uploadedImg?.url || null);
+      } else {
+        finalProfileImage = typeof formData.profileImage === 'string' ? formData.profileImage : (formData.profileImage?.url || null);
       }
       
       await updateWorker(selectedWorker.id, { ...formData, profileImage: finalProfileImage });

@@ -331,9 +331,18 @@ export default function CustomerDetails() {
       {/* Profile Section */}
       <div className="px-4 mb-6">
         <div className="flex flex-col items-center">
-          <div className="w-[72px] h-[72px] rounded-full bg-[#E2E8F0] flex items-center justify-center text-[#64748B] text-2xl font-bold mb-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
-            {customer.name.charAt(0).toUpperCase()}
-          </div>
+          {customer.profileImage ? (
+            <img 
+              src={typeof customer.profileImage === 'string' ? customer.profileImage : customer.profileImage.url} 
+              alt={customer.name} 
+              className="w-[72px] h-[72px] rounded-full object-cover mb-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-[72px] h-[72px] rounded-full bg-[#E2E8F0] flex items-center justify-center text-[#64748B] text-2xl font-bold mb-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+              {customer.name.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="text-[18px] font-bold text-[#0F172A]">{customer.name}</div>
           <div className="text-[13px] text-[#64748B] mb-5">ID: {customer.id.substring(0,8)}</div>
           

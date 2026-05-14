@@ -17,7 +17,7 @@ import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage } from '../lib/whatsapp';
 import { createNotification, sendWhatsappNotification } from '../lib/notifications';
-import { useStaff } from '../hooks/useStaff';
+import { useWorkers } from '../hooks/useWorkers';
 import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 import { OrderTimeline } from '../components/OrderTimeline';
 
@@ -27,7 +27,7 @@ export default function OrderDetails() {
   const { t, isRTL } = useLanguage();
   const { settings } = useShop();
   const navigate = useNavigate();
-  const { staff } = useStaff();
+  const { workers: staff } = useWorkers();
   const [order, setOrder] = useState<any>(null);
   const [shop, setShop] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -128,8 +128,8 @@ export default function OrderDetails() {
         });
       }
 
-      if (newStatus === ORDER_STATUS.DELIVERED && order.assignedStaffId) {
-        const staffMember = staff.find(s => s.id === order.assignedStaffId);
+      if (newStatus === ORDER_STATUS.DELIVERED && order.workerId) {
+        const staffMember = staff.find(s => s.id === order.workerId);
         if (staffMember) {
           try {
             await addDoc(collection(db, 'payroll'), {
@@ -140,7 +140,7 @@ export default function OrderDetails() {
               tokenId: order.tokenId,
               customerName: order.customerName,
               orderPrice: Number(order.price || 0),
-              paymentAmount: staffMember.salaryType === 'per-order' ? Number(staffMember.salaryAmount || 0) : 0,
+              paymentAmount: (staffMember as any).salaryType === 'per_order' ? Number((staffMember as any).salaryAmount || 0) : 0,
               paidStatus: 'pending',
               createdAt: serverTimestamp()
             });
@@ -401,13 +401,13 @@ export default function OrderDetails() {
                     <User className="h-4 w-4 text-primary" />
                     {isEditing ? (
                       <select
-                        value={editData.assignedStaffId || ''}
+                        value={editData.workerId || ''}
                         onChange={(e) => {
                           const selectedStaff = staff.find(s => s.id === e.target.value);
                           setEditData({
                             ...editData, 
-                            assignedStaffId: e.target.value,
-                            assignedStaffName: selectedStaff ? selectedStaff.name : ''
+                            workerId: e.target.value,
+                            workerName: selectedStaff ? selectedStaff.name : ''
                           });
                         }}
                         className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[14px] font-semibold text-on-surface focus:outline-none focus:border-primary transition-all"
@@ -419,8 +419,8 @@ export default function OrderDetails() {
                       </select>
                     ) : (
                       <span className="font-semibold flex items-center gap-1">
-                        {order.assignedStaffId 
-                          ? <><span className="text-primary">👤</span> {staff.find(w => w.id === order.assignedStaffId)?.name || order.assignedStaffName || 'Unknown'}</>
+                        {order.workerId 
+                          ? <><span className="text-primary">👤</span> {staff.find(w => w.id === order.workerId)?.name || order.workerName || 'Unknown'}</>
                           : 'Unassigned'}
                       </span>
                     )}
