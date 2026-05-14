@@ -29,7 +29,7 @@ export async function compressImage(file: File | Blob): Promise<Blob> {
       const img = new Image();
       img.src = event.target?.result as string;
       img.onload = () => {
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement('canvas'); // Resize down for faster uploads
         const MAX_WIDTH = 1200;
         const MAX_HEIGHT = 1200;
         let width = img.width;
@@ -57,12 +57,12 @@ export async function compressImage(file: File | Blob): Promise<Blob> {
             reject(new Error('Canvas compression failed'));
             return;
           }
-          if (blob.size > 8 * 1024 * 1024) {
-             reject(new Error('Image is still too large after compression. Please select a smaller file under 8MB.'));
+          if (blob.size > 5 * 1024 * 1024) {
+             reject(new Error('Please use a smaller image (max 5MB)'));
           } else {
              resolve(blob);
           }
-        }, 'image/jpeg', 0.6);
+        }, 'image/jpeg', 0.6); // aggressive compression to stay under quotas
       };
       img.onerror = () => reject(new Error('Failed to load image'));
     };

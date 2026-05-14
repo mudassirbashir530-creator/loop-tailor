@@ -7,27 +7,7 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // --- Primitives ---
     function isSignedIn() { return request.auth != null; }
-    
-    function existingData() { return resource.data; }
-    function incomingData() { return request.resource.data; }
-
-    function getOwnerId(data) {
-      return data.get('userId', data.get('createdBy', null));
-    }
-
-    function isOwner() { 
-      return isSignedIn() && resource != null && getOwnerId(existingData()) == request.auth.uid; 
-    }
-
-    function isCreatingWithOwner() { 
-      return isSignedIn() && getOwnerId(incomingData()) == request.auth.uid; 
-    }
-    
-    function isUnchangedOwner() {
-      return getOwnerId(incomingData()) == getOwnerId(existingData());
-    }
 
     match /users/{userId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
@@ -37,84 +17,71 @@ service cloud.firestore {
       allow read, write: if isSignedIn() && request.auth.uid == settingsId;
     }
 
-    match /customers/{docId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /orders/{docId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /invoices/{docId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /workers/{workerId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /staff/{staffId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /measurementTemplates/{templateId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /orderTemplates/{templateId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /notifications/{notificationId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /measurements/{measurementId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /payments/{paymentId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /payroll/{payrollId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    match /fcmTokens/{tokenId} {
-      allow read, delete: if isOwner();
-      allow create: if isCreatingWithOwner();
-      allow update: if isOwner() && isUnchangedOwner();
-    }
-
-    // Legacy shops data keeping locked down except owners
     match /shops/{shopId} {
       allow read, write: if isSignedIn() && request.auth.uid == shopId;
       match /{document=**} {
         allow read, write: if isSignedIn() && request.auth.uid == shopId;
       }
+    }
+
+    match /customers/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /orders/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /invoices/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /workers/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /staff/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /measurementTemplates/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /orderTemplates/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /notifications/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /measurements/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /payments/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /payroll/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+    }
+
+    match /fcmTokens/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
     }
   }
 }
