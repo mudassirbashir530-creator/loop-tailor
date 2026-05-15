@@ -98,14 +98,29 @@ export default function Invoice() {
     try {
       const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
       await wait(100);
-      
+
+      // Remove external stylesheets to avoid CORS "cssRules" error
+      const stylesheets = Array.from(document.styleSheets);
+      const elementsToRemove: HTMLElement[] = [];
+      Array.from(document.querySelectorAll('link[rel="stylesheet"]')).forEach(link => {
+        if ((link as HTMLLinkElement).href.includes('fonts.googleapis.com')) {
+          elementsToRemove.push(link as HTMLElement);
+        }
+      });
+      elementsToRemove.forEach(el => el.parentNode?.removeChild(el));
+
       const canvas = await html2canvas(invoiceRef.current, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
+        foreignObjectRendering: false,
         backgroundColor: '#ffffff',
         logging: false
       });
+
+      // Restore stylesheets
+      elementsToRemove.forEach(el => document.head.appendChild(el));
+
       return canvas;
     } catch (error) {
       console.error('Error generating canvas:', error);
@@ -413,7 +428,7 @@ export default function Invoice() {
         <div 
           ref={invoiceRef} 
           className={cn(isRTL && "text-[1.2rem]")}
-          style={{ backgroundColor: '#F3F4F6', padding: '64px', width: '800px', borderRadius: '40px' }}
+          style={{ backgroundColor: '#F3F4F6', padding: '64px', width: '800px', borderRadius: '40px', fontFamily: "'Segoe UI', Arial, sans-serif" }}
           dir={isRTL ? "rtl" : "ltr"}
         >
           {renderInvoiceContent(true)}

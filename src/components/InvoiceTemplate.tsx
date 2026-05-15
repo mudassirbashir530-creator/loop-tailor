@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react';
 import { Order } from '../lib/types';
 import { formatCurrency, formatDate } from '../lib/utils';
-import { Scissors } from 'lucide-react';
 import { useShop } from '../contexts/ShopContext';
 
 interface InvoiceTemplateProps {
@@ -15,7 +14,7 @@ export const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
     <div 
       ref={ref} 
       className="bg-white text-black p-8 max-w-2xl mx-auto border"
-      style={{ width: '800px', minHeight: '1000px' }} // fixed size for good image export
+      style={{ width: '800px', minHeight: '1000px', fontFamily: "'Segoe UI', Arial, sans-serif" }} // fixed size for good image export
     >
       {/* Header */}
       <div className="flex justify-between items-start border-b-2 border-gray-100 pb-6 mb-8">
@@ -28,13 +27,13 @@ export const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
               referrerPolicy="no-referrer"
             />
           ) : (
-            <div className="bg-primary text-white p-2 rounded">
-              <Scissors className="h-6 w-6" />
+            <div className="bg-primary text-white p-2 text-2xl rounded text-center leading-none" style={{ width: '40px', height: '40px', lineHeight: '24px' }}>
+              ✂️
             </div>
           )}
           <div>
-            <span className="font-bold text-2xl text-primary block">{settings.name || 'Loop Tailor Shop'}</span>
-            <p className="text-gray-600 text-sm mt-0.5">{settings.phone}</p>
+            <span className="font-bold text-2xl text-primary block" style={{ fontFamily: "'Segoe UI', Arial, sans-serif" }}>{settings.name || 'Loop Tailor Shop'}</span>
+            <p className="text-gray-600 text-sm mt-0.5">Phone: {settings.phone}</p>
           </div>
         </div>
         <div className="text-right">

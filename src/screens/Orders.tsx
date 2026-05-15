@@ -50,11 +50,33 @@ export default function Orders() {
     return orders.filter(o => o.status === tab).length;
   };
 
+  const generateInvoiceImage = async (ref: HTMLElement, options?: any) => {
+    const elementsToRemove: HTMLElement[] = [];
+    Array.from(document.querySelectorAll('link[rel="stylesheet"]')).forEach(link => {
+      if ((link as HTMLLinkElement).href.includes('googleapis.com')) {
+        elementsToRemove.push(link as HTMLElement);
+      }
+    });
+    elementsToRemove.forEach(el => el.parentNode?.removeChild(el));
+    
+    try {
+      const dataUrl = await htmlToImage.toPng(ref, { 
+        quality: 1.0, 
+        pixelRatio: 2, 
+        skipFonts: true,
+        ...options 
+      });
+      return dataUrl;
+    } finally {
+      elementsToRemove.forEach(el => document.head.appendChild(el));
+    }
+  };
+
   const handlePreviewInvoice = async () => {
     if (!invoiceRef.current || !selectedOrder) return;
     try {
       setIsDownloading(true);
-      const dataUrl = await htmlToImage.toPng(invoiceRef.current, { quality: 1.0 });
+      const dataUrl = await generateInvoiceImage(invoiceRef.current);
       setPreviewImage({ url: dataUrl, type: 'invoice' });
     } catch (err) {
       toast.error("Failed to generate preview");
@@ -67,7 +89,7 @@ export default function Orders() {
     if (!invoiceRef.current || !selectedOrder) return;
     try {
       setIsDownloading(true);
-      const dataUrl = await htmlToImage.toPng(invoiceRef.current, { quality: 1.0 });
+      const dataUrl = await generateInvoiceImage(invoiceRef.current);
       const link = document.createElement('a');
       link.download = `Invoice-${selectedOrder.id.slice(-6)}.png`;
       link.href = dataUrl;
@@ -84,7 +106,7 @@ export default function Orders() {
     if (!invoiceRef.current || !selectedOrder) return;
     try {
       setIsSharing(true);
-      const dataUrl = await htmlToImage.toPng(invoiceRef.current, { quality: 0.95 });
+      const dataUrl = await generateInvoiceImage(invoiceRef.current, { quality: 0.95 });
       
       // Convert dataUrl to File
       const blob = await (await fetch(dataUrl)).blob();
