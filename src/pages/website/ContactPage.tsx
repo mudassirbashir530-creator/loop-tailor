@@ -25,12 +25,13 @@ export default function ContactPage() {
     setLoading(true);
     
     try {
+      console.log("Sending contact form...");
       const response = await fetch(APP_SCRIPT_URL, {
         method: "POST",
+        mode: "cors",
         headers: {
           "Content-Type": "application/json",
         },
-        mode: "cors",
         body: JSON.stringify({
           name: data.name,
           phone1: data.phone1 || "",
@@ -40,21 +41,15 @@ export default function ContactPage() {
         }),
       });
       
-      let result;
-      try {
-        result = await response.json();
-      } catch (parseError) {
-        // If response is opaque (no-cors mode) or JSON parsing fails, we consider it a success if text response is returned or ok but unparseable
-        console.warn("Could not parse JSON response, but request was sent. Assuming success.");
-        result = { success: true };
+      const result = await response.json();
+      console.log("Response:", result);
+      
+      if (!result.success) {
+        throw new Error(result.error || "Failed to send message");
       }
       
-      if (result.success) {
-        toast.success("Message sent successfully! We will contact you soon.");
-        reset();
-      } else {
-        toast.error("Failed to send message: " + (result.error || "Unknown error"));
-      }
+      toast.success("Message sent successfully! We will contact you soon.");
+      reset();
     } catch (error) {
       console.error("Form submission error:", error);
       toast.error('Failed to send message. Please try again later.');
