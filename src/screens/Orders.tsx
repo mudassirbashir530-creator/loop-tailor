@@ -6,6 +6,7 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { useOrders } from '../hooks/useOrders';
+import { useCustomers } from '../hooks/useCustomers';
 import { useShop } from '../contexts/ShopContext';
 import { formatCurrency, formatDate, cn } from '../lib/utils';
 import { OrderStatus, Order, CloudinaryImage } from '../lib/types';
@@ -23,6 +24,7 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string, type: 'reference' | 'design' | 'invoice', index?: number } | null>(null);
   const { orders, loading, updateOrderStatus } = useOrders();
+  const { customers } = useCustomers();
   const { settings } = useShop();
   const invoiceRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -46,6 +48,19 @@ export default function Orders() {
   const getTabCount = (tab: OrderStatus | 'all') => {
     if (tab === 'all') return orders.length;
     return orders.filter(o => o.status === tab).length;
+  };
+
+  const handlePreviewInvoice = async () => {
+    if (!invoiceRef.current || !selectedOrder) return;
+    try {
+      setIsDownloading(true);
+      const dataUrl = await htmlToImage.toPng(invoiceRef.current, { quality: 1.0 });
+      setPreviewImage({ url: dataUrl, type: 'invoice' });
+    } catch (err) {
+      toast.error("Failed to generate preview");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleDownloadInvoice = async () => {
@@ -254,15 +269,45 @@ export default function Orders() {
             <p>No orders found.</p>
           </div>
         ) : (
-          filteredOrders.map(order => (
+          filteredOrders.map(order => {
+            const customer = customers.find(c => c.id === order.customerId);
+            return (
             <Card key={order.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedOrder(order)}>
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-bold text-foreground text-base leading-tight">{order?.customerName || 'Unnamed'}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{order?.clothingType || 'Tailoring'} • #{order?.id?.slice(-6).toUpperCase() || '??????'}</p>
+                  <div className="flex items-center gap-3">
+                    {customer?.profileImage ? (
+                      <img 
+                        src={typeof customer.profileImage === 'string' ? customer.profileImage : customer.profileImage.url} 
+                        alt={order.customerName} 
+                        className="w-10 h-10 rounded-full object-cover shadow-sm border border-border shrink-0"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm shrink-0">
+                        {order.customerName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-foreground text-base leading-tight">{order?.customerName || 'Unnamed'}</p>
+                        {order.customerPhone && (
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const phone = order.customerPhone.replace(/[^0-9+]/g, '');
+                              window.open(`https://wa.me/${phone}`, '_blank');
+                            }}
+                            className="text-[#25D366] hover:bg-[#25D366]/10 p-1 rounded-full transition-colors"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">{order?.clothingType || 'Tailoring'} • #{order?.id?.slice(-6).toUpperCase() || '??????'}</p>
+                    </div>
                   </div>
-                  <Badge variant={order?.status || 'pending'} className="capitalize">{order?.status || 'pending'}</Badge>
+                  <Badge variant={order?.status || 'pending'} className="capitalize shrink-0 ml-2">{order?.status || 'pending'}</Badge>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-y-2 mt-2">
@@ -291,7 +336,8 @@ export default function Orders() {
                 </div>
               </CardContent>
             </Card>
-          ))
+          );
+          })
         )}
       </div>
 
@@ -479,6 +525,10 @@ export default function Orders() {
                 <Button variant="ghost" className="flex-1 sm:flex-none gap-2 bg-[#25D366] text-white hover:bg-[#128C7E] hover:text-white border-none transition-colors" onClick={handleWhatsAppShare}>
                   <MessageCircle className="h-4 w-4 text-white" />
                   <span className="hidden sm:inline">Status Update</span>
+                </Button>
+                <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={handlePreviewInvoice} disabled={isDownloading}>
+                  <ExternalLink className="h-4 w-4" />
+                  Preview Invoice
                 </Button>
                 <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={handleShareInvoice} disabled={isSharing}>
                   {isSharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}

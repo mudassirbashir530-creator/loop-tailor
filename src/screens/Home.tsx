@@ -9,6 +9,8 @@ import { isToday, subDays, format } from 'date-fns';
 import { motion, Variants } from 'motion/react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
+import { useCustomers } from '../hooks/useCustomers';
+
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { 
@@ -26,6 +28,7 @@ const safeNum = (val: any) => Number(val) || 0;
 
 export default function Home() {
   const { orders, loading } = useOrders();
+  const { customers } = useCustomers();
 
   const totalOrders = orders?.length || 0;
   const pendingOrders = orders ? orders.filter(o => o.status !== 'delivered').length : 0;
@@ -134,7 +137,9 @@ export default function Home() {
         <div className="divide-y divide-border">
           {orders.length === 0 ? (
              <div className="text-center py-12 text-muted-foreground">No orders yet.</div>
-          ) : orders.slice(0, 5).map((order, idx) => (
+          ) : orders.slice(0, 5).map((order, idx) => {
+            const customer = customers.find(c => c.id === order.customerId);
+            return (
             <motion.div 
               key={order.id} 
               initial={{ opacity: 0, x: -10 }}
@@ -144,14 +149,28 @@ export default function Home() {
             >
               <div className="flex items-center justify-between">
                 
-                <div className="flex-1">
-                  <p className="font-semibold text-foreground mb-1">{order.customerName}</p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="truncate max-w-[120px]">{order.clothingType}</span>
-                    <span>•</span>
-                    <span className="font-mono">{order.id.slice(-6).toUpperCase()}</span>
+                <div className="flex items-center gap-3">
+                  {customer?.profileImage ? (
+                    <img 
+                      src={typeof customer.profileImage === 'string' ? customer.profileImage : customer.profileImage.url} 
+                      alt={order.customerName} 
+                      className="w-10 h-10 rounded-full object-cover shadow-sm border border-border shrink-0"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm shrink-0">
+                      {order.customerName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-semibold text-foreground mb-1">{order.customerName}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="truncate max-w-[120px]">{order.clothingType}</span>
+                      <span>•</span>
+                      <span className="font-mono">{order.id.slice(-6).toUpperCase()}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Delivery: {formatDate(order.deliveryDate)}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Delivery: {formatDate(order.deliveryDate)}</p>
                 </div>
                 
                 <div className="flex flex-col items-end gap-2">
@@ -166,7 +185,7 @@ export default function Home() {
 
               </div>
             </motion.div>
-          ))}
+          )})}
         </div>
       </motion.div>
 

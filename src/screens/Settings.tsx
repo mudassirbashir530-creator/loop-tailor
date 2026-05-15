@@ -285,9 +285,9 @@ export default function Settings() {
       <div className="bg-primary rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
         <div className="flex items-center gap-4 relative z-10">
-          {settings?.shopLogo ? (
+          {shopLogo || settings?.shopLogo ? (
             <img 
-              src={typeof settings.shopLogo === 'string' ? settings.shopLogo : settings.shopLogo.url} 
+              src={typeof (shopLogo || settings?.shopLogo) === 'string' ? (shopLogo || settings?.shopLogo) as string : (shopLogo || settings?.shopLogo as CloudinaryImage)?.url} 
               className="h-16 w-16 rounded-full border-2 border-white/50 object-cover bg-white shadow-sm" 
               alt="logo" 
               referrerPolicy="no-referrer"
