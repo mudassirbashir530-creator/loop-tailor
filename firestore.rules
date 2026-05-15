@@ -25,63 +25,64 @@ service cloud.firestore {
     }
 
     match /customers/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /orders/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /invoices/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /workers/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /staff/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /measurementTemplates/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /orderTemplates/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /notifications/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /measurements/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /payments/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /payroll/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
 
     match /fcmTokens/{docId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.createdBy == request.auth.uid);
-      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.createdBy == request.auth.uid);
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
     }
   }
 }
+
