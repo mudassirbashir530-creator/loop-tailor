@@ -21,38 +21,34 @@ export default function ContactPage() {
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ContactFormData>();
 
-  const onSubmit = async (data: ContactFormData) => {
-    setLoading(true);
-    
+  const onSubmit = async (values: ContactFormData) => {
     try {
-      console.log("Sending contact form...");
+      setLoading(true);
+      console.log("Submitting form...", values);
+
       const response = await fetch(APP_SCRIPT_URL, {
         method: "POST",
-        mode: "cors",
+        mode: "no-cors",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: data.name,
-          phone1: data.phone1 || "",
-          phone2: data.phone2 || "",
-          email: data.email,
-          message: data.message,
+          name: values.name,
+          phone1: values.phone1 || "",
+          phone2: values.phone2 || "",
+          email: values.email,
+          message: values.message,
         }),
       });
-      
-      const result = await response.json();
-      console.log("Response:", result);
-      
-      if (!result.success) {
-        throw new Error(result.error || "Failed to send message");
-      }
-      
-      toast.success("Message sent successfully! We will contact you soon.");
+
+      console.log("Form submitted");
+
+      toast.success("Message sent successfully!");
+
       reset();
     } catch (error) {
-      console.error("Form submission error:", error);
-      toast.error('Failed to send message. Please try again later.');
+      console.error("Contact form error:", error);
+      toast.error("Failed to send message.");
     } finally {
       setLoading(false);
     }
