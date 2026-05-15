@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 
-const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzukvv__S2vpxk0hwVorFrM0gUiA3FRj8pLlnpX2Uoqv__YR3PDTNmE28z5b1GIkRDc/exec";
+const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfFjCVpUt9urjINekoaRdi3-JSZx2gJJ52zt1Fi_Z3gKsqK1S6LWIhvSkvoc_iwGZk/exec";
 
 interface ContactFormData {
   name: string;
