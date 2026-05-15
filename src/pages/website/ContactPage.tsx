@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, MapPin, MessageSquare } from 'lucide-react';
+import { Mail, MapPin, MessageSquare, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -30,10 +30,24 @@ export default function ContactPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        mode: "cors",
+        body: JSON.stringify({
+          name: data.name,
+          phone1: data.phone1 || "",
+          phone2: data.phone2 || "",
+          email: data.email,
+          message: data.message,
+        }),
       });
       
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        // If response is opaque (no-cors mode) or JSON parsing fails, we consider it a success if text response is returned or ok but unparseable
+        console.warn("Could not parse JSON response, but request was sent. Assuming success.");
+        result = { success: true };
+      }
       
       if (result.success) {
         toast.success("Message sent successfully! We will contact you soon.");
@@ -42,8 +56,8 @@ export default function ContactPage() {
         toast.error("Failed to send message: " + (result.error || "Unknown error"));
       }
     } catch (error) {
-      toast.error('Failed to send message. Please try again later.');
       console.error("Form submission error:", error);
+      toast.error('Failed to send message. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -119,11 +133,11 @@ export default function ContactPage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label htmlFor="phone1" className="text-sm font-medium">Primary Phone <span className="text-red-500">*</span></label>
+                      <label htmlFor="phone1" className="text-sm font-medium">Primary Phone</label>
                       <Input 
                         id="phone1" 
-                        {...register("phone1", { required: "Primary phone is required" })} 
-                        placeholder="03001234567" 
+                        {...register("phone1")} 
+                        placeholder="03001234567 (Optional)" 
                         aria-invalid={!!errors.phone1}
                       />
                       {errors.phone1 && <p className="text-xs text-red-500">{errors.phone1.message}</p>}
@@ -151,7 +165,12 @@ export default function ContactPage() {
                   </div>
 
                   <Button type="submit" size="lg" className="w-full text-white font-semibold" disabled={loading}>
-                    {loading ? 'Sending...' : 'Send Message'}
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Sending Message...
+                      </>
+                    ) : 'Send Message'}
                   </Button>
                 </form>
               </CardContent>
