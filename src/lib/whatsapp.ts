@@ -1,15 +1,12 @@
-export const openWhatsApp = (phoneNumber: string, message: string = '') => {
+import { cleanPhoneNumber, getWhatsAppLink } from './utils';
+
+export const openWhatsApp = (phoneNumber: string, message: string = '', countryCode: string = '+92') => {
   if (!phoneNumber) return;
-  // Remove all non-numeric characters
-  let cleanNumber = phoneNumber.replace(/\D/g, '');
-  
-  // Basic validation for Pakistani numbers, could be expanded
-  if (cleanNumber.startsWith('03')) {
-    cleanNumber = '92' + cleanNumber.substring(1);
-  }
+  const cleanedNumber = cleanPhoneNumber(phoneNumber, countryCode);
+  const baseLink = getWhatsAppLink(cleanedNumber);
   
   const encodedMessage = encodeURIComponent(message);
-  const url = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
+  const url = message ? `${baseLink}?text=${encodedMessage}` : baseLink;
   window.open(url, '_blank', 'noopener,noreferrer');
 };
 

@@ -47,3 +47,22 @@ export async function withRetry<T>(
   }
   throw lastError;
 }
+
+export function cleanPhoneNumber(phone: string, countryCode: string = '+92'): string {
+  if (!phone) return '';
+  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+  
+  if (cleaned.startsWith('0')) {
+    cleaned = countryCode + cleaned.substring(1);
+  } else if (cleaned.startsWith('92')) {
+    cleaned = '+' + cleaned;
+  }
+  
+  return cleaned;
+}
+
+export function getWhatsAppLink(cleanedNumber: string): string {
+  if (!cleanedNumber) return '';
+  const finalNumber = cleanedNumber.replace(/\+/g, '');
+  return `https://wa.me/${finalNumber}`;
+}

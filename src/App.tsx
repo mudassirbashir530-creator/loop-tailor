@@ -31,7 +31,6 @@ import Orders from './screens/Orders';
 import NewOrder from './screens/NewOrder';
 import Settings from './screens/Settings';
 import Invoice from './pages/Invoice';
-import FloatingWhatsApp from './components/FloatingWhatsApp';
 
 function LoadingFallback() {
   return (
@@ -126,7 +125,6 @@ export default function App() {
               </Routes>
             </Suspense>
             <Toaster position="top-center" richColors />
-            <FloatingWhatsApp />
           </BrowserRouter>
         </LanguageProvider>
       </ShopProvider>

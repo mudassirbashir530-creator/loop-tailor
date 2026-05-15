@@ -4,7 +4,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
 import { Button } from '../components/ui/button';
 import { useCustomers } from '../hooks/useCustomers';
-import { formatDate } from '../lib/utils';
+import { formatDate, cleanPhoneNumber } from '../lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Customer, CloudinaryImage } from '../lib/types';
@@ -96,7 +96,10 @@ export default function Clients() {
         finalProfileImage = typeof formData.profileImage === 'string' ? formData.profileImage : (formData.profileImage?.url || null);
       }
       
-      await addCustomer({ ...formData, profileImage: finalProfileImage });
+      const cleanedPhone = cleanPhoneNumber(formData.phone, formData.countryCode || '+92');
+      const cleanedWhatsapp = formData.whatsappPhone ? cleanPhoneNumber(formData.whatsappPhone, formData.countryCode || '+92') : cleanedPhone;
+
+      await addCustomer({ ...formData, phone: cleanedPhone, whatsappPhone: cleanedWhatsapp, profileImage: finalProfileImage });
       setIsAddOpen(false);
       resetForm();
       toast.success("Customer added successfully");
@@ -126,7 +129,10 @@ export default function Clients() {
         finalProfileImage = typeof formData.profileImage === 'string' ? formData.profileImage : (formData.profileImage?.url || null);
       }
       
-      await updateCustomer(selectedCustomer.id, { ...formData, profileImage: finalProfileImage });
+      const cleanedPhone = cleanPhoneNumber(formData.phone, formData.countryCode || '+92');
+      const cleanedWhatsapp = formData.whatsappPhone ? cleanPhoneNumber(formData.whatsappPhone, formData.countryCode || '+92') : cleanedPhone;
+
+      await updateCustomer(selectedCustomer.id, { ...formData, phone: cleanedPhone, whatsappPhone: cleanedWhatsapp, profileImage: finalProfileImage });
       setIsEditOpen(false);
       setSelectedCustomer(null);
       toast.success("Customer updated successfully");

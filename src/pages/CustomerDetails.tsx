@@ -14,7 +14,8 @@ import { Input } from '../components/ui/input';
 import { ArrowLeft, ArrowRight, Plus, Save, Upload, Edit, X, FileText, Phone, MapPin, Notebook, Scissors, Calendar, CreditCard, Hash, Loader2, CheckCircle2, Trash2, User, Ruler } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../lib/utils';
+import { cn, cleanPhoneNumber } from '../lib/utils';
+import { openWhatsApp } from '../lib/whatsapp';
 import { getAllMeasurementCategories, MEASUREMENT_SETS, getMeasurementCategoriesForDress } from '../lib/measurements';
 import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
 import { toast } from 'sonner';
@@ -197,12 +198,15 @@ export default function CustomerDetails() {
     e.preventDefault();
     if (!user || !id) return;
     try {
+      const cleanedPhone = cleanPhoneNumber(editCustomerData.phone, customer?.countryCode || '+92');
+      const dataToSave = { ...editCustomerData, phone: cleanedPhone };
+      
       await updateDoc(doc(db, 'customers', id), {
-        ...editCustomerData,
+        ...dataToSave,
         userId: user.uid,
         updatedAt: serverTimestamp()
       });
-      setCustomer({ ...customer, ...editCustomerData, userId: user.uid });
+      setCustomer({ ...customer, ...dataToSave, userId: user.uid });
       setIsEditingCustomer(false);
       toast.success(t('customerDetails.customerUpdated') || 'Customer updated successfully');
     } catch (error) {
@@ -347,9 +351,9 @@ export default function CustomerDetails() {
           <div className="text-[13px] text-[#64748B] mb-5">ID: {customer.id.substring(0,8)}</div>
           
           <div className="w-full flex justify-center items-center bg-white rounded-[16px] py-4 shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
-            <div className="flex-1 flex flex-col items-center justify-center px-2">
+            <div className="flex-1 flex flex-col items-center justify-center px-2 relative group cursor-pointer" onClick={() => openWhatsApp(customer.phone)}>
               <div className="text-[12px] text-[#64748B] mb-1 flex items-center gap-1"><Phone className="w-3.5 h-3.5"/> Phone</div>
-              <div className="text-[14px] font-semibold text-[#0F172A] text-center">{customer.phone}</div>
+              <div className="text-[14px] font-semibold text-[#0F172A] text-center hover:text-[#25D366] transition-colors">{customer.phone}</div>
             </div>
             <div className="h-10 w-[1px] bg-[#E2E8F0]"></div>
             <div className="flex-1 flex flex-col items-center justify-center px-2">

@@ -10,7 +10,7 @@ import { Button } from '../components/ui/button';
 import { useCustomers } from '../hooks/useCustomers';
 import { useWorkers } from '../hooks/useWorkers';
 import { useOrders } from '../hooks/useOrders';
-import { formatCurrency, generateTokenId, cn } from '../lib/utils';
+import { formatCurrency, generateTokenId, cn, cleanPhoneNumber } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
@@ -120,10 +120,13 @@ export default function NewOrder() {
     }
     setLoading(true);
     try {
+      const cleanedPhone = cleanPhoneNumber(newCustomer.phone, newCustomer.countryCode || '+92');
+      const cleanedWhatsapp = newCustomer.whatsappPhone ? cleanPhoneNumber(newCustomer.whatsappPhone, newCustomer.countryCode || '+92') : cleanedPhone;
+      
       const custId = await addCustomer({
         name: newCustomer.name || '',
-        phone: newCustomer.phone || '',
-        whatsappPhone: newCustomer.whatsappPhone || '',
+        phone: cleanedPhone,
+        whatsappPhone: cleanedWhatsapp,
         address: newCustomer.address || '',
         countryCode: newCustomer.countryCode || '+92',
         gender: newCustomer.gender || 'male',
@@ -133,8 +136,8 @@ export default function NewOrder() {
         setSelectedCustomer({ 
           id: custId, 
           name: newCustomer.name || '',
-          phone: newCustomer.phone || '',
-          whatsappPhone: newCustomer.whatsappPhone || '',
+          phone: cleanedPhone,
+          whatsappPhone: cleanedWhatsapp,
           address: newCustomer.address || '',
           countryCode: newCustomer.countryCode || '+92',
           gender: newCustomer.gender || 'male',
