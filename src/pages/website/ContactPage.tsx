@@ -4,122 +4,184 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { toast } from 'sonner';
+import { useForm } from 'react-hook-form';
+import { motion } from 'framer-motion';
+
+const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzukvv__S2vpxk0hwVorFrM0gUiA3FRj8pLlnpX2Uoqv__YR3PDTNmE28z5b1GIkRDc/exec";
+
+interface ContactFormData {
+  name: string;
+  email: string;
+  phone1: string;
+  phone2: string;
+  message: string;
+}
 
 export default function ContactPage() {
   const [loading, setLoading] = useState(false);
-  
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ContactFormData>();
+
+  const onSubmit = async (data: ContactFormData) => {
     setLoading(true);
     
     try {
-      const formData = new FormData(e.currentTarget);
-      const data = new URLSearchParams(formData as any);
-      
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwcJtQ4K9Tw0O7xjD2MkEsgKDFyCjIqhZU1d4ZUxA9uqo31Ih5vHC_hnkNc0wXMSI2Y/exec', {
-        method: 'POST',
+      const response = await fetch(APP_SCRIPT_URL, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          "Content-Type": "application/json",
         },
-        body: data.toString(),
-        mode: 'no-cors'
+        body: JSON.stringify(data),
       });
-
-      // no-cors returns an opaque response where ok is false, so we assume success if fetch didn't throw
-      toast.success('Message sent successfully!');
-      (e.target as HTMLFormElement).reset();
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success("Message sent successfully! We will contact you soon.");
+        reset();
+      } else {
+        toast.error("Failed to send message: " + (result.error || "Unknown error"));
+      }
     } catch (error) {
       toast.error('Failed to send message. Please try again later.');
+      console.error("Form submission error:", error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background py-24">
+    <motion.div 
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+      className="min-h-screen bg-background py-24"
+    >
       <div className="container mx-auto px-4 max-w-6xl">
         
         {/* Hero */}
-        <div className="text-center mb-16">
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.5 }}
+          className="text-center mb-16"
+        >
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Get in Touch</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
           
           {/* Contact Info (Left Column) */}
-          <div className="lg:col-span-1 space-y-6">
+          <motion.div 
+            initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }}
+            className="lg:col-span-1 space-y-6"
+          >
             <InfoCard icon={<Mail className="h-6 w-6" />} label="Email" value="looptailor@gmail.com" />
             <InfoCard icon={<MapPin className="h-6 w-6" />} label="Address" value="Manzoor Colony Karachi Pakistan" multiLine />
             <InfoCard icon={<MessageSquare className="h-6 w-6" />} label="WhatsApp" value="03321379924" />
-          </div>
+          </motion.div>
 
           {/* Contact Form (Right Column) */}
-          <Card className="lg:col-span-2">
-            <CardContent className="p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium">Name</label>
-                    <Input id="name" name="name" required placeholder="John Doe" />
+          <motion.div 
+            initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}
+            className="lg:col-span-2"
+          >
+            <Card>
+              <CardContent className="p-8">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label htmlFor="name" className="text-sm font-medium">Name <span className="text-red-500">*</span></label>
+                      <Input 
+                        id="name" 
+                        {...register("name", { required: "Name is required" })} 
+                        placeholder="John Doe" 
+                        aria-invalid={!!errors.name}
+                      />
+                      {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="text-sm font-medium">Email <span className="text-red-500">*</span></label>
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        {...register("email", { 
+                          required: "Email is required",
+                          pattern: {
+                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                            message: "invalid email address"
+                          }
+                        })} 
+                        placeholder="john@example.com" 
+                        aria-invalid={!!errors.email}
+                      />
+                      {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">Email</label>
-                    <Input id="email" name="email" type="email" required placeholder="john@example.com" />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label htmlFor="phone1" className="text-sm font-medium">Primary Phone <span className="text-red-500">*</span></label>
+                      <Input 
+                        id="phone1" 
+                        {...register("phone1", { required: "Primary phone is required" })} 
+                        placeholder="03001234567" 
+                        aria-invalid={!!errors.phone1}
+                      />
+                      {errors.phone1 && <p className="text-xs text-red-500">{errors.phone1.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="phone2" className="text-sm font-medium">Secondary Phone</label>
+                      <Input 
+                        id="phone2" 
+                        {...register("phone2")} 
+                        placeholder="03001234568 (Optional)" 
+                      />
+                    </div>
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label htmlFor="phone" className="text-sm font-medium">Phone</label>
-                    <Input id="phone" name="phone" required placeholder="03001234567" />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="subject" className="text-sm font-medium">Subject</label>
-                    <Input id="subject" name="subject" required placeholder="How can we help?" />
-                  </div>
-                </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="message" className="text-sm font-medium">Message</label>
-                  <textarea 
-                    id="message" 
-                    name="message" 
-                    required 
-                    placeholder="Write your message here..."
-                    className="w-full min-h-[150px] rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <label htmlFor="message" className="text-sm font-medium">Message <span className="text-red-500">*</span></label>
+                    <textarea 
+                      id="message" 
+                      {...register("message", { required: "Message is required" })} 
+                      placeholder="Write your message here..."
+                      className="w-full min-h-[150px] rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      aria-invalid={!!errors.message}
+                    />
+                    {errors.message && <p className="text-xs text-red-500">{errors.message.message}</p>}
+                  </div>
 
-                <Button type="submit" size="lg" fullWidth disabled={loading}>
-                  {loading ? 'Sending...' : 'Send Message'}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                  <Button type="submit" size="lg" className="w-full text-white font-semibold" disabled={loading}>
+                    {loading ? 'Sending...' : 'Send Message'}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
         
         {/* Business Hours */}
-        <Card className="max-w-2xl mx-auto text-center bg-primary/5 border-primary/20">
-          <CardContent className="p-8">
-            <h3 className="font-semibold text-lg mb-2 text-primary">Business Hours</h3>
-            <p className="text-muted-foreground">
-              Monday - Saturday: 9:00 AM - 6:00 PM<br/>
-              Sunday: Closed
-            </p>
-          </CardContent>
-        </Card>
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <Card className="max-w-2xl mx-auto text-center bg-primary/5 border-primary/20">
+            <CardContent className="p-8">
+              <h3 className="font-semibold text-lg mb-2 text-primary">Business Hours</h3>
+              <p className="text-muted-foreground">
+                Monday - Saturday: 9:00 AM - 6:00 PM<br/>
+                Sunday: Closed
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function InfoCard({ icon, label, value, multiLine }: { icon: React.ReactNode, label: string, value: string, multiLine?: boolean }) {
   return (
-    <Card>
+    <Card className="transition-all hover:shadow-md">
       <CardContent className="p-6 flex items-start gap-4">
         <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
           {icon}

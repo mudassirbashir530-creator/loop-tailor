@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { useOrders } from '../hooks/useOrders';
 import { useCustomers } from '../hooks/useCustomers';
 import { useShop } from '../contexts/ShopContext';
-import { formatCurrency, formatDate, cn } from '../lib/utils';
+import { formatCurrency, formatDate, cn, cleanPhoneNumber } from '../lib/utils';
+import { openWhatsApp } from '../lib/whatsapp';
 import { OrderStatus, Order, CloudinaryImage } from '../lib/types';
 import { InvoiceTemplate } from '../components/InvoiceTemplate';
 import { ImagePreviewModal } from '../components/ImagePreviewModal';
@@ -122,10 +123,8 @@ export default function Orders() {
       // Update local state
       setSelectedOrder({ ...selectedOrder, invoiceImage: cloudinaryImg });
       
-      const phone = selectedOrder.customerPhone.replace(/[^0-9+]/g, '');
       const message = `Hello ${selectedOrder.customerName}, here is your invoice for order #${selectedOrder.id.slice(-6).toUpperCase()}: ${cloudinaryImg.url}`;
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-      window.open(url, '_blank');
+      openWhatsApp(selectedOrder.customerPhone, message, '+92');
       
       toast.success("Invoice shared to Cloudinary and WhatsApp!");
     } catch (err) {
@@ -138,7 +137,6 @@ export default function Orders() {
 
   const handleWhatsAppShare = () => {
     if (!selectedOrder) return;
-    const phone = selectedOrder.customerPhone.replace(/[^0-9+]/g, ''); // KEEP PLUS
     let templateType = 'orderReceived';
     if (selectedOrder.status === 'stitching') templateType = 'stitchingStarted';
     if (selectedOrder.status === 'ready') templateType = 'readyForDelivery';
@@ -161,8 +159,7 @@ export default function Orders() {
       .replace(/{remainingAmount}/g, formatCurrency(selectedOrder.remainingPayment))
       .replace(/{deliveryDate}/g, formatDate(selectedOrder.deliveryDate));
 
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    openWhatsApp(selectedOrder.customerPhone, message, '+92');
   };
 
   const handleDeleteImage = async () => {
@@ -317,8 +314,7 @@ export default function Orders() {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              const phone = order.customerPhone.replace(/[^0-9+]/g, '');
-                              window.open(`https://wa.me/${phone}`, '_blank');
+                              openWhatsApp(order.customerPhone, '', '+92');
                             }}
                             className="text-[#25D366] hover:bg-[#25D366]/10 p-1 rounded-full transition-colors"
                           >

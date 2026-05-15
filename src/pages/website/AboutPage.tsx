@@ -5,7 +5,7 @@ import {
   Users, Ruler, Scissors, Calculator, CheckCircle2,
   FileText, MessageCircle, BarChart3, Cloud, LayoutDashboard,
   Store, Palette, Building, Briefcase, Shirt, Award,
-  ArrowRight, Heart
+  ArrowRight, Heart, Target, Eye
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 
@@ -57,13 +57,13 @@ export default function AboutPage() {
           
           <motion.div initial="hidden" animate="visible" variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth/signup">
-              <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
+              <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto shadow-xl shadow-primary/20 hover:scale-105 transition-transform text-white font-semibold">
                 Get Started
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <Link to="/contact">
-              <Button size="lg" variant="outline" className="h-14 px-8 text-lg w-full sm:w-auto backdrop-blur-sm border-muted-foreground/30 hover:bg-muted">
+              <Button size="lg" variant="outline" className="h-14 px-8 text-lg w-full sm:w-auto backdrop-blur-sm border-muted-foreground/30 hover:bg-muted font-semibold">
                 Contact Us
               </Button>
             </Link>
@@ -109,10 +109,10 @@ export default function AboutPage() {
               className="bg-card border border-border p-8 md:p-12 rounded-3xl shadow-lg relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                <TargetIcon className="w-32 h-32" />
+                <Target className="w-32 h-32" />
               </div>
               <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8">
-                <TargetIcon className="w-7 h-7" />
+                <Target className="w-7 h-7" />
               </div>
               <h3 className="text-2xl font-bold mb-4">Our Mission</h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
@@ -128,10 +128,10 @@ export default function AboutPage() {
               className="bg-card border border-border p-8 md:p-12 rounded-3xl shadow-lg relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity bg-gradient-to-br from-primary/20 to-transparent">
-                <EyeIcon className="w-32 h-32" />
+                <Eye className="w-32 h-32" />
               </div>
               <div className="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500 mb-8">
-                <EyeIcon className="w-7 h-7" />
+                <Eye className="w-7 h-7" />
               </div>
               <h3 className="text-2xl font-bold mb-4">Our Vision</h3>
               <p className="text-muted-foreground text-lg leading-relaxed">
@@ -237,12 +237,12 @@ export default function AboutPage() {
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
               <Link to="/auth/signup">
-                <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto shadow-lg hover:scale-105 transition-transform">
+                <Button size="lg" className="h-14 px-8 text-lg w-full sm:w-auto shadow-lg hover:scale-105 transition-transform text-white font-semibold">
                   Start Free Trial
                 </Button>
               </Link>
               <Link to="/contact">
-                <Button size="lg" variant="outline" className="h-14 px-8 text-lg w-full sm:w-auto bg-background">
+                <Button size="lg" variant="outline" className="h-14 px-8 text-lg w-full sm:w-auto bg-background font-semibold">
                   Contact Support
                 </Button>
               </Link>
@@ -296,25 +296,6 @@ function StatCard({ value, label }: { value: string, label: string }) {
       <div className="text-4xl md:text-5xl font-black mb-2">{value}</div>
       <div className="text-primary-foreground/80 font-medium text-sm md:text-base uppercase tracking-wider">{label}</div>
     </motion.div>
-  );
-}
-
-function TargetIcon(props: any) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <circle cx="12" cy="12" r="10"/>
-      <circle cx="12" cy="12" r="6"/>
-      <circle cx="12" cy="12" r="2"/>
-    </svg>
-  );
-}
-
-function EyeIcon(props: any) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
   );
 }
 

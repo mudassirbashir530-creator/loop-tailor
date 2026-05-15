@@ -33,10 +33,10 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
             <Link to="/auth/signup">
-              <Button size="lg" className="w-full sm:w-auto text-white">Start Free Trial</Button>
+              <Button size="lg" className="w-full sm:w-auto text-white font-semibold">Start Free Trial</Button>
             </Link>
             <Link to="/pricing">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">View Pricing</Button>
+              <Button size="lg" variant="outline" className="w-full sm:w-auto font-semibold">View Pricing</Button>
             </Link>
           </div>
           <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
@@ -164,10 +164,10 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth/signup">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90">Start Free Trial</Button>
+              <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">Start Free Trial</Button>
             </Link>
             <Link to="/contact">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" style={{ backgroundColor: '#0d0702' }}>Contact Sales</Button>
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 font-semibold" style={{ backgroundColor: '#0d0702' }}>Contact Sales</Button>
             </Link>
           </div>
         </div>

@@ -120,7 +120,7 @@ export default function PricingPage() {
           <h2 className="text-2xl font-bold mb-4">Still Have Questions?</h2>
           <p className="text-muted-foreground mb-8">Our team is ready to help you choose the right plan for your shop.</p>
           <Link to="/contact">
-            <Button size="lg">Contact Sales</Button>
+            <Button size="lg" className="text-white font-semibold">Contact Sales</Button>
           </Link>
         </div>
       </div>
@@ -173,7 +173,7 @@ function PricingCard({
       </CardContent>
       <CardFooter className="pt-6">
         <Link to="/auth/signup" className="w-full">
-          <Button fullWidth variant={isPopular ? "default" : "outline"} size="lg">
+          <Button fullWidth variant={isPopular ? "default" : "outline"} size="lg" className={isPopular ? "text-white font-semibold" : "font-semibold"}>
             Start Free Trial
           </Button>
         </Link>

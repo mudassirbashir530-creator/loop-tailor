@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { toast } from 'sonner';
+import { openWhatsApp } from '../../lib/whatsapp';
 
 export default function PaymentsTab() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -41,9 +42,8 @@ export default function PaymentsTab() {
       toast.success('Payment marked as paid');
 
       if (payment.userPhone) {
-        const phone = payment.userPhone.replace(/[^\d]/g, '');
-        const text = encodeURIComponent(`Assalam u Alaikum! Your Loop Tailor ${payment.plan || 'subscription'} is now active. Thank you for your payment! 🎉`);
-        window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+        const text = `Assalam u Alaikum! Your Loop Tailor ${payment.plan || 'subscription'} is now active. Thank you for your payment! 🎉`;
+        openWhatsApp(payment.userPhone, text, '+92');
       }
 
     } catch (error) {
