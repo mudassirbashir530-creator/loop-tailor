@@ -54,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let userDataUnsub: (() => void) | null = null;
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setLoading(true);
       setUser(currentUser);
       if (currentUser) {
         safeStorage.setItem('wasLoggedIn', 'true');
@@ -63,7 +64,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const userDataFetched = userDoc.exists() ? userDoc.data() : null;
           setUserData(userDataFetched);
           
-          if (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email)) {
+          let isUserAdmin = false;
+          if (currentUser.email) {
+            try {
+              const adminDoc = await getDoc(doc(db, 'admins', currentUser.email));
+              if (adminDoc.exists() && adminDoc.data().isAdmin === true) {
+                isUserAdmin = true;
+              }
+            } catch (e) {
+              console.error("Error checking admin status", e);
+            }
+          }
+          
+          if (isUserAdmin || (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email))) {
             if (userDoc.exists() && (!userDataFetched?.isAdmin || userDataFetched?.role !== 'admin')) {
               let retries = 3;
               while (retries > 0) {

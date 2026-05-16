@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -45,14 +45,29 @@ function LoadingFallback() {
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) return <LoadingFallback />;
-  return user ? <>{children}</> : <Navigate to="/auth/login" replace />;
+  return user ? <>{children}</> : <Navigate to="/auth/login" state={{ from: location }} replace />;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isAdmin, loading } = useAuth();
+  const location = useLocation();
+  if (loading) return <LoadingFallback />;
+  if (!user) return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  if (!isAdmin) return <Navigate to="/app" replace />;
+  return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
+  const location = useLocation();
   if (loading) return <LoadingFallback />;
-  return user ? <Navigate to="/app" replace /> : <>{children}</>;
+  if (user) {
+    const from = location.state?.from?.pathname || (isAdmin ? "/admin" : "/app");
+    return <Navigate to={from} replace />;
+  }
+  return <>{children}</>;
 }
 
 import ErrorBoundary from './components/ErrorBoundary';
@@ -125,9 +140,9 @@ export default function App() {
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={
-                  <PrivateRoute>
+                  <AdminRoute>
                     <AdminLayout />
-                  </PrivateRoute>
+                  </AdminRoute>
                 }>
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><UsersList /></div>} />

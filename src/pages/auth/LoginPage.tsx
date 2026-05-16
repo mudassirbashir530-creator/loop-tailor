@@ -25,7 +25,7 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       toast.success('Logged in successfully');
-      navigate('/app');
+      // Navigation is handled by PublicRoute in App.tsx
     } catch (error: any) {
       let errorMessage = 'Failed to login. Please check your credentials.';
       if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {

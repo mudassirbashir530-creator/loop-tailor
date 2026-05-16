@@ -8,9 +8,34 @@ service cloud.firestore {
     }
 
     function isSignedIn() { return request.auth != null; }
+    
+    function isAdmin() { 
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) && 
+             get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isAdmin == true; 
+    }
+
+    // Admin can read ALL collections globally
+    match /{document=**} {
+      allow read: if isAdmin();
+    }
+    
+    match /admins/{email} {
+      allow read: if isSignedIn() && request.auth.token.email == email;
+      allow write: if isAdmin();
+    }
+    
+    match /adminLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /subscriptions/{subId} {
+      allow read, write: if isAdmin();
+    }
 
     match /users/{userId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
+      allow write: if isAdmin();
     }
 
     match /settings/{settingsId} {

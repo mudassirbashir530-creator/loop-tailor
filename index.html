@@ -80,27 +80,7 @@
       }
     }
     </script>
-    <script>
-      // Protection against polyfills overwriting window.fetch and related objects
-      (function() {
-        var targets = ['fetch', 'Headers', 'Request', 'Response'];
-        targets.forEach(function(name) {
-          try {
-            var original = window[name];
-            if (original) {
-              Object.defineProperty(window, name, {
-                get: function() { return original; },
-                set: function(v) { 
-                  console.warn('Attempt to overwrite window.' + name + ' blocked.'); 
-                },
-                configurable: true,
-                enumerable: true
-              });
-            }
-          } catch (e) {}
-        });
-      })();
-    </script>
+
     <meta name="google-site-verification" content="CY_KIunjykzDWEqpnwB8cfC68vaDjwcdAOizTqXrl8c" />
     <script type="application/ld+json">
     {
