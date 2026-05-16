@@ -9,20 +9,7 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// Global Error Handlers
-window.addEventListener('error', (event) => {
-  console.error('Global Error Captured:', {
-    message: event.message,
-    source: event.filename,
-    lineno: event.lineno,
-    colno: event.colno,
-    error: event.error
-  });
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled Promise Rejection:', event.reason);
-});
+// Global Error Handlers previously here are now in index.html for earlier capture
 
 // Add this to your main JS file (from user prompt)
 document.addEventListener('DOMContentLoaded', () => {

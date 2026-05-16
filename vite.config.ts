@@ -28,7 +28,9 @@ export default defineConfig(({mode}) => {
         { find: /^event-target-shim(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
         { find: /^abort-controller(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
         { find: /^abortcontroller-polyfill(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
-        { find: /^fetch-blob(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') }
+        { find: /^fetch-blob(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^msw(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
+        { find: /^@mswjs\/interceptors(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') }
       ],
     },
     optimizeDeps: {

@@ -4,7 +4,7 @@
   "display": "standalone",
   "start_url": "/",
   "orientation": "portrait",
-  "theme_color": "#0f172a",
+  "theme_color": "#1a4a3a",
   "background_color": "#ffffff",
   "icons": [
     {
@@ -18,6 +18,36 @@
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Order",
+      "short_name": "New Order",
+      "description": "Quickly add a new tailor order",
+      "url": "/app/new-order",
+      "icons": [{ "src": "/icon-192x192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "My Clients",
+      "short_name": "Clients",
+      "description": "View all your customers",
+      "url": "/app/clients",
+      "icons": [{ "src": "/icon-192x192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Today's Orders",
+      "short_name": "Orders",
+      "description": "See all orders for today",
+      "url": "/app/orders?filter=today",
+      "icons": [{ "src": "/icon-192x192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "App settings and shop profile",
+      "url": "/app/settings",
+      "icons": [{ "src": "/icon-192x192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
     }
   ]
 }

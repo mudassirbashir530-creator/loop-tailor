@@ -1,13 +1,35 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import { Home, Users, Plus, Package, Settings, Scissors, UserCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
+import { useOrders } from '../hooks/useOrders';
+import { PWAPrompt } from '../components/PWAPrompt';
 
 export default function AppLayout() {
   const location = useLocation();
   const { user, userData } = useAuth();
+  const { orders } = useOrders();
+
+  // Handle App Badge
+  useEffect(() => {
+    if ('setAppBadge' in navigator) {
+      const pendingCount = orders.filter(o => o.status === 'pending').length;
+      if (pendingCount > 0) {
+        (navigator as any).setAppBadge(pendingCount).catch((e: any) => console.warn('Badge error:', e));
+      } else {
+        (navigator as any).clearAppBadge().catch((e: any) => console.warn('Badge error:', e));
+      }
+    }
+  }, [orders]);
+
+  // Clear badge on initial load
+  useEffect(() => {
+    if ('clearAppBadge' in navigator) {
+      (navigator as any).clearAppBadge().catch((e: any) => console.warn('Badge clear error:', e));
+    }
+  }, []);
 
   if (userData?.isBlocked) {
     return (
@@ -85,6 +107,8 @@ export default function AppLayout() {
       <main className="flex-1 pb-24 lg:pb-0 overflow-y-auto w-full lg:max-w-none max-w-screen-xl mx-auto">
         <Outlet />
       </main>
+
+      <PWAPrompt />
 
       {/* Mobile Nav */}
       <BottomNav />

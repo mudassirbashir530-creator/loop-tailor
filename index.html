@@ -3,12 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <script>
-      window.addEventListener('error', function(event) {
-        console.error('CRITICAL EARLY ERROR:', event.message, event.filename, event.lineno, event.colno, event.error);
-      });
-      window.addEventListener('unhandledrejection', function(event) {
-        console.error('CRITICAL EARLY REJECTION:', event.reason);
-      });
+      (function() {
+        // Detailed error logging
+        function logError(type, detail) {
+          const reason = detail instanceof Error ? (detail.stack || detail.message) : JSON.stringify(detail);
+          console.error(type + ':', reason);
+          // Also set a global flag for debugging
+          window.__LAST_CRITICAL_ERROR = { type, reason, timestamp: new Date().toISOString() };
+        }
+
+        window.addEventListener('error', function(event) {
+          logError('CRITICAL EARLY ERROR', event.error || event.message);
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+          logError('CRITICAL EARLY REJECTION', event.reason);
+        });
+      })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,7 +43,7 @@
     <meta property="og:image:alt" content="Loop Tailor Logo" />
 
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#1a4a3a" />
     <title>LoopTailor – Smart Tailor Management Software for Tailors & Boutiques</title>
     <meta name="description" content="LoopTailor is the ultimate tailor management software for boutiques and shops. Manage orders, measurements, customers, and invoices digitally. Best tailoring management system for modern tailors.">
     <meta name="keywords" content="tailor software, tailoring management system, tailor app, stitching management software, LoopTailor, loop tailor, loptailor, loop teler, darzi software, boutique software, tailoring order management">
