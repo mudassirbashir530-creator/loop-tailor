@@ -17,9 +17,6 @@ export const AdminLayout: React.FC = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Articles', href: '/admin/articles', icon: FileText },
-    { name: 'Social Posts', href: '/admin/social', icon: Share2 },
-    { name: 'Media Library', href: '/admin/media', icon: ImageIcon },
     { name: 'Users', href: '/admin/users', icon: UsersIcon },
   ];
 

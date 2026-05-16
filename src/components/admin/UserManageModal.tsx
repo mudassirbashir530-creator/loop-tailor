@@ -8,16 +8,17 @@ import { toast } from 'sonner';
 export default function UserManageModal({ user, onClose }: { user: any; onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    plan: user.plan || 'Basic',
-    trialActive: user.trialActive || false,
-    paymentStatus: user.paymentStatus || 'unpaid',
+    plan: user.plan || 'Free',
+    paymentNote: user.subscription?.paymentNote || '',
+    planStartDate: user.subscription?.startDate ? new Date(user.subscription.startDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+    planExpiryDate: user.subscription?.expiryDate ? new Date(user.subscription.expiryDate).toISOString().slice(0, 10) : new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0, 10),
+    isBlocked: user.isBlocked ?? false,
     features: {
-      cms: user.features?.cms ?? false,
-      workerAssign: user.features?.workerAssign ?? false,
-      whatsapp: user.features?.whatsapp ?? false,
-      invoice: user.features?.invoice ?? false,
-      imageUpload: user.features?.imageUpload ?? false,
-      aiSuggestions: user.features?.aiSuggestions ?? false,
+      whatsapp: user.permissions?.whatsapp ?? false,
+      invoice: user.permissions?.invoice ?? false,
+      imageUpload: user.permissions?.imageUpload ?? false,
+      customerLimit: user.permissions?.customerLimit ?? 10,
+      orderLimit: user.permissions?.orderLimit ?? 20,
     }
   });
 
@@ -26,27 +27,30 @@ export default function UserManageModal({ user, onClose }: { user: any; onClose:
     try {
       await updateDoc(doc(db, 'users', user.id), {
         plan: formData.plan,
-        paymentStatus: formData.paymentStatus,
-        subscriptionActive: formData.paymentStatus === 'paid',
-        features: {
-          cms: formData.features.cms,
-          workerAssign: formData.features.workerAssign,
+        isBlocked: formData.isBlocked,
+        subscription: {
+          startDate: formData.planStartDate,
+          expiryDate: formData.planExpiryDate,
+          paymentNote: formData.paymentNote,
+        },
+        permissions: {
           whatsapp: formData.features.whatsapp,
           invoice: formData.features.invoice,
           imageUpload: formData.features.imageUpload,
-          aiSuggestions: formData.features.aiSuggestions,
+          customerLimit: formData.features.customerLimit,
+          orderLimit: formData.features.orderLimit,
         },
         updatedAt: serverTimestamp(),
         updatedBy: 'admin'
       });
 
       await setDoc(doc(collection(db, 'adminLogs')), {
-        action: 'Updated User',
+        action: 'Updated User Details',
         targetUser: user.name || user.email,
         targetUserId: user.id,
         performedBy: 'admin',
         timestamp: serverTimestamp(),
-        details: `Updated plan: ${formData.plan}, Payment: ${formData.paymentStatus}`
+        details: `Plan: ${formData.plan}${formData.isBlocked ? ' (Blocked)' : ''}`
       });
 
       toast.success('User updated successfully');
@@ -150,56 +154,92 @@ export default function UserManageModal({ user, onClose }: { user: any; onClose:
           </div>
 
           <div className="border-t pt-4">
-            <h3 className="font-bold text-slate-900 mb-2">PLAN</h3>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-bold text-slate-900">SUBSCRIPTION PLAN</h3>
+              <button 
+                onClick={() => setFormData(prev => ({ ...prev, isBlocked: !prev.isBlocked }))}
+                className={`px-3 py-1 text-xs font-bold rounded ${formData.isBlocked ? 'bg-red-600 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+              >
+                {formData.isBlocked ? 'User Blocked 🚫' : 'Block User'}
+              </button>
+            </div>
             <select 
               value={formData.plan} 
               onChange={e => setFormData({...formData, plan: e.target.value})}
-              className="w-full p-2 border rounded-md"
+              className="w-full p-2 border rounded-md mb-3"
             >
-              <option value="Basic">Basic - Rs.500</option>
-              <option value="Standard">Standard - Rs.1000</option>
-              <option value="Premium">Premium - Rs.2000</option>
+              <option value="Free">Free</option>
+              <option value="Premium">Premium - Rs.500</option>
+              <option value="Enterprise">Enterprise - Rs.1000</option>
             </select>
-          </div>
-
-          <div className="border-t pt-4">
-            <h3 className="font-bold text-slate-900 mb-2">TRIAL & PAYMENT</h3>
-            <div className="flex items-center gap-4 mb-3">
+            
+            <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <p className="text-sm text-slate-500">Trial</p>
-                <div className="flex gap-2 mt-1">
-                  <button onClick={handleExtendTrial} className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm">+30 Days</button>
-                  <button onClick={handleEndTrial} className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm">End Trial</button>
-                </div>
+                <label className="text-xs text-slate-500 mb-1 block">Start Date</label>
+                <input 
+                  type="date" 
+                  value={formData.planStartDate}
+                  onChange={(e) => setFormData({...formData, planStartDate: e.target.value})}
+                  className="w-full p-2 border rounded-md text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">Expiry Date</label>
+                <input 
+                  type="date" 
+                  value={formData.planExpiryDate}
+                  onChange={(e) => setFormData({...formData, planExpiryDate: e.target.value})}
+                  className="w-full p-2 border rounded-md text-sm"
+                />
               </div>
             </div>
             <div>
-              <p className="text-sm text-slate-500 block mb-1">Payment Status</p>
-              <select 
-                value={formData.paymentStatus} 
-                onChange={e => setFormData({...formData, paymentStatus: e.target.value})}
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="unpaid">Pending</option>
-                <option value="paid">Paid</option>
-              </select>
+              <label className="text-xs text-slate-500 mb-1 block">Payment Note</label>
+              <input 
+                type="text" 
+                value={formData.paymentNote}
+                placeholder="e.g. Rs 500 received via EasyPaisa"
+                onChange={(e) => setFormData({...formData, paymentNote: e.target.value})}
+                className="w-full p-2 border rounded-md text-sm"
+              />
             </div>
           </div>
 
           <div className="border-t pt-4 pb-12">
-            <h3 className="font-bold text-slate-900 mb-2">FEATURE ACCESS</h3>
-            <div className="space-y-3">
-               {Object.entries(formData.features).map(([key, val]) => (
-                 <div key={key} className="flex items-center justify-between border p-2 rounded">
+            <h3 className="font-bold text-slate-900 mb-3">FEATURE ACCESS & LIMITS</h3>
+            <div className="space-y-4">
+               {['whatsapp', 'imageUpload', 'invoice'].map((key) => (
+                 <div key={key} className="flex items-center justify-between border-b pb-2">
                     <span className="capitalize text-sm font-medium">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
                     <button 
-                      onClick={() => toggleFeature(key as any)}
-                      className={`px-3 py-1 text-xs font-bold rounded ${val ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                      onClick={() => toggleFeature(key as keyof typeof formData.features)}
+                      className={`px-3 py-1 text-xs font-bold rounded ${formData.features[key as keyof typeof formData.features] ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}
                     >
-                      {val ? 'ON ✅' : 'OFF ❌'}
+                      {formData.features[key as keyof typeof formData.features] ? 'ON ✅' : 'OFF ❌'}
                     </button>
                  </div>
                ))}
+               
+               <div className="grid grid-cols-2 gap-4 pt-2">
+                 <div>
+                   <label className="text-xs font-bold text-slate-700 block mb-1">Customer Limit</label>
+                   <input 
+                     type="number" 
+                     value={formData.features.customerLimit}
+                     onChange={(e) => setFormData(prev => ({...prev, features: { ...prev.features, customerLimit: parseInt(e.target.value) || 0 }}))}
+                     className="w-full p-2 border rounded-md text-sm"
+                   />
+                 </div>
+                 <div>
+                   <label className="text-xs font-bold text-slate-700 block mb-1">Order Limit</label>
+                   <input 
+                     type="number" 
+                     value={formData.features.orderLimit}
+                     onChange={(e) => setFormData(prev => ({...prev, features: { ...prev.features, orderLimit: parseInt(e.target.value) || 0 }}))}
+                     className="w-full p-2 border rounded-md text-sm"
+                   />
+                 </div>
+               </div>
             </div>
           </div>
         </div>

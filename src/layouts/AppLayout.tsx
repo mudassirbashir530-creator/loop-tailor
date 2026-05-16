@@ -7,7 +7,23 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function AppLayout() {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
+
+  if (userData?.isBlocked) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl shadow-sm border p-8 max-w-md text-center space-y-4 shadow-neu border-none">
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">🚫</span>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800">Account Suspended</h1>
+          <p className="text-slate-600">
+            Your account has been suspended. Contact <a href="mailto:looptailor@gmail.com" className="text-brand-primary font-medium hover:underline">looptailor@gmail.com</a> or WhatsApp <a href="https://wa.me/923321379924" target="_blank" rel="noopener noreferrer" className="text-brand-primary font-medium hover:underline">03321379924</a>.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const navItems = [
     { icon: Home, label: 'Dashboard', path: '/app' },

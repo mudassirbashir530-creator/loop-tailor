@@ -23,7 +23,10 @@ import TermsAndConditionsPage from './pages/website/TermsAndConditionsPage';
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
 
-// App Pages
+// Admin Routes
+import { AdminLayout } from './layouts/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import UsersList from './components/admin/UsersList';
 import Home from './screens/Home';
 import Clients from './screens/Clients';
 import Workers from './screens/Workers';
@@ -118,6 +121,16 @@ export default function App() {
                   <Route path="invoice/:id" element={<Invoice />} />
                   <Route path="new-order" element={<NewOrder />} />
                   <Route path="settings" element={<Settings />} />
+                </Route>
+
+                {/* Admin Routes */}
+                <Route path="/admin" element={
+                  <PrivateRoute>
+                    <AdminLayout />
+                  </PrivateRoute>
+                }>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="users" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><UsersList /></div>} />
                 </Route>
 
                 {/* Fallback */}

@@ -10,9 +10,11 @@ import { Input } from '../components/ui/input';
 import { Customer, CloudinaryImage } from '../lib/types';
 import { toast } from 'sonner';
 import { uploadToCloudinary } from '../lib/cloudinary';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Clients() {
   const [search, setSearch] = useState('');
+  const { userData } = useAuth();
   const { customers, loading, addCustomer, updateCustomer, deleteCustomer } = useCustomers();
   
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -56,6 +58,11 @@ export default function Clients() {
   };
 
   const openAddModal = () => {
+    const limit = userData?.permissions?.customerLimit ?? 10;
+    if (customers.length >= limit) {
+      toast.error(`Customer limit reached (${limit}). Upgrade your plan to add more customers.`);
+      return;
+    }
     resetForm();
     setIsAddOpen(true);
   };

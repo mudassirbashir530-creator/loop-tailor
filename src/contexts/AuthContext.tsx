@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { normalizePlanStatus } from '../lib/planUtils';
 
 interface AuthContextType {
   user: User | null;
+  userData: any | null;
   isAdmin: boolean;
   loading: boolean;
   wasLoggedIn: boolean;
@@ -28,6 +29,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  userData: null,
   isAdmin: false,
   loading: true,
   wasLoggedIn: false,
@@ -43,43 +45,41 @@ import { safeStorage } from '../lib/safeStorage';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [wasLoggedIn, setWasLoggedIn] = useState(() => safeStorage.getItem('wasLoggedIn') === 'true');
 
   useEffect(() => {
+    let userDataUnsub: (() => void) | null = null;
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         safeStorage.setItem('wasLoggedIn', 'true');
         setWasLoggedIn(true);
-        try {
-          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-          const userData = userDoc.exists() ? userDoc.data() : null;
+
+        userDataUnsub = onSnapshot(doc(db, 'users', currentUser.uid), async (userDoc) => {
+          const userDataFetched = userDoc.exists() ? userDoc.data() : null;
+          setUserData(userDataFetched);
           
           if (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email)) {
-            // Only update admin role if the document exists AND the role isn't already admin.
-            // This prevents a race condition with the initial document creation in saveUserData.
-            if (userDoc.exists() && (!userData?.isAdmin || userData?.role !== 'admin')) {
-              // Retry logic for admin upgrade to prevent race conditions (Bug 3 Fix)
+            if (userDoc.exists() && (!userDataFetched?.isAdmin || userDataFetched?.role !== 'admin')) {
               let retries = 3;
               while (retries > 0) {
                 try {
                   await setDoc(doc(db, 'users', currentUser.uid), {
                     role: 'admin',
                     isAdmin: true,
-                    plan: 'premium',
-                    subscriptionActive: true,
-                    trialActive: false,
-                    paymentStatus: 'paid'
+                    plan: 'enterprise',
                   }, { merge: true });
-                  break; // Success
+                  break; 
                 } catch (e) {
                   retries--;
                   if (retries === 0) {
                     console.warn("Could not auto-upgrade admin, will retry later:", e);
                   } else {
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                   }
                 }
               }
@@ -90,19 +90,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             setIsAdmin(false);
           }
-        } catch (error) {
+          setLoading(false);
+        }, (error) => {
           console.error("Error fetching user role:", error);
           setIsAdmin(false);
-        }
+          setUserData(null);
+          setLoading(false);
+        });
+
       } else {
+        if (userDataUnsub) {
+          userDataUnsub();
+          userDataUnsub = null;
+        }
         safeStorage.removeItem('wasLoggedIn');
         setWasLoggedIn(false);
         setIsAdmin(false);
+        setUserData(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      if (userDataUnsub) userDataUnsub();
+    };
   }, []);
 
     const saveUserData = async (
@@ -216,7 +228,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, wasLoggedIn, signIn, signUp, resetPassword, logOut }}>
+    <AuthContext.Provider value={{ user, userData, isAdmin, loading, wasLoggedIn, signIn, signUp, resetPassword, logOut }}>
       {children}
     </AuthContext.Provider>
   );

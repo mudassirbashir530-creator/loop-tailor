@@ -287,7 +287,7 @@ export default function Settings() {
         <div className="flex items-center gap-4 relative z-10">
           {shopLogo || settings?.shopLogo ? (
             <img 
-              src={typeof (shopLogo || settings?.shopLogo) === 'string' ? (shopLogo || settings?.shopLogo) as string : (shopLogo || settings?.shopLogo as CloudinaryImage)?.url} 
+              src={typeof (shopLogo || settings?.shopLogo) === 'string' ? (shopLogo || settings?.shopLogo) as string : ((shopLogo || settings?.shopLogo) as CloudinaryImage)?.url} 
               className="h-16 w-16 rounded-full border-2 border-white/50 object-cover bg-white shadow-sm" 
               alt="logo" 
               referrerPolicy="no-referrer"

@@ -56,10 +56,10 @@ function ImagePreview({ file, onRemove, progress }: { file: File, onRemove: () =
 
 export default function NewOrder() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const { customers, loading: loadingCustomers, addCustomer } = useCustomers();
   const { workers, loading: loadingWorkers } = useWorkers();
-  const { addOrder } = useOrders();
+  const { orders, addOrder } = useOrders();
   
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -156,6 +156,12 @@ export default function NewOrder() {
   };
 
   const handleSubmit = async () => {
+    const limit = userData?.permissions?.orderLimit ?? 20;
+    if (orders.length >= limit) {
+      toast.error(`Order limit reached (${limit}). Upgrade your plan to add more orders.`);
+      return;
+    }
+
     if (!selectedCustomer) {
       toast.error('Please select a customer first.');
       return;
@@ -506,56 +512,68 @@ export default function NewOrder() {
                      <label className="text-sm font-medium flex items-center gap-2 text-primary">
                        <Camera className="w-4 h-4" /> Reference Designs (Max 3)
                      </label>
-                     <div className="grid grid-cols-3 gap-2">
-                       {referenceImages.map((file, idx) => (
-                         <ImagePreview 
-                           key={`ref-${idx}`} 
-                           file={file} 
-                           onRemove={() => setReferenceImages(prev => prev.filter((_, i) => i !== idx))}
-                           progress={uploadProgress[`ref-${idx}`]}
-                         />
-                       ))}
-                       {referenceImages.length < 3 && (
-                         <label className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
-                           <Plus className="w-6 h-6 text-muted-foreground" />
-                           <span className="text-[10px] text-muted-foreground mt-1">Add</span>
-                           <input 
-                             type="file" 
-                             className="hidden" 
-                             accept="image/*" 
-                             onChange={e => e.target.files?.[0] && setReferenceImages(prev => [...prev, e.target.files![0]])} 
+                     {userData?.permissions?.imageUpload === false ? (
+                       <div className="p-4 bg-muted/50 text-muted-foreground text-sm rounded-lg border text-center">
+                         Image upload disabled. Contact support.
+                       </div>
+                     ) : (
+                       <div className="grid grid-cols-3 gap-2">
+                         {referenceImages.map((file, idx) => (
+                           <ImagePreview 
+                             key={`ref-${idx}`} 
+                             file={file} 
+                             onRemove={() => setReferenceImages(prev => prev.filter((_, i) => i !== idx))}
+                             progress={uploadProgress[`ref-${idx}`]}
                            />
-                         </label>
-                       )}
-                     </div>
+                         ))}
+                         {referenceImages.length < 3 && (
+                           <label className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                             <Plus className="w-6 h-6 text-muted-foreground" />
+                             <span className="text-[10px] text-muted-foreground mt-1">Add</span>
+                             <input 
+                               type="file" 
+                               className="hidden" 
+                               accept="image/*" 
+                               onChange={e => e.target.files?.[0] && setReferenceImages(prev => [...prev, e.target.files![0]])} 
+                             />
+                           </label>
+                         )}
+                       </div>
+                     )}
                    </div>
                    
                    <div className="space-y-3">
                      <label className="text-sm font-medium flex items-center gap-2 text-primary">
                        <UserSquare2 className="w-4 h-4" /> Design Samples / Body Reference (Max 3)
                      </label>
-                     <div className="grid grid-cols-3 gap-2">
-                       {designImages.map((file, idx) => (
-                         <ImagePreview 
-                           key={`design-${idx}`} 
-                           file={file} 
-                           onRemove={() => setDesignImages(prev => prev.filter((_, i) => i !== idx))}
-                           progress={uploadProgress[`design-${idx}`]}
-                         />
-                       ))}
-                       {designImages.length < 3 && (
-                         <label className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
-                           <Plus className="w-6 h-6 text-muted-foreground" />
-                           <span className="text-[10px] text-muted-foreground mt-1">Add</span>
-                           <input 
-                             type="file" 
-                             className="hidden" 
-                             accept="image/*" 
-                             onChange={e => e.target.files?.[0] && setDesignImages(prev => [...prev, e.target.files![0]])} 
+                     {userData?.permissions?.imageUpload === false ? (
+                       <div className="p-4 bg-muted/50 text-muted-foreground text-sm rounded-lg border text-center">
+                         Image upload disabled. Contact support.
+                       </div>
+                     ) : (
+                       <div className="grid grid-cols-3 gap-2">
+                         {designImages.map((file, idx) => (
+                           <ImagePreview 
+                             key={`design-${idx}`} 
+                             file={file} 
+                             onRemove={() => setDesignImages(prev => prev.filter((_, i) => i !== idx))}
+                             progress={uploadProgress[`design-${idx}`]}
                            />
-                         </label>
-                       )}
-                     </div>
+                         ))}
+                         {designImages.length < 3 && (
+                           <label className="aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
+                             <Plus className="w-6 h-6 text-muted-foreground" />
+                             <span className="text-[10px] text-muted-foreground mt-1">Add</span>
+                             <input 
+                               type="file" 
+                               className="hidden" 
+                               accept="image/*" 
+                               onChange={e => e.target.files?.[0] && setDesignImages(prev => [...prev, e.target.files![0]])} 
+                             />
+                           </label>
+                         )}
+                       </div>
+                     )}
                    </div>
                 </div>
                 

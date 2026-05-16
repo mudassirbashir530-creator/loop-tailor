@@ -18,9 +18,11 @@ import { toast } from 'sonner';
 import { uploadToCloudinary } from '../lib/cloudinary';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Orders() {
   const [search, setSearch] = useState('');
+  const { userData } = useAuth();
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string, type: 'reference' | 'design' | 'invoice', index?: number } | null>(null);
@@ -540,22 +542,28 @@ export default function Orders() {
               </div>
 
               <DialogFooter className="flex flex-row flex-wrap justify-between sm:justify-end gap-2 w-full pt-4 border-t">
-                <Button variant="ghost" className="flex-1 sm:flex-none gap-2 bg-[#25D366] text-white hover:bg-[#128C7E] hover:text-white border-none transition-colors" onClick={handleWhatsAppShare}>
-                  <MessageCircle className="h-4 w-4 text-white" />
-                  <span className="hidden sm:inline">Status Update</span>
-                </Button>
-                <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={handlePreviewInvoice} disabled={isDownloading}>
-                  <ExternalLink className="h-4 w-4" />
-                  Preview Invoice
-                </Button>
-                <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={handleShareInvoice} disabled={isSharing}>
-                  {isSharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
-                  Share Invoice
-                </Button>
-                <Button className="flex-1 sm:flex-none gap-2" onClick={handleDownloadInvoice} disabled={isDownloading}>
-                  {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                  Download png
-                </Button>
+                {userData?.permissions?.whatsapp !== false && (
+                  <Button variant="ghost" className="flex-1 sm:flex-none gap-2 bg-[#25D366] text-white hover:bg-[#128C7E] hover:text-white border-none transition-colors" onClick={handleWhatsAppShare}>
+                    <MessageCircle className="h-4 w-4 text-white" />
+                    <span className="hidden sm:inline">Status Update</span>
+                  </Button>
+                )}
+                {userData?.permissions?.invoice !== false && (
+                  <>
+                    <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={handlePreviewInvoice} disabled={isDownloading}>
+                      <ExternalLink className="h-4 w-4" />
+                      Preview Invoice
+                    </Button>
+                    <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={handleShareInvoice} disabled={isSharing}>
+                      {isSharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+                      Share Invoice
+                    </Button>
+                    <Button className="flex-1 sm:flex-none gap-2" onClick={handleDownloadInvoice} disabled={isDownloading}>
+                      {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                      Download png
+                    </Button>
+                  </>
+                )}
               </DialogFooter>
             </>
           )}
