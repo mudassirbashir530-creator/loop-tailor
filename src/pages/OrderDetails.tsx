@@ -675,6 +675,34 @@ export default function OrderDetails() {
                   Record Payment
                 </Button>
               )}
+
+              {((order.payments && order.payments.length > 0) || Number(order.advancePayment) > 0) && (
+                <div className="pt-6 border-t border-outline-variant">
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant mb-4 block">Payment History</span>
+                  <div className="space-y-3">
+                    {Number(order.advancePayment) > 0 && (
+                      <div className="flex justify-between items-center bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/50">
+                        <div>
+                          <p className="text-[13px] font-semibold text-on-surface">Initial Advance</p>
+                          <p className="text-[11px] text-on-surface-variant font-medium">Cash</p>
+                        </div>
+                        <span className="text-[14px] font-bold text-[#22C55E]">+{settings.currency} {order.advancePayment}</span>
+                      </div>
+                    )}
+                    {(order.payments || []).map((payment: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/50">
+                        <div>
+                          <p className="text-[13px] font-semibold text-on-surface">{payment.method}</p>
+                          <p className="text-[11px] text-on-surface-variant font-medium">
+                            {new Date(payment.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <span className="text-[14px] font-bold text-[#22C55E]">+{settings.currency} {payment.amount}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

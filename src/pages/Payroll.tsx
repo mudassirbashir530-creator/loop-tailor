@@ -35,8 +35,8 @@ export default function Payroll() {
     }, (error) => handleFirestoreError(error, OperationType.GET, 'payroll'));
 
     const unsubClosed = onSnapshot(query(collection(db, 'payroll_closed'), where('userId', '==', user.uid)), (snap) => {
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setClosedMonths(data.sort((a, b) => b.month.localeCompare(a.month)));
+      const data = snap.docs.map(doc => ({ id: doc.id, month: doc.data().month, ...doc.data() }) as any);
+      setClosedMonths(data.sort((a: any, b: any) => b.month.localeCompare(a.month)));
       setLoading(false);
     }, (error) => handleFirestoreError(error, OperationType.GET, 'payroll_closed'));
 

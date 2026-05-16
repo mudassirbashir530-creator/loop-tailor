@@ -4,10 +4,10 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
 import { ORDER_STATUS } from '../lib/config';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot, limit } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Users, Scissors, CheckCircle, Clock, Plus, ArrowRight, Calendar, TrendingUp, Search, Hash, FileText, UserCircle } from 'lucide-react';
+import { Users, Scissors, CheckCircle, Clock, Plus, ArrowRight, Calendar, TrendingUp, Search, Hash, FileText, UserCircle, Wallet } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, addDays, isAfter, isBefore, isThisMonth, subMonths, isSameMonth } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -621,11 +621,11 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[
-          { label: 'Revenue (Delivered Orders Only)', value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: 'text-[#2ECC71]', bg: 'bg-[#2ECC71]/10' },
+          { label: 'Revenue', subLabel: '(Delivered orders)', value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: 'text-[#2ECC71]', bg: 'bg-[#2ECC71]/10' },
           { label: 'Active Orders', value: stats.activeOrders, icon: Clock, color: 'text-[#0D3D33]', bg: 'bg-[#0D3D33]/10' },
           { label: 'Completed', value: stats.completedOrders, icon: CheckCircle, color: 'text-blue-500', bg: 'bg-blue-500/10' },
           { label: 'Pending Payments', value: formatCurrency(stats.pendingPayments), icon: Calendar, color: 'text-orange-500', bg: 'bg-orange-500/10' }
-        ].map((stat, i) => (
+        ].map((stat: any, i: number) => (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -641,6 +641,7 @@ export default function Dashboard() {
             <div>
               <div className="text-[#4A5568] text-sm sm:text-base font-medium mb-1">{stat.label}</div>
               <div className="text-3xl sm:text-4xl font-bold tracking-tight text-[#0D3D33]">{stat.value}</div>
+              {stat.subLabel && <div className="text-xs text-gray-500 mt-1 font-medium">{stat.subLabel}</div>}
             </div>
           </motion.div>
         ))}
