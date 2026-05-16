@@ -75,6 +75,59 @@ export default function Dashboard() {
   const [searchResults, setSearchResults] = useState<{ type: string; id: string; title: string; subtitle: string; url: string; }[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const { staff } = useStaff();
+  const [payrollAlerts, setPayrollAlerts] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!user || staff.length === 0) return;
+
+    const checkPayrollAlerts = async () => {
+      const alerts: string[] = [];
+      const today = new Date();
+      const currentMonth = format(today, 'yyyy-MM');
+      const dayOfMonth = today.getDate();
+
+      // Reminder on 25th
+      if (dayOfMonth >= 25) {
+        // Check if current month is already closed
+        const closedSnap = await getDocs(query(
+          collection(db, 'payroll_closed'), 
+          where('userId', '==', user.uid),
+          where('month', '==', currentMonth),
+          limit(1)
+        ));
+        
+        if (closedSnap.empty) {
+          alerts.push(`Payroll for ${format(today, 'MMMM')} is due. Please review and close it.`);
+        }
+      }
+
+      // Check high balance for workers
+      const payrollSnap = await getDocs(query(
+        collection(db, 'payroll'),
+        where('userId', '==', user.uid),
+        where('paidStatus', '==', 'pending')
+      ));
+
+      const pendingByWorker: Record<string, number> = {};
+      payrollSnap.forEach(doc => {
+        const data = doc.data();
+        pendingByWorker[data.staffId] = (pendingByWorker[data.staffId] || 0) + (Number(data.paymentAmount) || 0);
+      });
+
+      Object.entries(pendingByWorker).forEach(([staffId, amount]) => {
+        if (amount > 5000) { // arbitrary "high balance" threshold
+          const worker = staff.find(s => s.id === staffId);
+          if (worker) {
+            alerts.push(`High balance due for ${worker.name}: Rs ${amount.toLocaleString()}`);
+          }
+        }
+      });
+
+      setPayrollAlerts(alerts);
+    };
+
+    checkPayrollAlerts();
+  }, [user, staff]);
 
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
     let newIndex = index;
@@ -209,9 +262,9 @@ export default function Dashboard() {
         const order = { id: doc.id, ...data };
         allOrders.push(order);
 
-        const orderPrice = data.price || 0;
-        const advance = data.advancePayment || 0;
-        const paymentsSum = (data.payments || []).reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
+        const orderPrice = Number(data.price) || 0;
+        const advance = Number(data.advancePayment) || 0;
+        const paymentsSum = (data.payments || []).reduce((acc: number, p: any) => acc + (Number(p.amount) || 0), 0);
         let paidAmount = 0;
         if (data.paymentStatus === 'Paid') {
           paidAmount = orderPrice;
@@ -219,21 +272,28 @@ export default function Dashboard() {
           paidAmount = advance + paymentsSum;
         }
 
-        totalCol += paidAmount;
-        totalPend += Math.max(0, orderPrice - paidAmount);
+        if (data.status !== ORDER_STATUS.CANCELLED) {
+          totalCol += paidAmount;
+          totalPend += Math.max(0, orderPrice - paidAmount);
+        }
 
         const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now());
-        if (isThisMonth(createdAt)) {
-          monthRev += paidAmount;
+        if (isThisMonth(createdAt) && data.status !== ORDER_STATUS.CANCELLED) {
+          // instructions say Revenue must ONLY count Delivered status. 
+          // monthRev is used for "This Month Revenue" which isn't shown in the top cards but might be used elsewhere.
+          // To be safe, let's only add to monthRev if Delivered.
+          if (data.status === ORDER_STATUS.DELIVERED) {
+            monthRev += orderPrice;
+          }
           ordersThisMo++;
-        } else if (isSameMonth(createdAt, lastMonthDate)) {
+        } else if (isSameMonth(createdAt, lastMonthDate) && data.status !== ORDER_STATUS.CANCELLED) {
           ordersLastMo++;
         }
 
         if (data.status === ORDER_STATUS.DELIVERED) {
           completed++;
           revenue += orderPrice;
-        } else {
+        } else if (data.status !== ORDER_STATUS.CANCELLED) {
           active++;
           const deliveryDate = new Date(data.deliveryDate);
           if (isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
@@ -241,7 +301,7 @@ export default function Dashboard() {
           }
         }
         
-        if (orderPrice > advance && data.status !== ORDER_STATUS.DELIVERED) {
+        if (orderPrice > advance && data.status !== ORDER_STATUS.DELIVERED && data.status !== ORDER_STATUS.CANCELLED) {
           pendingPay += (orderPrice - advance);
         }
       });
@@ -451,6 +511,32 @@ export default function Dashboard() {
       <OnboardingTour />
       <QuickSetupChecklist />
 
+      {/* Payroll Alerts */}
+      <AnimatePresence>
+        {payrollAlerts.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="space-y-2 mb-6"
+          >
+            {payrollAlerts.map((alert, i) => (
+              <div 
+                key={i} 
+                onClick={() => navigate('/app/payroll')}
+                className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 cursor-pointer hover:bg-red-100 transition-colors shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-600 shrink-0">
+                  <Wallet className="w-5 h-5" />
+                </div>
+                <p className="text-sm font-bold text-red-700 flex-1">{alert}</p>
+                <ArrowRight className="w-4 h-4 text-red-400" />
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <motion.div 
         className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6"
@@ -535,7 +621,7 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[
-          { label: 'Total Revenue', value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: 'text-[#2ECC71]', bg: 'bg-[#2ECC71]/10' },
+          { label: 'Revenue (Delivered Orders Only)', value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: 'text-[#2ECC71]', bg: 'bg-[#2ECC71]/10' },
           { label: 'Active Orders', value: stats.activeOrders, icon: Clock, color: 'text-[#0D3D33]', bg: 'bg-[#0D3D33]/10' },
           { label: 'Completed', value: stats.completedOrders, icon: CheckCircle, color: 'text-blue-500', bg: 'bg-blue-500/10' },
           { label: 'Pending Payments', value: formatCurrency(stats.pendingPayments), icon: Calendar, color: 'text-orange-500', bg: 'bg-orange-500/10' }
@@ -606,6 +692,7 @@ export default function Dashboard() {
                           order.status === ORDER_STATUS.DELIVERED ? "bg-[#2ECC71] text-[#FFFFFF]" : 
                           order.status === ORDER_STATUS.READY ? "bg-blue-500 text-[#FFFFFF]" :
                           order.status === ORDER_STATUS.STITCHING ? "bg-orange-500 text-[#FFFFFF]" :
+                          order.status === ORDER_STATUS.CANCELLED ? "bg-red-500 text-[#FFFFFF]" :
                           "bg-[#E2DDD6] text-[#0D3D33]"
                         )}>
                           {t(`orders.${order.status.toLowerCase()}`)}

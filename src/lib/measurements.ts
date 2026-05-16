@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ArrowUpDown, Maximize2, Minimize2, CircleDashed, Ruler, Scissors, User, Activity } from 'lucide-react';
+import { ArrowLeftRight, ArrowUpDown, Maximize2, Minimize2, CircleDashed, Ruler, Scissors, User, Activity, CheckCircle2, Notebook } from 'lucide-react';
 
 export const MEASUREMENT_SETS = ['Shalwar Kameez', 'Formal Suit', 'Casual Shirt', 'Wedding Sherwani', 'Custom'];
 
@@ -14,6 +14,14 @@ export const KAMEEZ_MEASUREMENTS = [
   { id: 'kameezFrontLength', en: 'Front Length', ur: 'سامنے کی لمبائی', icon: ArrowUpDown, desc: 'Neck to hem (front)' },
   { id: 'kameezBackLength', en: 'Back Length', ur: 'پچھلی لمبائی', icon: ArrowUpDown, desc: 'Neck to hem (back)' },
   { id: 'kameezCuffSize', en: 'Cuff Size', ur: 'کف کا سائز', icon: CircleDashed, desc: 'Wrist circumference' },
+  { id: 'kameezDamanDesign', en: 'Daman Design', ur: 'گھیرا ڈیزائن', icon: Activity, desc: 'Hem design' },
+  { id: 'kameezCollarStyle', en: 'Collar Style', ur: 'کالر سٹائل', icon: User, desc: 'Collar/Neck style' },
+  { id: 'kameezSidePocket', en: 'Side Pocket', ur: 'سائیڈ پاکٹ', icon: Scissors, desc: 'Side pocket type' },
+  { id: 'kameezPocketStyle', en: 'Pocket Style', ur: 'جیب کا انداز', icon: Scissors, desc: 'Front pocket style' },
+  { id: 'kameezSleeveStyle', en: 'Sleeve Style', ur: 'آستین کا انداز', icon: User, desc: 'Sleeve cuff/design' },
+  { id: 'kameezBackDesign', en: 'Back Design', ur: 'پچھلا ڈیزائن', icon: Activity, desc: 'Back patterns/pleats' },
+  { id: 'kameezFinishingType', en: 'Finishing Type', ur: 'فنشنگ', icon: CheckCircle2, desc: 'Thread/Piping finishing' },
+  { id: 'kameezSpecialInstructions', en: 'Special Instructions', ur: 'خاص ہدایات', icon: Notebook, desc: 'Other details' },
 ];
 
 export const SHALWAR_MEASUREMENTS = [

@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStaff, StaffMember } from '../hooks/useStaff';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { format } from 'date-fns';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Plus, Search, Loader2, Users, Scissors, Pocket, UserCircle, Edit2, Trash2, Shield, DollarSign, Wallet, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Loader2, Users, Scissors, Pocket, UserCircle, Edit2, Trash2, Shield, DollarSign, Wallet, CheckCircle2, Activity, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 
+import { RecordStaffPaymentModal } from '../components/RecordStaffPaymentModal';
+
 export default function Staff() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { t, isRTL } = useLanguage();
   const { staff, loading, addStaff, updateStaff, deleteStaff } = useStaff();
   const [search, setSearch] = useState('');
@@ -30,6 +35,8 @@ export default function Staff() {
 
   const [saving, setSaving] = useState(false);
   const [payrollEntries, setPayrollEntries] = useState<any[]>([]);
+  const [isRecordPaymentOpen, setIsRecordPaymentOpen] = useState(false);
+  const [selectedStaffForPayment, setSelectedStaffForPayment] = useState<StaffMember | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -51,6 +58,43 @@ export default function Staff() {
       toast.success('Marked as paid');
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `payroll/${payrollId}`);
+    }
+  };
+
+  const handleRecordPayment = async (data: any) => {
+    if (!user || !selectedStaffForPayment) return;
+    try {
+      await addDoc(collection(db, 'payroll'), {
+        userId: user.uid,
+        staffId: selectedStaffForPayment.id,
+        staffName: selectedStaffForPayment.name,
+        paymentAmount: data.amount,
+        method: data.method,
+        type: data.type, // Salary, Advance, Bonus, Overtime
+        note: data.note,
+        date: data.date,
+        month: format(new Date(data.date), 'yyyy-MM'),
+        paidStatus: 'paid', // Manual payments are considered paid
+        createdAt: serverTimestamp()
+      });
+
+      // Also save to the new collection for better history if needed
+      await addDoc(collection(db, 'payroll_payments'), {
+        userId: user.uid,
+        staffId: selectedStaffForPayment.id,
+        amount: data.amount,
+        method: data.method,
+        type: data.type,
+        note: data.note,
+        date: data.date,
+        month: format(new Date(data.date), 'yyyy-MM'),
+        createdAt: serverTimestamp()
+      });
+
+      toast.success('Payment recorded successfully');
+      setIsRecordPaymentOpen(false);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'payroll_payments');
     }
   };
 
@@ -122,17 +166,33 @@ export default function Staff() {
     Other: UserCircle 
   };
 
+  const currentMonth = format(new Date(), 'yyyy-MM');
+
   return (
     <div className={cn("page pb-[100px]", isRTL && "font-urdu")} dir={isRTL ? "rtl" : "ltr"}>
+      <RecordStaffPaymentModal 
+        isOpen={isRecordPaymentOpen}
+        onClose={() => setIsRecordPaymentOpen(false)}
+        onConfirm={handleRecordPayment}
+        staffName={selectedStaffForPayment?.name || ''}
+      />
       {/* Top Bar */}
       <div className="bg-white border-b border-[#E2DDD6] px-4 py-4 flex items-center justify-between sticky top-0 z-40">
         <h1 className="text-xl font-bold text-[#111111]">Team & Staff</h1>
-        <button 
-          onClick={() => handleOpenModal()} 
-          className="text-[#0D3D33] font-bold text-sm bg-white border border-[#E2DDD6] px-3 py-1.5 rounded-lg flex items-center gap-1.5"
-        >
-          <Plus className="w-4 h-4" /> Add
-        </button>
+        <div className="flex gap-2">
+           <button 
+             onClick={() => navigate('/app/payroll')} 
+             className="text-blue-600 font-bold text-sm bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5"
+           >
+             <Wallet className="w-4 h-4" /> Payroll
+           </button>
+           <button 
+             onClick={() => handleOpenModal()} 
+             className="text-[#0D3D33] font-bold text-sm bg-white border border-[#E2DDD6] px-3 py-1.5 rounded-lg flex items-center gap-1.5"
+           >
+             <Plus className="w-4 h-4" /> Add
+           </button>
+        </div>
       </div>
 
       <div className="px-4 py-6 space-y-6">
@@ -164,6 +224,22 @@ export default function Staff() {
             <AnimatePresence>
               {filteredStaff.map((member, idx) => {
                 const RoleIcon = roleIcons[member.role] || UserCircle;
+                
+                // Calculations
+                const memberPayroll = payrollEntries.filter(p => p.staffId === member.id);
+                
+                // Lifetime
+                const lifetimeEarnings = memberPayroll.filter(p => p.type === 'Earning').reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
+                
+                // This Month
+                const monthEntries = memberPayroll.filter(p => p.month === currentMonth);
+                const monthEarned = monthEntries.filter(p => p.type === 'Earning').reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
+                const monthPaid = monthEntries.filter(p => p.type !== 'Earning' || p.paidStatus === 'paid').reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
+                
+                const salaryBase = member.salaryType === 'fixed' ? member.salaryAmount : 0;
+                const totalTargetEarned = salaryBase + monthEarned;
+                const balanceDue = totalTargetEarned - monthPaid;
+
                 return (
                   <motion.div
                     key={member.id}
@@ -172,7 +248,7 @@ export default function Staff() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: idx * 0.05 }}
                   >
-                    <div className="card !m-0 !p-0 overflow-hidden shadow-sm !border-[#E2DDD6]">
+                    <div className="card !m-0 !p-0 overflow-hidden shadow-sm !border-[#E2DDD6] bg-white">
                       <div className="px-4 py-4">
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex items-center gap-4">
@@ -182,79 +258,98 @@ export default function Staff() {
                               </span>
                             </div>
                             <div>
-                              <h3 className="font-bold text-[16px] text-[#111111]">{member.name}</h3>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-[16px] text-[#111111]">{member.name}</h3>
+                                <div className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-bold uppercase tracking-wider border border-blue-100">
+                                  {member.salaryType === 'fixed' ? 'Salary' : 'Commission'}
+                                </div>
+                              </div>
                               <div className="flex items-center gap-1.5 text-xs font-bold text-[#555555] uppercase tracking-widest mt-0.5">
                                 <RoleIcon className="h-3 w-3" />
                                 {member.role}
                               </div>
                             </div>
                           </div>
-                          <button 
-                            onClick={() => handleOpenModal(member)}
-                            className="h-8 w-8 rounded-lg bg-[#F7F5F0] border border-[#E2DDD6] text-[#555555] flex items-center justify-center"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => {
+                                setSelectedStaffForPayment(member);
+                                setIsRecordPaymentOpen(true);
+                              }}
+                              className="h-8 px-2.5 rounded-lg bg-green-50 text-green-600 border border-green-200 text-[11px] font-bold flex items-center gap-1 hover:bg-green-600 hover:text-white transition-colors"
+                            >
+                              <DollarSign className="w-3.5 h-3.5" /> Pay
+                            </button>
+                            <button 
+                              onClick={() => handleOpenModal(member)}
+                              className="h-8 w-8 rounded-lg bg-[#F7F5F0] border border-[#E2DDD6] text-[#555555] flex items-center justify-center"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                         
+                        {/* Monthly Summary Cards */}
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                           <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-slate-100">
+                              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Earned</div>
+                              <div className="text-[13px] font-bold text-slate-900">Rs {monthEarned.toLocaleString()}</div>
+                           </div>
+                           <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-slate-100">
+                              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Paid</div>
+                              <div className="text-[13px] font-bold text-slate-900">Rs {monthPaid.toLocaleString()}</div>
+                           </div>
+                           <div className={cn("p-2.5 rounded-xl border", balanceDue > 0 ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100")}>
+                              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Balance</div>
+                              <div className={cn("text-[13px] font-bold", balanceDue > 0 ? "text-red-600" : "text-green-600")}>Rs {balanceDue.toLocaleString()}</div>
+                           </div>
+                        </div>
+
                         <div className="pt-3 border-t border-[#E2DDD6] grid grid-cols-2 gap-4">
                           <div>
-                            <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest mb-1">Phone</div>
-                            <div className="text-[13px] font-bold text-[#111111]">{member.phone || 'N/A'}</div>
-                          </div>
-                          <div>
-                            <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest mb-1">Salary / Rate</div>
-                            <div className="text-[13px] font-bold text-[#111111] flex items-center gap-1">
-                              <DollarSign className="h-3 w-3 text-[#2ECC71]" />
-                              {member.salaryAmount} <span className="text-[10px] text-[#555555]">({member.salaryType === 'fixed' ? 'Monthly' : 'Per Order'})</span>
+                            <div className="text-[10px] font-bold text-[#555555] uppercase tracking-widest mb-1 flex items-center gap-1">
+                              <Activity className="w-3 h-3"/> Lifetime Earning
                             </div>
+                            <div className="text-[13px] font-bold text-[#111111]">Rs {lifetimeEarnings.toLocaleString()}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-[10px] font-bold text-[#555555] uppercase tracking-widest mb-1">Phone</div>
+                            <div className="text-[13px] font-bold text-[#111111]">{member.phone || 'N/A'}</div>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Payroll Summary Snippet */}
+                      {/* Last 5 Payments */}
                       {(() => {
-                        const memberPayroll = payrollEntries.filter(p => p.staffId === member.id);
-                        const totalEarned = memberPayroll.reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
-                        const totalPaid = memberPayroll.filter(p => p.paidStatus === 'paid').reduce((sum, p) => sum + (Number(p.paymentAmount) || 0), 0);
-                        const pendingEntries = memberPayroll.filter(p => p.paidStatus === 'pending');
-                        const totalPending = totalEarned - totalPaid;
+                        const lastPayments = memberPayroll
+                          .filter(p => p.type !== 'Earning')
+                          .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
+                          .slice(0, 5);
                         
+                        if (lastPayments.length === 0) return null;
+
                         return (
-                          <div className="px-4 py-3 bg-[#F7F5F0] border-t border-[#E2DDD6]">
-                             <div className="grid grid-cols-2 gap-4">
-                               <div>
-                                 <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest mb-1">Total Earned</div>
-                                 <div className="text-sm font-bold text-[#111111]">${totalEarned}</div>
-                               </div>
-                               <div>
-                                 <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest mb-1">Pending Pay</div>
-                                 <div className={cn("text-sm font-bold", totalPending > 0 ? "text-[#E53935]" : "text-[#111111]")}>${totalPending}</div>
-                               </div>
+                          <div className="px-4 py-3 bg-[#F8FAFC] border-t border-slate-100">
+                             <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1">
+                               <Clock className="w-3 h-3"/> Recent Payments
                              </div>
-                             {pendingEntries.length > 0 && (
-                               <div className="space-y-2 mt-3 pt-3 border-t border-[#E2DDD6]">
-                                 <div className="text-[10px] font-bold text-[#888888] uppercase tracking-widest">Pending Payouts ({pendingEntries.length})</div>
-                                 <div className="space-y-2 max-h-32 overflow-y-auto">
-                                   {pendingEntries.map(entry => (
-                                      <div key={entry.id} className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E2DDD6]">
-                                        <div>
-                                          <div className="text-[11px] font-bold text-[#111111]">Order #{entry.tokenId}</div>
-                                          <div className="text-[10px] text-[#2ECC71] font-bold">Amt: ${entry.paymentAmount}</div>
-                                        </div>
-                                        <button
-                                          onClick={() => handleMarkAsPaid(entry.id)}
-                                          className="h-6 text-[10px] px-2 font-bold rounded bg-[#0D3D33] text-white"
-                                        >
-                                          Mark Paid
-                                        </button>
-                                      </div>
-                                   ))}
+                             <div className="space-y-1.5">
+                               {lastPayments.map((p, i) => (
+                                 <div key={p.id || i} className="flex justify-between items-center text-[11px]">
+                                   <div className="flex items-center gap-2">
+                                     <span className={cn(
+                                       "w-1.5 h-1.5 rounded-full",
+                                       p.type === 'Salary' ? "bg-green-500" : p.type === 'Advance' ? "bg-orange-500" : "bg-blue-500"
+                                     )} />
+                                     <span className="font-semibold text-slate-700">{p.type}</span>
+                                     <span className="text-slate-400">({format(new Date(p.date), 'MMM dd')})</span>
+                                   </div>
+                                   <div className="font-bold text-slate-900">Rs {p.paymentAmount.toLocaleString()}</div>
                                  </div>
-                               </div>
-                             )}
+                               ))}
+                             </div>
                           </div>
-                         );
+                        );
                       })()}
                     </div>
                   </motion.div>
