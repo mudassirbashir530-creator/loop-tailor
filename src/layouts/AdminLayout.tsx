@@ -49,13 +49,6 @@ export const AdminLayout: React.FC = () => {
         </nav>
 
         <div className="p-4 border-t border-gray-200/50 space-y-2">
-          <Link
-            to="/app"
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-bold text-slate-500 hover:text-brand-primary hover:shadow-neu-sm transition-all border-none"
-          >
-            <LayoutDashboard className="w-5 h-5" />
-            Back to App
-          </Link>
           <button
             onClick={logOut}
             className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-bold text-slate-500 hover:text-red-600 hover:shadow-neu-sm transition-all border-none"

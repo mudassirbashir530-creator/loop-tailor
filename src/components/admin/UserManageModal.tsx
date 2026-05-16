@@ -8,25 +8,65 @@ import { toast } from 'sonner';
 export default function UserManageModal({ user, onClose }: { user: any; onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    plan: user.plan || 'Free',
+    plan: user.plan || user.subscriptionPlan || 'Free',
     paymentNote: user.subscription?.paymentNote || '',
     planStartDate: user.subscription?.startDate ? new Date(user.subscription.startDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
     planExpiryDate: user.subscription?.expiryDate ? new Date(user.subscription.expiryDate).toISOString().slice(0, 10) : new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0, 10),
     isBlocked: user.isBlocked ?? false,
     features: {
-      whatsapp: user.permissions?.whatsapp ?? false,
-      invoice: user.permissions?.invoice ?? false,
-      imageUpload: user.permissions?.imageUpload ?? false,
-      customerLimit: user.permissions?.customerLimit ?? 10,
-      orderLimit: user.permissions?.orderLimit ?? 20,
+      whatsapp: user.permissions?.whatsapp ?? (user.features?.whatsapp || false),
+      invoice: user.permissions?.invoice ?? (user.features?.invoice || false),
+      imageUpload: user.permissions?.imageUpload ?? (user.features?.imageUpload || false),
+      staffManagement: user.permissions?.staffManagement ?? (user.features?.workerAssign || false),
+      customerLimit: user.permissions?.customerLimit ?? (user.features?.customerLimit || 10),
+      orderLimit: user.permissions?.orderLimit ?? (user.features?.orderLimit || 20),
     }
   });
+
+  const handlePlanChange = (newPlan: string) => {
+    let updates = { plan: newPlan, features: { ...formData.features } };
+    
+    if (newPlan === 'Free') {
+      updates.features = {
+        ...updates.features,
+        whatsapp: false,
+        imageUpload: false,
+        invoice: false,
+        staffManagement: false,
+        customerLimit: 10,
+        orderLimit: 20
+      };
+    } else if (newPlan === 'Premium') {
+      updates.features = {
+        ...updates.features,
+        whatsapp: true,
+        imageUpload: true,
+        invoice: true,
+        staffManagement: false,
+        customerLimit: 1000,
+        orderLimit: 1000
+      };
+    } else if (newPlan === 'Enterprise') {
+      updates.features = {
+        ...updates.features,
+        whatsapp: true,
+        imageUpload: true,
+        invoice: true,
+        staffManagement: true,
+        customerLimit: 99999,
+        orderLimit: 99999
+      };
+    }
+    
+    setFormData(prev => ({ ...prev, ...updates }));
+  };
 
   const handleSave = async () => {
     setLoading(true);
     try {
       await updateDoc(doc(db, 'users', user.id), {
         plan: formData.plan,
+        subscriptionPlan: formData.plan,
         isBlocked: formData.isBlocked,
         subscription: {
           startDate: formData.planStartDate,
@@ -37,6 +77,15 @@ export default function UserManageModal({ user, onClose }: { user: any; onClose:
           whatsapp: formData.features.whatsapp,
           invoice: formData.features.invoice,
           imageUpload: formData.features.imageUpload,
+          staffManagement: formData.features.staffManagement,
+          customerLimit: formData.features.customerLimit,
+          orderLimit: formData.features.orderLimit,
+        },
+        features: {
+          whatsapp: formData.features.whatsapp,
+          invoice: formData.features.invoice,
+          imageUpload: formData.features.imageUpload,
+          workerAssign: formData.features.staffManagement,
           customerLimit: formData.features.customerLimit,
           orderLimit: formData.features.orderLimit,
         },
@@ -165,7 +214,7 @@ export default function UserManageModal({ user, onClose }: { user: any; onClose:
             </div>
             <select 
               value={formData.plan} 
-              onChange={e => setFormData({...formData, plan: e.target.value})}
+              onChange={e => handlePlanChange(e.target.value)}
               className="w-full p-2 border rounded-md mb-3"
             >
               <option value="Free">Free</option>
@@ -208,7 +257,7 @@ export default function UserManageModal({ user, onClose }: { user: any; onClose:
           <div className="border-t pt-4 pb-12">
             <h3 className="font-bold text-slate-900 mb-3">FEATURE ACCESS & LIMITS</h3>
             <div className="space-y-4">
-               {['whatsapp', 'imageUpload', 'invoice'].map((key) => (
+               {['whatsapp', 'imageUpload', 'invoice', 'staffManagement'].map((key) => (
                  <div key={key} className="flex items-center justify-between border-b pb-2">
                     <span className="capitalize text-sm font-medium">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
                     <button 

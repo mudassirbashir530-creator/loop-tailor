@@ -100,8 +100,14 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
       }
     }, (error) => {
-      handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`);
-      setLoading(false);
+      try {
+        handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`);
+      } catch (e) {
+        // Suppress the throw from handleFirestoreError to prevent unhandled rejection during early load
+        console.error("Diagnostic error caught during settings fetch:", e);
+      } finally {
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();

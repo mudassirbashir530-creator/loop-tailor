@@ -44,10 +44,13 @@ function LoadingFallback() {
 }
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const location = useLocation();
   if (loading) return <LoadingFallback />;
-  return user ? <>{children}</> : <Navigate to="/auth/login" state={{ from: location }} replace />;
+  if (!user) return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  // Admin should not see the user app
+  if (isAdmin) return <Navigate to="/admin" replace />;
+  return <>{children}</>;
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {

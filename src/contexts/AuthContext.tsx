@@ -53,75 +53,97 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let userDataUnsub: (() => void) | null = null;
 
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setLoading(true);
       setUser(currentUser);
-      if (currentUser) {
-        safeStorage.setItem('wasLoggedIn', 'true');
-        setWasLoggedIn(true);
+      
+      const setupAuth = async () => {
+        try {
+          if (currentUser) {
+            safeStorage.setItem('wasLoggedIn', 'true');
+            setWasLoggedIn(true);
 
-        userDataUnsub = onSnapshot(doc(db, 'users', currentUser.uid), async (userDoc) => {
-          const userDataFetched = userDoc.exists() ? userDoc.data() : null;
-          setUserData(userDataFetched);
-          
-          let isUserAdmin = false;
-          if (currentUser.email) {
-            try {
-              const adminDoc = await getDoc(doc(db, 'admins', currentUser.email));
-              if (adminDoc.exists() && adminDoc.data().isAdmin === true) {
-                isUserAdmin = true;
-              }
-            } catch (e) {
-              console.error("Error checking admin status", e);
+            if (userDataUnsub) {
+              userDataUnsub();
             }
-          }
-          
-          if (isUserAdmin || (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email))) {
-            if (userDoc.exists() && (!userDataFetched?.isAdmin || userDataFetched?.role !== 'admin')) {
-              let retries = 3;
-              while (retries > 0) {
+
+            userDataUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (userDoc) => {
+              const processSnapshot = async () => {
                 try {
-                  await setDoc(doc(db, 'users', currentUser.uid), {
-                    role: 'admin',
-                    isAdmin: true,
-                    plan: 'enterprise',
-                  }, { merge: true });
-                  break; 
-                } catch (e) {
-                  retries--;
-                  if (retries === 0) {
-                    console.warn("Could not auto-upgrade admin, will retry later:", e);
-                  } else {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                  const userDataFetched = userDoc.exists() ? userDoc.data() : null;
+                  setUserData(userDataFetched);
+                  
+                  let isUserAdmin = false;
+                  if (currentUser.email) {
+                    try {
+                      const adminDoc = await getDoc(doc(db, 'admins', currentUser.email));
+                      if (adminDoc.exists() && adminDoc.data().isAdmin === true) {
+                        isUserAdmin = true;
+                      }
+                    } catch (e) {
+                      console.error("Error checking admin status", e);
+                    }
                   }
+                  
+                  if (isUserAdmin || (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email))) {
+                    if (userDoc.exists() && (!userDataFetched?.isAdmin || userDataFetched?.role !== 'admin')) {
+                      let retries = 3;
+                      while (retries > 0) {
+                        try {
+                          await setDoc(doc(db, 'users', currentUser.uid), {
+                            role: 'admin',
+                            isAdmin: true,
+                            plan: 'enterprise',
+                          }, { merge: true });
+                          break; 
+                        } catch (e) {
+                          retries--;
+                          if (retries === 0) {
+                            console.warn("Could not auto-upgrade admin, will retry later:", e);
+                          } else {
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                          }
+                        }
+                      }
+                    }
+                    setIsAdmin(true);
+                  } else if (userDoc.exists() && userDoc.data()?.role === 'admin') {
+                    setIsAdmin(true);
+                  } else {
+                    setIsAdmin(false);
+                  }
+                } catch (error) {
+                  console.error("Error in snapshot processing:", error);
+                } finally {
+                  setLoading(false);
                 }
-              }
-            }
-            setIsAdmin(true);
-          } else if (userDoc.exists() && userDoc.data()?.role === 'admin') {
-            setIsAdmin(true);
-          } else {
-            setIsAdmin(false);
-          }
-          setLoading(false);
-        }, (error) => {
-          console.error("Error fetching user role:", error);
-          setIsAdmin(false);
-          setUserData(null);
-          setLoading(false);
-        });
+              };
+              processSnapshot();
+            }, (error) => {
+              console.error("Error fetching user role:", error);
+              setIsAdmin(false);
+              setUserData(null);
+              setLoading(false);
+            });
 
-      } else {
-        if (userDataUnsub) {
-          userDataUnsub();
-          userDataUnsub = null;
+          } else {
+            if (userDataUnsub) {
+              userDataUnsub();
+              userDataUnsub = null;
+            }
+            safeStorage.removeItem('wasLoggedIn');
+            setWasLoggedIn(false);
+            setIsAdmin(false);
+            setUserData(null);
+            setLoading(false);
+          }
+        } catch (setupError) {
+          console.error("Error in setupAuth:", setupError);
+          setLoading(false);
         }
-        safeStorage.removeItem('wasLoggedIn');
-        setWasLoggedIn(false);
-        setIsAdmin(false);
-        setUserData(null);
-        setLoading(false);
-      }
+      };
+
+      setupAuth();
     });
 
     return () => {

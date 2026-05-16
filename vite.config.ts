@@ -17,26 +17,25 @@ export default defineConfig(({mode}) => {
     resolve: {
       alias: [
         { find: '@', replacement: path.resolve(__dirname, '.') },
-        { find: /^formdata-polyfill(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/empty.ts') },
-        { find: /^whatwg-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
-        { find: /^unfetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
-        { find: /^cross-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
-        { find: /^isomorphic-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
-        { find: /^node-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
-        { find: /^headers-polyfill(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
-        { find: /^web-streams-polyfill(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
-        { find: /^event-target-shim(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
-        { find: /^abort-controller(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
-        { find: /^abortcontroller-polyfill(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') },
-        { find: /^fetch-blob(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/void.ts') }
+        { find: /^formdata-polyfill(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^whatwg-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^unfetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^cross-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^isomorphic-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^node-fetch(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^headers-polyfill(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^web-streams-polyfill(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^event-target-shim(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^abort-controller(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^abortcontroller-polyfill(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') },
+        { find: /^fetch-blob(\/.*)?$/, replacement: path.resolve(__dirname, 'src/lib/fetch-shim.ts') }
       ],
     },
     optimizeDeps: {
-      exclude: [
-        'whatwg-fetch', 'unfetch', 'cross-fetch', 'isomorphic-fetch', 
-        'node-fetch', 'formdata-polyfill', 'headers-polyfill', 
+      include: [
+        'formdata-polyfill', 'node-fetch', 'headers-polyfill', 
         'web-streams-polyfill', 'event-target-shim', 'abort-controller',
-        'abortcontroller-polyfill', 'fetch-blob'
+        'fetch-blob'
       ]
     },
     server: {

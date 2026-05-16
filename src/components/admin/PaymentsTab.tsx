@@ -12,7 +12,7 @@ export default function PaymentsTab() {
     const unsub = onSnapshot(q, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setPayments(data);
-    });
+    }, (err) => console.error("PaymentsTab error:", err));
     return () => unsub();
   }, []);
 

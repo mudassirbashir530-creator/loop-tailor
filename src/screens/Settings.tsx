@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, Crown, Bell, MessageSquare, Globe, Palette, HelpCircle, LogOut, ChevronRight, Moon, Sun, Smartphone, Check, UserCircle } from 'lucide-react';
+import { Store, Crown, Bell, MessageSquare, Globe, Palette, HelpCircle, LogOut, ChevronRight, Moon, Sun, Smartphone, Check, UserCircle, X } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -14,7 +14,8 @@ import { toast } from 'sonner';
 import { openWhatsApp } from '../lib/whatsapp';
 import { uploadToCloudinary } from '../lib/cloudinary';
 import { CloudinaryImage } from '../lib/types';
-import { Camera, Upload, X as CloseIcon, Loader2 } from 'lucide-react';
+import { Camera, Upload, Loader2 } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 const COUNTRY_CODES = [
   { code: '+92', name: 'Pakistan', flag: '🇵🇰' },
@@ -66,7 +67,7 @@ import { safeStorage } from '../lib/safeStorage';
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { user, logOut } = useAuth();
+  const { user, userData, logOut } = useAuth();
   const { settings, loading: settingsLoading } = useShop();
   
   const [shopName, setShopName] = useState('');
@@ -164,6 +165,35 @@ export default function Settings() {
       toast.error("Failed to log out");
     }
   };
+
+  const [isPricingOpen, setIsPricingOpen] = useState(false);
+
+  const PLANS = [
+    {
+      name: 'Free',
+      price: 'Rs. 0',
+      description: 'Perfect for new shops',
+      features: ['Up to 10 customers', 'Up to 20 orders', 'Basic invoice (no logo)', 'Standard support'],
+      notIncluded: ['Image upload', 'WhatsApp integration', 'Staff management', 'Custom branding']
+    },
+    {
+      name: 'Premium',
+      price: 'Rs. 500',
+      period: '/month',
+      description: 'For growing businesses',
+      features: ['Unlimited customers', 'Unlimited orders', 'Professional invoice with logo', 'Image upload for samples', 'WhatsApp integration', 'Priority support'],
+      notIncluded: ['Staff management', 'Advanced analytics']
+    },
+    {
+      name: 'Enterprise',
+      price: 'Rs. 1000',
+      period: '/month',
+      description: 'Full power for large shops',
+      features: ['Everything in Premium', 'Staff & worker management', 'Advanced analytics & reports', 'Payroll management', 'Custom branding', 'Dedicated support'],
+    }
+  ];
+
+  const currentPlan = userData?.plan || userData?.subscriptionPlan || 'Free';
 
   const handleUpdateProfile = async () => {
     if (!user?.uid) {
@@ -327,8 +357,9 @@ export default function Settings() {
               <SettingsRow 
                 icon={<Crown className="h-5 w-5 text-accent" />} 
                 title="Subscription Plan" 
-                subtitle={user?.email === "mudassirbashir530@gmail.com" ? "Premium Plan (Active)" : "Free Plan (Active)"}
+                subtitle={`${currentPlan} Plan (Active)`}
                 rightElement={<span className="bg-accent/20 text-accent text-xs font-bold px-2 py-1 rounded-md">Upgrade</span>}
+                onClick={() => setIsPricingOpen(true)}
               />
             </div>
           </Card>
@@ -408,7 +439,7 @@ export default function Settings() {
                       }}
                       className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <CloseIcon className="w-3 h-3" />
+                      <X className="w-3 h-3" />
                     </button>
                   )}
                 </div>
@@ -634,6 +665,92 @@ export default function Settings() {
       <div className="text-center pt-8 pb-4">
         <p className="text-xs text-muted-foreground">Loop Tailor v1.1.0</p>
       </div>
+
+      {/* Pricing Dialog */}
+      <Dialog open={isPricingOpen} onOpenChange={setIsPricingOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-center">Software Plans</DialogTitle>
+            <DialogDescription className="text-center text-slate-500">
+              Choose the best plan for your shop's growth. Contact admin for upgrade.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8">
+            {PLANS.map((plan) => (
+              <div 
+                key={plan.name}
+                className={cn(
+                  "relative p-6 rounded-3xl border-2 flex flex-col transition-all",
+                  currentPlan.toLowerCase() === plan.name.toLowerCase() 
+                    ? "border-primary bg-primary/5 ring-4 ring-primary/10" 
+                    : "border-slate-100 hover:border-slate-200"
+                )}
+              >
+                {currentPlan.toLowerCase() === plan.name.toLowerCase() && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                    Your Current Plan
+                  </div>
+                )}
+                
+                <div className="mb-6">
+                  <h3 className="text-xl font-black text-slate-900">{plan.name}</h3>
+                  <p className="text-xs text-slate-500 font-medium">{plan.description}</p>
+                </div>
+                
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-slate-900">{plan.price}</span>
+                    {plan.period && <span className="text-slate-400 text-sm font-medium">{plan.period}</span>}
+                  </div>
+                </div>
+                
+                <div className="space-y-3 mb-8 flex-1">
+                  {plan.features.map(f => (
+                    <div key={f} className="flex items-center gap-3 text-sm">
+                      <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 text-emerald-600" />
+                      </div>
+                      <span className="text-slate-600 font-medium">{f}</span>
+                    </div>
+                  ))}
+                  {plan.notIncluded?.map(f => (
+                    <div key={f} className="flex items-center gap-3 text-sm opacity-50 grayscale">
+                      <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                        <X className="w-3 h-3 text-slate-400" />
+                      </div>
+                      <span className="text-slate-400 font-medium">{f}</span>
+                    </div>
+                  ))}
+                </div>
+                
+                <Button 
+                  onClick={() => openWhatsApp('03321379924', `Hi! I want to upgrade to the ${plan.name} plan for my shop.`)}
+                  variant={currentPlan.toLowerCase() === plan.name.toLowerCase() ? "outline" : "default"}
+                  className="w-full h-12 rounded-xl font-bold"
+                >
+                  {currentPlan.toLowerCase() === plan.name.toLowerCase() ? "Already Active" : `Upgrade to ${plan.name}`}
+                </Button>
+              </div>
+            ))}
+          </div>
+          
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center">
+                <Smartphone className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-900">Need a custom plan?</p>
+                <p className="text-xs text-slate-500">Contact our support for enterprise assistance.</p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => openWhatsApp('03321379924', 'Hi! I need a custom plan for my shop.')}>
+              Contact Sales
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

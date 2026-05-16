@@ -1,5 +1,8 @@
 {
   "name": "Loop Tailor",
   "description": "LoopTailor is the ultimate tailor management software for boutiques and shops. Manage orders, measurements, customers, and invoices digitally. Best tailoring management system for modern tailors.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

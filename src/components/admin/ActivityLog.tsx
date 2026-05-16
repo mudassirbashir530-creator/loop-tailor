@@ -10,7 +10,7 @@ export default function ActivityLog() {
     const unsub = onSnapshot(q, (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setLogs(data);
-    });
+    }, (err) => console.error("ActivityLog error:", err));
     return () => unsub();
   }, []);
 
