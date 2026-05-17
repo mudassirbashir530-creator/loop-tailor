@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, isSupported } from 'firebase/messaging';
@@ -17,7 +17,24 @@ const firebaseConfig = {
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence).catch(console.error);
+
+// Handle storage access denail gracefully
+const setAuthPersistence = async () => {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+  } catch (error: any) {
+    console.warn("Storage access denied for browserLocalPersistence, trying fallback...", error.message);
+    try {
+      await setPersistence(auth, browserSessionPersistence);
+    } catch (sessionError: any) {
+      console.warn("Storage access denied for browserSessionPersistence, using inMemoryPersistence", sessionError.message);
+      await setPersistence(auth, inMemoryPersistence);
+    }
+  }
+};
+
+setAuthPersistence();
+
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 

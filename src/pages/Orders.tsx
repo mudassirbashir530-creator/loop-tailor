@@ -111,7 +111,7 @@ export default function Orders() {
           });
           
           if (order.assignedStaffId) {
-            const staffMember = staff.find(s => s.id === order.assignedStaffId);
+            const staffMember = (staff || []).find(s => s && s.id === order.assignedStaffId);
             if (staffMember) {
               try {
                 await addDoc(collection(db, 'payroll'), {

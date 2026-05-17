@@ -4,7 +4,8 @@ type StorageType = 'localStorage' | 'sessionStorage';
 const isStorageAvailable = (type: StorageType): boolean => {
   try {
     if (typeof window === 'undefined') return false;
-    const storage = window[type];
+    // Even accessing window.localStorage or window.sessionStorage can throw in some environments
+    const storage = (window as any)[type];
     if (!storage) return false;
     const x = '__storage_test__';
     storage.setItem(x, x);

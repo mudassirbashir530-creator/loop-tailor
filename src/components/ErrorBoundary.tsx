@@ -24,6 +24,12 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
+    
+    // Auto retry after 2 seconds
+    setTimeout(() => {
+      this.setState({ hasError: false, error: null });
+      window.location.reload();
+    }, 2000);
   }
 
   private handleReset = () => {
@@ -38,41 +44,13 @@ class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-background p-4">
-          <div className="max-w-md w-full bg-card p-8 rounded-2xl shadow-xl border border-destructive/20 text-center space-y-6">
-            <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
-              <AlertTriangle className="w-8 h-8 text-destructive" />
-            </div>
-            
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-foreground">Something went wrong</h1>
-              <p className="text-muted-foreground">
-                The application encountered an unexpected error. We've been notified and are looking into it.
-              </p>
-              {this.state.error && (
-                <div className="mt-4 p-3 bg-muted rounded-lg text-left overflow-auto max-h-32">
-                  <p className="text-xs font-mono text-muted-foreground break-all">
-                    {this.state.error.message}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button 
-                onClick={this.handleReset}
-                className="flex-1 gap-2"
-              >
-                <RefreshCcw className="w-4 h-4" /> Try Again
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => window.location.href = '/'}
-                className="flex-1 gap-2"
-              >
-                <Home className="w-4 h-4" /> Go Home
-              </Button>
-            </div>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 text-center space-y-6">
+          <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full" />
+          <div className="space-y-2">
+            <h1 className="text-xl font-semibold text-foreground">Loading...</h1>
+            <p className="text-muted-foreground text-sm">
+              An unexpected error occurred. Retrying in 2 seconds...
+            </p>
           </div>
         </div>
       );

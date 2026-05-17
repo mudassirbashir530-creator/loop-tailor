@@ -404,7 +404,7 @@ export default function Dashboard() {
     );
   }
 
-  const hasData = allOrders.length > 0 || stats.customers > 0;
+  const hasData = (allOrders || []).length > 0 || (stats?.customers || 0) > 0;
 
   if (!loading && !hasData) {
     return (
@@ -589,13 +589,13 @@ export default function Dashboard() {
             </div>
             
             <div className="space-y-3">
-              {recentOrders.length === 0 ? (
+              {(recentOrders || []).length === 0 ? (
                 <div className="py-12 text-center rounded-2xl border-2 border-dashed border-[#0D3D33]/10">
                   <p className="text-[#4A5568] font-medium text-lg">No recent orders.</p>
                 </div>
               ) : (
-                recentOrders.map((order, i) => (
-                  <React.Fragment key={order.id}>
+                (recentOrders || []).map((order, i) => (
+                  <React.Fragment key={order?.id || i}>
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -608,12 +608,12 @@ export default function Dashboard() {
                           <Scissors className="w-6 h-6 text-[#0D3D33] relative rotate-45 transform transition-transform group-hover:rotate-0" />
                         </div>
                         <div>
-                          <div className="font-bold text-base sm:text-lg text-[#0D3D33] line-clamp-1">{order.customerName}</div>
-                          <div className="text-xs sm:text-sm text-[#4A5568] font-medium mt-0.5">{order.dressType || 'Order'} • #{order.tokenId}</div>
+                          <div className="font-bold text-base sm:text-lg text-[#0D3D33] line-clamp-1">{order?.customerName || 'Unnamed'}</div>
+                          <div className="text-xs sm:text-sm text-[#4A5568] font-medium mt-0.5">{order?.dressType || 'Order'} • #{order?.tokenId || 'UNK'}</div>
                         </div>
                       </div>
                       <div className="text-right flex flex-col items-end">
-                        <div className="font-bold text-lg sm:text-xl text-[#0D3D33]">{formatCurrency(order.price)}</div>
+                        <div className="font-bold text-lg sm:text-xl text-[#0D3D33]">{formatCurrency(order?.price || 0)}</div>
                         <div className={cn("text-[11px] sm:text-xs font-bold px-3 py-1 rounded-full mt-2 inline-block uppercase tracking-wider shadow-sm", 
                           order.status === ORDER_STATUS.DELIVERED ? "bg-[#2ECC71] text-[#FFFFFF]" : 
                           order.status === ORDER_STATUS.READY ? "bg-blue-500 text-[#FFFFFF]" :
@@ -621,11 +621,11 @@ export default function Dashboard() {
                           order.status === ORDER_STATUS.CANCELLED ? "bg-red-500 text-[#FFFFFF]" :
                           "bg-[#E2DDD6] text-[#0D3D33]"
                         )}>
-                          {t(`orders.${order.status.toLowerCase()}`)}
+                          {order?.status ? t(`orders.${order.status.toLowerCase()}`) : 'Pending'}
                         </div>
                       </div>
                     </motion.div>
-                    {i < recentOrders.length - 1 && <div className="h-px w-full bg-[#0D3D33]/5 my-1" />}
+                    {i < (recentOrders || []).length - 1 && <div className="h-px w-full bg-[#0D3D33]/5 my-1" />}
                   </React.Fragment>
                 ))
               )}

@@ -144,7 +144,7 @@ export default function OrderDetails() {
       }
 
       if (newStatus === ORDER_STATUS.DELIVERED && order.workerId) {
-        const staffMember = staff.find(s => s.id === order.workerId);
+        const staffMember = (staff || []).find(s => s && s.id === order.workerId);
         if (staffMember) {
           try {
             await addDoc(collection(db, 'payroll'), {
@@ -161,7 +161,6 @@ export default function OrderDetails() {
             });
           } catch (payrollError) {
             console.error('Error creating payroll entry:', payrollError);
-            toast.error('Failed to create payroll entry');
           }
         }
       }
@@ -446,7 +445,7 @@ export default function OrderDetails() {
                       <select
                         value={editData.workerId || ''}
                         onChange={(e) => {
-                          const selectedStaff = staff.find(s => s.id === e.target.value);
+                          const selectedStaff = (staff || []).find(s => s && s.id === e.target.value);
                           setEditData({
                             ...editData, 
                             workerId: e.target.value,
@@ -456,14 +455,14 @@ export default function OrderDetails() {
                         className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[14px] font-semibold text-on-surface focus:outline-none focus:border-primary transition-all"
                       >
                         <option value="">Unassigned</option>
-                        {staff.map(w => (
-                          <option key={w.id} value={w.id}>{w.name} ({w.role})</option>
+                        {(staff || []).map(w => (
+                          <option key={w?.id || Math.random()} value={w?.id}>{w?.name} ({w?.role})</option>
                         ))}
                       </select>
                     ) : (
                       <span className="font-semibold flex items-center gap-1">
                         {order.workerId 
-                          ? <><span className="text-primary">👤</span> {staff.find(w => w.id === order.workerId)?.name || order.workerName || 'Unknown'}</>
+                          ? <><span className="text-primary">👤</span> {(staff || []).find(w => w && w.id === order.workerId)?.name || order.workerName || 'Unknown'}</>
                           : 'Unassigned'}
                       </span>
                     )}
@@ -507,7 +506,7 @@ export default function OrderDetails() {
           </Card>
 
           {/* Garment Styles Card */}
-          {order.garmentStyles && Object.keys(order.garmentStyles).length > 0 && (
+          {Object.keys(order?.garmentStyles || {}).length > 0 && (
             <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden">
               <CardHeader className="bg-surface-container-lowest border-b border-outline-variant p-6 flex flex-row items-center justify-between">
                 <CardTitle className="text-[18px] font-semibold text-on-surface flex items-center gap-2">
@@ -517,7 +516,7 @@ export default function OrderDetails() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {Object.entries(order.garmentStyles).map(([key, value]) => (
+                  {Object.entries(order?.garmentStyles || {}).map(([key, value]) => (
                     <div key={key} className="bg-surface-container-highest shadow-sm p-4 rounded-2xl border border-outline-variant flex flex-col items-center justify-center text-center">
                       <div className="w-10 h-10 bg-surface rounded-xl mb-3 flex items-center justify-center text-xl shadow-sm border border-outline-variant">
                         {key.toLowerCase() === 'collar' ? '👔' : key.toLowerCase() === 'sleeves' ? '👕' : key.toLowerCase() === 'pocket' ? '👝' : key.toLowerCase() === 'placket' ? '🧵' : '🎽'}
@@ -557,7 +556,7 @@ export default function OrderDetails() {
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {order.measurements && Object.entries(order.measurements).map(([key, value]: [string, any]) => (
+                {Object.entries(order?.measurements || {}).map(([key, value]: [string, any]) => (
                   <div key={key} className="bg-surface-container-highest border border-outline-variant shadow-sm p-4 rounded-2xl">
                     <span className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant block mb-2">
                       {getMeasurementName(key, isRTL)}
@@ -765,7 +764,7 @@ export default function OrderDetails() {
           </Card>
 
           {/* Payment History Card */}
-          {paymentsList.length > 0 && (
+          {(paymentsList || []).length > 0 && (
             <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden mt-8">
               <CardHeader className="bg-surface-container-lowest border-b border-outline-variant p-6">
                 <CardTitle className="text-[18px] font-semibold text-on-surface flex items-center gap-2">
@@ -775,15 +774,15 @@ export default function OrderDetails() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-outline-variant">
-                  {paymentsList.map((payment: any) => (
-                    <div key={payment.id} className="p-4 flex justify-between items-center bg-surface hover:bg-surface-container transition-colors">
+                  {(paymentsList || []).map((payment: any) => (
+                    <div key={payment?.id || Math.random()} className="p-4 flex justify-between items-center bg-surface hover:bg-surface-container transition-colors">
                       <div className="flex flex-col">
-                        <span className="text-[14px] font-semibold text-on-surface">{payment.method}</span>
-                        <span className="text-[11px] text-on-surface-variant">{formatDate(payment.date)}</span>
-                        {payment.note && <span className="text-[12px] text-on-surface-variant italic mt-1">{payment.note}</span>}
+                        <span className="text-[14px] font-semibold text-on-surface">{payment?.method || 'Method'}</span>
+                        <span className="text-[11px] text-on-surface-variant">{formatDate(payment?.date)}</span>
+                        {payment?.note && <span className="text-[12px] text-on-surface-variant italic mt-1">{payment.note}</span>}
                       </div>
                       <div className="text-[16px] font-bold text-primary">
-                        {settings.currency} {payment.amount}
+                        {settings?.currency || 'PKR'} {payment?.amount || 0}
                       </div>
                     </div>
                   ))}

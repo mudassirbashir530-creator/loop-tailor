@@ -177,7 +177,7 @@ export default function Clients() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Clients</h1>
-          <p className="text-muted-foreground mt-1">Manage your {customers.length} total customers</p>
+          <p className="text-muted-foreground mt-1">Manage your {(customers || []).length} total customers</p>
         </div>
         <Button className="gap-2 w-full sm:w-auto" onClick={openAddModal}>
           <UserPlus className="h-4 w-4" />

@@ -19,7 +19,7 @@ export default function UsersList() {
   useEffect(() => {
     const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = (snap?.docs || []).map(doc => ({ id: doc.id, ...doc.data() }));
       setUsers(data);
     }, (err) => {
       console.error("UsersList error:", err);
@@ -27,7 +27,7 @@ export default function UsersList() {
 
     const shopsUnsub = onSnapshot(collection(db, 'shops'), (snap) => {
       const shopMap: Record<string, any> = {};
-      snap.forEach(doc => {
+      (snap?.docs || []).forEach(doc => {
         shopMap[doc.id] = doc.data();
       });
       setShops(shopMap);
@@ -41,7 +41,8 @@ export default function UsersList() {
     };
   }, []);
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = (users || []).filter(user => {
+    if (!user) return false;
     // Search filter
     const matchesSearch = (
       (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
@@ -90,7 +91,7 @@ export default function UsersList() {
   };
 
   const getInitials = (name: string) => {
-    return name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'S';
+    return (name || '').split(' ').map(n => n && n[0]).join('').substring(0, 2).toUpperCase() || 'S';
   };
 
   return (
@@ -146,7 +147,7 @@ export default function UsersList() {
           </thead>
           <tbody>
             <AnimatePresence mode="popLayout">
-              {filteredUsers.length === 0 ? (
+              {(filteredUsers || []).length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-20 text-center">
                     <div className="flex flex-col items-center gap-2 text-slate-400">
@@ -155,7 +156,7 @@ export default function UsersList() {
                     </div>
                   </td>
                 </tr>
-              ) : filteredUsers.map(user => {
+              ) : (filteredUsers || []).map(user => {
                 const plan = user.plan?.toLowerCase() || user.subscriptionPlan?.toLowerCase() || 'free';
                 let planDisplay = <span className="text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-lg text-[10px] border border-amber-200/50 uppercase tracking-wider font-display">Free</span>;
                 if (plan === 'premium') planDisplay = <span className="text-blue-600 font-bold bg-blue-50 px-2.5 py-1 rounded-lg text-[10px] border border-blue-200/50 uppercase tracking-wider font-display">Premium</span>;

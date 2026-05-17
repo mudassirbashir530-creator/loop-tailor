@@ -10,6 +10,10 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   wasLoggedIn: boolean;
+  orders: any[];
+  customers: any[];
+  workers: any[];
+  staff: any[];
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (
     email: string, 
@@ -33,6 +37,10 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   loading: true,
   wasLoggedIn: false,
+  orders: [],
+  customers: [],
+  workers: [],
+  staff: [],
   signIn: async () => {},
   signUp: async () => {},
   resetPassword: async () => {},
@@ -49,6 +57,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [wasLoggedIn, setWasLoggedIn] = useState(() => safeStorage.getItem('wasLoggedIn') === 'true');
+  
+  // Explicitly initialize arrays to [] as requested to prevent undefined.map crashes
+  const [orders, setOrders] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [workers, setWorkers] = useState<any[]>([]);
+  const [staff, setStaff] = useState<any[]>([]);
 
   useEffect(() => {
     let userDataUnsub: (() => void) | null = null;
@@ -269,7 +283,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, userData, isAdmin, loading, wasLoggedIn, signIn, signUp, resetPassword, logOut }}>
+    <AuthContext.Provider value={{ user, userData, isAdmin, loading, wasLoggedIn, orders, customers, workers, staff, signIn, signUp, resetPassword, logOut }}>
       {children}
     </AuthContext.Provider>
   );

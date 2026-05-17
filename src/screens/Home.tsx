@@ -30,21 +30,21 @@ export default function Home() {
   const { orders, loading } = useOrders();
   const { customers } = useCustomers();
 
-  const totalOrders = orders?.length || 0;
-  const pendingOrders = orders ? orders.filter(o => o.status?.toLowerCase() !== 'delivered').length : 0;
-  const completedToday = orders ? orders.filter(o => o && o.status?.toLowerCase() === 'delivered' && o.updatedAt && isToday(new Date(o.updatedAt))).length : 0;
-  const revenue = orders ? orders.reduce((sum, order) => {
+  const totalOrders = (orders || []).length || 0;
+  const pendingOrders = (orders || []).filter(o => o && o.status?.toLowerCase() !== 'delivered').length;
+  const completedToday = (orders || []).filter(o => o && o.status?.toLowerCase() === 'delivered' && o.updatedAt && isToday(new Date(o.updatedAt))).length;
+  const revenue = (orders || []).reduce((sum, order) => {
     if (!order || order.status?.toLowerCase() !== 'delivered') return sum;
     return sum + safeNum(order.price);
-  }, 0) : 0;
+  }, 0);
 
   const chartData = useMemo(() => {
-    if (!orders) return [];
     const data = [];
+    const safeOrders = orders || [];
     for (let i = 6; i >= 0; i--) {
       const d = subDays(new Date(), i);
       const dateStr = format(d, 'MMM dd');
-      const dayOrders = orders.filter(o => {
+      const dayOrders = safeOrders.filter(o => {
         if (!o || !o.createdAt || o.status?.toLowerCase() !== 'delivered') return false;
         try {
           return new Date(o.createdAt).toDateString() === d.toDateString();
@@ -138,13 +138,13 @@ export default function Home() {
         </div>
         
         <div className="divide-y divide-border">
-          {orders.length === 0 ? (
+          {(orders || []).length === 0 ? (
              <div className="text-center py-12 text-muted-foreground">No orders yet.</div>
-          ) : orders.slice(0, 5).map((order, idx) => {
-            const customer = customers.find(c => c.id === order.customerId);
+          ) : (orders || []).slice(0, 5).map((order, idx) => {
+            const customer = (customers || []).find(c => c && c.id === order?.customerId);
             return (
             <motion.div 
-              key={order.id} 
+              key={order?.id || idx} 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.05 }}
@@ -155,32 +155,32 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   {customer?.profileImage ? (
                     <img 
-                      src={typeof customer.profileImage === 'string' ? customer.profileImage : customer.profileImage.url} 
-                      alt={order.customerName} 
+                      src={typeof customer.profileImage === 'string' ? customer.profileImage : customer.profileImage?.url} 
+                      alt={order?.customerName || 'Customer'} 
                       className="w-10 h-10 rounded-full object-cover shadow-sm border border-border shrink-0"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm shrink-0">
-                      {order.customerName.charAt(0).toUpperCase()}
+                      {(order?.customerName || 'U').charAt(0).toUpperCase()}
                     </div>
                   )}
                   <div>
-                    <p className="font-semibold text-foreground mb-1">{order.customerName}</p>
+                    <p className="font-semibold text-foreground mb-1">{order?.customerName || 'Unnamed'}</p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="truncate max-w-[120px]">{order.clothingType}</span>
+                      <span className="truncate max-w-[120px]">{order?.clothingType || 'Order'}</span>
                       <span>•</span>
-                      <span className="font-mono">{order.id.slice(-6).toUpperCase()}</span>
+                      <span className="font-mono">{(order?.id || 'UNK').slice(-6).toUpperCase()}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Delivery: {formatDate(order.deliveryDate)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Delivery: {formatDate(order?.deliveryDate)}</p>
                   </div>
                 </div>
                 
                 <div className="flex flex-col items-end gap-2">
-                  <Badge variant={order.status} className="capitalize px-2 py-0.5">{order.status}</Badge>
+                  <Badge variant={order?.status || 'pending'} className="capitalize px-2 py-0.5">{order?.status || 'Pending'}</Badge>
                   <div className="text-right">
-                    <p className="font-bold text-sm tracking-tight">{formatCurrency(order.price)}</p>
-                    {order.remainingPayment > 0 && (
+                    <p className="font-bold text-sm tracking-tight">{formatCurrency(order?.price || 0)}</p>
+                    {order && order.remainingPayment > 0 && (
                       <p className="text-[10px] text-orange-600 font-medium uppercase tracking-wider mt-0.5">Bal: {formatCurrency(order.remainingPayment)}</p>
                     )}
                   </div>

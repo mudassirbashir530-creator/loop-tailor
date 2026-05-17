@@ -41,16 +41,17 @@ export default function Orders() {
     { label: 'Delivered', value: 'delivered' },
   ];
 
-  const filteredOrders = orders.filter(o => {
-    const matchesSearch = o.customerName.toLowerCase().includes(search.toLowerCase()) || 
-                          o.id.toLowerCase().includes(search.toLowerCase());
+  const filteredOrders = (orders || []).filter(o => {
+    if (!o) return false;
+    const matchesSearch = (o.customerName || '').toLowerCase().includes((search || '').toLowerCase()) || 
+                          (o.id || '').toLowerCase().includes((search || '').toLowerCase());
     const matchesTab = activeTab === 'all' || o.status === activeTab;
     return matchesSearch && matchesTab;
   });
 
   const getTabCount = (tab: OrderStatus | 'all') => {
-    if (tab === 'all') return orders.length;
-    return orders.filter(o => o.status === tab).length;
+    if (tab === 'all') return (orders || []).length;
+    return (orders || []).filter(o => o && o.status === tab).length;
   };
 
   const generateInvoiceImage = async (ref: HTMLElement, options?: any) => {
@@ -285,34 +286,34 @@ export default function Orders() {
       <div className="space-y-4 pb-12">
         {loading ? (
            <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>
-        ) : filteredOrders.length === 0 ? (
+        ) : (filteredOrders || []).length === 0 ? (
           <div className="text-center py-12 text-muted-foreground bg-card rounded-2xl border">
             <p>No orders found.</p>
           </div>
         ) : (
-          filteredOrders.map(order => {
-            const customer = customers.find(c => c.id === order.customerId);
+          (filteredOrders || []).map(order => {
+            const customer = (customers || []).find(c => c && c.id === order?.customerId);
             return (
-            <Card key={order.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedOrder(order)}>
+            <Card key={order?.id || Math.random().toString()} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedOrder(order)}>
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     {customer?.profileImage ? (
                       <img 
                         src={typeof customer.profileImage === 'string' ? customer.profileImage : customer.profileImage.url} 
-                        alt={order.customerName} 
+                        alt={order?.customerName || 'Customer'} 
                         className="w-10 h-10 rounded-full object-cover shadow-sm border border-border shrink-0"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm shrink-0">
-                        {order.customerName.charAt(0).toUpperCase()}
+                        {(order?.customerName || 'C').charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-foreground text-base leading-tight">{order?.customerName || 'Unnamed'}</p>
-                        {order.customerPhone && (
+                        {order?.customerPhone && (
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
@@ -336,7 +337,7 @@ export default function Orders() {
                     <span>{order?.deliveryDate ? formatDate(order.deliveryDate) : 'No date'}</span>
                   </div>
                   
-                  {order.workerName && (
+                  {order?.workerName && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <User className="h-3.5 w-3.5" />
                       <span className="truncate">{order.workerName}</span>
@@ -345,10 +346,10 @@ export default function Orders() {
                   
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium text-foreground">
                     <DollarSign className="h-3.5 w-3.5" />
-                    <span>{formatCurrency(order.price)}</span>
+                    <span>{formatCurrency(order?.price || 0)}</span>
                   </div>
 
-                  {order.remainingPayment > 0 && (
+                  {(order?.remainingPayment || 0) > 0 && (
                     <div className="flex items-center text-xs font-semibold text-orange-600">
                       Bal: {formatCurrency(order.remainingPayment)}
                     </div>
@@ -388,9 +389,9 @@ export default function Orders() {
 
                 <div className="space-y-2">
                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Measurements</p>
-                   {Object.keys(selectedOrder.measurements).length > 0 ? (
+                   {Object.keys(selectedOrder?.measurements || {}).length > 0 ? (
                       <div className="grid grid-cols-3 gap-2 bg-muted/50 p-4 rounded-xl border">
-                        {Object.entries(selectedOrder.measurements).map(([key, value]) => (
+                        {Object.entries(selectedOrder?.measurements || {}).map(([key, value]) => (
                           <div key={key}>
                             <p className="text-xs text-muted-foreground capitalize">{key}</p>
                             <p className="font-semibold text-sm">{value || '-'}</p>
@@ -427,8 +428,8 @@ export default function Orders() {
                     <div className="space-y-2">
                        <p className="text-xs font-semibold text-muted-foreground">Reference Designs</p>
                        <div className="grid grid-cols-2 gap-2">
-                         {selectedOrder.referenceImages && selectedOrder.referenceImages.length > 0 ? (
-                           selectedOrder.referenceImages.map((img, i) => (
+                         {(selectedOrder?.referenceImages || []).length > 0 ? (
+                           (selectedOrder?.referenceImages || []).map((img, i) => (
                              <div 
                                key={i} 
                                onClick={() => setPreviewImage({ url: typeof img === 'string' ? img : img.url, type: 'reference', index: i })}
@@ -458,8 +459,8 @@ export default function Orders() {
                     <div className="space-y-2">
                        <p className="text-xs font-semibold text-muted-foreground">Design Samples</p>
                        <div className="grid grid-cols-2 gap-2">
-                         {selectedOrder.designImages && selectedOrder.designImages.length > 0 ? (
-                           selectedOrder.designImages.map((img, i) => (
+                         {(selectedOrder?.designImages || []).length > 0 ? (
+                           (selectedOrder?.designImages || []).map((img, i) => (
                              <div 
                                key={i} 
                                onClick={() => setPreviewImage({ url: typeof img === 'string' ? img : img.url, type: 'design', index: i })}
