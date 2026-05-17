@@ -24,41 +24,39 @@ export function useOrders() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const ordersData: Order[] = [];
-      if (snapshot && snapshot.forEach) {
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          if (data) {
-            ordersData.push({
-              id: doc.id,
-              customerId: data.customerId || '',
-              customerName: data.customerName || 'Unnamed',
-              customerPhone: data.customerPhone || '',
-              workerId: data.workerId || '',
-              workerName: data.workerName || '',
-              status: data.status || 'pending',
-              clothingType: data.clothingType || '',
-              measurements: data.measurements || {},
-              referenceImages: data.referenceImages || [],
-              designImages: data.designImages || [],
-              referencePhotoUrl: data.referencePhotoUrl || '',
-              sampleDesignUrl: data.sampleDesignUrl || '',
-              invoiceImage: data.invoiceImage || null,
-              designNotes: data.designNotes || '',
-              price: data.price || 0,
-              advancePayment: data.advancePayment || 0,
-              remainingPayment: data.remainingPayment || 0,
-              deliveryDate: data.deliveryDate || '',
-              createdBy: data.createdBy || data.userId || '',
-              createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
-              updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
-            });
-          }
-        });
-      }
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data) {
+          ordersData.push({
+            id: doc.id,
+            customerId: data.customerId || '',
+            customerName: data.customerName || 'Unnamed',
+            customerPhone: data.customerPhone || '',
+            workerId: data.workerId || '',
+            workerName: data.workerName || '',
+            status: data.status || 'pending',
+            clothingType: data.clothingType || '',
+            measurements: data.measurements || {},
+            referenceImages: data.referenceImages || [],
+            designImages: data.designImages || [],
+            referencePhotoUrl: data.referencePhotoUrl || '',
+            sampleDesignUrl: data.sampleDesignUrl || '',
+            invoiceImage: data.invoiceImage || null,
+            designNotes: data.designNotes || '',
+            price: data.price || 0,
+            advancePayment: data.advancePayment || 0,
+            remainingPayment: data.remainingPayment || 0,
+            deliveryDate: data.deliveryDate || '',
+            createdBy: data.createdBy || data.userId || '',
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
+          });
+        }
+      });
       // Sort client-side
       ordersData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
-      setOrders(ordersData || []);
+      setOrders(ordersData);
       setLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'orders');

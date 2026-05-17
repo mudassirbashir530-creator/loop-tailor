@@ -149,7 +149,7 @@ export default function QuickOrder() {
       try {
         const q = query(collection(db, 'customers'), where('userId', '==', user.uid));
         const snap = await getDocs(q);
-        const data = (snap?.docs || []).map(doc => ({ id: doc.id, ...doc.data() }));
+        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setCustomers(data);
       } catch (error) {
         console.error("Error fetching customers", error);
@@ -173,9 +173,9 @@ export default function QuickOrder() {
 
 
 
-  const filteredCustomers = (customers || []).filter(c => 
-    c && ((c.name || '').toLowerCase().includes((searchQuery || '').toLowerCase()) || 
-    (c.phone || '').includes(searchQuery || ''))
+  const filteredCustomers = customers.filter(c => 
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    c.phone.includes(searchQuery)
   );
 
   // Customer Data
@@ -237,7 +237,7 @@ export default function QuickOrder() {
       const qMeas = query(collection(db, 'measurements'), where('userId', '==', user!.uid), where('customerId', '==', customer.id));
       const measSnap = await getDocs(qMeas);
       const loadedSets: Record<string, any> = {};
-      (measSnap?.docs || []).forEach((d) => {
+      measSnap.docs.forEach((d) => {
         const docId = d.id;
         const data = d.data();
         if (docId === customer.id) {
@@ -251,7 +251,7 @@ export default function QuickOrder() {
       });
       setMeasurementSets(loadedSets);
       
-      const setNames = Object.keys(loadedSets || {});
+      const setNames = Object.keys(loadedSets);
       if (setNames.length > 0) {
          // Auto-select 'Shalwar Kameez' or the first available set
          const defaultSet = setNames.includes('Shalwar Kameez') ? 'Shalwar Kameez' : setNames[0];
@@ -351,7 +351,7 @@ export default function QuickOrder() {
         }
 
         // Save/Update Measurements
-        if (Object.keys(measurements || {}).length > 0) {
+        if (Object.keys(measurements).length > 0) {
           const setName = selectedMeasurementSet || 'Shalwar Kameez';
           const docId = `${customerId}__${setName}`;
           await setDoc(doc(db, 'measurements', docId), {
@@ -410,7 +410,7 @@ export default function QuickOrder() {
           notes: orderData.notes,
           garmentStyles: garmentStyles,
           measurements: Object.fromEntries(
-            Object.entries(measurements || {}).map(([k, v]) => [k, Number(v) || 0])
+            Object.entries(measurements).map(([k, v]) => [k, Number(v) || 0])
           ),
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
@@ -615,26 +615,26 @@ export default function QuickOrder() {
                       />
                     </div>
                     <AnimatePresence>
-                      {showDropdown && searchQuery && (filteredCustomers || []).length > 0 && (
+                      {showDropdown && searchQuery && filteredCustomers.length > 0 && (
                         <motion.div 
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 10 }}
                           className="absolute z-50 w-full mt-2 bg-surface shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-2xl border border-outline-variant overflow-hidden max-h-[280px] overflow-y-auto"
                         >
-                          {(filteredCustomers || []).map(customer => (
+                          {filteredCustomers.map(customer => (
                             <div 
-                              key={customer?.id || Math.random().toString()}
+                              key={customer.id}
                               onClick={() => handleSelectCustomer(customer)}
                               className="p-4 hover:bg-surface-container cursor-pointer border-b border-outline-variant flex items-center justify-between transition-colors last:border-0"
                             >
                               <div className="flex items-center gap-4">
                                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-display font-medium text-xl">
-                                  {(customer?.name || 'C').charAt(0).toUpperCase()}
+                                  {customer.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                  <div className="font-medium text-on-surface text-base">{customer?.name || 'Unnamed'}</div>
-                                  <div className="text-sm text-on-surface-variant flex items-center mt-0.5"><Phone className="h-3.5 w-3.5 mr-1.5" /> {customer?.phone || 'No phone'}</div>
+                                  <div className="font-medium text-on-surface text-base">{customer.name}</div>
+                                  <div className="text-sm text-on-surface-variant flex items-center mt-0.5"><Phone className="h-3.5 w-3.5 mr-1.5" /> {customer.phone}</div>
                                 </div>
                               </div>
                             </div>
@@ -700,11 +700,11 @@ export default function QuickOrder() {
 
             <div className="space-y-5 pt-4">
               <h3 className="text-lg font-medium text-on-surface border-b border-outline-variant pb-3">Measurements</h3>
-              {(getMeasurementCategoriesForDress(orderData.dressType) || []).map((category) => (
+              {getMeasurementCategoriesForDress(orderData.dressType).map((category) => (
                 <div key={category.id} className="space-y-4 pt-2">
                    <div className="font-semibold text-xs text-primary uppercase tracking-widest bg-primary/10 inline-block px-3 py-1.5 rounded-[8px]">{category.titleEn}</div>
                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                     {(category?.items || []).map((item) => (
+                     {category.items.map((item) => (
                        <div key={item.id} className="bg-surface-container-lowest rounded-xl border border-outline-variant p-4 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all shadow-sm">
                           <label className="text-[11px] uppercase font-semibold text-on-surface-variant block mb-2 leading-none">{item.en}</label>
                           <input 

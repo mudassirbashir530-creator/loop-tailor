@@ -1,40 +1,23 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDd2HsiD-yRps2q-FgbH8G5w_Wl1vJMMC8",
-  authDomain: "tailor-app-76f20.firebaseapp.com",
-  databaseURL: "https://tailor-app-76f20-default-rtdb.firebaseio.com",
-  projectId: "tailor-app-76f20",
-  storageBucket: "tailor-app-76f20.firebasestorage.app",
-  messagingSenderId: "974622533594",
-  appId: "1:974622533594:web:e9b27ddf8886abbb4942e3",
-  measurementId: "G-5BMD8109NH"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDd2HsiD-yRps2q-FgbH8G5w_Wl1vJMMC8",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "tailor-app-76f20.firebaseapp.com",
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://tailor-app-76f20-default-rtdb.firebaseio.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "tailor-app-76f20",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "tailor-app-76f20.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "974622533594",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:974622533594:web:e9b27ddf8886abbb4942e3",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-5BMD8109NH"
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
-
-// Handle storage access denail gracefully
-const setAuthPersistence = async () => {
-  try {
-    await setPersistence(auth, browserLocalPersistence);
-  } catch (error: any) {
-    console.warn("Storage access denied for browserLocalPersistence, trying fallback...", error.message);
-    try {
-      await setPersistence(auth, browserSessionPersistence);
-    } catch (sessionError: any) {
-      console.warn("Storage access denied for browserSessionPersistence, using inMemoryPersistence", sessionError.message);
-      await setPersistence(auth, inMemoryPersistence);
-    }
-  }
-};
-
-setAuthPersistence();
-
+setPersistence(auth, browserLocalPersistence).catch(console.error);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 

@@ -31,7 +31,6 @@ import Home from './screens/Home';
 import Clients from './screens/Clients';
 import Workers from './screens/Workers';
 import Orders from './screens/Orders';
-import OrderDetails from './pages/OrderDetails';
 import NewOrder from './screens/NewOrder';
 import Settings from './screens/Settings';
 import Invoice from './pages/Invoice';
@@ -137,7 +136,6 @@ export default function App() {
                   <Route path="clients" element={<Clients />} />
                   <Route path="workers" element={<Workers />} />
                   <Route path="orders" element={<Orders />} />
-                  <Route path="orders/:id" element={<OrderDetails />} />
                   <Route path="invoice/:id" element={<Invoice />} />
                   <Route path="new-order" element={<NewOrder />} />
                   <Route path="settings" element={<Settings />} />

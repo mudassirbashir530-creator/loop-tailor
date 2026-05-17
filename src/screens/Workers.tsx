@@ -81,9 +81,8 @@ export default function Workers() {
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const filteredWorkers = (workers || []).filter(w => {
-    if (!w) return false;
-    const matchesSearch = (w.name || '').toLowerCase().includes((search || '').toLowerCase()) || (w.phone || '').includes(search || '');
+  const filteredWorkers = workers.filter(w => {
+    const matchesSearch = w.name.toLowerCase().includes(search.toLowerCase()) || w.phone.includes(search);
     const matchesRole = filterRole === 'all' || w.role === filterRole;
     return matchesSearch && matchesRole;
   });
@@ -245,7 +244,7 @@ export default function Workers() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Staff</p>
-                <h3 className="text-2xl font-bold mt-1">{(workers || []).length}</h3>
+                <h3 className="text-2xl font-bold mt-1">{workers.length}</h3>
               </div>
               <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                  <Users className="w-5 h-5" />
@@ -258,7 +257,7 @@ export default function Workers() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Active Workload</p>
-                <h3 className="text-2xl font-bold mt-1">{(workers || []).reduce((acc, w) => acc + (w?.activeOrders || 0), 0)}</h3>
+                <h3 className="text-2xl font-bold mt-1">{workers.reduce((acc, w) => acc + (w.activeOrders || 0), 0)}</h3>
               </div>
               <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
                  <Briefcase className="w-5 h-5" />
@@ -271,7 +270,7 @@ export default function Workers() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Available Now</p>
-                <h3 className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">{(workers || []).filter(w => w && w.status === 'available').length}</h3>
+                <h3 className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">{workers.filter(w => w.status === 'available').length}</h3>
               </div>
               <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
                  <Check className="w-5 h-5" />
@@ -284,7 +283,7 @@ export default function Workers() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Payouts</p>
-                <h3 className="text-2xl font-bold mt-1">{formatCurrency((workers || []).reduce((acc, w) => acc + (w?.totalEarnings || 0), 0))}</h3>
+                <h3 className="text-2xl font-bold mt-1">{formatCurrency(workers.reduce((acc, w) => acc + (w.totalEarnings || 0), 0))}</h3>
               </div>
               <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                  <DollarSign className="w-5 h-5" />
@@ -324,7 +323,7 @@ export default function Workers() {
           [...Array(6)].map((_, i) => (
             <Card key={i} className="animate-pulse h-[200px] bg-muted/20 border-none shadow-sm" />
           ))
-        ) : (filteredWorkers || []).length === 0 ? (
+        ) : filteredWorkers.length === 0 ? (
           <div className="col-span-full text-center py-24 bg-card rounded-3xl border border-dashed border-muted-foreground/20 text-muted-foreground shadow-sm">
             <Users className="h-16 w-16 mx-auto mb-4 opacity-50 text-primary" />
             <p className="text-xl font-semibold text-foreground">No workers found</p>
@@ -332,9 +331,9 @@ export default function Workers() {
             <Button variant="outline" className="mt-6" onClick={openAddModal}>Add First Worker</Button>
           </div>
         ) : (
-          (filteredWorkers || []).map((worker) => (
+          filteredWorkers.map((worker) => (
             <motion.div
-              key={worker?.id || Math.random().toString()}
+              key={worker.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -4 }}
@@ -346,36 +345,36 @@ export default function Workers() {
               >
                 <div className="relative h-2 bg-muted overflow-hidden">
                    <div 
-                     className={cn("h-full transition-all duration-1000", STATUS_OPTIONS.find(s => s.value === (worker?.status || 'offline'))?.color || 'bg-slate-500')}
+                     className={cn("h-full transition-all duration-1000", STATUS_OPTIONS.find(s => s.value === worker.status)?.color)}
                     />
                 </div>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex gap-4">
                       <div className="relative">
-                        {worker?.profileImage ? (
+                        {worker.profileImage ? (
                           <img 
                             src={typeof worker.profileImage === 'string' ? worker.profileImage : worker.profileImage.url} 
                             className="h-16 w-16 rounded-2xl object-cover border-2 border-background shadow-md bg-muted" 
-                            alt={worker.name || 'Worker'} 
+                            alt={worker.name} 
                             referrerPolicy="no-referrer"
                             loading="lazy"
                           />
                         ) : (
                           <div className="h-16 w-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-2xl shadow-md border-2 border-background">
-                            {(worker?.name || 'W').charAt(0).toUpperCase()}
+                            {worker.name.charAt(0).toUpperCase()}
                           </div>
                         )}
                         <div className={cn(
                           "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card shadow-sm",
-                          STATUS_OPTIONS.find(s => s.value === (worker?.status || 'offline'))?.color || 'bg-slate-500'
+                          STATUS_OPTIONS.find(s => s.value === worker.status)?.color
                         )} />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-bold text-lg truncate group-hover:text-primary transition-colors">{worker?.name || 'Unnamed'}</h3>
+                        <h3 className="font-bold text-lg truncate group-hover:text-primary transition-colors">{worker.name}</h3>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground capitalize">
                           <Briefcase className="h-3 w-3" />
-                          {worker?.role || 'Worker'} {worker?.speciality && `• ${worker.speciality}`}
+                          {worker.role} {worker.speciality && `• ${worker.speciality}`}
                         </div>
                       </div>
                     </div>
@@ -384,11 +383,11 @@ export default function Workers() {
                   <div className="grid grid-cols-2 gap-3 mt-6">
                     <div className="bg-muted/40 rounded-xl p-3 text-center">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Active</p>
-                      <p className="text-lg font-bold text-foreground">{worker?.activeOrders || 0}</p>
+                      <p className="text-lg font-bold text-foreground">{worker.activeOrders || 0}</p>
                     </div>
                     <div className="bg-muted/40 rounded-xl p-3 text-center">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Completed</p>
-                      <p className="text-lg font-bold text-foreground">{worker?.completedOrders || 0}</p>
+                      <p className="text-lg font-bold text-foreground">{worker.completedOrders || 0}</p>
                     </div>
                   </div>
 
@@ -396,11 +395,11 @@ export default function Workers() {
                     <div className="text-sm font-medium">
                        <span className="text-muted-foreground">Payout: </span>
                        <span className="text-primary font-bold">
-                         {worker?.salaryType === 'monthly' ? `${formatCurrency(worker?.salaryAmount || 0)}/mo` : `${formatCurrency(worker?.salaryAmount || 0)}/order`}
+                         {worker.salaryType === 'monthly' ? `${formatCurrency(worker.salaryAmount)}/mo` : `${formatCurrency(worker.salaryAmount)}/order`}
                        </span>
                     </div>
                     <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                       <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => openWhatsApp(worker?.phone || '')}>
+                       <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => openWhatsApp(worker.phone)}>
                           <MessageSquare className="h-4 w-4" />
                        </Button>
                        <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => openEditModal(worker)}>

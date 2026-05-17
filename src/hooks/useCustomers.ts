@@ -22,30 +22,28 @@ export function useCustomers() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const customersData: Customer[] = [];
-      if (snapshot && snapshot.forEach) {
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          if (data) {
-            customersData.push({
-              id: doc.id,
-              name: data.name || 'Unnamed',
-              phone: data.phone || 'No phone',
-              whatsappPhone: data.whatsappPhone || '',
-              countryCode: data.countryCode || '+92',
-              gender: data.gender || 'male',
-              notes: data.notes || '',
-              address: data.address || '',
-              profileImage: data.profileImage || null,
-              totalOrders: data.totalOrders || 0,
-              createdBy: data.createdBy || data.userId || '',
-              createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
-              updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
-            });
-          }
-        });
-      }
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data) {
+          customersData.push({
+            id: doc.id,
+            name: data.name || 'Unnamed',
+            phone: data.phone || 'No phone',
+            whatsappPhone: data.whatsappPhone || '',
+            countryCode: data.countryCode || '+92',
+            gender: data.gender || 'male',
+            notes: data.notes || '',
+            address: data.address || '',
+            profileImage: data.profileImage || null,
+            totalOrders: data.totalOrders || 0,
+            createdBy: data.createdBy || data.userId || '',
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
+          });
+        }
+      });
       customersData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      setCustomers(customersData || []);
+      setCustomers(customersData);
       setLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'customers');

@@ -1,7 +1,6 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
-import fs from "fs";
 import crypto from "crypto";
 import admin from "firebase-admin";
 import nodemailer from "nodemailer";
@@ -11,14 +10,6 @@ import dotenv from "dotenv";
 import twilio from "twilio";
 
 dotenv.config();
-
-// Load firebase-applet-config.json
-const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
-let firebaseConfig: any = {};
-if (fs.existsSync(configPath)) {
-  firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-}
-const databaseId = firebaseConfig.firestoreDatabaseId;
 
 // Configure Cloudinary
 cloudinary.config({
@@ -55,18 +46,16 @@ let db: admin.firestore.Firestore | null = null;
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-      });
-    }
-    db = admin.firestore(databaseId);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    db = admin.firestore();
   } else {
     // If no credentials, try to initialize but don't crash if it fails
     if (admin.apps.length === 0) {
       admin.initializeApp();
     }
-    db = admin.firestore(databaseId);
+    db = admin.firestore();
   }
 } catch (error) {
   console.warn("Firebase Admin initialization warning:", error);
@@ -78,11 +67,7 @@ const getDb = () => {
     // Attempt lazy init if not already done
     try {
       if (admin.apps.length > 0) {
-        db = admin.firestore(databaseId);
-      } else {
-        // Try one more time to initialize without args if needed
-        admin.initializeApp();
-        db = admin.firestore(databaseId);
+        db = admin.firestore();
       }
     } catch (e) {
       console.error("Failed to get Firestore instance:", e);
@@ -302,9 +287,7 @@ async function startServer() {
       });
 
       // Delete OTP after successful reset to prevent any reuse
-      if (firestore) {
-         await firestore.collection('password_resets').doc(email.toLowerCase()).delete();
-      }
+      await db.collection('password_resets').doc(email.toLowerCase()).delete();
 
       res.status(200).json({ message: "Password reset successfully", success: true });
 

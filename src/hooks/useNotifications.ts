@@ -37,20 +37,18 @@ export function useNotifications() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const notifs: AppNotification[] = [];
       let unread = 0;
-      if (snapshot && snapshot.forEach) {
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          notifs.push({ id: docSnap.id, ...data } as AppNotification);
-          if (!data.read) unread++;
-        });
-      }
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        notifs.push({ id: docSnap.id, ...data } as AppNotification);
+        if (!data.read) unread++;
+      });
       // Sort client-side
-      (notifs || []).sort((a, b) => {
-         const timeA = a?.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-         const timeB = b?.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+      notifs.sort((a, b) => {
+         const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+         const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
          return timeB - timeA;
       });
-      setNotifications((notifs || []).slice(0, 50));
+      setNotifications(notifs.slice(0, 50));
       setUnreadCount(unread);
     }, (error) => {
       console.error('Error listening to notifications:', error);
@@ -103,15 +101,13 @@ export function useNotifications() {
   const markAllRead = async () => {
     if (!user) return;
     try {
-      const unreadNotifs = (notifications || []).filter(n => n && !n.read);
+      const unreadNotifs = notifications.filter(n => !n.read);
       if (unreadNotifs.length === 0) return;
       
       const batch = writeBatch(db);
       unreadNotifs.forEach(n => {
-        if (n && n.id) {
-          const ref = doc(db, 'notifications', n.id);
-          batch.update(ref, { read: true });
-        }
+        const ref = doc(db, 'notifications', n.id);
+        batch.update(ref, { read: true });
       });
       await batch.commit();
     } catch (error) {

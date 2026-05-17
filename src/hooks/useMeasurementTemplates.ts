@@ -33,11 +33,11 @@ export function useMeasurementTemplates() {
 
     const q = query(collection(db, 'measurementTemplates'), where('userId', '==', user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const templateData = (snapshot?.docs || []).map(doc => ({
+      const templateData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as MeasurementTemplate[];
-      setTemplates((templateData || []).sort((a, b) => (a?.nameEn || '').localeCompare(b?.nameEn || '')));
+      setTemplates(templateData.sort((a, b) => a.nameEn.localeCompare(b.nameEn)));
       setLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'measurementTemplates');
@@ -92,8 +92,8 @@ export function useMeasurementTemplates() {
       // Find current default for this gender and remove it
       const q = query(collection(db, 'measurementTemplates'), where('userId', '==', user.uid));
       const snapshot = await getDocs(q);
-      const updates = (snapshot?.docs || [])
-        .filter(doc => doc && doc.data()?.gender === gender && doc.data()?.isDefault)
+      const updates = snapshot.docs
+        .filter(doc => doc.data().gender === gender && doc.data().isDefault)
         .map(docData => updateDoc(doc(db, 'measurementTemplates', docData.id), { isDefault: false }));
       
       await Promise.all(updates);

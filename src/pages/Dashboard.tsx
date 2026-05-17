@@ -124,12 +124,12 @@ export default function Dashboard() {
     const results: { type: string; id: string; title: string; subtitle: string; url: string; }[] = [];
     
     // Customers (Name/Phone)
-    (allCustomers || []).forEach(c => {
-      if ((c?.name && c.name.toLowerCase().includes(token)) || (c?.phone && c.phone.includes(token))) {
+    allCustomers.forEach(c => {
+      if ((c.name && c.name.toLowerCase().includes(token)) || (c.phone && c.phone.includes(token))) {
         results.push({
           type: 'customer',
           id: `cust_${c.id}`,
-          title: c.name || 'Unnamed',
+          title: c.name,
           subtitle: c.phone || 'No phone',
           url: `/app/clients/${c.id}`
         });
@@ -137,12 +137,12 @@ export default function Dashboard() {
     });
 
     // Orders (ID/Name)
-    (allOrders || []).forEach(o => {
-      if ((o?.tokenId && o.tokenId.toLowerCase().includes(token)) || (o?.customerName && o.customerName.toLowerCase().includes(token))) {
+    allOrders.forEach(o => {
+      if ((o.tokenId && o.tokenId.toLowerCase().includes(token)) || (o.customerName && o.customerName.toLowerCase().includes(token))) {
         results.push({
           type: 'order',
           id: `ord_${o.id}`,
-          title: `Order #${o.tokenId || 'UNK'}`,
+          title: `Order #${o.tokenId}`,
           subtitle: o.customerName || 'Unknown Customer',
           url: `/app/orders/${o.id}`
         });
@@ -150,8 +150,8 @@ export default function Dashboard() {
     });
 
     // Measurements (by customer name)
-    (allCustomers || []).forEach(c => {
-      if (c?.name && c.name.toLowerCase().includes(token)) {
+    allCustomers.forEach(c => {
+      if (c.name && c.name.toLowerCase().includes(token)) {
         results.push({
           type: 'measurement',
           id: `meas_${c.id}`,
@@ -174,18 +174,16 @@ export default function Dashboard() {
     const unsubscribeCustomers = onSnapshot(query(collection(db, 'customers'), where('userId', '==', user.uid)), (customersSnap) => {
       let newCust = 0;
       const loadedCustomers: any[] = [];
-      if (customersSnap && customersSnap.forEach) {
-        customersSnap.forEach(doc => {
-          const data = doc.data();
-          loadedCustomers.push({ id: doc.id, ...data });
-          if (data.createdAt) {
-            const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
-            if (isThisMonth(createdAtDate)) newCust++;
-          }
-        });
-      }
-      setAllCustomers(loadedCustomers || []);
-      setStats(prev => ({ ...prev, customers: customersSnap?.size || 0, newCustomersThisMonth: newCust }));
+      customersSnap.forEach(doc => {
+        const data = doc.data();
+        loadedCustomers.push({ id: doc.id, ...data });
+        if (data.createdAt) {
+          const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+          if (isThisMonth(createdAtDate)) newCust++;
+        }
+      });
+      setAllCustomers(loadedCustomers);
+      setStats(prev => ({ ...prev, customers: customersSnap.size, newCustomersThisMonth: newCust }));
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'dashboard_customers');
     });
@@ -206,52 +204,47 @@ export default function Dashboard() {
       const lastMonthDate = subMonths(today, 1);
       const nextWeek = addDays(today, 7);
 
-      if (ordersSnap && ordersSnap.forEach) {
-        ordersSnap.forEach((doc) => {
-          const data = doc.data();
-          const order = { id: doc.id, ...data };
-          allOrders.push(order);
+      ordersSnap.forEach((doc) => {
+        const data = doc.data();
+        const order = { id: doc.id, ...data };
+        allOrders.push(order);
 
-          const orderPrice = data.price || 0;
-          const advance = data.advancePayment || 0;
-          const paymentsSum = (data.payments || []).reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
-          let paidAmount = 0;
-          if (data.paymentStatus === 'Paid') {
-            paidAmount = orderPrice;
-          } else {
-            paidAmount = advance + paymentsSum;
-          }
+        const orderPrice = data.price || 0;
+        const advance = data.advancePayment || 0;
+        const paymentsSum = (data.payments || []).reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
+        let paidAmount = 0;
+        if (data.paymentStatus === 'Paid') {
+          paidAmount = orderPrice;
+        } else {
+          paidAmount = advance + paymentsSum;
+        }
 
-          totalCol += paidAmount;
-          totalPend += Math.max(0, orderPrice - paidAmount);
+        totalCol += paidAmount;
+        totalPend += Math.max(0, orderPrice - paidAmount);
 
-          const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now());
-          if (isThisMonth(createdAt)) {
-            monthRev += paidAmount;
-            ordersThisMo++;
-          } else if (isSameMonth(createdAt, lastMonthDate)) {
-            ordersLastMo++;
-          }
+        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now());
+        if (isThisMonth(createdAt)) {
+          monthRev += paidAmount;
+          ordersThisMo++;
+        } else if (isSameMonth(createdAt, lastMonthDate)) {
+          ordersLastMo++;
+        }
 
-          if (data.status === ORDER_STATUS.DELIVERED) {
-            completed++;
-            revenue += orderPrice;
-          } else {
-            active++;
-            const deliveryDateString = data.deliveryDate;
-            if (deliveryDateString) {
-              const deliveryDate = new Date(deliveryDateString);
-              if (isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
-                upcoming.push(order);
-              }
-            }
+        if (data.status === ORDER_STATUS.DELIVERED) {
+          completed++;
+          revenue += orderPrice;
+        } else {
+          active++;
+          const deliveryDate = new Date(data.deliveryDate);
+          if (isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
+            upcoming.push(order);
           }
-          
-          if (orderPrice > advance && data.status !== ORDER_STATUS.DELIVERED) {
-            pendingPay += (orderPrice - advance);
-          }
-        });
-      }
+        }
+        
+        if (orderPrice > advance && data.status !== ORDER_STATUS.DELIVERED) {
+          pendingPay += (orderPrice - advance);
+        }
+      });
 
       upcoming.sort((a, b) => {
         const dateA = a.deliveryDate?.toDate ? a.deliveryDate.toDate() : new Date(a.deliveryDate);
@@ -279,17 +272,17 @@ export default function Dashboard() {
         ordersThisMonth: ordersThisMo,
         ordersLastMonth: ordersLastMo,
       }));
-      setRecentOrders(recent || []);
-      setUpcomingDeliveries(upcoming || []);
-      setAllOrders(allOrders || []);
+      setRecentOrders(recent);
+      setUpcomingDeliveries(upcoming);
+      setAllOrders(allOrders);
       
       if (isFirstLoad) {
         setLoading(false);
         isFirstLoad = false;
 
         // Check for overdue orders and trigger notifications
-        (allOrders || []).forEach(order => {
-          if (order && order.status !== ORDER_STATUS.DELIVERED && isOrderOverdue(order.deliveryDate)) {
+        allOrders.forEach(order => {
+          if (order.status !== ORDER_STATUS.DELIVERED && isOrderOverdue(order.deliveryDate)) {
             const todayStr = format(new Date(), 'yyyy-MM-dd');
             if (order.lastNotifiedDate !== todayStr) {
                addNotification({
@@ -322,11 +315,11 @@ export default function Dashboard() {
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const monthDate = subMonths(now, i);
-      const monthOrders = (allOrders || []).filter(o => 
-        o && o.status === ORDER_STATUS.DELIVERED && 
+      const monthOrders = allOrders.filter(o => 
+        o.status === ORDER_STATUS.DELIVERED && 
         isSameMonth(o.updatedAt?.toDate ? o.updatedAt.toDate() : new Date(o.updatedAt || o.createdAt), monthDate)
       );
-      const revenue = monthOrders.reduce((sum, o) => sum + (o?.price || 0), 0);
+      const revenue = monthOrders.reduce((sum, o) => sum + (o.price || 0), 0);
       data.push({
         name: format(monthDate, 'MMM'),
         revenue
@@ -342,8 +335,8 @@ export default function Dashboard() {
       [ORDER_STATUS.READY]: 0,
       [ORDER_STATUS.DELIVERED]: 0,
     };
-    (allOrders || []).forEach(o => {
-      if (o && counts[o.status] !== undefined) counts[o.status]++;
+    allOrders.forEach(o => {
+      if (counts[o.status] !== undefined) counts[o.status]++;
     });
     return [
       { name: 'Pending', value: counts[ORDER_STATUS.PENDING], color: '#f59e0b' },
@@ -355,8 +348,8 @@ export default function Dashboard() {
 
   const topDressTypesData = React.useMemo(() => {
     const counts: Record<string, number> = {};
-    (allOrders || []).forEach(o => {
-      if (o && o.dressType) {
+    allOrders.forEach(o => {
+      if (o.dressType) {
         counts[o.dressType] = (counts[o.dressType] || 0) + 1;
       }
     });
@@ -368,15 +361,13 @@ export default function Dashboard() {
 
   const topCustomersData = React.useMemo(() => {
     const counts: Record<string, { count: number, name: string, id: string }> = {};
-    (allOrders || []).forEach(o => {
-      if (o) {
-        const id = o.customerId || o.customerName;
-        if (id && o.customerName) {
-          if (!counts[id]) {
-            counts[id] = { count: 0, name: o.customerName, id: o.customerId };
-          }
-          counts[id].count += 1;
+    allOrders.forEach(o => {
+      const id = o.customerId || o.customerName;
+      if (id && o.customerName) {
+        if (!counts[id]) {
+           counts[id] = { count: 0, name: o.customerName, id: o.customerId };
         }
+        counts[id].count += 1;
       }
     });
     return Object.values(counts)
@@ -404,7 +395,7 @@ export default function Dashboard() {
     );
   }
 
-  const hasData = (allOrders || []).length > 0 || (stats?.customers || 0) > 0;
+  const hasData = allOrders.length > 0 || stats.customers > 0;
 
   if (!loading && !hasData) {
     return (
@@ -564,9 +555,6 @@ export default function Dashboard() {
             <div>
               <div className="text-[#4A5568] text-sm sm:text-base font-medium mb-1">{stat.label}</div>
               <div className="text-3xl sm:text-4xl font-bold tracking-tight text-[#0D3D33]">{stat.value}</div>
-              {stat.label === 'Total Revenue' && (
-                <div className="text-[10px] text-[#4A5568] mt-1 font-medium italic opacity-75">(Delivered orders)</div>
-              )}
             </div>
           </motion.div>
         ))}
@@ -589,13 +577,13 @@ export default function Dashboard() {
             </div>
             
             <div className="space-y-3">
-              {(recentOrders || []).length === 0 ? (
+              {recentOrders.length === 0 ? (
                 <div className="py-12 text-center rounded-2xl border-2 border-dashed border-[#0D3D33]/10">
                   <p className="text-[#4A5568] font-medium text-lg">No recent orders.</p>
                 </div>
               ) : (
-                (recentOrders || []).map((order, i) => (
-                  <React.Fragment key={order?.id || i}>
+                recentOrders.map((order, i) => (
+                  <React.Fragment key={order.id}>
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -608,24 +596,23 @@ export default function Dashboard() {
                           <Scissors className="w-6 h-6 text-[#0D3D33] relative rotate-45 transform transition-transform group-hover:rotate-0" />
                         </div>
                         <div>
-                          <div className="font-bold text-base sm:text-lg text-[#0D3D33] line-clamp-1">{order?.customerName || 'Unnamed'}</div>
-                          <div className="text-xs sm:text-sm text-[#4A5568] font-medium mt-0.5">{order?.dressType || 'Order'} • #{order?.tokenId || 'UNK'}</div>
+                          <div className="font-bold text-base sm:text-lg text-[#0D3D33] line-clamp-1">{order.customerName}</div>
+                          <div className="text-xs sm:text-sm text-[#4A5568] font-medium mt-0.5">{order.dressType || 'Order'} • #{order.tokenId}</div>
                         </div>
                       </div>
                       <div className="text-right flex flex-col items-end">
-                        <div className="font-bold text-lg sm:text-xl text-[#0D3D33]">{formatCurrency(order?.price || 0)}</div>
+                        <div className="font-bold text-lg sm:text-xl text-[#0D3D33]">{formatCurrency(order.price)}</div>
                         <div className={cn("text-[11px] sm:text-xs font-bold px-3 py-1 rounded-full mt-2 inline-block uppercase tracking-wider shadow-sm", 
                           order.status === ORDER_STATUS.DELIVERED ? "bg-[#2ECC71] text-[#FFFFFF]" : 
                           order.status === ORDER_STATUS.READY ? "bg-blue-500 text-[#FFFFFF]" :
                           order.status === ORDER_STATUS.STITCHING ? "bg-orange-500 text-[#FFFFFF]" :
-                          order.status === ORDER_STATUS.CANCELLED ? "bg-red-500 text-[#FFFFFF]" :
                           "bg-[#E2DDD6] text-[#0D3D33]"
                         )}>
-                          {order?.status ? t(`orders.${order.status.toLowerCase()}`) : 'Pending'}
+                          {t(`orders.${order.status.toLowerCase()}`)}
                         </div>
                       </div>
                     </motion.div>
-                    {i < (recentOrders || []).length - 1 && <div className="h-px w-full bg-[#0D3D33]/5 my-1" />}
+                    {i < recentOrders.length - 1 && <div className="h-px w-full bg-[#0D3D33]/5 my-1" />}
                   </React.Fragment>
                 ))
               )}
