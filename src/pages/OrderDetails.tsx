@@ -3,13 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
-import { ORDER_STATUS, isValidStatusTransition, OrderStatus } from '../lib/config';
+import { ORDER_STATUS } from '../lib/config';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, collection, query, where, addDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors, Ban } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMeasurementName } from '../lib/measurements';
@@ -17,7 +17,7 @@ import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage } from '../lib/whatsapp';
 import { createNotification, sendWhatsappNotification } from '../lib/notifications';
-import { useStaff } from '../hooks/useStaff';
+import { useWorkers } from '../hooks/useWorkers';
 import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 import { OrderTimeline } from '../components/OrderTimeline';
 
@@ -27,7 +27,7 @@ export default function OrderDetails() {
   const { t, isRTL } = useLanguage();
   const { settings } = useShop();
   const navigate = useNavigate();
-  const { staff } = useStaff();
+  const { workers: staff } = useWorkers();
   const [order, setOrder] = useState<any>(null);
   const [shop, setShop] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -96,45 +96,17 @@ export default function OrderDetails() {
     }
   };
 
-  const handleCancelOrder = async () => {
-    if (!window.confirm("Are you sure you want to cancel this order?")) return;
-    
-    try {
-      const history = { ...(order.statusHistory || {}) };
-      history[ORDER_STATUS.CANCELLED] = new Date().toISOString();
-      await updateDoc(doc(db, 'orders', id!), { 
-        status: ORDER_STATUS.CANCELLED,
-        statusHistory: history,
-        updatedAt: serverTimestamp() 
-      });
-      toast.success("Order cancelled");
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
-    }
-  };
-
   const handleUpdateStatus = async (newStatus: string) => {
-    if (!isValidStatusTransition(order.status as OrderStatus, newStatus as OrderStatus)) {
-      let errorMsg = "Status flow mismatch. Cannot jump to this status.";
-      if (order.status === ORDER_STATUS.DELIVERED) {
-        errorMsg = "Order already delivered, status cannot be changed";
-      }
-      toast.error(errorMsg);
-      return;
-    }
-
     try {
       const history = { ...(order.statusHistory || {}) };
       history[newStatus] = new Date().toISOString();
-      
-      const updateData: any = { 
+      await updateDoc(doc(db, 'orders', id!), { 
         status: newStatus, 
         statusHistory: history,
         updatedAt: serverTimestamp() 
-      };
-
-      await updateDoc(doc(db, 'orders', id!), updateData);
+      });
       toast.success(t('orderDetails.statusUpdated') || 'Status updated successfully');
+
 
       await createNotification(user.uid, {
         title: "Order Status Updated",
@@ -156,16 +128,10 @@ export default function OrderDetails() {
         });
       }
 
-      // Feature 2: Worker Earnings Tracking
       if (newStatus === ORDER_STATUS.DELIVERED && order.workerId) {
         const staffMember = staff.find(s => s.id === order.workerId);
         if (staffMember) {
           try {
-            // Calculate earning: if has explicit commission, use it; else if per-order, use staff rate
-            const commission = Number(order.workerCommission || 0);
-            const staffRate = (staffMember as any).salaryType === 'per-order' ? Number((staffMember as any).salaryAmount || 0) : 0;
-            const earnings = commission > 0 ? commission : staffRate;
-
             await addDoc(collection(db, 'payroll'), {
               userId: user.uid,
               staffId: staffMember.id,
@@ -174,10 +140,8 @@ export default function OrderDetails() {
               tokenId: order.tokenId,
               customerName: order.customerName,
               orderPrice: Number(order.price || 0),
-              paymentAmount: earnings,
-              type: 'Earning', // Distinguished from manual payments
+              paymentAmount: (staffMember as any).salaryType === 'per_order' ? Number((staffMember as any).salaryAmount || 0) : 0,
               paidStatus: 'pending',
-              month: format(new Date(), 'yyyy-MM'),
               createdAt: serverTimestamp()
             });
           } catch (payrollError) {
@@ -192,64 +156,18 @@ export default function OrderDetails() {
   };
 
   const handleSaveEdit = async () => {
-    if (editData.status !== order.status) {
-      if (!isValidStatusTransition(order.status as OrderStatus, editData.status as OrderStatus)) {
-        toast.error(order.status === ORDER_STATUS.DELIVERED ? "Order already delivered, status cannot be changed" : "Invalid status transition");
-        return;
-      }
-    }
-
     try {
       const history = { ...(order.statusHistory || {}) };
       if (editData.status !== order.status) {
         history[editData.status] = new Date().toISOString();
       }
-      
-      const dataToSave = {
+      await updateDoc(doc(db, 'orders', id!), {
         ...editData,
-        workerCommission: Number(editData.workerCommission || 0),
         statusHistory: history,
         updatedAt: serverTimestamp()
-      };
-
-      await updateDoc(doc(db, 'orders', id!), dataToSave);
+      });
       setIsEditing(false);
       toast.success(t('orderDetails.orderUpdated') || 'Order updated successfully');
-
-      // Feature 2: Worker Earnings Tracking (on edit save)
-      if (editData.status === ORDER_STATUS.DELIVERED && order.status !== ORDER_STATUS.DELIVERED && editData.workerId) {
-        const staffMember = staff.find(s => s.id === editData.workerId);
-        if (staffMember) {
-          try {
-            const commission = Number(editData.workerCommission || 0);
-            const staffRate = (staffMember as any).salaryType === 'per-order' ? Number((staffMember as any).salaryAmount || 0) : 0;
-            const earnings = commission > 0 ? commission : staffRate;
-
-            await addDoc(collection(db, 'payroll'), {
-              userId: user.uid,
-              staffId: staffMember.id,
-              staffName: staffMember.name,
-              orderId: id,
-              tokenId: order.tokenId,
-              customerName: order.customerName,
-              orderPrice: Number(editData.price || order.price || 0),
-              paymentAmount: earnings,
-              type: 'Earning',
-              paidStatus: 'pending',
-              month: format(new Date(), 'yyyy-MM'),
-              createdAt: serverTimestamp()
-            });
-          } catch (payrollError) {
-             console.error('Error creating payroll entry:', payrollError);
-          }
-        }
-      }
-
-      // Sync payroll if already delivered and commission changed
-      if (order.status === ORDER_STATUS.DELIVERED && dataToSave.workerCommission !== (order.workerCommission || 0)) {
-         // This is complex to sync existing payroll records, usually better to warn or just handle new ones.
-         // For now, new orders will use the correct commission.
-      }
 
       // In case status was changed directly in the edit modal to Ready or Delivered
       if (editData.status !== order.status) {
@@ -370,8 +288,8 @@ export default function OrderDetails() {
             <h1 className="text-[20px] font-semibold text-on-surface">{order.customerName}</h1>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {order.status !== ORDER_STATUS.DELIVERED && order.status !== ORDER_STATUS.CANCELLED && (
+        <div className="flex items-center gap-3">
+          {order.status !== ORDER_STATUS.DELIVERED && (
             <Button 
               onClick={() => handleUpdateStatus(ORDER_STATUS.DELIVERED)}
               className="bg-primary hover:bg-on-surface text-primary-foreground font-medium rounded-full px-6 h-12 shadow-sm transition-all border-none"
@@ -380,18 +298,6 @@ export default function OrderDetails() {
               {t('orderDetails.deliver')}
             </Button>
           )}
-
-          {order.status !== ORDER_STATUS.CANCELLED && order.status !== ORDER_STATUS.DELIVERED && (
-            <Button 
-              variant="ghost"
-              onClick={handleCancelOrder}
-              className="rounded-full font-medium h-12 px-6 border border-red-200 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white shadow-sm transition-all"
-            >
-              <Ban className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
-              Cancel Order
-            </Button>
-          )}
-
           <Button 
             variant="ghost"
             onClick={() => isEditing ? handleSaveEdit() : setIsEditing(true)}
@@ -465,10 +371,11 @@ export default function OrderDetails() {
                       className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[15px] font-semibold text-on-surface focus:outline-none focus:border-primary disabled:opacity-100 disabled:bg-surface disabled:border-transparent transition-all"
                     >
                       <option value={ORDER_STATUS.PENDING}>{t('orderDetails.pending')}</option>
+                      <option value={ORDER_STATUS.CUTTING}>{t('orders.cutting')}</option>
                       <option value={ORDER_STATUS.STITCHING}>{t('orderDetails.stitching')}</option>
+                      <option value={ORDER_STATUS.QC}>{t('orders.qc')}</option>
                       <option value={ORDER_STATUS.READY}>{t('orderDetails.ready')}</option>
                       <option value={ORDER_STATUS.DELIVERED}>{t('orderDetails.delivered')}</option>
-                      <option value={ORDER_STATUS.CANCELLED}>{t('orders.cancelled')}</option>
                     </select>
                   </div>
                 </div>
@@ -493,46 +400,29 @@ export default function OrderDetails() {
                   <div className="flex items-center gap-3 text-on-surface mt-1">
                     <User className="h-4 w-4 text-primary" />
                     {isEditing ? (
-                      <div className="flex-1 space-y-3">
-                        <select
-                          value={editData.workerId || ''}
-                          onChange={(e) => {
-                            const selectedStaff = staff.find(s => s.id === e.target.value);
-                            setEditData({
-                              ...editData, 
-                              workerId: e.target.value,
-                              workerName: selectedStaff ? selectedStaff.name : ''
-                            });
-                          }}
-                          className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[14px] font-semibold text-on-surface focus:outline-none focus:border-primary transition-all"
-                        >
-                          <option value="">Unassigned</option>
-                          {staff.map(w => (
-                            <option key={w.id} value={w.id}>{w.name} ({w.role})</option>
-                          ))}
-                        </select>
-                        <div className="flex items-center gap-2">
-                           <span className="text-[10px] font-bold text-on-surface-variant uppercase whitespace-nowrap">Commission (Rs):</span>
-                           <Input 
-                             type="number"
-                             value={editData.workerCommission || 0}
-                             onChange={(e) => setEditData({...editData, workerCommission: Number(e.target.value)})}
-                             className="h-10 bg-surface-container-highest border border-outline-variant rounded-xl font-bold px-3 text-sm focus:border-primary"
-                             placeholder="Commission amount"
-                           />
-                        </div>
-                      </div>
+                      <select
+                        value={editData.workerId || ''}
+                        onChange={(e) => {
+                          const selectedStaff = staff.find(s => s.id === e.target.value);
+                          setEditData({
+                            ...editData, 
+                            workerId: e.target.value,
+                            workerName: selectedStaff ? selectedStaff.name : ''
+                          });
+                        }}
+                        className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[14px] font-semibold text-on-surface focus:outline-none focus:border-primary transition-all"
+                      >
+                        <option value="">Unassigned</option>
+                        {staff.map(w => (
+                          <option key={w.id} value={w.id}>{w.name} ({w.role})</option>
+                        ))}
+                      </select>
                     ) : (
-                      <div className="flex flex-col">
-                        <span className="font-semibold flex items-center gap-1">
-                          {order.workerId 
-                            ? <><span className="text-primary">👤</span> {staff.find(w => w.id === order.workerId)?.name || order.workerName || 'Unknown'}</>
-                            : 'Unassigned'}
-                        </span>
-                        {order.workerCommission > 0 && (
-                          <span className="text-[11px] font-bold text-[#2ECC71]">Commission: Rs {order.workerCommission}</span>
-                        )}
-                      </div>
+                      <span className="font-semibold flex items-center gap-1">
+                        {order.workerId 
+                          ? <><span className="text-primary">👤</span> {staff.find(w => w.id === order.workerId)?.name || order.workerName || 'Unknown'}</>
+                          : 'Unassigned'}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -675,34 +565,6 @@ export default function OrderDetails() {
                   Record Payment
                 </Button>
               )}
-
-              {((order.payments && order.payments.length > 0) || Number(order.advancePayment) > 0) && (
-                <div className="pt-6 border-t border-outline-variant">
-                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant mb-4 block">Payment History</span>
-                  <div className="space-y-3">
-                    {Number(order.advancePayment) > 0 && (
-                      <div className="flex justify-between items-center bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/50">
-                        <div>
-                          <p className="text-[13px] font-semibold text-on-surface">Initial Advance</p>
-                          <p className="text-[11px] text-on-surface-variant font-medium">Cash</p>
-                        </div>
-                        <span className="text-[14px] font-bold text-[#22C55E]">+{settings.currency} {order.advancePayment}</span>
-                      </div>
-                    )}
-                    {(order.payments || []).map((payment: any, index: number) => (
-                      <div key={index} className="flex justify-between items-center bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/50">
-                        <div>
-                          <p className="text-[13px] font-semibold text-on-surface">{payment.method}</p>
-                          <p className="text-[11px] text-on-surface-variant font-medium">
-                            {new Date(payment.date).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <span className="text-[14px] font-bold text-[#22C55E]">+{settings.currency} {payment.amount}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -752,7 +614,6 @@ export default function OrderDetails() {
                       "text-[10px] font-medium px-3 py-1.5 rounded-full uppercase tracking-widest",
                       order.status === ORDER_STATUS.DELIVERED ? "bg-secondary-container text-on-secondary-container" :
                       order.status === ORDER_STATUS.READY ? "bg-blue-100 text-blue-700" :
-                      order.status === ORDER_STATUS.CANCELLED ? "bg-red-100 text-red-700" :
                       (order.status === ORDER_STATUS.QC || order.status === ORDER_STATUS.CUTTING || order.status === ORDER_STATUS.STITCHING) ? "bg-orange-100 text-orange-700" :
                       "bg-surface-container-high text-on-surface-variant"
                     )}>
@@ -761,8 +622,7 @@ export default function OrderDetails() {
                        order.status === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
                        order.status === ORDER_STATUS.QC ? t('orders.qc') :
                        order.status === ORDER_STATUS.READY ? t('orderDetails.ready') :
-                       order.status === ORDER_STATUS.DELIVERED ? t('orderDetails.delivered') : 
-                       order.status === ORDER_STATUS.CANCELLED ? t('orders.cancelled') : order.status}
+                       order.status === ORDER_STATUS.DELIVERED ? t('orderDetails.delivered') : order.status}
                     </span>
                   </div>
                 </div>
@@ -904,9 +764,9 @@ export default function OrderDetails() {
                     className="w-full h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface px-4 focus:outline-none focus:border-primary transition-colors"
                   >
                     <option value="Cash">Cash</option>
-                    <option value="EasyPaisa">EasyPaisa</option>
-                    <option value="JazzCash">JazzCash</option>
-                    <option value="Bank">Bank Transfer</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Mobile Money">Mobile Money</option>
                   </select>
                 </div>
                 <div>

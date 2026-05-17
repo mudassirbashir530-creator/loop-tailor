@@ -13,7 +13,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, resetPassword, user } = useAuth();
+  const { signIn, user } = useAuth();
   const { t, isRTL, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,31 +26,6 @@ export default function Login() {
     const from = location.state?.from?.pathname || '/app';
     return <Navigate to={from} replace />;
   }
-
-  const handleForgotPassword = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!email) {
-      setError("Please enter your email address first.");
-      return;
-    }
-    setError(null);
-    setSuccess(null);
-    setIsLoading(true);
-    try {
-      if (resetPassword) {
-        await resetPassword(email);
-        setSuccess("Password reset email sent! Check your inbox.");
-      }
-    } catch (err: any) {
-      if (err.code === 'auth/user-not-found') {
-        setError("No account found with this email.");
-      } else {
-        setError(err.message || 'Failed to send reset email.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,13 +129,12 @@ export default function Login() {
                 <label className="block text-sm font-semibold text-[#0D3D33]">
                   {t('auth.password')}
                 </label>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
+                <Link
+                  to="/forgot-password"
                   className="text-sm font-bold text-[#2ECC71] hover:text-[#0D3D33] transition-colors"
                 >
                   {t('auth.forgotPassword')}
-                </button>
+                </Link>
               </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#2ECC71] transition-colors">

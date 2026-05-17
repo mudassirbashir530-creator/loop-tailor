@@ -380,7 +380,12 @@ export default function QuickOrder() {
           paymentStatus = advanceTotal >= price ? 'Paid' : 'Partial';
         }
 
-        const initialPayments: any[] = [];
+        const initialPayments = advanceTotal > 0 ? [{
+          amount: advanceTotal,
+          date: new Date().toISOString(),
+          method: 'Cash',
+          note: 'Advance Payment'
+        }] : [];
 
         // 3. Create Order
         const orderRef = await addDoc(collection(db, 'orders'), {

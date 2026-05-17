@@ -144,7 +144,6 @@ export default function Orders() {
       case ORDER_STATUS.STITCHING: return 'bg-blue-100 text-blue-700';
       case ORDER_STATUS.READY: return 'bg-amber-100 text-amber-700';
       case ORDER_STATUS.DELIVERED: return 'bg-emerald-100 text-emerald-700';
-      case ORDER_STATUS.CANCELLED: return 'bg-red-100 text-red-700';
       default: return 'bg-slate-100 text-slate-700';
     }
   };
@@ -323,10 +322,7 @@ export default function Orders() {
                 transition={{ delay: index * 0.03 }}
               >
                 <div 
-                  className={cn(
-                    "bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:shadow-md transition-all cursor-pointer shadow-sm p-4 sm:p-5 flex items-center gap-4 group",
-                    order.status === ORDER_STATUS.CANCELLED && "opacity-60 bg-slate-50 grayscale shadow-none border-red-100"
-                  )} 
+                  className="bg-surface rounded-2xl border border-outline-variant hover:border-primary hover:shadow-md transition-all cursor-pointer shadow-sm p-4 sm:p-5 flex items-center gap-4 group" 
                   onClick={() => navigate(`/app/orders/${order.id}`)}
                 >
                   <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex-shrink-0 bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
@@ -343,9 +339,7 @@ export default function Orders() {
                     <div className="text-base sm:text-lg font-medium text-on-surface">${(order.price || 0).toLocaleString()}</div>
                     <div className={cn(
                       "text-[10px] sm:text-[11px] font-semibold px-2.5 py-1.5 rounded-full inline-block uppercase tracking-wider", 
-                      order.status === ORDER_STATUS.DELIVERED ? "bg-secondary/10 text-secondary" : 
-                      order.status === ORDER_STATUS.CANCELLED ? "bg-red-100 text-red-700" :
-                      "bg-surface-container-highest text-on-surface-variant"
+                      order.status === ORDER_STATUS.DELIVERED ? "bg-secondary/10 text-secondary" : "bg-surface-container-highest text-on-surface-variant"
                     )}>
                       {order.status}
                     </div>

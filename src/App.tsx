@@ -27,17 +27,12 @@ import SignupPage from './pages/auth/SignupPage';
 import { AdminLayout } from './layouts/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UsersList from './components/admin/UsersList';
-
-// App Screens
-import Dashboard from './pages/Dashboard';
-import Customers from './pages/Customers';
-import Staff from './pages/Staff';
-import Payroll from './pages/Payroll';
-import Orders from './pages/Orders';
-import OrderDetails from './pages/OrderDetails';
-import CustomerDetails from './pages/CustomerDetails';
-import QuickOrder from './pages/QuickOrder';
-import Settings from './pages/Settings';
+import Home from './screens/Home';
+import Clients from './screens/Clients';
+import Workers from './screens/Workers';
+import Orders from './screens/Orders';
+import NewOrder from './screens/NewOrder';
+import Settings from './screens/Settings';
 import Invoice from './pages/Invoice';
 
 function LoadingFallback() {
@@ -137,15 +132,12 @@ export default function App() {
                     <AppLayout />
                   </PrivateRoute>
                 }>
-                  <Route index element={<Dashboard />} />
-                  <Route path="clients" element={<Customers />} />
-                  <Route path="clients/:id" element={<CustomerDetails />} />
-                  <Route path="workers" element={<Staff />} />
-                  <Route path="payroll" element={<Payroll />} />
+                  <Route index element={<Home />} />
+                  <Route path="clients" element={<Clients />} />
+                  <Route path="workers" element={<Workers />} />
                   <Route path="orders" element={<Orders />} />
-                  <Route path="orders/:id" element={<OrderDetails />} />
                   <Route path="invoice/:id" element={<Invoice />} />
-                  <Route path="new-order" element={<QuickOrder />} />
+                  <Route path="new-order" element={<NewOrder />} />
                   <Route path="settings" element={<Settings />} />
                 </Route>
 

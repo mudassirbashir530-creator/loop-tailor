@@ -222,38 +222,6 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["url", "name"]
-    },
-    "StaffPayment": {
-      "title": "StaffPayment",
-      "description": "Records a payment made to a staff member.",
-      "type": "object",
-      "properties": {
-        "staffId": { "type": "string" },
-        "userId": { "type": "string" },
-        "amount": { "type": "number" },
-        "date": { "type": "string", "format": "date-time" },
-        "method": { "type": "string", "enum": ["Cash", "EasyPaisa", "JazzCash", "Bank Transfer"] },
-        "type": { "type": "string", "enum": ["Salary", "Advance", "Bonus", "Overtime"] },
-        "note": { "type": "string" },
-        "month": { "type": "string", "description": "YYYY-MM format" }
-      },
-      "required": ["staffId", "userId", "amount", "date", "method", "type", "month"]
-    },
-    "ClosedPayroll": {
-      "title": "ClosedPayroll",
-      "description": "Historical record of a closed payroll month.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "month": { "type": "string", "description": "YYYY-MM" },
-        "totalWorkers": { "type": "number" },
-        "totalEarned": { "type": "number" },
-        "alreadyPaid": { "type": "number" },
-        "remaining": { "type": "number" },
-        "workersData": { "type": "array", "items": { "type": "object" } },
-        "closedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "month", "closedAt"]
     }
   },
   "firestore": {
@@ -300,14 +268,6 @@
     "/shops/{shopId}/notifications/{notificationId}": {
       "schema": { "$ref": "#/entities/Notification" },
       "description": "Stores user notifications for a specific shop."
-    },
-    "/payroll_payments/{paymentId}": {
-      "schema": { "$ref": "#/entities/StaffPayment" },
-      "description": "Records all payments made to staff members."
-    },
-    "/payroll_closed/{recordId}": {
-      "schema": { "$ref": "#/entities/ClosedPayroll" },
-      "description": "Records of closed payroll months."
     }
   }
 }

@@ -20,8 +20,6 @@ import { getAllMeasurementCategories, MEASUREMENT_SETS, getMeasurementCategories
 import { useMeasurementTemplates } from '../hooks/useMeasurementTemplates';
 import { toast } from 'sonner';
 
-import { RecordPaymentModal } from '../components/RecordPaymentModal';
-
 export default function CustomerDetails() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -38,8 +36,6 @@ export default function CustomerDetails() {
   const [orders, setOrders] = useState<any[]>([]);
   
   const [isAddingOrder, setIsAddingOrder] = useState(false);
-  const [isRecordingPayment, setIsRecordingPayment] = useState(false);
-  const [selectedOrderForPayment, setSelectedOrderForPayment] = useState<any>(null);
   const [newOrder, setNewOrder] = useState({ dressType: 'Shalwar Kameez', deliveryDate: '', price: '', advancePayment: '' });
   const [referencePhoto, setReferencePhoto] = useState<File | null>(null);
   const [sampleDesign, setSampleDesign] = useState<File | null>(null);
@@ -287,43 +283,6 @@ export default function CustomerDetails() {
   const [orderFilter, setOrderFilter] = useState<'All' | 'Complete' | 'Not Complete'>('All');
   const [activeTab, setActiveTab] = useState<'Orders' | 'Measurements'>('Orders');
 
-  const totalDues = orders.reduce((sum, order) => {
-    if (order.status === ORDER_STATUS.CANCELLED) return sum;
-    const price = Number(order.price || 0);
-    const advance = Number(order.advancePayment || 0);
-    const otherPayments = (order.payments || []).reduce((pSum: number, p: any) => pSum + (Number(p.amount) || 0), 0);
-    return sum + Math.max(0, price - (advance + otherPayments));
-  }, 0);
-
-  const handleRecordPayment = async (data: { amount: string; method: string; note: string }) => {
-    if (!selectedOrderForPayment) return;
-    try {
-      const orderRef = doc(db, 'orders', selectedOrderForPayment.id);
-      const existingPayments = selectedOrderForPayment.payments || [];
-      const updatedPayments = [...existingPayments, {
-        amount: Number(data.amount),
-        method: data.method,
-        note: data.note,
-        date: new Date().toISOString()
-      }];
-
-      const totalPaid = Number(selectedOrderForPayment.advancePayment || 0) + updatedPayments.reduce((s: number, p: any) => s + Number(p.amount), 0);
-      const paymentStatus = totalPaid >= selectedOrderForPayment.price ? 'Paid' : 'Partial';
-
-      await updateDoc(orderRef, {
-        payments: updatedPayments,
-        paymentStatus,
-        updatedAt: serverTimestamp()
-      });
-
-      toast.success('Payment recorded successfully');
-      setIsRecordingPayment(false);
-      setSelectedOrderForPayment(null);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `orders/${selectedOrderForPayment.id}`);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 space-y-4">
@@ -395,13 +354,6 @@ export default function CustomerDetails() {
             <div className="flex-1 flex flex-col items-center justify-center px-2 relative group cursor-pointer" onClick={() => openWhatsApp(customer.phone)}>
               <div className="text-[12px] text-[#64748B] mb-1 flex items-center gap-1"><Phone className="w-3.5 h-3.5"/> Phone</div>
               <div className="text-[14px] font-semibold text-[#0F172A] text-center hover:text-[#25D366] transition-colors">{customer.phone}</div>
-            </div>
-            <div className="h-10 w-[1px] bg-[#E2E8F0]"></div>
-            <div className="flex-1 flex flex-col items-center justify-center px-2">
-              <div className="text-[12px] text-[#64748B] mb-1 flex items-center gap-1"><Notebook className="w-3.5 h-3.5"/> Dues</div>
-              <div className={cn("text-[14px] font-bold text-center", totalDues > 0 ? "text-orange-600" : "text-[#22C55E]")}>
-                {totalDues > 0 ? (settings.currency || 'PKR') + ' ' + totalDues.toLocaleString() : 'No Dues'}
-              </div>
             </div>
             <div className="h-10 w-[1px] bg-[#E2E8F0]"></div>
             <div className="flex-1 flex flex-col items-center justify-center px-2">
@@ -486,44 +438,24 @@ export default function CustomerDetails() {
               <div className="text-center py-8 text-[#64748B] text-[14px]">No orders found.</div>
             ) : (
               filteredOrders.map(order => (
-                <div key={order.id} className={cn("bg-white rounded-[16px] p-3.5 flex items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)] cursor-pointer", order.status === ORDER_STATUS.CANCELLED && "opacity-60 bg-slate-50")}>
-                  <div className="w-[44px] h-[44px] rounded-[12px] bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0" onClick={() => navigate(`/app/orders/${order.id}`)}>
+                <div key={order.id} className="bg-white rounded-[16px] p-3.5 flex items-center gap-3 shadow-[0_2px_12px_rgba(0,0,0,0.07)]" onClick={() => navigate(`/app/orders/${order.id}`)}>
+                  <div className="w-[44px] h-[44px] rounded-[12px] bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center shrink-0">
                     <Scissors className="w-5 h-5"/>
                   </div>
-                  <div className="flex-1 min-w-0" onClick={() => navigate(`/app/orders/${order.id}`)}>
+                  <div className="flex-1 min-w-0">
                     <div className="text-[14px] font-semibold text-[#0F172A] truncate leading-tight">{order.dressType || 'Order'}</div>
                     <div className="text-[12px] text-[#64748B] mt-0.5">{formatDate(order.createdAt)}</div>
-                    {order.status !== ORDER_STATUS.CANCELLED && (
-                      <div className="text-[11px] text-orange-600 font-bold mt-1">
-                        Rem: {(Number(order.price || 0) - (Number(order.advancePayment || 0) + (order.payments || []).reduce((s: number, p: any) => s + Number(p.amount), 0))).toLocaleString()}
-                      </div>
-                    )}
                   </div>
                   <div className="text-right flex flex-col items-end shrink-0 gap-1.5">
-                    <div className="text-[14px] font-semibold text-[#0F172A] leading-none mb-0.5" onClick={() => navigate(`/app/orders/${order.id}`)}>{(order.price || 0).toLocaleString()}</div>
+                    <div className="text-[14px] font-semibold text-[#0F172A] leading-none mb-0.5">{(order.price || 0).toLocaleString()}</div>
                     <div className={cn(
                       "px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider leading-relaxed",
                       order.status === ORDER_STATUS.DELIVERED ? "bg-[#22C55E]" : 
-                      order.status === ORDER_STATUS.PENDING ? "bg-[#F59E0B]" : 
-                      order.status === ORDER_STATUS.CANCELLED ? "bg-red-500" :
-                      "bg-[#1E293B]"
-                    )} onClick={() => navigate(`/app/orders/${order.id}`)}>
-                      {order.status}
+                      order.status === ORDER_STATUS.PENDING ? "bg-[#F59E0B]" : "bg-[#1E293B]"
+                    )}>
+                      {order.status === ORDER_STATUS.DELIVERED ? 'Completed' : 
+                       order.status === ORDER_STATUS.PENDING ? 'Pending' : 'Not Complete'}
                     </div>
-                    {order.status !== ORDER_STATUS.CANCELLED && (Number(order.price || 0) - (Number(order.advancePayment || 0) + (order.payments || []).reduce((s: number, p: any) => s + Number(p.amount), 0))) > 0 && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedOrderForPayment(order);
-                          setIsRecordingPayment(true);
-                        }}
-                        className="h-6 px-2 text-[10px] text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold"
-                      >
-                        Record Pay
-                      </Button>
-                    )}
                   </div>
                 </div>
               ))
@@ -572,15 +504,6 @@ export default function CustomerDetails() {
            </div>
         </div>
       )}
-      <RecordPaymentModal 
-        isOpen={isRecordingPayment} 
-        onClose={() => {
-          setIsRecordingPayment(false);
-          setSelectedOrderForPayment(null);
-        }}
-        onConfirm={handleRecordPayment}
-        orderId={selectedOrderForPayment?.tokenId}
-      />
     </div>
   );
 }
