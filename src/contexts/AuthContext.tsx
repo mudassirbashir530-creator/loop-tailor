@@ -118,7 +118,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   setLoading(false);
                 }
               };
-              processSnapshot();
+              processSnapshot().catch(e => {
+                console.error("Unhandled error in snapshot processing:", e);
+                setLoading(false);
+              });
             }, (error) => {
               console.error("Error fetching user role:", error);
               setIsAdmin(false);

@@ -7,6 +7,15 @@
         // Detailed error logging
         function logError(type, detail) {
           const reason = detail instanceof Error ? (detail.stack || detail.message) : (typeof detail === 'object' ? JSON.stringify(detail, null, 2) : String(detail));
+          
+          // Ignore errors from browser extensions and known harmless fetch setter errors
+          if (reason.includes('chrome-extension://') || 
+              reason.includes('moz-extension://') || 
+              reason.includes('Cannot set property fetch of #<Window>')) {
+            console.warn('Ignored harmless or external error:', reason);
+            return;
+          }
+
           console.error(type + ':', reason);
           // Also set a global flag for debugging
           window.__LAST_CRITICAL_ERROR = { type, reason, timestamp: new Date().toISOString() };
@@ -23,9 +32,27 @@
           logError('CRITICAL EARLY ERROR', event.error || event.message);
         });
 
-        window.addEventListener('unhandledrejection', function(event) {
-          logError('CRITICAL EARLY REJECTION', event.reason);
-        });
+    window.addEventListener('unhandledrejection', function(event) {
+      // Better extraction for unhandled rejections
+      const reason = event.reason;
+      let message = '';
+      
+      if (!reason) {
+        message = 'Undefined or null rejection reason';
+      } else if (reason instanceof Error) {
+        message = reason.stack || reason.message;
+      } else if (typeof reason === 'object') {
+        try {
+          message = JSON.stringify(reason, Object.getOwnPropertyNames(reason), 2);
+        } catch(e) {
+          message = 'Object rejection: ' + String(reason);
+        }
+      } else {
+        message = String(reason);
+      }
+      
+      logError('CRITICAL EARLY REJECTION', message);
+    });
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
