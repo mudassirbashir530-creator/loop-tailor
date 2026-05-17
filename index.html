@@ -6,10 +6,17 @@
       (function() {
         // Detailed error logging
         function logError(type, detail) {
-          const reason = detail instanceof Error ? (detail.stack || detail.message) : JSON.stringify(detail);
+          const reason = detail instanceof Error ? (detail.stack || detail.message) : (typeof detail === 'object' ? JSON.stringify(detail, null, 2) : String(detail));
           console.error(type + ':', reason);
           // Also set a global flag for debugging
           window.__LAST_CRITICAL_ERROR = { type, reason, timestamp: new Date().toISOString() };
+
+          if (document.body) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'position:fixed; bottom:0; left:0; right:0; background:rgba(0,0,0,0.8); color:white; padding:10px; font-family:monospace; font-size:10px; z-index:9999; max-height:200px; overflow:auto; pointer-events:none;';
+            errorDiv.innerText = `${type}: ${reason}`;
+            document.body.appendChild(errorDiv);
+          }
         }
 
         window.addEventListener('error', function(event) {

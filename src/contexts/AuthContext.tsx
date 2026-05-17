@@ -143,7 +143,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       };
 
-      setupAuth();
+      setupAuth().catch(e => {
+        console.error("Critical unhandled error in setupAuth:", e);
+        setLoading(false);
+      });
     });
 
     return () => {

@@ -555,6 +555,9 @@ export default function Dashboard() {
             <div>
               <div className="text-[#4A5568] text-sm sm:text-base font-medium mb-1">{stat.label}</div>
               <div className="text-3xl sm:text-4xl font-bold tracking-tight text-[#0D3D33]">{stat.value}</div>
+              {stat.label === 'Total Revenue' && (
+                <div className="text-[10px] text-[#4A5568] mt-1 font-medium italic opacity-75">(Delivered orders)</div>
+              )}
             </div>
           </motion.div>
         ))}
@@ -606,6 +609,7 @@ export default function Dashboard() {
                           order.status === ORDER_STATUS.DELIVERED ? "bg-[#2ECC71] text-[#FFFFFF]" : 
                           order.status === ORDER_STATUS.READY ? "bg-blue-500 text-[#FFFFFF]" :
                           order.status === ORDER_STATUS.STITCHING ? "bg-orange-500 text-[#FFFFFF]" :
+                          order.status === ORDER_STATUS.CANCELLED ? "bg-red-500 text-[#FFFFFF]" :
                           "bg-[#E2DDD6] text-[#0D3D33]"
                         )}>
                           {t(`orders.${order.status.toLowerCase()}`)}

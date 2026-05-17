@@ -3,13 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
-import { ORDER_STATUS } from '../lib/config';
+import { ORDER_STATUS, isValidStatusTransition } from '../lib/config';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, collection, query, where, addDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMeasurementName } from '../lib/measurements';
@@ -97,6 +97,21 @@ export default function OrderDetails() {
   };
 
   const handleUpdateStatus = async (newStatus: string) => {
+    if (order.status === ORDER_STATUS.DELIVERED) {
+      toast.error("Status cannot be changed for delivered orders");
+      return;
+    }
+
+    if (order.status === ORDER_STATUS.CANCELLED) {
+      toast.error("Cannot change status for cancelled orders");
+      return;
+    }
+
+    if (!isValidStatusTransition(order.status, newStatus as any)) {
+      toast.error(t('orderDetails.invalidTransition') || "Invalid status transition. Status can only move forward.");
+      return;
+    }
+
     try {
       const history = { ...(order.statusHistory || {}) };
       history[newStatus] = new Date().toISOString();
@@ -157,6 +172,10 @@ export default function OrderDetails() {
 
   const handleSaveEdit = async () => {
     try {
+      if ((order.status === ORDER_STATUS.DELIVERED || order.status === ORDER_STATUS.CANCELLED) && editData.status !== order.status) {
+        toast.error(`Status cannot be changed for ${order.status.toLowerCase()} orders`);
+        return;
+      }
       const history = { ...(order.statusHistory || {}) };
       if (editData.status !== order.status) {
         history[editData.status] = new Date().toISOString();
@@ -189,6 +208,17 @@ export default function OrderDetails() {
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Are you sure you want to cancel this order? This action cannot be undone.")) return;
+    
+    try {
+      await handleUpdateStatus(ORDER_STATUS.CANCELLED);
+      toast.success("Order cancelled successfully");
+    } catch (error) {
+      toast.error("Failed to cancel order");
     }
   };
 
@@ -286,16 +316,30 @@ export default function OrderDetails() {
               ) : null}
             </div>
             <h1 className="text-[20px] font-semibold text-on-surface">{order.customerName}</h1>
+            {order.status === ORDER_STATUS.CANCELLED && (
+              <span className="text-[12px] font-bold text-error bg-error/10 px-3 py-1 rounded-full uppercase tracking-widest mt-1 inline-block">
+                Cancelled
+              </span>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {order.status !== ORDER_STATUS.DELIVERED && (
+          {order.status !== ORDER_STATUS.DELIVERED && order.status !== ORDER_STATUS.CANCELLED && (
             <Button 
               onClick={() => handleUpdateStatus(ORDER_STATUS.DELIVERED)}
               className="bg-primary hover:bg-on-surface text-primary-foreground font-medium rounded-full px-6 h-12 shadow-sm transition-all border-none"
             >
               <CheckCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
               {t('orderDetails.deliver')}
+            </Button>
+          )}
+          {order.status !== ORDER_STATUS.CANCELLED && order.status !== ORDER_STATUS.DELIVERED && (
+            <Button 
+              onClick={handleCancelOrder}
+              className="rounded-full font-medium h-12 px-6 border border-outline-variant text-error bg-surface hover:bg-error hover:text-white shadow-sm transition-all"
+            >
+              <XCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
+              Cancel Order
             </Button>
           )}
           <Button 
@@ -371,11 +415,10 @@ export default function OrderDetails() {
                       className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[15px] font-semibold text-on-surface focus:outline-none focus:border-primary disabled:opacity-100 disabled:bg-surface disabled:border-transparent transition-all"
                     >
                       <option value={ORDER_STATUS.PENDING}>{t('orderDetails.pending')}</option>
-                      <option value={ORDER_STATUS.CUTTING}>{t('orders.cutting')}</option>
                       <option value={ORDER_STATUS.STITCHING}>{t('orderDetails.stitching')}</option>
-                      <option value={ORDER_STATUS.QC}>{t('orders.qc')}</option>
                       <option value={ORDER_STATUS.READY}>{t('orderDetails.ready')}</option>
                       <option value={ORDER_STATUS.DELIVERED}>{t('orderDetails.delivered')}</option>
+                      <option value={ORDER_STATUS.CANCELLED}>Cancelled</option>
                     </select>
                   </div>
                 </div>
@@ -614,13 +657,11 @@ export default function OrderDetails() {
                       "text-[10px] font-medium px-3 py-1.5 rounded-full uppercase tracking-widest",
                       order.status === ORDER_STATUS.DELIVERED ? "bg-secondary-container text-on-secondary-container" :
                       order.status === ORDER_STATUS.READY ? "bg-blue-100 text-blue-700" :
-                      (order.status === ORDER_STATUS.QC || order.status === ORDER_STATUS.CUTTING || order.status === ORDER_STATUS.STITCHING) ? "bg-orange-100 text-orange-700" :
+                      order.status === ORDER_STATUS.STITCHING ? "bg-orange-100 text-orange-700" :
                       "bg-surface-container-high text-on-surface-variant"
                     )}>
                       {order.status === ORDER_STATUS.PENDING ? t('orderDetails.pending') :
-                       order.status === ORDER_STATUS.CUTTING ? t('orders.cutting') :
                        order.status === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
-                       order.status === ORDER_STATUS.QC ? t('orders.qc') :
                        order.status === ORDER_STATUS.READY ? t('orderDetails.ready') :
                        order.status === ORDER_STATUS.DELIVERED ? t('orderDetails.delivered') : order.status}
                     </span>
@@ -722,6 +763,34 @@ export default function OrderDetails() {
               )}
             </CardContent>
           </Card>
+
+          {/* Payment History Card */}
+          {paymentsList.length > 0 && (
+            <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden mt-8">
+              <CardHeader className="bg-surface-container-lowest border-b border-outline-variant p-6">
+                <CardTitle className="text-[18px] font-semibold text-on-surface flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  Payment History
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y divide-outline-variant">
+                  {paymentsList.map((payment: any) => (
+                    <div key={payment.id} className="p-4 flex justify-between items-center bg-surface hover:bg-surface-container transition-colors">
+                      <div className="flex flex-col">
+                        <span className="text-[14px] font-semibold text-on-surface">{payment.method}</span>
+                        <span className="text-[11px] text-on-surface-variant">{formatDate(payment.date)}</span>
+                        {payment.note && <span className="text-[12px] text-on-surface-variant italic mt-1">{payment.note}</span>}
+                      </div>
+                      <div className="text-[16px] font-bold text-primary">
+                        {settings.currency} {payment.amount}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -764,9 +833,9 @@ export default function OrderDetails() {
                     className="w-full h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface px-4 focus:outline-none focus:border-primary transition-colors"
                   >
                     <option value="Cash">Cash</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="Credit Card">Credit Card</option>
-                    <option value="Mobile Money">Mobile Money</option>
+                    <option value="EasyPaisa">EasyPaisa</option>
+                    <option value="JazzCash">JazzCash</option>
+                    <option value="Bank">Bank</option>
                   </select>
                 </div>
                 <div>

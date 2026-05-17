@@ -31,11 +31,11 @@ export default function Home() {
   const { customers } = useCustomers();
 
   const totalOrders = orders?.length || 0;
-  const pendingOrders = orders ? orders.filter(o => o.status !== 'delivered').length : 0;
-  const completedToday = orders ? orders.filter(o => o && o.status === 'delivered' && o.updatedAt && isToday(new Date(o.updatedAt))).length : 0;
+  const pendingOrders = orders ? orders.filter(o => o.status?.toLowerCase() !== 'delivered').length : 0;
+  const completedToday = orders ? orders.filter(o => o && o.status?.toLowerCase() === 'delivered' && o.updatedAt && isToday(new Date(o.updatedAt))).length : 0;
   const revenue = orders ? orders.reduce((sum, order) => {
-    if (!order) return sum;
-    return sum + (safeNum(order.advancePayment)) + (safeNum(order.price) - safeNum(order.remainingPayment));
+    if (!order || order.status?.toLowerCase() !== 'delivered') return sum;
+    return sum + safeNum(order.price);
   }, 0) : 0;
 
   const chartData = useMemo(() => {
@@ -45,7 +45,7 @@ export default function Home() {
       const d = subDays(new Date(), i);
       const dateStr = format(d, 'MMM dd');
       const dayOrders = orders.filter(o => {
-        if (!o || !o.createdAt) return false;
+        if (!o || !o.createdAt || o.status?.toLowerCase() !== 'delivered') return false;
         try {
           return new Date(o.createdAt).toDateString() === d.toDateString();
         } catch (e) {
@@ -53,7 +53,7 @@ export default function Home() {
         }
       });
       const dayRevenue = dayOrders.reduce((sum, order) => {
-        return sum + (safeNum(order.advancePayment)) + (safeNum(order.price) - safeNum(order.remainingPayment));
+        return sum + safeNum(order.price);
       }, 0);
       data.push({ name: dateStr, revenue: dayRevenue, orders: dayOrders.length });
     }
@@ -101,6 +101,7 @@ export default function Home() {
         <StatCard 
           title="Total Revenue"
           value={formatCurrency(revenue)}
+          subtitle="(Delivered orders)"
           icon={<Banknote className="h-5 w-5 text-primary" />}
           iconBg="bg-primary/10"
         />
@@ -195,9 +196,9 @@ export default function Home() {
   );
 }
 
-function StatCard({ title, value, icon, iconBg }: { title: string, value: string, icon: React.ReactNode, iconBg: string }) {
+function StatCard({ title, value, subtitle, icon, iconBg }: { title: string, value: string, subtitle?: string, icon: React.ReactNode, iconBg: string }) {
   return (
-    <Card className="hover:shadow-md transition-shadow duration-300">
+    <Card className="hover:shadow-md transition-shadow duration-300 text-left">
       <CardContent className="p-4 md:p-6 flex flex-col justify-between h-full">
         <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 ${iconBg}`}>
           {icon}
@@ -205,6 +206,7 @@ function StatCard({ title, value, icon, iconBg }: { title: string, value: string
         <div>
           <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
           <p className="text-2xl md:text-3xl font-bold text-foreground tracking-tight truncate">{value}</p>
+          {subtitle && <p className="text-[10px] text-muted-foreground mt-1">{subtitle}</p>}
         </div>
       </CardContent>
     </Card>

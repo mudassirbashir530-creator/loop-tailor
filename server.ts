@@ -1,6 +1,7 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
+import fs from "fs";
 import crypto from "crypto";
 import admin from "firebase-admin";
 import nodemailer from "nodemailer";
@@ -8,8 +9,20 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
 import twilio from "twilio";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
+
+// Load firebase-applet-config.json
+const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
+let firebaseConfig: any = {};
+if (fs.existsSync(configPath)) {
+  firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+}
+const databaseId = firebaseConfig.firestoreDatabaseId;
 
 // Configure Cloudinary
 cloudinary.config({
@@ -49,13 +62,13 @@ try {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
-    db = admin.firestore();
+    db = admin.firestore(databaseId);
   } else {
     // If no credentials, try to initialize but don't crash if it fails
     if (admin.apps.length === 0) {
       admin.initializeApp();
     }
-    db = admin.firestore();
+    db = admin.firestore(databaseId);
   }
 } catch (error) {
   console.warn("Firebase Admin initialization warning:", error);
@@ -67,7 +80,7 @@ const getDb = () => {
     // Attempt lazy init if not already done
     try {
       if (admin.apps.length > 0) {
-        db = admin.firestore();
+        db = admin.firestore(databaseId);
       }
     } catch (e) {
       console.error("Failed to get Firestore instance:", e);

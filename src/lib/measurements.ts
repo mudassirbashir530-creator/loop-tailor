@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ArrowUpDown, Maximize2, Minimize2, CircleDashed, Ruler, Scissors, User, Activity } from 'lucide-react';
+import { ArrowLeftRight, ArrowUpDown, Maximize2, Minimize2, CircleDashed, Ruler, Scissors, User, Activity, Info } from 'lucide-react';
 
 export const MEASUREMENT_SETS = ['Shalwar Kameez', 'Formal Suit', 'Casual Shirt', 'Wedding Sherwani', 'Custom'];
 
@@ -14,6 +14,14 @@ export const KAMEEZ_MEASUREMENTS = [
   { id: 'kameezFrontLength', en: 'Front Length', ur: 'سامنے کی لمبائی', icon: ArrowUpDown, desc: 'Neck to hem (front)' },
   { id: 'kameezBackLength', en: 'Back Length', ur: 'پچھلی لمبائی', icon: ArrowUpDown, desc: 'Neck to hem (back)' },
   { id: 'kameezCuffSize', en: 'Cuff Size', ur: 'کف کا سائز', icon: CircleDashed, desc: 'Wrist circumference' },
+  { id: 'damanDesign', en: 'Daman Design', ur: 'دامن ڈیزائن', icon: Info, desc: 'Daman design details' },
+  { id: 'collarStyle', en: 'Collar Style', ur: 'کالر کا اسٹائل', icon: Info, desc: 'Collar style details' },
+  { id: 'sidePocket', en: 'Side Pocket', ur: 'سائیڈ پاکٹ', icon: Info, desc: 'Side pocket details' },
+  { id: 'pocketStyle', en: 'Pocket Style', ur: 'پاکٹ اسٹائل', icon: Info, desc: 'Pocket style details' },
+  { id: 'sleeveStyle', en: 'Sleeve Style', ur: 'آستین کا اسٹائل', icon: Info, desc: 'Sleeve style details' },
+  { id: 'backDesign', en: 'Back Design', ur: 'بیک ڈیزائن', icon: Info, desc: 'Back design details' },
+  { id: 'finishingType', en: 'Finishing Type', ur: 'فنیشنگ کی قسم', icon: Info, desc: 'Finishing type details' },
+  { id: 'specialInstructions', en: 'Special Instructions', ur: 'خصوصی ہدایات', icon: Info, desc: 'Any special instructions' },
 ];
 
 export const SHALWAR_MEASUREMENTS = [
@@ -110,5 +118,10 @@ export const getMeasurementCategoriesForDress = (dressType: string) => {
     categories.push({ id: 'shalwar', titleEn: 'Bottom', titleUr: 'شلوار', items: SHALWAR_MEASUREMENTS });
   }
 
-  return categories;
+  const allItems: any[] = [];
+  categories.forEach(c => {
+    c.items.forEach(item => allItems.push({ ...item, categoryId: c.id }));
+  });
+
+  return allItems;
 };

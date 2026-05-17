@@ -45,6 +45,9 @@ export default function CustomerDetails() {
   const [isDeletingCustomer, setIsDeletingCustomer] = useState(false);
   const [editCustomerData, setEditCustomerData] = useState({ name: '', phone: '', address: '', notes: '', stylePreferences: '', emergencyPhone: '' });
   const [loading, setLoading] = useState(true);
+  const [isRecordingPayment, setIsRecordingPayment] = useState(false);
+  const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'Cash', note: '', orderId: '' });
+  const [customerPayments, setCustomerPayments] = useState<any[]>([]);
 
   // New states for measurement sets
   const [activeSet, setActiveSet] = useState('Shalwar Kameez');
@@ -114,6 +117,15 @@ export default function CustomerDetails() {
       handleFirestoreError(error, OperationType.GET, `orders`);
       setLoading(false);
     });
+
+    const unsubPayments = onSnapshot(query(collection(db, 'payments'), where('userId', '==', user.uid), where('customerId', '==', id)), (snap) => {
+      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setCustomerPayments(data.sort((a: any, b: any) => {
+        const dateA = a.date?.seconds ? new Date(a.date.seconds * 1000) : new Date(a.date || 0);
+        const dateB = b.date?.seconds ? new Date(b.date.seconds * 1000) : new Date(b.date || 0);
+        return dateB.getTime() - dateA.getTime();
+      }));
+    }, (error) => handleFirestoreError(error, OperationType.GET, 'payments'));
 
     return () => {
       unsubCustomer();
@@ -269,6 +281,47 @@ export default function CustomerDetails() {
     }
   };
 
+  const handleRecordPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !id || !paymentForm.orderId || !paymentForm.amount) return;
+    
+    setIsUploading(true);
+    try {
+      const amount = Number(paymentForm.amount);
+      const order = orders.find(o => o.id === paymentForm.orderId);
+      
+      await addDoc(collection(db, 'payments'), {
+        userId: user.uid,
+        customerId: id,
+        orderId: paymentForm.orderId,
+        amount,
+        method: paymentForm.method,
+        note: paymentForm.note,
+        date: serverTimestamp()
+      });
+
+      // Update order payment status
+      const totalPaid = (customerPayments.filter(p => p.orderId === paymentForm.orderId).reduce((sum, p) => sum + Number(p.amount), 0)) + amount + Number(order?.advancePayment || 0);
+      const balance = Number(order?.price || 0) - totalPaid;
+      
+      await updateDoc(doc(db, 'orders', paymentForm.orderId), {
+        remainingPayment: Math.max(0, balance),
+        paymentStatus: balance <= 0 ? 'Paid' : totalPaid > Number(order?.advancePayment || 0) ? 'Partial' : 'Unpaid',
+        updatedAt: serverTimestamp()
+      });
+
+      setIsRecordingPayment(false);
+      setPaymentForm({ amount: '', method: 'Cash', note: '', orderId: '' });
+      toast.success('Payment recorded successfully');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'payments');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const totalDues = orders.reduce((sum, o) => sum + (o.status?.toLowerCase() !== 'delivered' ? Number(o.price || 0) - (Number(o.advancePayment || 0) + (customerPayments.filter(p => p.orderId === o.id).reduce((s, p) => s + Number(p.amount), 0))) : 0), 0);
+
   const formatDate = (timestamp: any) => {
     if (!timestamp) return t('customerDetails.na');
     try {
@@ -357,8 +410,8 @@ export default function CustomerDetails() {
             </div>
             <div className="h-10 w-[1px] bg-[#E2E8F0]"></div>
             <div className="flex-1 flex flex-col items-center justify-center px-2">
-              <div className="text-[12px] text-[#64748B] mb-1 flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> Location</div>
-              <div className="text-[14px] font-semibold text-[#0F172A] text-center line-clamp-1">{customer.address || 'Not set'}</div>
+              <div className="text-[12px] text-[#64748B] mb-1 flex items-center gap-1"><CreditCard className="w-3.5 h-3.5"/> Total Balance</div>
+              <div className="text-[14px] font-bold text-[#EF4444] text-center line-clamp-1">{settings?.currency || 'Rs'} {Math.max(0, totalDues).toLocaleString()}</div>
             </div>
           </div>
         </div>
@@ -387,11 +440,57 @@ export default function CustomerDetails() {
           {activeTab === 'Orders' ? 'Order History' : 'Measurements'}
         </h2>
         {activeTab === 'Orders' && (
-          <Button onClick={() => setIsAddingOrder(!isAddingOrder)} className="bg-[#22C55E] text-white rounded-full h-8 px-4 text-[13px] font-semibold flex items-center gap-1">
-            <Plus className="w-4 h-4"/> New Order
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setIsRecordingPayment(!isRecordingPayment)} variant="outline" className="bg-white text-[#0F172A] border-[#E2E8F0] rounded-full h-8 px-4 text-[13px] font-semibold flex items-center gap-1">
+              <CreditCard className="w-4 h-4"/> Record Payment
+            </Button>
+            <Button onClick={() => setIsAddingOrder(!isAddingOrder)} className="bg-[#22C55E] text-white rounded-full h-8 px-4 text-[13px] font-semibold flex items-center gap-1">
+              <Plus className="w-4 h-4"/> New Order
+            </Button>
+          </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {isRecordingPayment && activeTab === 'Orders' && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-4 mb-6 overflow-hidden">
+             <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+               <h3 className="font-bold text-[#0F172A] mb-3">Record Payment</h3>
+               <form onSubmit={handleRecordPayment} className="space-y-3">
+                 <select 
+                   value={paymentForm.orderId} 
+                   onChange={e => setPaymentForm({...paymentForm, orderId: e.target.value})} 
+                   required 
+                   className="w-full h-[44px] px-4 rounded-[12px] bg-[#F1F5F9] border-none text-[14px] font-medium"
+                 >
+                   <option value="">Select Order</option>
+                   {orders.filter(o => o.status !== ORDER_STATUS.DELIVERED).map(o => (
+                     <option key={o.id} value={o.id}>{o.dressType} - Token: {o.tokenId}</option>
+                   ))}
+                 </select>
+                 <Input type="number" value={paymentForm.amount} onChange={e => setPaymentForm({...paymentForm, amount: e.target.value})} placeholder="Amount" required className="bg-[#F1F5F9] border-none" />
+                 <select 
+                   value={paymentForm.method} 
+                   onChange={e => setPaymentForm({...paymentForm, method: e.target.value})} 
+                   className="w-full h-[44px] px-4 rounded-[12px] bg-[#F1F5F9] border-none text-[14px] font-medium"
+                 >
+                   <option value="Cash">Cash</option>
+                   <option value="EasyPaisa">EasyPaisa</option>
+                   <option value="JazzCash">JazzCash</option>
+                   <option value="Bank">Bank</option>
+                 </select>
+                 <Input value={paymentForm.note} onChange={e => setPaymentForm({...paymentForm, note: e.target.value})} placeholder="Note (Optional)" className="bg-[#F1F5F9] border-none" />
+                 <div className="flex justify-end gap-2 pt-2">
+                   <Button type="button" onClick={() => setIsRecordingPayment(false)} className="bg-transparent text-[#64748B] border border-[#E2E8F0] rounded-full px-5 py-2 h-auto text-[14px]">Cancel</Button>
+                   <Button disabled={isUploading} type="submit" className="bg-[#4F46E5] text-white rounded-full px-5 py-2 h-auto text-[14px]">
+                     {isUploading ? <Loader2 className="w-4 h-4 animate-spin"/> : 'Save'}
+                   </Button>
+                 </div>
+               </form>
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isAddingOrder && activeTab === 'Orders' && (
@@ -451,16 +550,44 @@ export default function CustomerDetails() {
                     <div className={cn(
                       "px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider leading-relaxed",
                       order.status === ORDER_STATUS.DELIVERED ? "bg-[#22C55E]" : 
+                      order.status === ORDER_STATUS.CANCELLED ? "bg-red-500" :
                       order.status === ORDER_STATUS.PENDING ? "bg-[#F59E0B]" : "bg-[#1E293B]"
                     )}>
                       {order.status === ORDER_STATUS.DELIVERED ? 'Completed' : 
-                       order.status === ORDER_STATUS.PENDING ? 'Pending' : 'Not Complete'}
+                       order.status === ORDER_STATUS.CANCELLED ? 'Cancelled' :
+                       order.status === ORDER_STATUS.PENDING ? 'Pending' : 'In Progress'}
                     </div>
                   </div>
                 </div>
               ))
             )}
           </div>
+
+          {/* Payment History */}
+          {customerPayments.length > 0 && (
+            <div className="px-4 mt-8 pb-10">
+              <h3 className="text-[16px] font-semibold text-[#0F172A] mb-4">Payment History</h3>
+              <div className="space-y-3">
+                {customerPayments.map(payment => (
+                  <div key={payment.id} className="bg-white rounded-[16px] p-3.5 flex items-center justify-between shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-[40px] h-[40px] rounded-[10px] bg-[#ECFDF5] text-[#10B981] flex items-center justify-center shrink-0">
+                        <CreditCard className="w-5 h-5"/>
+                      </div>
+                      <div>
+                        <div className="text-[14px] font-semibold text-[#0F172A]">{payment.method}</div>
+                        <div className="text-[12px] text-[#64748B]">{formatDate(payment.date)}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[15px] font-bold text-[#10B981] leading-none mb-1">+{settings?.currency || 'Rs'} {Number(payment.amount).toLocaleString()}</div>
+                      <div className="text-[10px] text-[#64748B] max-w-[120px] truncate">{payment.note || 'No note'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <div className="px-4">
@@ -483,14 +610,14 @@ export default function CustomerDetails() {
                 ))}
               </div>
               <form onSubmit={handleSaveMeasurements} className="grid grid-cols-2 gap-4">
-                {getMeasurementCategoriesForDress(activeSet).map((cat) => (
-                  <div key={cat.id} className="col-span-2 sm:col-span-1">
-                    <label className="block text-[12px] font-bold text-[#64748B] mb-1.5 ml-1">{cat.label.en}</label>
+                {getMeasurementCategoriesForDress(activeSet).map((field: any) => (
+                  <div key={field.id} className="col-span-2 sm:col-span-1">
+                    <label className="block text-[12px] font-bold text-[#64748B] mb-1.5 ml-1">{isRTL ? field.ur : field.en}</label>
                     <Input 
-                      type={cat.type === 'number' ? 'number' : 'text'}
-                      value={measurements[cat.id] || ''}
-                      onChange={(e) => setMeasurements({...measurements, [cat.id]: e.target.value})}
-                      placeholder={cat.placeholder?.en}
+                      type={field.type === 'number' ? 'number' : 'text'}
+                      value={measurements[field.id] || ''}
+                      onChange={(e) => setMeasurements({...measurements, [field.id]: e.target.value})}
+                      placeholder={isRTL ? field.ur : field.en}
                       className="bg-[#F8FAFC] border-[#E2E8F0] h-[44px] rounded-[12px] text-[14px]"
                     />
                   </div>

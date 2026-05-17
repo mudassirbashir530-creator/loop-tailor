@@ -12,9 +12,7 @@ interface OrderTimelineProps {
 
 const timelineSteps = [
   { status: ORDER_STATUS.PENDING, icon: Clock },
-  { status: ORDER_STATUS.CUTTING, icon: Scissors },
   { status: ORDER_STATUS.STITCHING, icon: Layers },
-  { status: ORDER_STATUS.QC, icon: CheckSquare },
   { status: ORDER_STATUS.READY, icon: Package },
   { status: ORDER_STATUS.DELIVERED, icon: Truck },
 ];
