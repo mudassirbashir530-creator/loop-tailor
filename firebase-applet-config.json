@@ -1,10 +1,10 @@
-{
-  "projectId": "gen-lang-client-0397651695",
-  "appId": "1:533653488762:web:ea5553ded3e944fd8567c3",
-  "apiKey": "AIzaSyC8fF7rpeOPDeCHvSbigyzwThYLJ32s-Nc",
-  "authDomain": "gen-lang-client-0397651695.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-490d2aef-c7ec-4935-a1d7-ddb32cc32c3d",
-  "storageBucket": "gen-lang-client-0397651695.firebasestorage.app",
-  "messagingSenderId": "533653488762",
-  "measurementId": ""
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyDd2HsiD-yRps2q-FgbH8G5w_Wl1vJMMC8",
+  authDomain: "tailor-app-76f20.firebaseapp.com",
+  databaseURL: "https://tailor-app-76f20-default-rtdb.firebaseio.com",
+  projectId: "tailor-app-76f20",
+  storageBucket: "tailor-app-76f20.firebasestorage.app",
+  messagingSenderId: "974622533594",
+  appId: "1:974622533594:web:e9b27ddf8886abbb4942e3",
+  measurementId: "G-5BMD8109NH"
+};
