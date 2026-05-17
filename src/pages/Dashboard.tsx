@@ -124,12 +124,12 @@ export default function Dashboard() {
     const results: { type: string; id: string; title: string; subtitle: string; url: string; }[] = [];
     
     // Customers (Name/Phone)
-    allCustomers.forEach(c => {
-      if ((c.name && c.name.toLowerCase().includes(token)) || (c.phone && c.phone.includes(token))) {
+    (allCustomers || []).forEach(c => {
+      if ((c?.name && c.name.toLowerCase().includes(token)) || (c?.phone && c.phone.includes(token))) {
         results.push({
           type: 'customer',
           id: `cust_${c.id}`,
-          title: c.name,
+          title: c.name || 'Unnamed',
           subtitle: c.phone || 'No phone',
           url: `/app/clients/${c.id}`
         });
@@ -137,12 +137,12 @@ export default function Dashboard() {
     });
 
     // Orders (ID/Name)
-    allOrders.forEach(o => {
-      if ((o.tokenId && o.tokenId.toLowerCase().includes(token)) || (o.customerName && o.customerName.toLowerCase().includes(token))) {
+    (allOrders || []).forEach(o => {
+      if ((o?.tokenId && o.tokenId.toLowerCase().includes(token)) || (o?.customerName && o.customerName.toLowerCase().includes(token))) {
         results.push({
           type: 'order',
           id: `ord_${o.id}`,
-          title: `Order #${o.tokenId}`,
+          title: `Order #${o.tokenId || 'UNK'}`,
           subtitle: o.customerName || 'Unknown Customer',
           url: `/app/orders/${o.id}`
         });
@@ -150,8 +150,8 @@ export default function Dashboard() {
     });
 
     // Measurements (by customer name)
-    allCustomers.forEach(c => {
-      if (c.name && c.name.toLowerCase().includes(token)) {
+    (allCustomers || []).forEach(c => {
+      if (c?.name && c.name.toLowerCase().includes(token)) {
         results.push({
           type: 'measurement',
           id: `meas_${c.id}`,
@@ -174,16 +174,18 @@ export default function Dashboard() {
     const unsubscribeCustomers = onSnapshot(query(collection(db, 'customers'), where('userId', '==', user.uid)), (customersSnap) => {
       let newCust = 0;
       const loadedCustomers: any[] = [];
-      customersSnap.forEach(doc => {
-        const data = doc.data();
-        loadedCustomers.push({ id: doc.id, ...data });
-        if (data.createdAt) {
-          const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
-          if (isThisMonth(createdAtDate)) newCust++;
-        }
-      });
-      setAllCustomers(loadedCustomers);
-      setStats(prev => ({ ...prev, customers: customersSnap.size, newCustomersThisMonth: newCust }));
+      if (customersSnap && customersSnap.forEach) {
+        customersSnap.forEach(doc => {
+          const data = doc.data();
+          loadedCustomers.push({ id: doc.id, ...data });
+          if (data.createdAt) {
+            const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+            if (isThisMonth(createdAtDate)) newCust++;
+          }
+        });
+      }
+      setAllCustomers(loadedCustomers || []);
+      setStats(prev => ({ ...prev, customers: customersSnap?.size || 0, newCustomersThisMonth: newCust }));
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'dashboard_customers');
     });
@@ -204,47 +206,52 @@ export default function Dashboard() {
       const lastMonthDate = subMonths(today, 1);
       const nextWeek = addDays(today, 7);
 
-      ordersSnap.forEach((doc) => {
-        const data = doc.data();
-        const order = { id: doc.id, ...data };
-        allOrders.push(order);
+      if (ordersSnap && ordersSnap.forEach) {
+        ordersSnap.forEach((doc) => {
+          const data = doc.data();
+          const order = { id: doc.id, ...data };
+          allOrders.push(order);
 
-        const orderPrice = data.price || 0;
-        const advance = data.advancePayment || 0;
-        const paymentsSum = (data.payments || []).reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
-        let paidAmount = 0;
-        if (data.paymentStatus === 'Paid') {
-          paidAmount = orderPrice;
-        } else {
-          paidAmount = advance + paymentsSum;
-        }
-
-        totalCol += paidAmount;
-        totalPend += Math.max(0, orderPrice - paidAmount);
-
-        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now());
-        if (isThisMonth(createdAt)) {
-          monthRev += paidAmount;
-          ordersThisMo++;
-        } else if (isSameMonth(createdAt, lastMonthDate)) {
-          ordersLastMo++;
-        }
-
-        if (data.status === ORDER_STATUS.DELIVERED) {
-          completed++;
-          revenue += orderPrice;
-        } else {
-          active++;
-          const deliveryDate = new Date(data.deliveryDate);
-          if (isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
-            upcoming.push(order);
+          const orderPrice = data.price || 0;
+          const advance = data.advancePayment || 0;
+          const paymentsSum = (data.payments || []).reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
+          let paidAmount = 0;
+          if (data.paymentStatus === 'Paid') {
+            paidAmount = orderPrice;
+          } else {
+            paidAmount = advance + paymentsSum;
           }
-        }
-        
-        if (orderPrice > advance && data.status !== ORDER_STATUS.DELIVERED) {
-          pendingPay += (orderPrice - advance);
-        }
-      });
+
+          totalCol += paidAmount;
+          totalPend += Math.max(0, orderPrice - paidAmount);
+
+          const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now());
+          if (isThisMonth(createdAt)) {
+            monthRev += paidAmount;
+            ordersThisMo++;
+          } else if (isSameMonth(createdAt, lastMonthDate)) {
+            ordersLastMo++;
+          }
+
+          if (data.status === ORDER_STATUS.DELIVERED) {
+            completed++;
+            revenue += orderPrice;
+          } else {
+            active++;
+            const deliveryDateString = data.deliveryDate;
+            if (deliveryDateString) {
+              const deliveryDate = new Date(deliveryDateString);
+              if (isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
+                upcoming.push(order);
+              }
+            }
+          }
+          
+          if (orderPrice > advance && data.status !== ORDER_STATUS.DELIVERED) {
+            pendingPay += (orderPrice - advance);
+          }
+        });
+      }
 
       upcoming.sort((a, b) => {
         const dateA = a.deliveryDate?.toDate ? a.deliveryDate.toDate() : new Date(a.deliveryDate);
@@ -272,17 +279,17 @@ export default function Dashboard() {
         ordersThisMonth: ordersThisMo,
         ordersLastMonth: ordersLastMo,
       }));
-      setRecentOrders(recent);
-      setUpcomingDeliveries(upcoming);
-      setAllOrders(allOrders);
+      setRecentOrders(recent || []);
+      setUpcomingDeliveries(upcoming || []);
+      setAllOrders(allOrders || []);
       
       if (isFirstLoad) {
         setLoading(false);
         isFirstLoad = false;
 
         // Check for overdue orders and trigger notifications
-        allOrders.forEach(order => {
-          if (order.status !== ORDER_STATUS.DELIVERED && isOrderOverdue(order.deliveryDate)) {
+        (allOrders || []).forEach(order => {
+          if (order && order.status !== ORDER_STATUS.DELIVERED && isOrderOverdue(order.deliveryDate)) {
             const todayStr = format(new Date(), 'yyyy-MM-dd');
             if (order.lastNotifiedDate !== todayStr) {
                addNotification({
@@ -315,11 +322,11 @@ export default function Dashboard() {
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const monthDate = subMonths(now, i);
-      const monthOrders = allOrders.filter(o => 
-        o.status === ORDER_STATUS.DELIVERED && 
+      const monthOrders = (allOrders || []).filter(o => 
+        o && o.status === ORDER_STATUS.DELIVERED && 
         isSameMonth(o.updatedAt?.toDate ? o.updatedAt.toDate() : new Date(o.updatedAt || o.createdAt), monthDate)
       );
-      const revenue = monthOrders.reduce((sum, o) => sum + (o.price || 0), 0);
+      const revenue = monthOrders.reduce((sum, o) => sum + (o?.price || 0), 0);
       data.push({
         name: format(monthDate, 'MMM'),
         revenue
@@ -335,8 +342,8 @@ export default function Dashboard() {
       [ORDER_STATUS.READY]: 0,
       [ORDER_STATUS.DELIVERED]: 0,
     };
-    allOrders.forEach(o => {
-      if (counts[o.status] !== undefined) counts[o.status]++;
+    (allOrders || []).forEach(o => {
+      if (o && counts[o.status] !== undefined) counts[o.status]++;
     });
     return [
       { name: 'Pending', value: counts[ORDER_STATUS.PENDING], color: '#f59e0b' },
@@ -348,8 +355,8 @@ export default function Dashboard() {
 
   const topDressTypesData = React.useMemo(() => {
     const counts: Record<string, number> = {};
-    allOrders.forEach(o => {
-      if (o.dressType) {
+    (allOrders || []).forEach(o => {
+      if (o && o.dressType) {
         counts[o.dressType] = (counts[o.dressType] || 0) + 1;
       }
     });
@@ -361,13 +368,15 @@ export default function Dashboard() {
 
   const topCustomersData = React.useMemo(() => {
     const counts: Record<string, { count: number, name: string, id: string }> = {};
-    allOrders.forEach(o => {
-      const id = o.customerId || o.customerName;
-      if (id && o.customerName) {
-        if (!counts[id]) {
-           counts[id] = { count: 0, name: o.customerName, id: o.customerId };
+    (allOrders || []).forEach(o => {
+      if (o) {
+        const id = o.customerId || o.customerName;
+        if (id && o.customerName) {
+          if (!counts[id]) {
+            counts[id] = { count: 0, name: o.customerName, id: o.customerId };
+          }
+          counts[id].count += 1;
         }
-        counts[id].count += 1;
       }
     });
     return Object.values(counts)

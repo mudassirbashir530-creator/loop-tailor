@@ -22,33 +22,35 @@ export function useWorkers() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const workersData: Worker[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data) {
-          workersData.push({
-            id: doc.id,
-            name: data.name || 'Unnamed Worker',
-            phone: data.phone || '',
-            whatsappPhone: data.whatsappPhone || '',
-            countryCode: data.countryCode || '+92',
-            role: data.role || 'tailor',
-            salaryType: data.salaryType || 'monthly',
-            salaryAmount: data.salaryAmount || 0,
-            speciality: data.speciality || '',
-            address: data.address || '',
-            notes: data.notes || '',
-            joiningDate: data.joiningDate || new Date().toISOString(),
-            profileImage: data.profileImage || null,
-            status: data.status || 'available',
-            activeOrders: data.activeOrders || 0,
-            completedOrders: data.completedOrders || 0,
-            totalEarnings: data.totalEarnings || 0,
-            userId: data.userId || '',
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
-          });
-        }
-      });
-      setWorkers(workersData);
+      if (snapshot && snapshot.forEach) {
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data) {
+            workersData.push({
+              id: doc.id,
+              name: data.name || 'Unnamed Worker',
+              phone: data.phone || '',
+              whatsappPhone: data.whatsappPhone || '',
+              countryCode: data.countryCode || '+92',
+              role: data.role || 'tailor',
+              salaryType: data.salaryType || 'monthly',
+              salaryAmount: data.salaryAmount || 0,
+              speciality: data.speciality || '',
+              address: data.address || '',
+              notes: data.notes || '',
+              joiningDate: data.joiningDate || new Date().toISOString(),
+              profileImage: data.profileImage || null,
+              status: data.status || 'available',
+              activeOrders: data.activeOrders || 0,
+              completedOrders: data.completedOrders || 0,
+              totalEarnings: data.totalEarnings || 0,
+              userId: data.userId || '',
+              createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
+            });
+          }
+        });
+      }
+      setWorkers(workersData || []);
       setLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'workers');

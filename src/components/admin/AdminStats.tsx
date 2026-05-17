@@ -40,31 +40,34 @@ export default function AdminStats() {
       const twoWeeksAgo = now.getTime() - (14 * 24 * 60 * 60 * 1000);
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
-      snap.forEach(doc => {
-        const data = doc.data();
-        
-        if (data.isBlocked) blocked++;
-        
-        const plan = data.plan?.toLowerCase() || data.subscriptionPlan?.toLowerCase() || 'free';
-        if (plan === 'premium' || plan === 'enterprise') {
-          premium++;
-        } else {
-          free++;
-        }
-        
-        if (data.createdAt) {
-          const createdAtMillis = typeof data.createdAt.toMillis === 'function' ? data.createdAt.toMillis() : new Date(data.createdAt).getTime();
-          
-          if (createdAtMillis >= startOfToday) today++;
-          if (createdAtMillis >= oneWeekAgo) week++;
-          if (createdAtMillis >= startOfMonth) month++;
-          if (createdAtMillis >= twoWeeksAgo && createdAtMillis < oneWeekAgo) prevWeek++;
-        }
-      });
+      if (snap && snap.forEach) {
+        snap.forEach(doc => {
+          const data = doc.data();
+          if (data) {
+            if (data.isBlocked) blocked++;
+            
+            const plan = data.plan?.toLowerCase() || data.subscriptionPlan?.toLowerCase() || 'free';
+            if (plan === 'premium' || plan === 'enterprise') {
+              premium++;
+            } else {
+              free++;
+            }
+            
+            if (data.createdAt) {
+              const createdAtMillis = typeof data.createdAt.toMillis === 'function' ? data.createdAt.toMillis() : new Date(data.createdAt).getTime();
+              
+              if (createdAtMillis >= startOfToday) today++;
+              if (createdAtMillis >= oneWeekAgo) week++;
+              if (createdAtMillis >= startOfMonth) month++;
+              if (createdAtMillis >= twoWeeksAgo && createdAtMillis < oneWeekAgo) prevWeek++;
+            }
+          }
+        });
+      }
       
       setStats(prev => ({
         ...prev,
-        totalUsers: snap.size,
+        totalUsers: snap?.size || 0,
         premiumUsers: premium,
         freeUsers: free,
         blockedUsers: blocked,
@@ -77,18 +80,20 @@ export default function AdminStats() {
     unsubs.push(usersUnsub);
 
     const ordersUnsub = onSnapshot(collection(db, 'orders'), (snap) => {
-      setStats(prev => ({ ...prev, totalOrders: snap.size }));
+      setStats(prev => ({ ...prev, totalOrders: snap?.size || 0 }));
     }, (err) => console.error("AdminStats orders error:", err));
     unsubs.push(ordersUnsub);
 
     const subsUnsub = onSnapshot(collection(db, 'subscriptions'), (snap) => {
       let rev = 0;
-      snap.forEach(doc => {
-        const data = doc.data();
-        if (data.status === 'paid' && data.amount) {
-          rev += Number(data.amount);
-        }
-      });
+      if (snap && snap.forEach) {
+        snap.forEach(doc => {
+          const data = doc.data();
+          if (data && data.status === 'paid' && data.amount) {
+            rev += Number(data.amount);
+          }
+        });
+      }
       setStats(prev => ({ ...prev, totalRevenue: rev }));
     }, (err) => console.error("AdminStats subs error:", err));
     unsubs.push(subsUnsub);

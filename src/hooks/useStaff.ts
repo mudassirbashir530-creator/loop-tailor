@@ -26,11 +26,11 @@ export function useStaff() {
 
     const q = query(collection(db, 'staff'), where('userId', '==', user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const staffData = snapshot.docs.map(doc => ({
+      const staffData = (snapshot?.docs || []).map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as StaffMember[];
-      setStaff(staffData.sort((a, b) => a.name.localeCompare(b.name)));
+      setStaff((staffData || []).sort((a, b) => (a?.name || '').localeCompare(b?.name || '')));
       setLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, 'staff');

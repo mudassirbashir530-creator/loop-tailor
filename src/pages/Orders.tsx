@@ -43,10 +43,10 @@ export default function Orders() {
     setLoading(true);
     const q = query(collection(db, 'orders'), where('userId', '==', user.uid));
     const unsubscribe = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setOrders(data.sort((a: any, b: any) => {
-        const dateA = a.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a.createdAt || 0);
-        const dateB = b.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b.createdAt || 0);
+      const data = (snap?.docs || []).map(doc => ({ id: doc.id, ...doc.data() }));
+      setOrders((data || []).sort((a: any, b: any) => {
+        const dateA = a?.createdAt?.seconds ? new Date(a.createdAt.seconds * 1000) : new Date(a?.createdAt || 0);
+        const dateB = b?.createdAt?.seconds ? new Date(b.createdAt.seconds * 1000) : new Date(b?.createdAt || 0);
         return dateB.getTime() - dateA.getTime();
       }));
       setLoading(false);
@@ -60,9 +60,9 @@ export default function Orders() {
 
   const updateStatus = async (orderId: string, newStatus: string) => {
     try {
-      const order = orders.find(o => o.id === orderId);
+      const order = (orders || []).find(o => o?.id === orderId);
       if (!order) return;
-      const history = { ...(order.statusHistory || {}) };
+      const history = { ...(order?.statusHistory || {}) };
       history[newStatus] = new Date().toISOString();
 
       await updateDoc(doc(db, 'orders', orderId), { 
@@ -153,10 +153,11 @@ export default function Orders() {
     return isOrderOverdue(deliveryDate);
   };
 
-  const uniqueDressTypes = useMemo(() => Array.from(new Set(orders.map(o => o.dressType))).filter(Boolean), [orders]);
+  const uniqueDressTypes = useMemo(() => Array.from(new Set((orders || []).map(o => o?.dressType))).filter(Boolean), [orders]);
 
   const filteredOrders = useMemo(() => {
-    const filtered = orders.filter(order => {
+    const filtered = (orders || []).filter(order => {
+      if (!order) return false;
       const matchesStatus = filter === 'All' || order.status === filter;
       const matchesGender = genderFilter === 'All' || order.gender === genderFilter;
       const matchesDressType = dressTypeFilter === 'All' || order.dressType === dressTypeFilter;
@@ -182,8 +183,8 @@ export default function Orders() {
 
       const matchesSearch = 
         (order.tokenId && order.tokenId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.dressType.toLowerCase().includes(searchTerm.toLowerCase());
+        (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (order.dressType && order.dressType.toLowerCase().includes(searchTerm.toLowerCase()));
         
       return matchesStatus && matchesGender && matchesDressType && matchesDate && matchesOverdue && matchesSearch;
     });

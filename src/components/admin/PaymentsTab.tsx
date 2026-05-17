@@ -10,8 +10,8 @@ export default function PaymentsTab() {
   useEffect(() => {
     const q = query(collection(db, 'subscriptions'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setPayments(data);
+      const data = (snap?.docs || []).map(doc => ({ id: doc.id, ...doc.data() }));
+      setPayments(data || []);
     }, (err) => console.error("PaymentsTab error:", err));
     return () => unsub();
   }, []);
@@ -75,7 +75,7 @@ export default function PaymentsTab() {
             </tr>
           </thead>
           <tbody>
-            {payments.map(pay => (
+            {(payments || []).map(pay => (
               <tr key={pay.id} className="border-b border-slate-50 hover:bg-slate-50/50">
                 <td className="py-3 px-4">
                   <p className="font-medium text-slate-900">{pay.userName || 'Unnamed'}</p>
@@ -109,7 +109,7 @@ export default function PaymentsTab() {
             ))}
           </tbody>
         </table>
-        {payments.length === 0 && (
+        {(payments || []).length === 0 && (
           <div className="py-8 text-center text-slate-500">No payment records found.</div>
         )}
       </div>

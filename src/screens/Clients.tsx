@@ -46,9 +46,11 @@ export default function Clients() {
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const filteredCustomers = customers.filter(c => 
-    c.name.toLowerCase().includes(search.toLowerCase()) || 
-    c.phone.includes(search)
+  const filteredCustomers = (customers || []).filter(c => 
+    c && (
+      (c.name && c.name.toLowerCase().includes((search || '').toLowerCase())) || 
+      (c.phone && c.phone.includes(search || ''))
+    )
   );
 
   const resetForm = () => {
@@ -59,7 +61,7 @@ export default function Clients() {
 
   const openAddModal = () => {
     const limit = userData?.permissions?.customerLimit ?? 10;
-    if (customers.length >= limit) {
+    if ((customers || []).length >= limit) {
       toast.error(`Customer limit reached (${limit}). Upgrade your plan to add more customers.`);
       return;
     }
@@ -410,7 +412,7 @@ export default function Clients() {
               </Card>
             ))}
           </div>
-        ) : filteredCustomers.length === 0 ? (
+        ) : (filteredCustomers || []).length === 0 ? (
           <div className="text-center py-20 bg-card rounded-2xl border border-dashed text-muted-foreground">
             <UserPlus className="h-12 w-12 mx-auto mb-4 opacity-50 text-primary" />
             <p className="text-lg font-medium text-foreground">No clients found</p>
@@ -418,8 +420,8 @@ export default function Clients() {
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredCustomers.map((customer) => (
-              <Card key={customer.id} className="group hover:border-primary/50 transition-colors overflow-hidden">
+            {(filteredCustomers || []).map((customer) => (
+              <Card key={customer?.id || Math.random().toString()} className="group hover:border-primary/50 transition-colors overflow-hidden">
                 <CardContent className="p-0">
                   <div className="p-5 flex gap-4">
                     {customer.profileImage ? (
