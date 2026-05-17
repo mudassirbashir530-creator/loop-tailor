@@ -9,10 +9,6 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
 import twilio from "twilio";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -59,9 +55,11 @@ let db: admin.firestore.Firestore | null = null;
 try {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
+    if (admin.apps.length === 0) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+    }
     db = admin.firestore(databaseId);
   } else {
     // If no credentials, try to initialize but don't crash if it fails
@@ -80,6 +78,10 @@ const getDb = () => {
     // Attempt lazy init if not already done
     try {
       if (admin.apps.length > 0) {
+        db = admin.firestore(databaseId);
+      } else {
+        // Try one more time to initialize without args if needed
+        admin.initializeApp();
         db = admin.firestore(databaseId);
       }
     } catch (e) {
@@ -300,7 +302,9 @@ async function startServer() {
       });
 
       // Delete OTP after successful reset to prevent any reuse
-      await db.collection('password_resets').doc(email.toLowerCase()).delete();
+      if (firestore) {
+         await firestore.collection('password_resets').doc(email.toLowerCase()).delete();
+      }
 
       res.status(200).json({ message: "Password reset successfully", success: true });
 
