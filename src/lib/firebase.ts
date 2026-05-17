@@ -4,12 +4,21 @@ import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, isSupported } from 'firebase/messaging';
 
-import firebaseConfig from '../../firebase-applet-config.json';
+const firebaseConfig = {
+  apiKey: "AIzaSyDd2HsiD-yRps2q-FgbH8G5w_Wl1vJMMC8",
+  authDomain: "tailor-app-76f20.firebaseapp.com",
+  databaseURL: "https://tailor-app-76f20-default-rtdb.firebaseio.com",
+  projectId: "tailor-app-76f20",
+  storageBucket: "tailor-app-76f20.firebasestorage.app",
+  messagingSenderId: "974622533594",
+  appId: "1:974622533594:web:e9b27ddf8886abbb4942e3",
+  measurementId: "G-5BMD8109NH"
+};
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence).catch(console.error);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // Initialize Messaging conditionally (not supported in all browsers i.e Safari)
