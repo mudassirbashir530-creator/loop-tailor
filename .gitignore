@@ -1,8 +1,25 @@
+# Dependencies
 node_modules/
+
+# Production Build
 build/
 dist/
 coverage/
+
+# Misc
 .DS_Store
 *.log
-.env*
+.npm/
+
+# Local Environment Variables & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
 !.env.example
+firebase-applet-config.json
+credentials.json
+*.pem
+*.key

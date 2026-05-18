@@ -30,13 +30,42 @@ export default function Home() {
   const { orders, loading } = useOrders();
   const { customers } = useCustomers();
 
-  const totalOrders = orders?.length || 0;
-  const pendingOrders = orders ? orders.filter(o => o.status !== 'delivered').length : 0;
-  const completedToday = orders ? orders.filter(o => o && o.status === 'delivered' && o.updatedAt && isToday(new Date(o.updatedAt))).length : 0;
-  const revenue = orders ? orders.reduce((sum, order) => {
-    if (!order) return sum;
-    return sum + (safeNum(order.advancePayment)) + (safeNum(order.price) - safeNum(order.remainingPayment));
-  }, 0) : 0;
+  const {
+    totalOrders,
+    pendingOrders,
+    revenue,
+    completedToday
+  } = useMemo(() => {
+    if (!orders) return { totalOrders: 0, pendingOrders: 0, revenue: 0, completedToday: 0 };
+    
+    let pendingCount = 0;
+    let rev = 0;
+    let todayCount = 0;
+
+    orders.forEach(order => {
+      if (!order) return;
+
+      if (order.status !== 'delivered' && order.status !== 'cancelled') {
+         pendingCount++;
+      }
+
+      if (order.status === 'delivered') {
+        const orderRevenue = safeNum(order.price);
+        rev += orderRevenue;
+
+        if (order.updatedAt && isToday(new Date(order.updatedAt))) {
+          todayCount++;
+        }
+      }
+    });
+
+    return {
+      totalOrders: orders.length,
+      pendingOrders: pendingCount,
+      revenue: rev,
+      completedToday: todayCount
+    };
+  }, [orders]);
 
   const chartData = useMemo(() => {
     if (!orders) return [];
@@ -53,7 +82,8 @@ export default function Home() {
         }
       });
       const dayRevenue = dayOrders.reduce((sum, order) => {
-        return sum + (safeNum(order.advancePayment)) + (safeNum(order.price) - safeNum(order.remainingPayment));
+        if (order.status !== 'delivered') return sum;
+        return sum + safeNum(order.price);
       }, 0);
       data.push({ name: dateStr, revenue: dayRevenue, orders: dayOrders.length });
     }

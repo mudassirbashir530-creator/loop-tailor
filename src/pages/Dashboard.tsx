@@ -57,6 +57,7 @@ export default function Dashboard() {
     newCustomersThisMonth: 0,
     activeOrders: 0,
     completedOrders: 0,
+    cancelledOrders: 0,
     pendingPayments: 0,
     totalRevenue: 0,
     totalCollected: 0,
@@ -191,6 +192,7 @@ export default function Dashboard() {
     const unsubscribeOrders = onSnapshot(query(collection(db, 'orders'), where('userId', '==', user.uid)), (ordersSnap) => {
       let active = 0;
       let completed = 0;
+      let cancelled = 0;
       let pendingPay = 0;
       let revenue = 0;
       let totalCol = 0;
@@ -209,40 +211,56 @@ export default function Dashboard() {
         const order = { id: doc.id, ...data };
         allOrders.push(order);
 
-        const orderPrice = data.price || 0;
-        const advance = data.advancePayment || 0;
-        const paymentsSum = (data.payments || []).reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
-        let paidAmount = 0;
-        if (data.paymentStatus === 'Paid') {
-          paidAmount = orderPrice;
+        // Cancelled orders logic
+        if (data.status === 'cancelled') {
+            cancelled++;
+            // If there's refund logic, we can subtract it from collected, but simple logic is fine
+            // We just don't add to pending.
+            const orderPrice = data.price || 0;
+            const advance = data.advancePayment || 0;
+            const paymentsSum = (data.payments || []).reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
+            
+            // Assuming no pending value for cancelled orders
+            totalCol += (advance + paymentsSum);
         } else {
-          paidAmount = advance + paymentsSum;
-        }
+            const orderPrice = data.price || 0;
+            const advance = data.advancePayment || 0;
+            const remainingPayment = data.remainingPayment;
+            const paymentsSum = (data.payments || []).reduce((acc: number, p: any) => acc + (p.amount || 0), 0);
+            let paidAmount = 0;
+            if (data.paymentStatus === 'Paid') {
+              paidAmount = orderPrice;
+            } else if (typeof remainingPayment === 'number') {
+              paidAmount = Math.max(0, orderPrice - remainingPayment);
+            } else {
+              paidAmount = advance + paymentsSum;
+            }
 
-        totalCol += paidAmount;
-        totalPend += Math.max(0, orderPrice - paidAmount);
+            totalCol += paidAmount;
+            totalPend += Math.max(0, orderPrice - paidAmount);
 
-        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now());
-        if (isThisMonth(createdAt)) {
-          monthRev += paidAmount;
-          ordersThisMo++;
-        } else if (isSameMonth(createdAt, lastMonthDate)) {
-          ordersLastMo++;
-        }
+            const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now());
+            if (isThisMonth(createdAt)) {
+              monthRev += paidAmount;
+              ordersThisMo++;
+            } else if (isSameMonth(createdAt, lastMonthDate)) {
+              ordersLastMo++;
+            }
 
-        if (data.status === ORDER_STATUS.DELIVERED) {
-          completed++;
-          revenue += orderPrice;
-        } else {
-          active++;
-          const deliveryDate = new Date(data.deliveryDate);
-          if (isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
-            upcoming.push(order);
-          }
-        }
-        
-        if (orderPrice > advance && data.status !== ORDER_STATUS.DELIVERED) {
-          pendingPay += (orderPrice - advance);
+            if (data.status === ORDER_STATUS.DELIVERED) {
+              completed++;
+              revenue += orderPrice;
+            } else {
+              active++;
+              const deliveryDate = new Date(data.deliveryDate);
+              if (isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
+                upcoming.push(order);
+              }
+            }
+            
+            if (orderPrice > advance && data.status !== ORDER_STATUS.DELIVERED) {
+              pendingPay += (orderPrice - advance);
+            }
         }
       });
 
@@ -264,6 +282,7 @@ export default function Dashboard() {
         ...prev,
         activeOrders: active,
         completedOrders: completed,
+        cancelledOrders: cancelled,
         pendingPayments: pendingPay,
         totalRevenue: revenue,
         totalCollected: totalCol,
@@ -533,11 +552,12 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
         {[
           { label: 'Total Revenue', value: formatCurrency(stats.totalRevenue), icon: TrendingUp, color: 'text-[#2ECC71]', bg: 'bg-[#2ECC71]/10' },
           { label: 'Active Orders', value: stats.activeOrders, icon: Clock, color: 'text-[#0D3D33]', bg: 'bg-[#0D3D33]/10' },
           { label: 'Completed', value: stats.completedOrders, icon: CheckCircle, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+          { label: 'Cancelled', value: stats.cancelledOrders, icon: Hash, color: 'text-red-500', bg: 'bg-red-500/10' },
           { label: 'Pending Payments', value: formatCurrency(stats.pendingPayments), icon: Calendar, color: 'text-orange-500', bg: 'bg-orange-500/10' }
         ].map((stat, i) => (
           <motion.div 
@@ -588,7 +608,7 @@ export default function Dashboard() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 + (i * 0.05) }}
-                      className="flex items-center justify-between px-4 py-4 sm:px-5 sm:py-5 rounded-xl hover:bg-[#F7F5F0] transition-colors duration-200 ease-in-out cursor-pointer group" 
+                      className={cn("flex items-center justify-between px-4 py-4 sm:px-5 sm:py-5 rounded-xl hover:bg-[#F7F5F0] transition-colors duration-200 ease-in-out cursor-pointer group", order.status === 'cancelled' && "opacity-75 grayscale-[50%]")} 
                       onClick={() => navigate(`/app/orders/${order.id}`)}
                     >
                       <div className="flex items-center gap-4 sm:gap-5">
@@ -604,6 +624,7 @@ export default function Dashboard() {
                         <div className="font-bold text-lg sm:text-xl text-[#0D3D33]">{formatCurrency(order.price)}</div>
                         <div className={cn("text-[11px] sm:text-xs font-bold px-3 py-1 rounded-full mt-2 inline-block uppercase tracking-wider shadow-sm", 
                           order.status === ORDER_STATUS.DELIVERED ? "bg-[#2ECC71] text-[#FFFFFF]" : 
+                          order.status === 'cancelled' ? "bg-red-100 text-red-600" : 
                           order.status === ORDER_STATUS.READY ? "bg-blue-500 text-[#FFFFFF]" :
                           order.status === ORDER_STATUS.STITCHING ? "bg-orange-500 text-[#FFFFFF]" :
                           "bg-[#E2DDD6] text-[#0D3D33]"

@@ -45,7 +45,7 @@ export interface Worker {
   createdAt: string;
 }
 
-export type OrderStatus = "pending" | "stitching" | "ready" | "delivered";
+export type OrderStatus = "pending" | "stitching" | "ready" | "delivered" | "cancelled";
 
 export interface Order {
   id: string;
@@ -70,6 +70,26 @@ export interface Order {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  cancelledAt?: string;
+  cancelledBy?: string;
+  cancellationReason?: string;
+  refundGiven?: boolean;
+  refundAmount?: number;
+  refundDate?: string;
+  refundMethod?: string;
+  statusHistory?: { status: string; timestamp: string; updatedBy: string }[];
+}
+
+export type PaymentMethod = 'Cash' | 'Bank Transfer';
+
+export interface PaymentRecord {
+  id: string;
+  amount: number;
+  date: string;
+  method: PaymentMethod;
+  recordedBy: string;
+  userId: string;
+  createdAt: string;
 }
 
 export interface DashboardStats {

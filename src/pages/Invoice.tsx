@@ -35,6 +35,7 @@ export default function Invoice() {
   const [order, setOrder] = useState<any>(null);
   const [shop, setShop] = useState<any>(null);
   const [customer, setCustomer] = useState<any>(null);
+  const [paymentsList, setPaymentsList] = useState<any[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   
@@ -72,6 +73,22 @@ export default function Invoice() {
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`));
 
+    import('firebase/firestore').then(({ query, collection }) => {
+      const qPayments = query(collection(db, `orders/${id}/payments`));
+      const unsubPayments = onSnapshot(qPayments, (paymentsSnap) => {
+        const pData = paymentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setPaymentsList(pData.sort((a: any, b: any) => {
+          const dateA = a.date ? new Date(a.date).getTime() : 0;
+          const dateB = b.date ? new Date(b.date).getTime() : 0;
+          return dateA - dateB;
+        }));
+      }, (error) => handleFirestoreError(error, OperationType.GET, `orders/${id}/payments`));
+      
+      return () => {
+        unsubPayments();
+      };
+    });
+
     return () => {
       unsubOrder();
       unsubShop();
@@ -89,7 +106,7 @@ export default function Invoice() {
 
   if (!order || !shop || !customer) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div></div>;
 
-  const totalPaid = (order?.payments || []).reduce((sum: number, p: any) => sum + safeNum(p.amount), 0) + safeNum(order?.advancePayment);
+  const totalPaid = paymentsList.reduce((sum: number, p: any) => sum + safeNum(p.amount), 0) + safeNum(order?.advancePayment);
   const calculatedBalanceDue = Math.max(0, safeNum(order?.price) - totalPaid);
   const displayBalanceDue = editData.balanceDueOverride !== '' ? safeNum(editData.balanceDueOverride) : calculatedBalanceDue;
 
@@ -308,7 +325,7 @@ export default function Invoice() {
         </div>
       </div>
 
-      {((order.payments && order.payments.length > 0) || safeNum(order.advancePayment) > 0) && (
+      {((paymentsList && paymentsList.length > 0) || safeNum(order.advancePayment) > 0) && (
         <div className={cn("mb-6 sm:mb-8", isCapture ? "mx-1" : "")}>
           <h3 className={cn("font-black text-slate-400 uppercase tracking-widest px-1 mb-2", isCapture ? "text-sm" : "text-xs sm:text-sm")}>Payment History</h3>
           <div className="bg-gray-100 shadow-neu-pressed-sm rounded-2xl border-none p-4 divide-y divide-gray-200/50">
@@ -321,8 +338,8 @@ export default function Invoice() {
                 <span className="text-emerald-600">+{settings.currency} {safeNum(order.advancePayment).toLocaleString()}</span>
               </div>
             )}
-            {(order.payments || []).map((payment: any, index: number) => (
-              <div key={index} className="py-2 flex justify-between items-center text-sm font-bold text-slate-700">
+            {(paymentsList || []).map((payment: any) => (
+              <div key={payment.id} className="py-2 flex justify-between items-center text-sm font-bold text-slate-700">
                 <div className="flex flex-col">
                   <span>{format(toDate(payment.date), 'MMM dd, yyyy')}</span>
                   <span className="text-xs text-slate-500 font-medium">{payment.method} {payment.note && `- ${payment.note}`}</span>

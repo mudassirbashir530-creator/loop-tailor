@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Clock, Scissors, Layers, CheckSquare, Package, Truck } from 'lucide-react';
+import { Clock, Layers, Package, Truck, XCircle } from 'lucide-react';
 import { ORDER_STATUS } from '../lib/config';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
@@ -12,14 +12,24 @@ interface OrderTimelineProps {
 
 const timelineSteps = [
   { status: ORDER_STATUS.PENDING, icon: Clock },
-  { status: ORDER_STATUS.CUTTING, icon: Scissors },
   { status: ORDER_STATUS.STITCHING, icon: Layers },
-  { status: ORDER_STATUS.QC, icon: CheckSquare },
   { status: ORDER_STATUS.READY, icon: Package },
   { status: ORDER_STATUS.DELIVERED, icon: Truck },
 ];
 
 export function OrderTimeline({ currentStatus, statusHistory = {} }: OrderTimelineProps) {
+  if (currentStatus === ORDER_STATUS.CANCELLED) {
+    return (
+      <div className="w-full bg-red-50 border border-red-200 rounded-3xl p-6 flex flex-col items-center justify-center text-center space-y-3">
+        <XCircle className="h-10 w-10 text-red-500" />
+        <h3 className="text-red-700 font-semibold text-lg">Order Cancelled</h3>
+        <p className="text-red-600/80 text-sm">
+          {statusHistory[ORDER_STATUS.CANCELLED] && `Cancelled on ${format(new Date(statusHistory[ORDER_STATUS.CANCELLED]), 'MMM d, yyyy h:mm a')}`}
+        </p>
+      </div>
+    );
+  }
+
   const currentIndex = timelineSteps.findIndex(s => s.status === currentStatus);
 
   return (
@@ -31,7 +41,7 @@ export function OrderTimeline({ currentStatus, statusHistory = {} }: OrderTimeli
         {/* Active linking line */}
         <div 
           className="absolute top-6 left-8 h-1 bg-primary z-0 transition-all duration-500 ease-in-out"
-          style={{ width: `calc(${(Math.max(0, currentIndex) / (timelineSteps.length - 1)) * 100}% - 2rem)` }}
+          style={{ width: `calc(${(Math.max(0, currentIndex) / (Math.max(1, timelineSteps.length - 1))) * 100}% - 2rem)` }}
         ></div>
 
         {timelineSteps.map((step, index) => {

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, DollarSign, User, Loader2, Download, MessageCircle, Ruler, Image as ImageIcon, ExternalLink, Share2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
@@ -11,6 +12,7 @@ import { useShop } from '../contexts/ShopContext';
 import { formatCurrency, formatDate, cn, cleanPhoneNumber } from '../lib/utils';
 import { openWhatsApp } from '../lib/whatsapp';
 import { OrderStatus, Order, CloudinaryImage } from '../lib/types';
+import { ORDER_STATUS_TRANSITIONS, isValidStatusTransition, ORDER_STATUS } from '../lib/config';
 import { InvoiceTemplate } from '../components/InvoiceTemplate';
 import { ImagePreviewModal } from '../components/ImagePreviewModal';
 import * as htmlToImage from 'html-to-image';
@@ -23,6 +25,7 @@ import { useAuth } from '../contexts/AuthContext';
 export default function Orders() {
   const [search, setSearch] = useState('');
   const { userData } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string, type: 'reference' | 'design' | 'invoice', index?: number } | null>(null);
@@ -39,6 +42,7 @@ export default function Orders() {
     { label: 'Stitching', value: 'stitching' },
     { label: 'Ready', value: 'ready' },
     { label: 'Delivered', value: 'delivered' },
+    { label: 'Cancelled', value: 'cancelled' },
   ];
 
   const filteredOrders = orders.filter(o => {
@@ -293,7 +297,7 @@ export default function Orders() {
           filteredOrders.map(order => {
             const customer = customers.find(c => c.id === order.customerId);
             return (
-            <Card key={order.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedOrder(order)}>
+            <Card key={order.id} className={cn("cursor-pointer hover:shadow-md transition-shadow", order.status === 'cancelled' && "opacity-75 bg-muted/30 grayscale-[50%]")} onClick={() => navigate(`/app/orders/${order.id}`)}>
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -511,34 +515,39 @@ export default function Orders() {
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Update Order Status</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {(['pending', 'stitching', 'ready', 'delivered'] as OrderStatus[]).map((status) => (
-                      <Button 
-                        key={status} 
-                        size="sm" 
-                        variant={selectedOrder.status === status ? 'default' : 'outline'}
-                        onClick={async () => {
-                          try {
-                            await updateOrderStatus(selectedOrder.id, status);
-                            setSelectedOrder(null);
-                            toast.success(`Status updated to ${status}`);
-                          } catch (e) {
-                            console.error("Update status error:", e);
-                            toast.error("Failed to update status");
-                          }
-                        }}
-                        className={cn(
-                          "capitalize h-10 font-semibold transition-all",
-                          selectedOrder.status === status ? "shadow-md shadow-primary/20" : "hover:border-primary/50"
-                        )}
-                      >
-                        {status}
-                      </Button>
-                    ))}
+                {(ORDER_STATUS_TRANSITIONS[selectedOrder.status] || []).length > 0 && (
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Update Order Status</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {(ORDER_STATUS_TRANSITIONS[selectedOrder.status] || []).map((status) => (
+                        <Button 
+                          key={status} 
+                          size="sm" 
+                          variant="outline"
+                          onClick={async () => {
+                            if (!isValidStatusTransition(selectedOrder.status, status)) {
+                              toast.error(`Cannot transition from ${selectedOrder.status} to ${status}`);
+                              return;
+                            }
+                            try {
+                              await updateOrderStatus(selectedOrder.id, status);
+                              setSelectedOrder(null);
+                            } catch (e) {
+                              console.error("Update status error:", e);
+                              toast.error("Failed to update status");
+                            }
+                          }}
+                          className={cn(
+                            "capitalize h-10 font-semibold transition-all hover:border-primary/50",
+                            status === ORDER_STATUS.CANCELLED ? "text-red-600 hover:bg-red-50 hover:border-red-200" : ""
+                          )}
+                        >
+                          {status}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <DialogFooter className="flex flex-row flex-wrap justify-between sm:justify-end gap-2 w-full pt-4 border-t">

@@ -6,6 +6,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ShopProvider } from './contexts/ShopContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 
+import OrderDetails from './pages/OrderDetails';
+
 // Layouts
 import WebsiteLayout from './layouts/WebsiteLayout';
 import AppLayout from './layouts/AppLayout';
@@ -30,6 +32,7 @@ import UsersList from './components/admin/UsersList';
 import Home from './screens/Home';
 import Clients from './screens/Clients';
 import Workers from './screens/Workers';
+import { Payroll } from './pages/Payroll';
 import Orders from './screens/Orders';
 import NewOrder from './screens/NewOrder';
 import Settings from './screens/Settings';
@@ -135,7 +138,9 @@ export default function App() {
                   <Route index element={<Home />} />
                   <Route path="clients" element={<Clients />} />
                   <Route path="workers" element={<Workers />} />
+                  <Route path="payroll" element={<Payroll />} />
                   <Route path="orders" element={<Orders />} />
+                  <Route path="orders/:id" element={<OrderDetails />} />
                   <Route path="invoice/:id" element={<Invoice />} />
                   <Route path="new-order" element={<NewOrder />} />
                   <Route path="settings" element={<Settings />} />

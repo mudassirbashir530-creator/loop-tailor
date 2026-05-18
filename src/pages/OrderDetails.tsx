@@ -3,16 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
-import { ORDER_STATUS } from '../lib/config';
+import { ORDER_STATUS, ORDER_STATUS_TRANSITIONS, isValidStatusTransition, OrderStatus } from '../lib/config';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, collection, query, where, addDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getMeasurementName } from '../lib/measurements';
+import { MeasurementsDisplay } from '../components/MeasurementsDisplay';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage } from '../lib/whatsapp';
@@ -35,7 +35,17 @@ export default function OrderDetails() {
   const [editData, setEditData] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'Cash', note: '' });
+  const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancellationForm, setCancellationForm] = useState({
+    reason: 'Customer Request',
+    customReason: '',
+    refundGiven: false,
+    refundAmount: '',
+    refundMethod: 'Cash',
+    refundDate: format(new Date(), 'yyyy-MM-dd')
+  });
+  const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'Cash', date: format(new Date(), 'yyyy-MM-dd') });
   const [paymentsList, setPaymentsList] = useState<any[]>([]);
   const [customWaMessage, setCustomWaMessage] = useState('');
   const [showCustomWa, setShowCustomWa] = useState(false);
@@ -65,15 +75,15 @@ export default function OrderDetails() {
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`));
 
-    const qPayments = query(collection(db, 'payments'), where('userId', '==', user.uid), where('orderId', '==', id));
+    const qPayments = query(collection(db, `orders/${id}/payments`));
     const unsubPayments = onSnapshot(qPayments, (paymentsSnap) => {
       const pData = paymentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setPaymentsList(pData.sort((a: any, b: any) => {
-        const dateA = a.date?.seconds ? new Date(a.date.seconds * 1000) : new Date(a.date || 0);
-        const dateB = b.date?.seconds ? new Date(b.date.seconds * 1000) : new Date(b.date || 0);
-        return dateB.getTime() - dateA.getTime();
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        return dateB - dateA;
       }));
-    }, (error) => handleFirestoreError(error, OperationType.GET, `payments for order ${id}`));
+    }, (error) => handleFirestoreError(error, OperationType.GET, `orders/${id}/payments`));
 
     return () => {
       unsubOrder();
@@ -96,7 +106,12 @@ export default function OrderDetails() {
     }
   };
 
-  const handleUpdateStatus = async (newStatus: string) => {
+  const handleUpdateStatus = async (newStatus: OrderStatus) => {
+    if (!isValidStatusTransition(order.status as OrderStatus, newStatus)) {
+      toast.error(`Cannot transition from ${order.status} to ${newStatus}`);
+      return;
+    }
+
     try {
       const history = { ...(order.statusHistory || {}) };
       history[newStatus] = new Date().toISOString();
@@ -207,37 +222,77 @@ export default function OrderDetails() {
     }
 
     try {
-      await addDoc(collection(db, 'payments'), {
+      await addDoc(collection(db, `orders/${id}/payments`), {
         userId: user!.uid,
-        orderId: id,
         amount,
         method: paymentForm.method,
-        note: paymentForm.note,
-        date: serverTimestamp()
+        date: paymentForm.date,
+        createdAt: serverTimestamp()
       });
 
       const newTotalPaid = totalPaid + amount;
+      const newBalanceDue = Math.max(0, Number(order?.price || 0) - newTotalPaid);
       const newPaymentStatus = newTotalPaid >= order.price ? 'Paid' : 'Partial';
       
-      const newPaymentLog = {
-        amount,
-        date: new Date().toISOString(),
-        method: paymentForm.method,
-        note: paymentForm.note
-      };
-      const newPayments = [...(order.payments || []), newPaymentLog];
-
       await updateDoc(doc(db, 'orders', id!), {
-        payments: newPayments,
+        remainingPayment: newBalanceDue,
         paymentStatus: newPaymentStatus,
         updatedAt: serverTimestamp()
       });
       
       toast.success('Payment recorded successfully');
       setIsPaymentModalOpen(false);
-      setPaymentForm({ amount: '', method: 'Cash', note: '' });
+      setPaymentForm({ amount: '', method: 'Cash', date: format(new Date(), 'yyyy-MM-dd') });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!order || !user || !id) return;
+    setIsCancelling(true);
+
+    const finalReason = cancellationForm.reason === 'Other' ? cancellationForm.customReason : cancellationForm.reason;
+    if (!finalReason) {
+      toast.error('Please provide a cancellation reason.');
+      setIsCancelling(false);
+      return;
+    }
+
+    try {
+      const history = { ...(order.statusHistory || {}) };
+      history['cancelled'] = new Date().toISOString();
+
+      const updateData: any = {
+        status: 'cancelled',
+        cancelledAt: new Date().toISOString(),
+        cancelledBy: user.uid,
+        cancellationReason: finalReason,
+        statusHistory: history,
+        updatedAt: serverTimestamp(),
+      };
+
+      if (cancellationForm.refundGiven) {
+        if (!cancellationForm.refundAmount || Number(cancellationForm.refundAmount) <= 0) {
+           toast.error('Please provide a valid refund amount.');
+           setIsCancelling(false);
+           return;
+        }
+        updateData.refundGiven = true;
+        updateData.refundAmount = Number(cancellationForm.refundAmount);
+        updateData.refundDate = cancellationForm.refundDate;
+        updateData.refundMethod = cancellationForm.refundMethod;
+      }
+
+      await updateDoc(doc(db, 'orders', id), updateData);
+      
+      toast.success('Order cancelled successfully.');
+      setIsCancellationModalOpen(false);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
+      toast.error('Failed to cancel order.');
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -289,27 +344,45 @@ export default function OrderDetails() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {order.status !== ORDER_STATUS.DELIVERED && (
-            <Button 
-              onClick={() => handleUpdateStatus(ORDER_STATUS.DELIVERED)}
-              className="bg-primary hover:bg-on-surface text-primary-foreground font-medium rounded-full px-6 h-12 shadow-sm transition-all border-none"
+          {order.status !== 'cancelled' && !isEditing && (ORDER_STATUS_TRANSITIONS[order.status as OrderStatus] || []).map(nextStatus => (
+            <Button
+              key={nextStatus}
+              onClick={() => {
+                if (nextStatus === ORDER_STATUS.CANCELLED) {
+                  setIsCancellationModalOpen(true);
+                } else {
+                  handleUpdateStatus(nextStatus);
+                }
+              }}
+              className={cn(
+                "font-medium rounded-full px-6 h-12 shadow-sm transition-all border-none",
+                nextStatus === ORDER_STATUS.CANCELLED ? "bg-red-100 text-red-600 hover:bg-red-200" :
+                nextStatus === ORDER_STATUS.DELIVERED ? "bg-primary hover:bg-on-surface text-primary-foreground" :
+                "bg-blue-100 text-blue-700 hover:bg-blue-200"
+              )}
             >
-              <CheckCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />
-              {t('orderDetails.deliver')}
+              {nextStatus === ORDER_STATUS.DELIVERED && <CheckCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
+              {nextStatus === ORDER_STATUS.CANCELLED && <X className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
+              {nextStatus === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
+               nextStatus === ORDER_STATUS.READY ? t('orderDetails.ready') :
+               nextStatus === ORDER_STATUS.DELIVERED ? t('orderDetails.deliver') :
+               nextStatus}
+            </Button>
+          ))}
+          {order.status !== 'cancelled' && (
+            <Button 
+              variant="ghost"
+              onClick={() => isEditing ? handleSaveEdit() : setIsEditing(true)}
+              className={cn(
+                "rounded-full font-medium h-12 px-6 transition-all border border-outline-variant",
+                isEditing ? "bg-surface-variant text-primary" : "bg-surface hover:bg-surface-variant text-on-surface shadow-sm"
+              )}
+            >
+              {isEditing ? <Save className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <Edit2 className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
+              {isEditing ? t('orderDetails.save') : t('orderDetails.edit')}
             </Button>
           )}
-          <Button 
-            variant="ghost"
-            onClick={() => isEditing ? handleSaveEdit() : setIsEditing(true)}
-            className={cn(
-              "rounded-full font-medium h-12 px-6 transition-all border border-outline-variant",
-              isEditing ? "bg-surface-variant text-primary" : "bg-surface hover:bg-surface-variant text-on-surface shadow-sm"
-            )}
-          >
-            {isEditing ? <Save className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <Edit2 className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
-            {isEditing ? t('orderDetails.save') : t('orderDetails.edit')}
-          </Button>
-          {!isEditing && (
+          {order.status !== 'cancelled' && !isEditing && (
             <Button 
               variant="ghost"
               onClick={handleDeleteOrder}
@@ -320,7 +393,7 @@ export default function OrderDetails() {
               {t('orderDetails.delete')}
             </Button>
           )}
-          {isEditing && (
+          {order.status !== 'cancelled' && isEditing && (
             <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="rounded-full h-12 w-12 bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-on-surface-variant">
               <X className="h-6 w-6" />
             </Button>
@@ -329,6 +402,27 @@ export default function OrderDetails() {
       </div>
 
       <OrderTimeline currentStatus={order.status} statusHistory={order.statusHistory || {}} />
+
+      {order.status === 'cancelled' && (
+        <div className="bg-red-50 border border-red-100 rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+           <div>
+             <h3 className="text-red-800 font-bold text-lg mb-1 flex items-center gap-2">
+               <X className="h-5 w-5" /> Order Cancelled
+             </h3>
+             <p className="text-red-600 text-sm font-medium">
+               Reason: {order.cancellationReason}
+               {order.cancelledAt && ` • ${formatDate(order.cancelledAt)}`}
+             </p>
+           </div>
+           {order.refundGiven && (
+             <div className="bg-white/60 rounded-xl p-3 border border-red-100/50">
+                <span className="text-xs uppercase tracking-widest text-red-800 font-bold block mb-1">Refund Issued</span>
+                <span className="font-bold text-red-900">{settings.currency} {order.refundAmount}</span>
+                <span className="text-xs text-red-700 ml-2">via {order.refundMethod}</span>
+             </div>
+           )}
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
@@ -363,20 +457,12 @@ export default function OrderDetails() {
 
                 <div className="space-y-2">
                   <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.status')}</span>
-                  <div>
-                    <select 
-                      disabled={!isEditing}
-                      value={isEditing ? editData.status : order.status}
-                      onChange={(e) => setEditData({...editData, status: e.target.value})}
-                      className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[15px] font-semibold text-on-surface focus:outline-none focus:border-primary disabled:opacity-100 disabled:bg-surface disabled:border-transparent transition-all"
-                    >
-                      <option value={ORDER_STATUS.PENDING}>{t('orderDetails.pending')}</option>
-                      <option value={ORDER_STATUS.CUTTING}>{t('orders.cutting')}</option>
-                      <option value={ORDER_STATUS.STITCHING}>{t('orderDetails.stitching')}</option>
-                      <option value={ORDER_STATUS.QC}>{t('orders.qc')}</option>
-                      <option value={ORDER_STATUS.READY}>{t('orderDetails.ready')}</option>
-                      <option value={ORDER_STATUS.DELIVERED}>{t('orderDetails.delivered')}</option>
-                    </select>
+                  <div className="h-12 w-full rounded-2xl bg-surface border border-outline-variant px-4 text-[15px] font-semibold text-on-surface flex items-center">
+                    {order.status === ORDER_STATUS.PENDING ? t('orderDetails.pending') :
+                     order.status === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
+                     order.status === ORDER_STATUS.READY ? t('orderDetails.ready') :
+                     order.status === ORDER_STATUS.DELIVERED ? t('orderDetails.delivered') :
+                     order.status}
                   </div>
                 </div>
 
@@ -491,40 +577,7 @@ export default function OrderDetails() {
           )}
 
           {/* Measurements Card */}
-          <Card className="border border-outline-variant shadow-sm bg-surface rounded-3xl overflow-hidden">
-            <CardHeader className="bg-surface-container-lowest border-b border-outline-variant p-6 flex flex-row items-center justify-between">
-              <CardTitle className="text-[18px] font-semibold text-on-surface flex items-center gap-2">
-                <Ruler className="h-5 w-5 text-primary" />
-                {t('orderDetails.measurements')}
-              </CardTitle>
-              <Button
-                variant="ghost"
-                onClick={() => navigate(`/app/clients/${order.customerId}#measurements`)}
-                className="bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-primary rounded-full px-5 h-9 text-[13px] font-medium"
-              >
-                {t('orderDetails.edit')}
-              </Button>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="mb-6 p-4 bg-primary-container/50 rounded-2xl border border-primary/20 flex items-start gap-4">
-                <Ruler className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-[14px] font-semibold text-on-surface">Historical Snapshot</p>
-                  <p className="text-[13px] text-on-surface-variant mt-1.5 leading-relaxed">To update measurements, go to Customer Profile. The measurements shown below are a static record from when the order was placed.</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {order.measurements && Object.entries(order.measurements).map(([key, value]: [string, any]) => (
-                  <div key={key} className="bg-surface-container-highest border border-outline-variant shadow-sm p-4 rounded-2xl">
-                    <span className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant block mb-2">
-                      {getMeasurementName(key, isRTL)}
-                    </span>
-                    <span className="text-[20px] font-display font-semibold text-on-surface">{value}"</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <MeasurementsDisplay measurements={order.measurements} title={t('orderDetails.measurements')} editAction={() => navigate(`/app/clients/${order.customerId}#measurements`)} />
         </div>
 
         <div className="space-y-8">
@@ -564,6 +617,23 @@ export default function OrderDetails() {
                 >
                   Record Payment
                 </Button>
+              )}
+
+              {paymentsList.length > 0 && (
+                <div className="pt-6 border-t border-outline-variant space-y-3">
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">Payment History</span>
+                  <div className="space-y-2">
+                    {paymentsList.map(payment => (
+                      <div key={payment.id} className="flex justify-between items-center bg-surface-container-highest p-3 rounded-xl border border-outline-variant">
+                        <div>
+                          <span className="text-[13px] font-semibold text-on-surface block">{payment.method}</span>
+                          <span className="text-[11px] text-on-surface-variant font-medium">{formatDate(payment.date)}</span>
+                        </div>
+                        <span className="text-[14px] font-bold text-[#22C55E]">+{settings.currency} {payment.amount}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -614,13 +684,12 @@ export default function OrderDetails() {
                       "text-[10px] font-medium px-3 py-1.5 rounded-full uppercase tracking-widest",
                       order.status === ORDER_STATUS.DELIVERED ? "bg-secondary-container text-on-secondary-container" :
                       order.status === ORDER_STATUS.READY ? "bg-blue-100 text-blue-700" :
-                      (order.status === ORDER_STATUS.QC || order.status === ORDER_STATUS.CUTTING || order.status === ORDER_STATUS.STITCHING) ? "bg-orange-100 text-orange-700" :
+                      order.status === ORDER_STATUS.STITCHING ? "bg-orange-100 text-orange-700" :
+                      order.status === ORDER_STATUS.CANCELLED ? "bg-red-100 text-red-700" :
                       "bg-surface-container-high text-on-surface-variant"
                     )}>
                       {order.status === ORDER_STATUS.PENDING ? t('orderDetails.pending') :
-                       order.status === ORDER_STATUS.CUTTING ? t('orders.cutting') :
                        order.status === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
-                       order.status === ORDER_STATUS.QC ? t('orders.qc') :
                        order.status === ORDER_STATUS.READY ? t('orderDetails.ready') :
                        order.status === ORDER_STATUS.DELIVERED ? t('orderDetails.delivered') : order.status}
                     </span>
@@ -765,17 +834,14 @@ export default function OrderDetails() {
                   >
                     <option value="Cash">Cash</option>
                     <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="Credit Card">Credit Card</option>
-                    <option value="Mobile Money">Mobile Money</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest mb-2 block">Note (Optional)</label>
+                  <label className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest mb-2 block">Date</label>
                   <Input 
-                    type="text" 
-                    value={paymentForm.note}
-                    onChange={(e) => setPaymentForm({...paymentForm, note: e.target.value})}
-                    placeholder="e.g. Paid via Easypaisa"
+                    type="date" 
+                    value={paymentForm.date}
+                    onChange={(e) => setPaymentForm({...paymentForm, date: e.target.value})}
                     className="h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface focus:border-primary shadow-none"
                   />
                 </div>
@@ -786,6 +852,143 @@ export default function OrderDetails() {
                 >
                   Confirm Payment
                 </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {isCancellationModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-surface rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-lg relative border border-outline-variant overflow-y-auto max-h-[90vh]"
+            >
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsCancellationModalOpen(false)}
+                className="absolute right-4 top-4 rounded-full bg-surface-variant hover:bg-surface-container-highest text-on-surface-variant p-2"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+
+              <div className="flex flex-col items-center mb-6">
+                 <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                   <AlertCircle className="h-6 w-6 text-red-600" />
+                 </div>
+                 <h2 className="text-[24px] font-display font-semibold text-on-surface text-center">Cancel Order</h2>
+                 <p className="text-sm text-on-surface-variant text-center mt-2">Are you sure you want to cancel this order? This action cannot be undone.</p>
+              </div>
+              
+              <div className="space-y-5">
+                <div>
+                  <label className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest mb-2 block">Cancellation Reason</label>
+                  <select 
+                    value={cancellationForm.reason}
+                    onChange={(e) => setCancellationForm({...cancellationForm, reason: e.target.value})}
+                    className="w-full h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface px-4 focus:outline-none focus:border-red-500 transition-colors"
+                  >
+                    <option value="Customer Request">Customer Request</option>
+                    <option value="Fabric Issue">Fabric Issue</option>
+                    <option value="Payment Not Received">Payment Not Received</option>
+                    <option value="Tailor Unavailable">Tailor Unavailable</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                
+                {cancellationForm.reason === 'Other' && (
+                  <div>
+                    <label className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest mb-2 block">Specify Reason</label>
+                    <Input 
+                      type="text" 
+                      value={cancellationForm.customReason}
+                      onChange={(e) => setCancellationForm({...cancellationForm, customReason: e.target.value})}
+                      placeholder="Enter custom reason"
+                      className="h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface focus:border-red-500 shadow-none"
+                    />
+                  </div>
+                )}
+
+                {(order.advancePayment || paymentsList.length > 0) && (
+                   <div className="p-4 bg-red-50 border border-red-100 rounded-2xl space-y-4">
+                     <p className="text-xs font-semibold text-red-800 uppercase tracking-widest">Refund Details</p>
+                     <p className="text-sm text-red-600">This order has a total paid amount of {settings.currency} {totalPaid}.</p>
+                     
+                     <div className="flex items-center gap-3">
+                       <input 
+                         type="checkbox" 
+                         id="refundGiven"
+                         checked={cancellationForm.refundGiven}
+                         onChange={(e) => {
+                            setCancellationForm(prev => ({
+                                ...prev, 
+                                refundGiven: e.target.checked,
+                                refundAmount: e.target.checked ? totalPaid.toString() : ''
+                            }))
+                         }}
+                         className="w-4 h-4 text-red-600 rounded border-red-300 focus:ring-red-500"
+                       />
+                       <label htmlFor="refundGiven" className="text-sm font-semibold text-red-800">
+                         Was amount refunded?
+                       </label>
+                     </div>
+
+                     {cancellationForm.refundGiven && (
+                       <div className="space-y-4 pt-2">
+                         <div>
+                            <label className="text-[11px] font-medium text-red-700 uppercase tracking-widest mb-1 block">Refund Amount</label>
+                            <Input 
+                                type="number" 
+                                value={cancellationForm.refundAmount}
+                                onChange={(e) => setCancellationForm({...cancellationForm, refundAmount: e.target.value})}
+                                className="h-10 bg-white border-red-200 rounded-xl"
+                            />
+                         </div>
+                         <div className="grid grid-cols-2 gap-2">
+                             <div>
+                                <label className="text-[11px] font-medium text-red-700 uppercase tracking-widest mb-1 block">Method</label>
+                                <select 
+                                    value={cancellationForm.refundMethod}
+                                    onChange={(e) => setCancellationForm({...cancellationForm, refundMethod: e.target.value})}
+                                    className="w-full h-10 bg-white border border-red-200 rounded-xl px-3"
+                                >
+                                    <option value="Cash">Cash</option>
+                                    <option value="Bank">Bank</option>
+                                </select>
+                             </div>
+                             <div>
+                                <label className="text-[11px] font-medium text-red-700 uppercase tracking-widest mb-1 block">Date</label>
+                                <Input 
+                                    type="date" 
+                                    value={cancellationForm.refundDate}
+                                    onChange={(e) => setCancellationForm({...cancellationForm, refundDate: e.target.value})}
+                                    className="h-10 bg-white border-red-200 rounded-xl"
+                                />
+                             </div>
+                         </div>
+                       </div>
+                     )}
+                   </div>
+                )}
+
+                <div className="flex gap-3 mt-6 pt-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsCancellationModalOpen(false)}
+                    className="flex-1 rounded-full h-12 text-on-surface-variant font-semibold border-outline-variant"
+                  >
+                    Go Back
+                  </Button>
+                  <Button 
+                    onClick={handleCancelOrder}
+                    disabled={isCancelling}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium rounded-full h-12 shadow-sm transition-colors border-none"
+                  >
+                    {isCancelling ? <Loader2 className="h-5 w-5 animate-spin" /> : "Confirm Cancel"}
+                  </Button>
+                </div>
               </div>
             </motion.div>
           </div>

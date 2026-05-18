@@ -57,6 +57,11 @@ service cloud.firestore {
     match /orders/{docId} {
       allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      match /payments/{paymentId} {
+        allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      }
     }
 
     match /invoices/{docId} {

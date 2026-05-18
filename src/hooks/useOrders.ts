@@ -137,6 +137,11 @@ export function useOrders() {
            }
 
            await updateDoc(workerRef, updates);
+         } else if (isActive(previousStatus) && status === 'cancelled') {
+           // Decrease active, don't increase completed
+           await updateDoc(workerRef, {
+             activeOrders: increment(-1)
+           });
          } else if (isTerminal(previousStatus) && isActive(status)) {
            // Move back to active (rare)
            await updateDoc(workerRef, {
