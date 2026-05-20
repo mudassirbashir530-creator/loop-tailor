@@ -65,7 +65,11 @@ export default function Customers() {
 
   const handleAddCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !newCustomer.name || !newCustomer.phone) return;
+    if (!user) return;
+    if (!newCustomer.name.trim() || !newCustomer.phone.trim()) {
+      toast.error("Please enter both customer name and phone number");
+      return;
+    }
 
     try {
       await addDoc(collection(db, 'customers'), {

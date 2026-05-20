@@ -771,183 +771,184 @@ export default function Workers() {
 
       {/* Worker Details View */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-3xl rounded-3xl p-0 overflow-hidden outline-none">
+        <DialogContent className="max-w-[480px] w-[95vw] rounded-3xl p-0 overflow-hidden outline-none bg-background border border-border/80">
           {selectedWorker && (
-            <div className="flex flex-col h-full max-h-[90vh]">
-               {/* Hero Header */}
-               <div className="relative h-40 bg-gradient-to-r from-primary to-primary-foreground/20">
-                  <div className="absolute -bottom-12 left-8 flex items-end gap-6">
-                    <div className="relative">
-                      {selectedWorker.profileImage ? (
-                        <img 
-                          src={typeof selectedWorker.profileImage === 'string' ? selectedWorker.profileImage : selectedWorker.profileImage.url} 
-                          className="h-32 w-32 rounded-[2rem] object-cover border-4 border-card shadow-2xl bg-muted" 
-                          alt={selectedWorker.name} 
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <div className="h-32 w-32 rounded-[2rem] bg-card border-4 border-card shadow-2xl text-primary flex items-center justify-center font-black text-5xl">
-                          {selectedWorker.name.charAt(0).toUpperCase()}
+            <div className="flex flex-col max-h-[85vh] overflow-y-auto">
+               {/* Hero Header Custom */}
+               <div className="relative p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b border-border/40">
+                  <div className="flex items-center gap-4">
+                     {/* Avatar Left */}
+                     <div className="relative shrink-0">
+                       {selectedWorker.profileImage ? (
+                         <img 
+                           src={typeof selectedWorker.profileImage === 'string' ? selectedWorker.profileImage : selectedWorker.profileImage.url} 
+                           className="h-20 w-20 rounded-[1.25rem] object-cover border-2 border-background shadow-md bg-muted" 
+                           alt={selectedWorker.name} 
+                           referrerPolicy="no-referrer"
+                         />
+                       ) : (
+                         <div className="h-20 w-20 rounded-[1.25rem] bg-card border-2 border-background shadow-md text-primary flex items-center justify-center font-black text-3xl select-none">
+                           {selectedWorker.name.charAt(0).toUpperCase()}
+                         </div>
+                       )}
+                       <div className={cn(
+                         "absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-background shadow-sm",
+                         STATUS_OPTIONS.find(s => s.value === selectedWorker.status)?.color
+                       )} />
+                     </div>
+
+                     {/* Name & Role Right */}
+                     <div className="flex-1 min-w-0 pr-6">
+                        <h2 className="text-xl font-black text-foreground drop-shadow-sm leading-tight truncate">{selectedWorker.name}</h2>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                           <span className="bg-primary/15 text-primary px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider shrink-0">{selectedWorker.role}</span>
+                           {selectedWorker.speciality && (
+                             <span className="text-[11px] text-muted-foreground font-semibold truncate">
+                               • {selectedWorker.speciality}
+                             </span>
+                           )}
                         </div>
-                      )}
-                      <div className={cn(
-                        "absolute bottom-2 right-2 w-6 h-6 rounded-full border-4 border-card shadow-lg",
-                        STATUS_OPTIONS.find(s => s.value === selectedWorker.status)?.color
-                      )} />
-                    </div>
-                    <div className="mb-4">
-                       <h2 className="text-3xl font-black text-foreground drop-shadow-sm">{selectedWorker.name}</h2>
-                       <p className="text-muted-foreground font-semibold flex items-center gap-2 mt-1">
-                          <span className="bg-primary/10 text-primary px-3 py-0.5 rounded-full text-xs uppercase tracking-widest">{selectedWorker.role}</span>
-                          {selectedWorker.speciality && ` • ${selectedWorker.speciality}`}
-                       </p>
-                    </div>
+                     </div>
                   </div>
+
                   <Button 
-                    variant="secondary" 
-                    className="absolute top-4 right-4 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/40 border-none h-11 w-11 p-2 flex items-center justify-center"
+                    variant="ghost" 
+                    size="icon"
+                    className="absolute top-4 right-4 rounded-full bg-muted/40 hover:bg-muted/80 text-foreground h-8 w-8 p-0 border-none transition-colors"
                     onClick={() => setIsDetailsOpen(false)}
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4" />
                   </Button>
                </div>
 
                {/* Content */}
-               <div className="pt-16 px-8 pb-8 flex-1 overflow-y-auto mt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                     {/* Left Column - Contact & Status */}
-                     <div className="space-y-8">
-                        <div>
-                           <h4 className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-4">Contact Info</h4>
-                           <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                                    <Phone className="w-5 h-5 text-muted-foreground" />
-                                 </div>
-                                 <div>
-                                    <p className="text-xs text-muted-foreground">Mobile</p>
-                                    <p className="text-sm font-bold">{selectedWorker.phone}</p>
-                                 </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                                    <MessageSquare className="w-5 h-5 text-muted-foreground" />
-                                 </div>
-                                 <div className="flex-1">
-                                    <p className="text-xs text-muted-foreground">WhatsApp</p>
-                                    <p className="text-sm font-bold">{selectedWorker.whatsappPhone || selectedWorker.phone}</p>
-                                 </div>
-                                 <Button size="icon" variant="ghost" className="rounded-full text-green-600" onClick={() => openWhatsApp(selectedWorker.phone)}>
-                                    <TrendingUp className="w-4 h-4 rotate-45" />
-                                 </Button>
-                              </div>
-                              {selectedWorker.address && (
-                              <div className="flex items-center gap-3">
-                                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                                    <MapPin className="w-5 h-5 text-muted-foreground" />
-                                 </div>
-                                 <div>
-                                    <p className="text-xs text-muted-foreground">Address</p>
-                                    <p className="text-sm font-bold">{selectedWorker.address}</p>
-                                 </div>
-                              </div>
-                              )}
-                           </div>
-                        </div>
-
-                        <div>
-                           <h4 className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-4">Quick Status</h4>
-                           <div className="grid grid-cols-2 gap-2">
-                              {STATUS_OPTIONS.map(opt => (
-                                <button
-                                  key={opt.value}
-                                  onClick={() => handleQuickStatusChange(selectedWorker.id, opt.value)}
-                                  className={cn(
-                                    "px-3 py-2 rounded-xl text-xs font-bold transition-all border-2",
-                                    selectedWorker.status === opt.value 
-                                      ? "bg-primary/10 border-primary text-primary" 
-                                      : "bg-muted border-transparent text-muted-foreground hover:bg-muted/80"
-                                  )}
-                                >
-                                  {opt.label}
-                                </button>
-                              ))}
-                           </div>
-                        </div>
-
-                        <div>
-                           <h4 className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-4">Joining Info</h4>
-                           <div className="flex items-center gap-3">
-                                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                                    <Calendar className="w-5 h-5 text-muted-foreground" />
-                                 </div>
-                                 <div>
-                                    <p className="text-xs text-muted-foreground">Joined Store</p>
-                                    <p className="text-sm font-bold">{formatDate(selectedWorker.joiningDate)}</p>
-                                 </div>
-                           </div>
-                        </div>
+               <div className="p-6 space-y-6">
+                  {/* Stats Row */}
+                  <div className="grid grid-cols-3 gap-2 bg-muted/25 p-1 rounded-[1.25rem] border border-border/30">
+                     <div className="bg-background dark:bg-card/40 rounded-xl p-2.5 text-center flex flex-col justify-center min-w-0 shadow-sm border border-border/10">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight truncate">Active Load</p>
+                        <p className="text-lg font-black text-primary mt-0.5 leading-none truncate">{selectedWorker.activeOrders}</p>
+                        <p className="text-[9px] text-muted-foreground/80 tracking-normal uppercase font-semibold mt-1 truncate">Orders</p>
                      </div>
+                     <div className="bg-background dark:bg-card/40 rounded-xl p-2.5 text-center flex flex-col justify-center min-w-0 shadow-sm border border-border/10">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight truncate">Completed</p>
+                        <p className="text-lg font-black text-primary mt-0.5 leading-none truncate">{selectedWorker.completedOrders}</p>
+                        <p className="text-[9px] text-muted-foreground/80 tracking-normal uppercase font-semibold mt-1 truncate">Orders</p>
+                     </div>
+                     <div className="bg-background dark:bg-card/40 rounded-xl p-2.5 text-center flex flex-col justify-center min-w-0 shadow-sm border border-border/10">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight truncate">Earnings</p>
+                        <p className="text-lg font-black text-primary mt-0.5 leading-none truncate">{formatCurrency(selectedWorker.totalEarnings || 0)}</p>
+                        <p className="text-[9px] text-muted-foreground/80 tracking-normal uppercase font-semibold mt-1 truncate">To Date</p>
+                     </div>
+                  </div>
 
-                     {/* Middle / Right - Stats & Orders */}
-                     <div className="md:col-span-2 space-y-8">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                           <Card className="bg-primary/5 border-none">
-                              <CardContent className="p-4 text-center">
-                                 <p className="text-xs font-bold text-muted-foreground uppercase opacity-70">Active Load</p>
-                                 <p className="text-2xl font-black text-primary mt-1">{selectedWorker.activeOrders}</p>
-                                 <p className="text-[10px] text-muted-foreground mt-1 tracking-wider uppercase font-medium">Orders</p>
-                              </CardContent>
-                           </Card>
-                           <Card className="bg-primary/5 border-none">
-                              <CardContent className="p-4 text-center">
-                                 <p className="text-xs font-bold text-muted-foreground uppercase opacity-70">Total Completed</p>
-                                 <p className="text-2xl font-black text-primary mt-1">{selectedWorker.completedOrders}</p>
-                                 <p className="text-[10px] text-muted-foreground mt-1 tracking-wider uppercase font-medium">Orders</p>
-                              </CardContent>
-                           </Card>
-                           <Card className="bg-primary/5 border-none">
-                              <CardContent className="p-4 text-center">
-                                 <p className="text-xs font-bold text-muted-foreground uppercase opacity-70">Total Earnings</p>
-                                 <p className="text-2xl font-black text-primary mt-1">{formatCurrency(selectedWorker.totalEarnings || 0)}</p>
-                                 <p className="text-[10px] text-muted-foreground mt-1 tracking-wider uppercase font-medium">To Date</p>
-                              </CardContent>
-                           </Card>
-                        </div>
-
-                        <div className="bg-muted/30 rounded-3xl p-6">
-                           <div className="flex items-center justify-between mb-4">
-                              <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground">Salary Configuration</h4>
-                              <p className="text-xs font-bold px-2 py-1 bg-primary/10 text-primary rounded-md uppercase">{selectedWorker.salaryType.replace('_', ' ')}</p>
+                  {/* Contact Info List */}
+                  <div className="space-y-3">
+                     <h4 className="text-[11px] uppercase tracking-wider text-muted-foreground font-black">Contact Info</h4>
+                     <div className="space-y-2.5">
+                        <div className="flex items-center gap-3 bg-muted/30 p-2.5 rounded-2xl border border-border/20">
+                           <div className="w-8 h-8 rounded-xl bg-background flex items-center justify-center shrink-0 border border-border/50 shadow-sm">
+                              <Phone className="w-4 h-4 text-muted-foreground" />
                            </div>
-                           <div className="flex items-end gap-2">
-                              <p className="text-4xl font-black">{formatCurrency(selectedWorker.salaryAmount)}</p>
-                              <p className="text-muted-foreground font-bold mb-1 opacity-70">
-                                {selectedWorker.salaryType === 'monthly' ? '/ month' : '/ per order'}
-                              </p>
+                           <div className="min-w-0 flex-1">
+                              <p className="text-[9px] text-muted-foreground uppercase font-semibold">Mobile</p>
+                              <p className="text-sm font-bold text-foreground truncate">{selectedWorker.phone}</p>
                            </div>
                         </div>
-
-                        {selectedWorker.notes && (
-                        <div>
-                           <h4 className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2">Worker Notes</h4>
-                           <p className="text-sm text-foreground bg-muted/40 p-4 rounded-2xl border-l-4 border-primary italic">
-                             "{selectedWorker.notes}"
-                           </p>
+                        <div className="flex items-center gap-3 bg-muted/30 p-2.5 rounded-2xl border border-border/20">
+                           <div className="w-8 h-8 rounded-xl bg-background flex items-center justify-center shrink-0 border border-border/50 shadow-sm">
+                              <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                           </div>
+                           <div className="min-w-0 flex-1">
+                              <p className="text-[9px] text-muted-foreground uppercase font-semibold">WhatsApp</p>
+                              <p className="text-sm font-bold text-foreground truncate">{selectedWorker.whatsappPhone || selectedWorker.phone}</p>
+                           </div>
+                           <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full text-green-600 hover:bg-green-50 shrink-0 border border-border/20" onClick={() => openWhatsApp(selectedWorker.phone)}>
+                              <TrendingUp className="w-4 h-4 rotate-45" />
+                           </Button>
                         </div>
+                        {selectedWorker.address && (
+                           <div className="flex items-start gap-3 bg-muted/30 p-2.5 rounded-2xl border border-border/20">
+                              <div className="w-8 h-8 rounded-xl bg-background flex items-center justify-center shrink-0 border border-border/50 shadow-sm mt-0.5">
+                                 <MapPin className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                 <p className="text-[9px] text-muted-foreground uppercase font-semibold">Address</p>
+                                 <p className="text-xs font-bold text-foreground leading-snug break-words pr-1">{selectedWorker.address}</p>
+                              </div>
+                           </div>
                         )}
-
-                        <div className="pt-4 flex gap-3">
-                           <Button className="flex-1 rounded-2xl h-12 font-bold" onClick={() => openEditModal(selectedWorker)}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit Profile
-                           </Button>
-                           <Button variant="outline" className="flex-1 rounded-2xl h-12 font-bold" onClick={() => openWhatsApp(selectedWorker.phone)}>
-                              <MessageSquare className="w-4 h-4 mr-2 text-green-600" />
-                              Chat Worker
-                           </Button>
-                        </div>
                      </div>
+                  </div>
+
+                  {/* Status Grid */}
+                  <div className="space-y-3">
+                     <h4 className="text-[11px] uppercase tracking-wider text-muted-foreground font-black">Quick Status</h4>
+                     <div className="grid grid-cols-2 gap-2">
+                        {STATUS_OPTIONS.map(opt => (
+                          <button
+                            key={opt.value}
+                            onClick={() => handleQuickStatusChange(selectedWorker.id, opt.value)}
+                            className={cn(
+                              "px-3 py-2.5 rounded-xl text-xs font-semibold transition-all border-2 flex items-center justify-center gap-2",
+                              selectedWorker.status === opt.value 
+                                ? "bg-primary/10 border-primary text-primary shadow-sm" 
+                                : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted/80"
+                            )}
+                          >
+                            <span className={cn("w-2 h-2 rounded-full shrink-0", opt.color)} />
+                            <span className="truncate">{opt.label}</span>
+                          </button>
+                        ))}
+                     </div>
+                  </div>
+
+                  {/* Salary Card */}
+                  <div className="bg-primary/5 dark:bg-primary/10 border border-primary/10 rounded-2xl p-4 shadow-sm flex flex-col gap-1.5">
+                     <div className="flex items-center justify-between">
+                        <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Salary Configuration</h4>
+                        <p className="text-[10px] font-black px-2 py-0.5 bg-primary/15 text-primary rounded-md uppercase tracking-wider shrink-0">
+                          {selectedWorker.salaryType.replace('_', ' ')}
+                        </p>
+                     </div>
+                     <div className="flex items-baseline gap-1.5 mt-1">
+                        <p className="text-2xl font-black text-foreground">{formatCurrency(selectedWorker.salaryAmount)}</p>
+                        <p className="text-xs text-muted-foreground font-semibold opacity-85">
+                          {selectedWorker.salaryType === 'monthly' ? '/ month' : '/ per order'}
+                        </p>
+                     </div>
+                  </div>
+
+                  {/* Joining Details & Notes */}
+                  <div className="flex items-center gap-3 bg-muted/20 px-3 py-2.5 rounded-2xl border border-border/10">
+                     <div className="w-8 h-8 rounded-xl bg-background flex items-center justify-center shrink-0 border border-border/50">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                     </div>
+                     <div className="min-w-0 flex-1">
+                        <p className="text-[9px] text-muted-foreground uppercase font-semibold">Joined Store</p>
+                        <p className="text-xs font-bold text-foreground truncate">{formatDate(selectedWorker.joiningDate)}</p>
+                     </div>
+                  </div>
+
+                  {selectedWorker.notes && (
+                  <div className="space-y-1.5">
+                     <h4 className="text-[11px] uppercase tracking-wider text-muted-foreground font-black">Worker Notes</h4>
+                     <p className="text-xs text-foreground bg-muted/30 p-3.5 rounded-2xl border-l-4 border-primary/70 italic leading-relaxed break-words">
+                       "{selectedWorker.notes}"
+                     </p>
+                  </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-2 w-full">
+                     <Button className="flex-1 rounded-2xl h-11 font-bold shadow-sm" onClick={() => openEditModal(selectedWorker)}>
+                        <Edit className="w-4 h-4 mr-1.5" />
+                        Edit Profile
+                     </Button>
+                     <Button variant="outline" className="flex-1 rounded-2xl h-11 font-bold border-border bg-background hover:bg-muted/30" onClick={() => openWhatsApp(selectedWorker.phone)}>
+                        <MessageSquare className="w-4 h-4 mr-1.5 text-green-600" />
+                        Chat Worker
+                     </Button>
                   </div>
                </div>
             </div>

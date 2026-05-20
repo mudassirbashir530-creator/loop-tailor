@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, DollarSign, User, Loader2, Download, MessageCircle, Ruler, Image as ImageIcon, ExternalLink, Share2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
@@ -23,9 +23,16 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Orders() {
+  const location = useLocation();
   const [search, setSearch] = useState('');
   const { userData } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.state && (location.state as any).search) {
+      setSearch((location.state as any).search);
+    }
+  }, [location.state]);
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string, type: 'reference' | 'design' | 'invoice', index?: number } | null>(null);
@@ -328,7 +335,7 @@ export default function Orders() {
                           </button>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{order?.clothingType || 'Tailoring'} • #{order?.id?.slice(-6).toUpperCase() || '??????'}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{order?.clothingType || 'Tailoring'} • {order?.tokenId || `T-${order?.id?.slice(0, 6).toUpperCase()}`}</p>
                     </div>
                   </div>
                   <Badge variant={order?.status || 'pending'} className="capitalize shrink-0 ml-2">{order?.status || 'pending'}</Badge>

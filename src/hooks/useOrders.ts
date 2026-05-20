@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, addDoc, updateDoc, doc, getDoc, serverTimestamp, increment, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, setDoc, updateDoc, doc, getDoc, serverTimestamp, increment, orderBy } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Order, OrderStatus } from '../lib/types';
@@ -47,6 +47,7 @@ export function useOrders() {
             advancePayment: data.advancePayment || 0,
             remainingPayment: data.remainingPayment || 0,
             deliveryDate: data.deliveryDate || '',
+            tokenId: data.tokenId || `T-${doc.id.slice(0, 6).toUpperCase()}`,
             createdBy: data.createdBy || data.userId || '',
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
             updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
@@ -69,8 +70,12 @@ export function useOrders() {
   const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>) => {
     if (!user) return null;
     try {
-      const docRef = await addDoc(collection(db, 'orders'), {
+      const orderDocRef = doc(collection(db, 'orders'));
+      const tokenId = `T-${orderDocRef.id.slice(0, 6).toUpperCase()}`;
+      
+      await setDoc(orderDocRef, {
         ...orderData,
+        tokenId,
         userId: user.uid,
         createdBy: user.uid,
         createdAt: serverTimestamp(),
@@ -92,7 +97,7 @@ export function useOrders() {
       }
 
       toast.success("Order created successfully");
-      return docRef.id;
+      return orderDocRef.id;
     } catch (error) {
       toast.error("Failed to create order");
       handleFirestoreError(error, OperationType.CREATE, 'orders');

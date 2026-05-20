@@ -197,6 +197,14 @@ export default function CustomerDetails() {
   const handleUpdateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !id) return;
+    if (!editCustomerData.name.trim()) {
+      toast.error("Please enter a valid customer name");
+      return;
+    }
+    if (!editCustomerData.phone.trim()) {
+      toast.error("Please enter a valid phone number");
+      return;
+    }
     try {
       const cleanedPhone = cleanPhoneNumber(editCustomerData.phone, customer?.countryCode || '+92');
       const dataToSave = { ...editCustomerData, phone: cleanedPhone };
@@ -319,8 +327,8 @@ export default function CustomerDetails() {
              <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_12px_rgba(0,0,0,0.07)]">
                <h3 className="font-bold text-[#0F172A] mb-3">Edit Customer</h3>
                <form onSubmit={handleUpdateCustomer} className="space-y-3">
-                 <Input value={editCustomerData.name} onChange={e => setEditCustomerData({...editCustomerData, name: e.target.value})} placeholder="Name" className="bg-[#F1F5F9] border-none" />
-                 <Input value={editCustomerData.phone} onChange={e => setEditCustomerData({...editCustomerData, phone: e.target.value})} placeholder="Phone" className="bg-[#F1F5F9] border-none" />
+                 <Input required value={editCustomerData.name} onChange={e => setEditCustomerData({...editCustomerData, name: e.target.value})} placeholder="Name (Required)" className="bg-[#F1F5F9] border-none" />
+                 <Input required value={editCustomerData.phone} onChange={e => setEditCustomerData({...editCustomerData, phone: e.target.value})} placeholder="Phone (Required)" className="bg-[#F1F5F9] border-none" />
                  <Input value={editCustomerData.address} onChange={e => setEditCustomerData({...editCustomerData, address: e.target.value})} placeholder="Address" className="bg-[#F1F5F9] border-none" />
                  <div className="flex justify-end gap-2 pt-2">
                    <Button type="button" onClick={() => setIsEditingCustomer(false)} className="bg-transparent text-[#64748B] border border-[#E2E8F0] rounded-full px-5 py-2 h-auto text-[14px]">Cancel</Button>

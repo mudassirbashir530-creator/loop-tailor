@@ -2,12 +2,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Global Safety Net
+    // Global Safety Net (default-deny catch-all)
     match /{document=**} {
       allow read, write: if false;
     }
 
-    function isSignedIn() { return request.auth != null; }
+    // Helper functions
+    function isSignedIn() { 
+      return request.auth != null; 
+    }
     
     function isAdmin() { 
       return isSignedIn() && 
@@ -36,10 +39,39 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
       allow write: if isAdmin();
+      
+      // Support nested users/{userId}/orders/{orderId} as requested
+      match /orders/{orderId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+        
+        match /payments/{paymentId} {
+          allow read, write: if isSignedIn() && request.auth.uid == userId;
+        }
+      }
+      
+      // Support nested users/{userId}/clients or customers etc.
+      match /customers/{customerId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
+      match /clients/{clientId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
+      match /workers/{workerId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
+      match /payroll/{payrollId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
+      match /settings/{settingsId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
     }
 
     match /settings/{settingsId} {
-      allow read, write: if isSignedIn() && request.auth.uid == settingsId;
+      allow read, write: if isSignedIn() && (
+        request.auth.uid == settingsId ||
+        (resource != null && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid))
+      );
     }
 
     match /shops/{shopId} {
@@ -50,69 +82,96 @@ service cloud.firestore {
     }
 
     match /customers/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
+    }
+
+    // Direct alias for clients as requested in prompt
+    match /clients/{docId} {
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
 
     match /orders/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.storeId == request.auth.uid
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.userId == request.auth.uid || 
+        request.resource.data.storeId == request.auth.uid
+      );
       
+      // Structured subcollection read/write of payments under orders
       match /payments/{paymentId} {
-        allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow read, update, delete: if isSignedIn() && (
+          (resource != null && 'userId' in resource.data && resource.data.userId == request.auth.uid) ||
+          (resource != null && 'storeId' in resource.data && resource.data.storeId == request.auth.uid) ||
+          (exists(/databases/$(database)/documents/orders/$(docId)) && (
+            get(/databases/$(database)/documents/orders/$(docId)).data.userId == request.auth.uid ||
+            get(/databases/$(database)/documents/orders/$(docId)).data.storeId == request.auth.uid
+          ))
+        );
+        allow create: if isSignedIn() && (
+          (request.resource != null && 'userId' in request.resource.data && request.resource.data.userId == request.auth.uid) ||
+          (request.resource != null && 'storeId' in request.resource.data && request.resource.data.storeId == request.auth.uid) ||
+          (exists(/databases/$(database)/documents/orders/$(docId)) && (
+            get(/databases/$(database)/documents/orders/$(docId)).data.userId == request.auth.uid ||
+            get(/databases/$(database)/documents/orders/$(docId)).data.storeId == request.auth.uid
+          ))
+        );
       }
     }
 
     match /invoices/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
 
     match /workers/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
 
     match /staff/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
 
     match /measurementTemplates/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
 
     match /orderTemplates/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
 
     match /notifications/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
 
     match /measurements/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
 
+    // Direct standalone payments collection match
     match /payments/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
 
     match /payroll/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
 
     match /fcmTokens/{docId} {
-      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || request.resource.data.storeId == request.auth.uid);
     }
   }
 }
-

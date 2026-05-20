@@ -67,6 +67,7 @@ export interface Order {
   advancePayment: number;
   remainingPayment: number;
   deliveryDate: string;
+  tokenId?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

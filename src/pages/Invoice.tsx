@@ -6,7 +6,7 @@ import { useShop } from '../contexts/ShopContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Button } from '../components/ui/button';
-import { ArrowLeft, ArrowRight, Download, Share2, Edit2, FileText, Save, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Download, Share2, Edit2, FileText, Save, Image as ImageIcon, Ruler } from 'lucide-react';
 import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 import { format } from 'date-fns';
 import html2canvas from 'html2canvas';
@@ -64,8 +64,8 @@ export default function Invoice() {
           setShop(data);
           setEditData(prev => ({ 
             ...prev, 
-            shopName: data.name || '', 
-            invoiceFooter: data.invoiceFooter || '' 
+            shopName: data.name || 'Loop Tailor', 
+            invoiceFooter: data.invoiceFooter || 'Thank you for choosing Loop Tailor!' 
           }));
         }
       } catch (err) {
@@ -98,13 +98,21 @@ export default function Invoice() {
   useEffect(() => {
     if (!user || !order?.customerId) return;
     const unsubCustomer = onSnapshot(doc(db, 'customers', order.customerId), (custSnap) => {
-      if (custSnap.exists()) setCustomer(custSnap.data());
+      if (custSnap.exists()) {
+        setCustomer(custSnap.data());
+      }
     }, (error) => handleFirestoreError(error, OperationType.GET, `customers/${order.customerId}`));
 
     return () => unsubCustomer();
   }, [user, order?.customerId]);
 
-  if (!order || !shop || !customer) return <div className="flex h-screen items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div></div>;
+  if (!order || !shop || !customer) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#F8FAFC]">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-primary"></div>
+      </div>
+    );
+  }
 
   const totalPaid = paymentsList.reduce((sum: number, p: any) => sum + safeNum(p.amount), 0) + safeNum(order?.advancePayment);
   const calculatedBalanceDue = Math.max(0, safeNum(order?.price) - totalPaid);
@@ -113,30 +121,17 @@ export default function Invoice() {
   const generateCanvas = async () => {
     if (!invoiceRef.current) return null;
     try {
-      const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-      await wait(100);
-
-      // Remove external stylesheets to avoid CORS "cssRules" error
-      const stylesheets = Array.from(document.styleSheets);
-      const elementsToRemove: HTMLElement[] = [];
-      Array.from(document.querySelectorAll('link[rel="stylesheet"]')).forEach(link => {
-        if ((link as HTMLLinkElement).href.includes('fonts.googleapis.com')) {
-          elementsToRemove.push(link as HTMLElement);
-        }
-      });
-      elementsToRemove.forEach(el => el.parentNode?.removeChild(el));
+      // Small buffer delay to allow font & layouts to stabilize
+      await new Promise(resolve => setTimeout(resolve, 250));
 
       const canvas = await html2canvas(invoiceRef.current, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         foreignObjectRendering: false,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#FFFFFF',
         logging: false
       });
-
-      // Restore stylesheets
-      elementsToRemove.forEach(el => document.head.appendChild(el));
 
       return canvas;
     } catch (error) {
@@ -145,23 +140,13 @@ export default function Invoice() {
     }
   };
 
-  const generatePNGBlob = async (): Promise<Blob | null> => {
-    const canvas = await generateCanvas();
-    if (!canvas) return null;
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        resolve(blob);
-      }, 'image/png', 1.0);
-    });
-  };
-
   const handleDownloadPDF = async () => {
     setIsGenerating(true);
     try {
       const canvas = await generateCanvas();
-      if (!canvas) throw new Error("Failed to generate PDF");
+      if (!canvas) throw new Error("Failed to render invoice image");
       
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 1.0);
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'px',
@@ -170,10 +155,10 @@ export default function Invoice() {
       
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
       pdf.save(`Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.pdf`);
-      toast.success("PDF downloaded successfully");
+      toast.success("PDF invoice downloaded successfully");
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      toast.error("Failed to download PDF");
+      toast.error("Failed to save PDF. Try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -182,90 +167,104 @@ export default function Invoice() {
   const handleDownloadImage = async () => {
     setIsGenerating(true);
     try {
-      const blob = await generatePNGBlob();
-      if (!blob) throw new Error("Failed to generate image");
+      const canvas = await generateCanvas();
+      if (!canvas) throw new Error("Failed to render image");
       
-      const url = URL.createObjectURL(blob);
+      const imgUrl = canvas.toDataURL('image/png', 1.0);
       const a = document.createElement('a');
-      a.href = url;
+      a.href = imgUrl;
       a.download = `Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success("Image downloaded successfully");
+      toast.success("Invoice image saved successfully");
     } catch (error) {
       console.error('Error downloading Image:', error);
-      toast.error("Failed to download Image");
+      toast.error("Failed to save image");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const generatePDFBlob = async (): Promise<Blob | null> => {
+    const canvas = await generateCanvas();
+    if (!canvas) return null;
+    try {
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      return pdf.output('blob');
+    } catch (e) {
+      console.error("Error creating PDF blob", e);
+      return null;
     }
   };
 
   const handleShare = async () => {
     setIsSharing(true);
     try {
-      const blob = await generatePNGBlob();
-      if (!blob) throw new Error("Failed to generate image");
+      const pdfBlob = await generatePDFBlob();
+      if (!pdfBlob) throw new Error("Could not construct PDF artifact file");
       
-      const file = new File([blob], `Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
+      const filename = `Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.pdf`;
+      const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+      
       const shareData = {
-        title: `Invoice - ${editData.shopName || shop.name}`,
+        title: `Invoice - ${editData.shopName || shop.name || 'Loop Tailor'}`,
+        text: `Invoice #${order.tokenId || order.id.slice(-6).toUpperCase()} for ${customer?.name || 'Customer'}`,
         files: [file]
       };
 
       if (navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
+        toast.success("Native sharing sheets opened successfully");
       } else {
-        handleDownloadImage();
+        // Fallback to direct download
+        handleDownloadPDF();
       }
     } catch (error) {
       console.error('Error sharing invoice:', error);
-      toast.error(t('invoice.shareError') || 'Share failed');
+      toast.error('Share failed. Saved PDF to your device instead.');
+      handleDownloadPDF();
     } finally {
       setIsSharing(false);
     }
   };
 
-  const handleWhatsAppShare = async () => {
+  const handleWhatsAppShare = () => {
+    if (!customer?.phone || customer.phone.trim() === '') {
+      toast.error("Please add customer phone number first");
+      return;
+    }
+    
     setIsGenerating(true);
     try {
-      const blob = await generatePNGBlob();
-      if (!blob) throw new Error("Failed to generate image");
-      
-      const file = new File([blob], `Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.png`, { type: 'image/png' });
-      
-      const messageText = `السلام علیکم *${customer.name}* صاحب! 🎉\nآپ کا آرڈر تیار ہو گیا ہے۔\n📋 Token: #${order.tokenId || order.id.slice(-6).toUpperCase()}\n👗 Dress: ${order.dressType}\n💰 Total: PKR ${safeNum(order.price)}\n✅ Paid: PKR ${totalPaid}\n🔴 Balance: PKR ${displayBalanceDue}\nبراہ کرم جلد تشریف لائیں 🙏\n${editData.shopName || shop.name}`;
-      
-      const shareData = {
-        title: `Invoice - ${editData.shopName || shop.name}`,
-        text: messageText,
-        files: [file]
-      };
+      const dateFormatted = order?.deliveryDate ? format(toDate(order.deliveryDate), 'MMM dd, yyyy') : 'No delivery date set';
+      const statusLabel = (order.status || 'Pending').toUpperCase();
 
-      // Try native share first (mobile)
-      if (navigator.canShare && navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-      } else {
-        // Fallback for desktop: download image and open WA web
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Invoice_${order.tokenId || order.id.slice(-6).toUpperCase()}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        if (customer?.phone) {
-          openWhatsApp(customer.phone, messageText);
-        } else {
-          openWhatsApp('', messageText);
-        }
-      }
+      const messageText = `السلام علیکم *${customer.name}*!\n` +
+        `آرڈر کی تفصیلات اور ڈیجیٹل انوائس موصول کریں۔ ✨\n\n` +
+        `📋 آرڈر نمبر: *#${order.tokenId || order.id.slice(-6).toUpperCase()}*\n` +
+        `👗 لباس: *${order.clothingType || order.dressType || 'Suit'}*\n` +
+        `🗓️ واپسی کی تاریخ: *${dateFormatted}*\n` +
+        `상태 (اسٹیٹس): *${statusLabel}*\n\n` +
+        `💰 کل رقم: PKR ${safeNum(order.price).toLocaleString()}\n` +
+        `✅ کل ادائیگی: PKR ${totalPaid.toLocaleString()}\n` +
+        `🔴 واجب الادا رقم: PKR ${displayBalanceDue.toLocaleString()}\n\n` +
+        `اپنا بل آن لائن دیکھنے کے لیے اس لنک پر جائیں:\n` +
+        `${window.location.origin}/app/orders/${order.id}/invoice\n\n` +
+        `شکریہ!\n` +
+        `*${editData.shopName || shop.name || 'Loop Tailor'}*`;
+
+      openWhatsApp(customer.phone, messageText);
+      toast.success("WhatsApp sharing initiated successfully");
     } catch (error) {
       console.error('Error sharing to WhatsApp:', error);
-      toast.error(t('invoice.shareError') || 'Share failed');
+      toast.error('Could not initiate WhatsApp message.');
     } finally {
       setIsGenerating(false);
     }
@@ -273,183 +272,285 @@ export default function Invoice() {
 
   const renderInvoiceContent = (isCapture = false) => (
     <>
-      <div className={cn("flex flex-row justify-between items-start border-b border-slate-100 gap-4", isCapture ? "pb-8 mb-8" : "pb-5 mb-5")}>
+      {/* Brand Header */}
+      <div className={cn("flex flex-row justify-between items-start border-b border-slate-200/60 gap-4", isCapture ? "pb-8 mb-8" : "pb-5 mb-5")}>
         <div className="flex items-center gap-3">
-          {shop.logoUrl && <img src={shop.logoUrl} alt="Shop Logo" crossOrigin="anonymous" className={cn("object-contain rounded-xl bg-gray-100 shadow-neu-pressed-sm p-1", isCapture ? "h-20 w-20" : "h-10 w-10 sm:h-16 sm:w-16")} />}
+          {shop.logoUrl ? (
+            <img 
+              src={shop.logoUrl} 
+              alt="Shop Logo" 
+              crossOrigin="anonymous" 
+              className={cn("object-contain rounded-xl bg-gray-50 border border-slate-200 p-1", isCapture ? "h-20 w-20" : "h-11 w-11 sm:h-16 sm:w-16")} 
+            />
+          ) : (
+            <div className={cn("rounded-xl bg-indigo-600 font-black text-white flex items-center justify-center shadow-sm select-none", isCapture ? "h-16 w-16 text-3xl" : "h-11 w-11 text-lg sm:h-14 sm:w-14 sm:text-2xl")}>
+              LT
+            </div>
+          )}
           <div>
             {isEditing && !isCapture ? (
               <input 
                 type="text" 
                 value={editData.shopName} 
                 onChange={(e) => setEditData({...editData, shopName: e.target.value})}
-                className={cn("font-black text-slate-900 leading-tight tracking-tight bg-white border rounded px-2 w-full", isCapture ? "text-4xl" : "text-xl sm:text-3xl")}
+                className={cn("font-black text-slate-900 leading-tight tracking-tight bg-white border border-slate-300 rounded px-2 w-full", isCapture ? "text-3xl" : "text-base sm:text-2xl")}
               />
             ) : (
-              <h1 className={cn("font-black text-slate-900 leading-tight tracking-tight", isCapture ? "text-4xl" : "text-xl sm:text-3xl")}>{editData.shopName || shop.name}</h1>
+              <h1 className={cn("font-black text-slate-900 leading-tight tracking-tight", isCapture ? "text-3xl" : "text-base sm:text-2xl")}>
+                {editData.shopName || shop.name || 'Loop Tailor'}
+              </h1>
             )}
-            <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg mt-1" : "text-xs sm:text-base")}>{shop.phone}</p>
+            <p className={cn("text-slate-500 font-bold", isCapture ? "text-base mt-0.5" : "text-xs sm:text-sm")}>{shop.phone || 'Store'}</p>
           </div>
         </div>
-        <div className={cn(isRTL ? "text-left" : "text-right")}>
-          <h2 className={cn("font-black text-brand-primary tracking-tighter uppercase", isCapture ? "text-3xl" : "text-base sm:text-2xl")}>{t('invoice.invoice') || 'INVOICE'}</h2>
-          <p className={cn("font-bold text-slate-400 mt-1", isCapture ? "text-lg" : "text-xs sm:text-base")}>#{order.tokenId || order.id.slice(-6).toUpperCase()}</p>
-        </div>
-      </div>
 
-      <div className={cn("grid grid-cols-2 gap-4", isCapture ? "mb-10" : "mb-6 sm:mb-8")}>
-        <div className="space-y-1">
-          <h3 className={cn("font-black text-slate-400 uppercase tracking-widest", isCapture ? "text-sm" : "text-xs sm:text-sm")}>{t('invoice.billTo') || 'BILL TO'}</h3>
-          <p className={cn("font-bold text-slate-900 leading-tight", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{customer?.name || 'Customer'}</p>
-          <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base truncate max-w-[140px] sm:max-w-none")}>{customer?.phone || 'No phone'}</p>
-        </div>
-        <div className={cn("space-y-1", isRTL ? "text-left" : "text-right")}>
-          <h3 className={cn("font-black text-slate-400 uppercase tracking-widest", isCapture ? "text-sm" : "text-xs sm:text-sm")}>{t('invoice.delivery') || 'DOCUMENT DATE'}</h3>
-          <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>
-            {order?.deliveryDate ? format(toDate(order.deliveryDate), 'MMM dd, yyyy') : 'No Date'}
+        <div className="text-right">
+          <h2 className={cn("font-black text-indigo-600 tracking-tighter uppercase", isCapture ? "text-2xl" : "text-sm sm:text-xl")}>
+            {t('invoice.invoice') || 'INVOICE'}
+          </h2>
+          <p className={cn("font-black text-slate-400 mt-0.5", isCapture ? "text-base" : "text-xs sm:text-sm")}>
+            #{order.tokenId || order.id.slice(-6).toUpperCase()}
           </p>
-          <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base")}>Issued: {format(new Date(), 'MMM dd, yyyy')}</p>
-        </div>
-      </div>
-
-      <div className={cn("border-y border-gray-200/50 py-2", isCapture ? "mb-10" : "mb-6 sm:mb-8")}>
-        <div className={cn("flex justify-between items-center py-2 font-black text-slate-400 uppercase tracking-widest px-1", isCapture ? "text-sm" : "text-xs sm:text-sm")}>
-          <span>{t('invoice.description') || 'DESCRIPTION'}</span>
-          <span>{t('invoice.amount') || 'AMOUNT'}</span>
-        </div>
-        <div className="flex justify-between items-center py-3 px-1">
-          <div>
-            <p className={cn("font-bold text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{order?.clothingType || order?.dressType || 'Tailoring'}</p>
-            <p className={cn("text-slate-500 font-medium", isCapture ? "text-lg" : "text-xs sm:text-base")}>{t('invoice.customTailoring') || 'Custom Tailoring'}</p>
+          {/* Status Badge */}
+          <div className="mt-1.5 flex justify-end">
+            <span className={cn(
+              "text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full inline-block",
+              order.status === 'delivered' ? "bg-emerald-100 text-emerald-800" :
+              order.status === 'ready' ? "bg-indigo-100 text-indigo-800" :
+              order.status === 'stitching' ? "bg-amber-100 text-amber-800" :
+              "bg-slate-100 text-slate-800"
+            )}>
+              {order.status || 'Pending'}
+            </span>
           </div>
-          <p className={cn("font-black text-slate-900", isCapture ? "text-xl" : "text-sm sm:text-lg")}>{settings?.currency} {safeNum(order?.price).toLocaleString()}</p>
         </div>
       </div>
 
+      {/* Bill To & Dates */}
+      <div className={cn("grid grid-cols-2 gap-4 border-b border-dashed border-slate-200/80 pb-6", isCapture ? "mb-8 text-base" : "mb-5 text-[13px] sm:text-[15px]")}>
+        <div className="space-y-1 pr-2">
+          <h3 className="font-extrabold text-slate-400 uppercase tracking-widest text-[10px] sm:text-xs">
+            {t('invoice.billTo') || 'BILL TO'}
+          </h3>
+          <p className="font-black text-slate-900 leading-snug">{customer?.name || 'Customer'}</p>
+          <p className="text-slate-500 font-bold tracking-tight">
+            {customer?.phone || 'No phone number'}
+          </p>
+        </div>
+        <div className="space-y-1 text-right pl-2">
+          <h3 className="font-extrabold text-slate-400 uppercase tracking-widest text-[10px] sm:text-xs">
+            {t('invoice.delivery') || 'DUE DATE'}
+          </h3>
+          <p className="font-black text-slate-900">
+            {order?.deliveryDate ? format(toDate(order.deliveryDate), 'MMM dd, yyyy') : 'No Due Date'}
+          </p>
+          <p className="text-slate-500 font-semibold text-[11px] sm:text-xs">
+            Issued: {format(new Date(), 'MMM dd, yyyy')}
+          </p>
+        </div>
+      </div>
+
+      {/* Order Item Description */}
+      <div className={cn("border-b border-slate-200/80 pb-6", isCapture ? "mb-8 text-base" : "mb-5 text-[13px] sm:text-[15px]")}>
+        <div className="flex justify-between items-center py-1.5 font-extrabold text-slate-400 uppercase tracking-widest text-[10px] sm:text-xs">
+          <span>{t('invoice.description') || 'ITEM DESCRIPTION'}</span>
+          <span className="text-right">{t('invoice.amount') || 'TOTAL AMOUNT'}</span>
+        </div>
+        
+        <div className="flex justify-between items-start py-2.5">
+          <div className="flex-1">
+            <p className="font-black text-slate-900 text-base sm:text-lg">
+              {order?.clothingType || order?.dressType || 'Custom Suit'}
+            </p>
+            <p className="text-slate-500 font-bold block text-xs sm:text-sm">
+              Custom Tailored Garment
+            </p>
+          </div>
+          <p className="font-semibold text-slate-900 text-base sm:text-lg shrink-0">
+            {settings?.currency || 'PKR'} {safeNum(order?.price).toLocaleString()}
+          </p>
+        </div>
+
+        {/* Display Item Measurements Inline */}
+        {order?.measurements && Object.keys(order.measurements).length > 0 && (
+          <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200/60">
+            <div className="flex items-center gap-1.5 mb-3 text-slate-500 font-bold text-xs">
+              <Ruler className="h-3.5 w-3.5" />
+              <span>GARMENT MEASUREMENTS ({order?.clothingType || order?.dressType || 'Suit'})</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5">
+              {Object.entries(order.measurements as Record<string, any>).map(([key, value]) => {
+                if (value === undefined || value === null || value === '') return null;
+                const formattedLabel = key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').trim();
+                return (
+                  <div key={key} className="flex justify-between items-center text-[11px] sm:text-xs bg-white rounded-lg px-2.5 py-1.5 border border-slate-100 shadow-sm">
+                    <span className="text-slate-400 font-semibold truncate capitalize mr-1">{formattedLabel}:</span>
+                    <span className="text-slate-900 font-bold shrink-0">{String(value)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Payment History Log */}
       {((paymentsList && paymentsList.length > 0) || safeNum(order.advancePayment) > 0) && (
-        <div className={cn("mb-6 sm:mb-8", isCapture ? "mx-1" : "")}>
-          <h3 className={cn("font-black text-slate-400 uppercase tracking-widest px-1 mb-2", isCapture ? "text-sm" : "text-xs sm:text-sm")}>Payment History</h3>
-          <div className="bg-gray-100 shadow-neu-pressed-sm rounded-2xl border-none p-4 divide-y divide-gray-200/50">
+        <div className={cn("pb-6 border-b border-slate-200/80", isCapture ? "mb-8" : "mb-5")}>
+          <h3 className="font-extrabold text-slate-400 uppercase tracking-widest text-[10px] sm:text-xs mb-3">
+            PAYMENT HISTORY
+          </h3>
+          <div className="bg-slate-50 rounded-2xl p-4 space-y-2.5 border border-slate-200/60">
             {safeNum(order.advancePayment) > 0 && (
-              <div className="py-2 flex justify-between items-center text-sm font-bold text-slate-700">
+              <div className="flex justify-between items-center text-xs font-bold text-slate-700">
                 <div className="flex flex-col">
-                  <span>{format(toDate(order.createdAt), 'MMM dd, yyyy')}</span>
-                  <span className="text-xs text-slate-500 font-medium">Initial Advance</span>
+                  <span className="text-slate-600">Initial Advance Paid</span>
+                  <span className="text-[10px] text-slate-400 font-semibold">{format(toDate(order.createdAt), 'MMM dd, yyyy')}</span>
                 </div>
-                <span className="text-emerald-600">+{settings.currency} {safeNum(order.advancePayment).toLocaleString()}</span>
+                <span className="text-emerald-600">-{settings.currency} {safeNum(order.advancePayment).toLocaleString()}</span>
               </div>
             )}
-            {(paymentsList || []).map((payment: any) => (
-              <div key={payment.id} className="py-2 flex justify-between items-center text-sm font-bold text-slate-700">
+            {paymentsList.map((payment: any) => (
+              <div key={payment.id} className="flex justify-between items-center text-xs font-bold text-slate-700 pt-2 border-t border-slate-200/40">
                 <div className="flex flex-col">
-                  <span>{format(toDate(payment.date), 'MMM dd, yyyy')}</span>
-                  <span className="text-xs text-slate-500 font-medium">{payment.method} {payment.note && `- ${payment.note}`}</span>
+                  <span className="text-slate-600">Payment ({payment.method || 'Cash'}) {payment.note && `(${payment.note})`}</span>
+                  <span className="text-[10px] text-slate-400 font-semibold">{format(toDate(payment.date), 'MMM dd, yyyy')}</span>
                 </div>
-                <span className="text-emerald-600">+{settings.currency} {safeNum(payment.amount).toLocaleString()}</span>
+                <span className="text-emerald-600">-{settings.currency} {safeNum(payment.amount).toLocaleString()}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div className={cn("flex", isCapture ? "mb-12" : "mb-6 sm:mb-10", isRTL ? "justify-start" : "justify-end")}>
-        <div className={cn("space-y-3 bg-gray-100 shadow-neu-pressed-sm rounded-2xl border-none", isCapture ? "w-96 p-6" : "w-full sm:w-72 p-4")}>
-          <div className={cn("flex justify-between font-bold text-slate-500", isCapture ? "text-base" : "text-xs sm:text-sm")}>
-            <span>{t('invoice.subtotal') || 'Subtotal'}</span>
+      {/* Balance Summary */}
+      <div className={cn("flex pb-8 border-b border-slate-200/60", isCapture ? "mb-10" : "mb-6", isRTL ? "justify-start" : "justify-end")}>
+        <div className={cn("space-y-2.5 bg-slate-50 rounded-2xl border border-slate-200/60 shadow-sm", isCapture ? "w-96 p-6" : "w-full sm:w-72 p-4")}>
+          <div className="flex justify-between font-bold text-slate-500 text-xs sm:text-sm">
+            <span>{t('invoice.subtotal') || 'Total Charges'}</span>
             <span>{settings.currency} {safeNum(order.price).toLocaleString()}</span>
           </div>
-          <div className={cn("flex justify-between font-bold text-emerald-600", isCapture ? "text-base" : "text-xs sm:text-sm")}>
-            <span>Total Paid</span>
+          <div className="flex justify-between font-bold text-emerald-600 text-xs sm:text-sm">
+            <span>Total Payments Received</span>
             <span>-{settings.currency} {totalPaid.toLocaleString()}</span>
           </div>
-          <div className={cn("flex justify-between items-center font-black text-slate-900 pt-3 border-t border-slate-200", isCapture ? "text-2xl" : "text-base sm:text-xl")}>
-            <span>{t('invoice.balanceDue') || 'Balance Due'}</span>
+          <div className="flex justify-between items-center font-black text-slate-900 pt-2.5 border-t border-slate-200">
+            <span className="text-sm sm:text-base">{t('invoice.balanceDue') || 'Balance Due'}</span>
             {isEditing && !isCapture ? (
               <div className="flex items-center gap-1">
-                <span className="text-sm font-medium">{settings.currency}</span>
+                <span className="text-xs font-bold text-slate-500">{settings.currency}</span>
                 <input 
                   type="number" 
                   value={editData.balanceDueOverride} 
                   onChange={(e) => setEditData({...editData, balanceDueOverride: e.target.value})}
                   placeholder={calculatedBalanceDue.toString()}
-                  className="w-20 text-right bg-white border rounded px-2"
+                  className="w-20 text-right bg-white border border-slate-300 rounded px-1.5 py-0.5 text-sm"
                 />
               </div>
             ) : (
-              <span className="text-brand-primary">{settings.currency} {displayBalanceDue.toLocaleString()}</span>
+              <span className="text-indigo-600 text-base sm:text-lg font-black">
+                {settings.currency} {displayBalanceDue.toLocaleString()}
+              </span>
             )}
           </div>
         </div>
       </div>
 
-      <div className="text-center space-y-2 pt-8 border-t border-slate-100">
-        <p className={cn("font-bold text-slate-400 uppercase tracking-widest", isCapture ? "text-base" : "text-xs sm:text-sm")}>{t('invoice.thankYou') || 'THANK YOU!'}</p>
+      {/* Footer thank you with address */}
+      <div className="text-center space-y-2">
+        <p className="font-extrabold text-slate-400 uppercase tracking-widest text-[11px] sm:text-xs">
+          {t('invoice.thankYou') || 'THANK YOU FOR YOUR TRUST!'}
+        </p>
         {isEditing && !isCapture ? (
           <textarea 
             value={editData.invoiceFooter} 
             onChange={(e) => setEditData({...editData, invoiceFooter: e.target.value})}
-            className={cn("font-medium text-slate-500 italic bg-white border rounded px-2 py-1 w-full text-center resize-none", isCapture ? "text-lg h-24" : "text-sm sm:text-base h-16")}
+            className="font-medium text-slate-500 italic bg-white border border-slate-300 rounded p-2 w-full text-center resize-none text-xs sm:text-sm h-16 shadow-inner"
           />
         ) : (
-          <p className={cn("font-medium text-slate-500 italic", isCapture ? "text-lg" : "text-sm sm:text-base")}>
-            "{editData.invoiceFooter || shop.invoiceFooter || 'We appreciate your business'}"
+          <p className="font-bold text-slate-500 italic text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+            "{editData.invoiceFooter}"
           </p>
         )}
-        <div className={cn("pt-4 flex justify-center gap-4 text-slate-300 font-medium", isCapture ? "text-sm" : "text-xs")}>
-          <span>{shop.address}</span>
+        <div className="pt-2 text-slate-400 font-bold text-[10px] sm:text-xs">
+          <span>{shop.address || 'Loop Tailor Specialist Design Store'}</span>
         </div>
       </div>
     </>
   );
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 px-4 sm:px-0 pb-10">
+    <div className="max-w-3xl mx-auto space-y-6 px-4 sm:px-0 pb-16 pt-4 bg-[#F8FAFC]">
+      {/* Action panel */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
-        <Button variant="ghost" onClick={() => navigate('/app/orders')} className="h-10 text-slate-500 hover:text-slate-900 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none rounded-xl">
-          {isRTL ? <ArrowRight className="h-4 w-4 ml-2" /> : <ArrowLeft className="h-4 w-4 mr-2" />} Back to Orders
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/app/orders')} 
+          className="h-10 text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 font-bold shadow-sm"
+        >
+          {isRTL ? <ArrowRight className="h-4 w-4 ml-1.5" /> : <ArrowLeft className="h-4 w-4 mr-1.5" />} 
+          Back to Orders
         </Button>
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
           {isEditing ? (
-            <Button variant="ghost" onClick={() => setIsEditing(false)} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-pressed text-brand-primary border-none font-bold">
-              <Save className="h-4 w-4 mr-2" /> Save Edit
+            <Button 
+              variant="default" 
+              onClick={() => setIsEditing(false)} 
+              className="rounded-xl h-10 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow"
+            >
+              <Save className="h-4 w-4 mr-1.5" /> Save Edits
             </Button>
           ) : (
-            <Button variant="ghost" onClick={() => setIsEditing(true)} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-bold text-slate-700">
-              <Edit2 className="h-4 w-4 mr-2" /> Edit Invoice
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEditing(true)} 
+              className="rounded-xl h-10 px-4 bg-white hover:bg-slate-50 text-slate-700 border-slate-200 font-bold shadow-sm"
+            >
+              <Edit2 className="h-4 w-4 mr-1.5" /> Edit
             </Button>
           )}
           
-          <Button variant="ghost" onClick={handleWhatsAppShare} disabled={isGenerating} className="rounded-xl h-10 px-4 bg-[#25D366] text-white hover:bg-[#128C7E] shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-black flex-1 sm:flex-none">
-            <WhatsAppIcon className="h-4 w-4 mr-2" /> {isGenerating ? 'Wait...' : 'WhatsApp'}
+          <Button 
+            onClick={handleWhatsAppShare} 
+            disabled={isGenerating} 
+            className="rounded-xl h-10 px-4 bg-[#25D366] text-white hover:bg-[#20BE59] font-black shadow-sm"
+          >
+            <WhatsAppIcon className="h-4 w-4 mr-1.5 fill-current" /> {isGenerating ? 'Wait...' : 'WhatsApp'}
           </Button>
           
-          <Button variant="ghost" onClick={handleShare} disabled={isSharing} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-bold text-slate-700">
-            <Share2 className="h-4 w-4 mr-2" /> {isSharing ? '...' : 'Share'}
+          <Button 
+            onClick={handleShare} 
+            disabled={isSharing} 
+            className="rounded-xl h-10 px-4 bg-white hover:bg-slate-50 text-slate-700 border-slate-200 font-bold shadow-sm"
+          >
+            <Share2 className="h-4 w-4 mr-1.5" /> {isSharing ? 'Sharing...' : 'Share'}
           </Button>
           
-          <Button variant="ghost" onClick={handleDownloadPDF} disabled={isGenerating} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-bold text-slate-700">
-            <FileText className="h-4 w-4 mr-2" /> PDF
+          <Button 
+            onClick={handleDownloadPDF} 
+            disabled={isGenerating} 
+            className="rounded-xl h-10 px-4 bg-white hover:bg-slate-50 text-indigo-600 border-slate-200 font-bold shadow-sm"
+          >
+            <FileText className="h-4 w-4 mr-1.5" /> Save PDF
           </Button>
 
-          <Button variant="ghost" onClick={handleDownloadImage} disabled={isGenerating} className="rounded-xl h-10 px-4 bg-gray-100 shadow-neu-sm hover:shadow-neu-pressed-sm border-none font-bold text-slate-700">
-            <ImageIcon className="h-4 w-4 mr-2" /> Save PNG
+          <Button 
+            onClick={handleDownloadImage} 
+            disabled={isGenerating} 
+            className="rounded-xl h-10 px-4 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 font-bold shadow-sm"
+          >
+            <ImageIcon className="h-4 w-4 mr-1.5" /> PNG Image
           </Button>
         </div>
       </div>
 
-      <div className={cn("bg-gray-100 p-6 sm:p-10 rounded-[2.5rem] shadow-neu border-none print:shadow-none print:border-none print:p-0 overflow-hidden", isRTL && "text-[1.2rem]")} dir={isRTL ? "rtl" : "ltr"}>
+      {/* Rendered Invoice Section */}
+      <div 
+        ref={invoiceRef}
+        className={cn("bg-white p-6 sm:p-12 rounded-3xl shadow-sm border border-slate-100 print:border-none print:shadow-none print:p-0 overflow-hidden", isRTL && "text-[1.1rem]")} 
+        dir={isRTL ? "rtl" : "ltr"}
+      >
         {renderInvoiceContent(false)}
-      </div>
-
-      {/* Off-screen high-quality invoice for html2canvas */}
-      <div style={{ position: 'absolute', left: '-9999px', top: '0', zIndex: -100 }} aria-hidden="true">
-        <div 
-          ref={invoiceRef} 
-          className={cn(isRTL && "text-[1.2rem]")}
-          style={{ backgroundColor: '#F3F4F6', padding: '64px', width: '800px', borderRadius: '40px', fontFamily: "'Segoe UI', Arial, sans-serif" }}
-          dir={isRTL ? "rtl" : "ltr"}
-        >
-          {renderInvoiceContent(true)}
-        </div>
       </div>
     </div>
   );

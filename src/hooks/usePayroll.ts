@@ -3,8 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { collection, onSnapshot, query, where, doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
-export interface StaffPayment {
-  staffId: string;
+export interface WorkerPayment {
+  workerId: string;
   amountPaid: number;
   paymentDate: string;
 }
@@ -13,7 +13,7 @@ export interface PayrollRecord {
   id: string;
   month: string; // Format: YYYY-MM
   status: 'open' | 'closed';
-  payments: StaffPayment[];
+  payments: WorkerPayment[];
   userId: string;
   createdAt?: any;
   updatedAt?: any;
@@ -49,7 +49,7 @@ export function usePayroll(month: string) {
     return () => unsubscribe();
   }, [user, month]);
 
-  const initOrUpdatePayroll = async (payments: StaffPayment[], status: 'open' | 'closed' = 'open') => {
+  const initOrUpdatePayroll = async (payments: WorkerPayment[], status: 'open' | 'closed' = 'open') => {
     if (!user) return;
     try {
       if (payroll) {

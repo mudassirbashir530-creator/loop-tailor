@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { MeasurementsDisplay } from '../components/MeasurementsDisplay';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
-import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage } from '../lib/whatsapp';
+import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage, sendOrderConfirmationMessage } from '../lib/whatsapp';
 import { createNotification, sendWhatsappNotification } from '../lib/notifications';
 import { useWorkers } from '../hooks/useWorkers';
 import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
@@ -332,8 +332,9 @@ export default function OrderDetails() {
           </Button>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[12px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.token')}</span>
-              <span className="text-[24px] font-display font-semibold tracking-tight text-primary">#{order.tokenId}</span>
+              <span className="text-[24px] md:text-[28px] font-extrabold tracking-tight text-primary">
+                TOKEN #{order.tokenId || `T-${order.id.slice(0, 6).toUpperCase()}`}
+              </span>
               {order.deliveryType === 'Home Delivery' ? (
                 <span className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-widest text-[#22C55E] bg-green-100 px-2.5 py-1 rounded-full"><Home className="w-3.5 h-3.5"/> Home Delivery</span>
               ) : order.deliveryType === 'Self Pickup' ? (
@@ -733,6 +734,22 @@ export default function OrderDetails() {
                 </div>
               ) : (
                 <>
+                  <Button 
+                    onClick={() => sendOrderConfirmationMessage(
+                      order.customerName, 
+                      order.dressType || 'Suit', 
+                      order.tokenId || order.id.slice(-6).toUpperCase(), 
+                      Number(order.price || 0).toString(), 
+                      (Number(order.advancePayment || 0) + (paymentsList || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0)).toString(), 
+                      balanceDue.toString(), 
+                      settings?.name || 'Loop Tailor', 
+                      order.phone, 
+                      settings?.messageTemplates
+                    )}
+                    className="w-full bg-[#128C7E] hover:bg-[#0c6b60] text-white font-medium rounded-full h-12 shadow-sm border-none flex justify-center items-center gap-2"
+                  >
+                    <WhatsAppIcon className="h-4 w-4 fill-current" /> Order Confirmation
+                  </Button>
                   <Button 
                     onClick={() => sendOrderReadyMessage(order.customerName, order.dressType || 'Suit', order.tokenId, settings?.name || 'Loop Tailor', order.phone, settings?.messageTemplates)}
                     className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-medium rounded-full h-12 shadow-sm border-none flex justify-center items-center gap-2"
