@@ -14,6 +14,7 @@ import { jsPDF } from 'jspdf';
 import { cn } from '../lib/utils';
 import { openWhatsApp } from '../lib/whatsapp';
 import { toast } from 'sonner';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
 
 const toDate = (val: any) => {
   if (!val) return new Date();
@@ -27,6 +28,7 @@ const safeNum = (val: any) => Number(val) || 0;
 export default function Invoice() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { canDownloadInvoice } = useFeatureAccess();
   const { t, isRTL } = useLanguage();
   const { settings } = useShop();
   const navigate = useNavigate();
@@ -141,6 +143,10 @@ export default function Invoice() {
   };
 
   const handleDownloadPDF = async () => {
+    if (!canDownloadInvoice) {
+      toast.error("Invoice downloading is only available on Standard or Premium plans. Upgrade to unblock.");
+      return;
+    }
     setIsGenerating(true);
     try {
       const canvas = await generateCanvas();
@@ -165,6 +171,10 @@ export default function Invoice() {
   };
 
   const handleDownloadImage = async () => {
+    if (!canDownloadInvoice) {
+      toast.error("Invoice downloading is only available on Standard or Premium plans. Upgrade to unblock.");
+      return;
+    }
     setIsGenerating(true);
     try {
       const canvas = await generateCanvas();
@@ -547,11 +557,69 @@ export default function Invoice() {
       {/* Rendered Invoice Section */}
       <div 
         ref={invoiceRef}
-        className={cn("bg-white p-6 sm:p-12 rounded-3xl shadow-sm border border-slate-100 print:border-none print:shadow-none print:p-0 overflow-hidden", isRTL && "text-[1.1rem]")} 
+        className={cn("bg-white p-6 sm:p-12 rounded-3xl shadow-sm border border-slate-100 print:border-none print:shadow-none print:p-0 overflow-hidden", isRTL && "text-[1.1rem]", !canDownloadInvoice ? "relative" : "")} 
         dir={isRTL ? "rtl" : "ltr"}
       >
         {renderInvoiceContent(false)}
+
+        {/* Watermark overlay on screen */}
+        {!canDownloadInvoice && (
+          <div className="absolute inset-0 bg-white/45 backdrop-blur-[1px] flex items-center justify-center pointer-events-auto z-10 select-none print:hidden">
+            <div className="bg-white/95 border-2 border-amber-300 p-6 rounded-2xl shadow-xl max-w-xs text-center transform -rotate-6">
+              <p className="text-[#0D3D33] font-extrabold text-sm uppercase tracking-wider mb-2">Basic Plan Watermark</p>
+              <p className="text-amber-600 font-extrabold text-base tracking-tight mb-3">Upgrade to download invoice</p>
+              <p className="text-xs text-slate-500 font-medium leading-snug">Standard or Premium plans enable custom receipts & styling branding downloads.</p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* CSS @media print print warning blocker */}
+      <style>{`
+        @media print {
+          ${!canDownloadInvoice ? `
+            body * {
+              visibility: hidden !important;
+            }
+            .print-upgrade-warning {
+              visibility: visible !important;
+              position: fixed !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              height: 100% !important;
+              background: white !important;
+              color: black !important;
+              display: flex !important;
+              flex-direction: column !important;
+              align-items: center !important;
+              justify-content: center !important;
+              text-align: center !important;
+              z-index: 9999999 !important;
+              padding: 40px !important;
+            }
+            .print-upgrade-warning h1 {
+              font-size: 28px !important;
+              font-weight: 800 !important;
+              color: #0D3D33 !important;
+              margin-bottom: 12px !important;
+              visibility: visible !important;
+            }
+            .print-upgrade-warning p {
+              font-size: 16px !important;
+              color: #4A5568 !important;
+              visibility: visible !important;
+            }
+          ` : ''}
+        }
+      `}</style>
+
+      {!canDownloadInvoice && (
+        <div className="hidden print-upgrade-warning">
+          <h1>Upgrade to Download Invoice</h1>
+          <p>Please upgrade your plan to print or download PDF invoices directly from the browser.</p>
+        </div>
+      )}
     </div>
   );
 }

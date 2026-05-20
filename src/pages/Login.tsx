@@ -6,6 +6,9 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { normalizePlanStatus } from '../lib/planUtils';
+import { auth, db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -13,7 +16,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, user } = useAuth();
+  const { signIn, user, userData } = useAuth();
   const { t, isRTL, language, setLanguage } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,7 +25,9 @@ export default function Login() {
   const intent = searchParams.get('intent');
   const plan = normalizePlanStatus(searchParams.get('plan'));
 
-  if (user) {
+  if (user && userData && userData.isBlocked === true) {
+    // Blocked user, do not redirect to dashboard.
+  } else if (user) {
     const from = location.state?.from?.pathname || '/app';
     return <Navigate to={from} replace />;
   }
@@ -35,6 +40,23 @@ export default function Login() {
 
     try {
       await signIn(email, password);
+      
+      // Check of users/{userId}.isBlocked before navigating
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userDocRef);
+        if (userSnap.exists()) {
+          const uData = userSnap.data();
+          if (uData && uData.isBlocked === true) {
+            await signOut(auth);
+            setError("Your account has been suspended. Contact: looptailor@gmail.com");
+            setIsLoading(false);
+            return;
+          }
+        }
+      }
+
       const from = location.state?.from?.pathname || '/app';
       navigate(from, { replace: true });
     } catch (err: any) {

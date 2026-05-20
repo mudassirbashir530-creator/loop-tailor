@@ -12,6 +12,7 @@ import { useWorkers } from '../hooks/useWorkers';
 import { useOrders } from '../hooks/useOrders';
 import { formatCurrency, generateTokenId, cn, cleanPhoneNumber } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlanLimits } from '../hooks/usePlanLimits';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
 import { getMeasurementCategoriesForDress } from '../lib/measurements';
@@ -58,8 +59,9 @@ export default function NewOrder() {
   const navigate = useNavigate();
   const { user, userData } = useAuth();
   const { customers, loading: loadingCustomers, addCustomer } = useCustomers();
-  const { workers, loading: loadingWorkers } = useWorkers();
+  const { workers, loading: loadingWorkers, addWorker } = useWorkers();
   const { orders, addOrder } = useOrders();
+  const { canAddOrder, canAddCustomer, canAddWorker, limits } = usePlanLimits();
   
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -114,6 +116,10 @@ export default function NewOrder() {
   );
 
   const handleCreateCustomer = async () => {
+    if (!canAddCustomer) {
+      toast.error(`Customer limit reached (${limits.customers}/${limits.customers}). Upgrade your plan.`);
+      return;
+    }
     if (!newCustomer.name || !newCustomer.phone) {
       toast.error('Name and Phone are required.');
       return;
@@ -156,9 +162,9 @@ export default function NewOrder() {
   };
 
   const handleSubmit = async () => {
-    const limit = userData?.permissions?.orderLimit ?? 20;
-    if (orders.length >= limit) {
-      toast.error(`Order limit reached (${limit}). Upgrade your plan to add more orders.`);
+    if (!canAddOrder) {
+      const limitStr = limits.ordersPerMonth === 0 ? "unlimited" : limits.ordersPerMonth;
+      toast.error(`Order limit reached (${limitStr} orders per month). Upgrade your plan to add more orders.`);
       return;
     }
 
@@ -354,7 +360,15 @@ export default function NewOrder() {
                                   <Button 
                                     variant="ghost" 
                                     className="w-full text-primary justify-start gap-2 hover:bg-primary/10 transition-colors" 
-                                    onClick={() => { setIsCreatingCustomer(true); setShowCustomerDropdown(false); setNewCustomer({ ...newCustomer, name: customerSearch }); }}
+                                    onClick={() => {
+                                      if (!canAddCustomer) {
+                                        toast.error(`Customer limit reached (${limits.customers}/${limits.customers}). Upgrade your plan.`);
+                                        return;
+                                      }
+                                      setIsCreatingCustomer(true); 
+                                      setShowCustomerDropdown(false); 
+                                      setNewCustomer({ ...newCustomer, name: customerSearch }); 
+                                    }}
                                   >
                                     <Plus className="w-4 h-4 font-bold" /> 
                                     <span className="font-medium">Create "{customerSearch || 'New Customer'}"</span>
@@ -369,7 +383,17 @@ export default function NewOrder() {
                           <span className="text-xs text-muted-foreground uppercase font-semibold">Or</span>
                           <div className="h-[1px] flex-1 bg-border" />
                         </div>
-                        <Button variant="outline" className="w-full h-12 rounded-xl gap-2 border-dashed border-primary/50 text-primary hover:bg-primary/5" onClick={() => setIsCreatingCustomer(true)}>
+                        <Button 
+                          variant="outline" 
+                          className="w-full h-12 rounded-xl gap-2 border-dashed border-primary/50 text-primary hover:bg-primary/5" 
+                          onClick={() => {
+                            if (!canAddCustomer) {
+                              toast.error(`Customer limit reached (${limits.customers}/${limits.customers}). Upgrade your plan.`);
+                              return;
+                            }
+                            setIsCreatingCustomer(true);
+                          }}
+                        >
                           <Plus className="w-5 h-5" /> Add New Customer
                         </Button>
                       </div>
@@ -715,6 +739,51 @@ export default function NewOrder() {
                                         </div>
                                       </button>
                                     ))}
+
+                                    {!canAddWorker ? (
+                                      <div className="p-3 border-t mt-1 text-center text-xs text-red-500 font-bold bg-red-50/50 rounded-xl">
+                                        Worker limit reached ({limits.workers === 0 ? "unlimited" : `${limits.workers}/${limits.workers}`})
+                                      </div>
+                                    ) : (
+                                      <div className="p-2 border-t mt-1">
+                                        <button
+                                          type="button"
+                                          className="w-full text-left p-2.5 hover:bg-muted rounded-xl flex items-center gap-2 text-xs font-bold text-primary transition-colors"
+                                          onClick={async () => {
+                                            const name = window.prompt("Enter new worker name:");
+                                            if (name && name.trim()) {
+                                              try {
+                                                const newId = await addWorker({
+                                                  name: name.trim(),
+                                                  role: 'tailor',
+                                                  phone: '',
+                                                  whatsappPhone: '',
+                                                  countryCode: '+1',
+                                                  salaryType: 'monthly',
+                                                  salaryAmount: 0,
+                                                  speciality: '',
+                                                  address: '',
+                                                  notes: '',
+                                                  joiningDate: new Date().toISOString(),
+                                                  profileImage: null,
+                                                  status: 'available'
+                                                });
+                                                if (newId) {
+                                                  setWorkerId(newId);
+                                                  setWorkerSearch(name.trim());
+                                                  setShowWorkerDropdown(false);
+                                                }
+                                              } catch (e) {
+                                                console.error("Failed to add worker from dropdown:", e);
+                                              }
+                                            }
+                                          }}
+                                        >
+                                          <Plus className="w-3.5 h-3.5" />
+                                          Add New Worker
+                                        </button>
+                                      </div>
+                                    )}
                                  </div>
                                </motion.div>
                              )}

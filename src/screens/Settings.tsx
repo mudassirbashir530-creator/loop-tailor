@@ -6,8 +6,9 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, PLAN_DETAILS } from '../contexts/AuthContext';
 import { useShop } from '../contexts/ShopContext';
+import { usePlanLimits } from '../hooks/usePlanLimits';
 import { doc, updateDoc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
@@ -69,6 +70,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const { user, userData, logOut } = useAuth();
   const { settings, loading: settingsLoading } = useShop();
+  const { usage } = usePlanLimits();
   
   const [shopName, setShopName] = useState('');
   const [phone, setPhone] = useState('');
@@ -170,30 +172,69 @@ export default function Settings() {
 
   const PLANS = [
     {
-      name: 'Free',
-      price: 'Rs. 0',
-      description: 'Perfect for new shops',
-      features: ['Up to 10 customers', 'Up to 20 orders', 'Basic invoice (no logo)', 'Standard support'],
-      notIncluded: ['Image upload', 'WhatsApp integration', 'Staff management', 'Custom branding']
-    },
-    {
-      name: 'Premium',
+      id: 'basic',
+      name: 'Basic',
       price: 'Rs. 500',
       period: '/month',
-      description: 'For growing businesses',
-      features: ['Unlimited customers', 'Unlimited orders', 'Professional invoice with logo', 'Image upload for samples', 'WhatsApp integration', 'Priority support'],
-      notIncluded: ['Staff management', 'Advanced analytics']
+      description: 'Ideal for small home tailors',
+      limits: { customers: 50, ordersPerMonth: 60, workers: 3 },
+      features: [
+        { name: '50 Customers', included: true },
+        { name: '60 Orders/month', included: true },
+        { name: '3 Workers', included: true },
+        { name: 'Basic Invoice', included: true },
+        { name: 'Standard Support', included: true },
+        { name: 'Invoice Download', included: false },
+        { name: 'WhatsApp Integration', included: false },
+        { name: 'Image Upload', included: false },
+        { name: 'Payroll System', included: false },
+        { name: 'Analytics', included: false }
+      ]
     },
     {
-      name: 'Enterprise',
+      id: 'standard',
+      name: 'Standard',
       price: 'Rs. 1000',
       period: '/month',
-      description: 'Full power for large shops',
-      features: ['Everything in Premium', 'Staff & worker management', 'Advanced analytics & reports', 'Payroll management', 'Custom branding', 'Dedicated support'],
+      description: 'Perfect for growing tailor shops',
+      limits: { customers: 200, ordersPerMonth: 200, workers: 7 },
+      features: [
+        { name: '200 Customers', included: true },
+        { name: '200 Orders/month', included: true },
+        { name: '7 Workers', included: true },
+        { name: 'Professional Invoice + Download', included: true },
+        { name: 'WhatsApp Integration', included: true },
+        { name: 'Priority Support', included: true },
+        { name: 'Image Upload', included: false },
+        { name: 'Payroll System', included: false },
+        { name: 'Analytics', included: false }
+      ]
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      price: 'Rs. 2000',
+      period: '/month',
+      description: 'Full bespoke tailoring software suite',
+      limits: { customers: 0, ordersPerMonth: 0, workers: 0 },
+      features: [
+        { name: 'Unlimited Everything', included: true },
+        { name: 'Image Upload', included: true },
+        { name: 'Payroll System', included: true },
+        { name: 'Advanced Analytics', included: true },
+        { name: 'Custom Branding', included: true },
+        { name: 'WhatsApp Priority Support', included: true }
+      ]
     }
   ];
 
   const currentPlan = userData?.plan || userData?.subscriptionPlan || 'Free';
+
+  const handleUpgradePlan = (selectedPlanName: string) => {
+    const userEmail = user?.email || 'N/A';
+    const msg = `Hi, I want to upgrade my Loop Tailor\nplan to ${selectedPlanName}.\nMy account: ${userEmail}`;
+    openWhatsApp('03321379924', msg);
+  };
 
   const handleUpdateProfile = async () => {
     if (!user?.uid) {
@@ -674,81 +715,122 @@ export default function Settings() {
 
       {/* Pricing Dialog */}
       <Dialog open={isPricingOpen} onOpenChange={setIsPricingOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black text-center">Software Plans</DialogTitle>
-            <DialogDescription className="text-center text-slate-500">
-              Choose the best plan for your shop's growth. Contact admin for upgrade.
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-8">
+          <DialogHeader className="space-y-2 mb-4">
+            <div className="flex justify-center">
+              <span className="bg-[#0D3D33] text-[#2ECC71] text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-sm border border-emerald-500/10">
+                YOUR CURRENT PLAN: {currentPlan?.toUpperCase()}
+              </span>
+            </div>
+            <DialogTitle className="text-2xl font-extrabold text-center text-slate-900 dark:text-white">Software Plans</DialogTitle>
+            <DialogDescription className="text-center text-slate-500 max-w-lg mx-auto">
+              Choose the best plan for your shop's growth. Contact us on WhatsApp for upgrades.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8">
-            {PLANS.map((plan) => (
-              <div 
-                key={plan.name}
-                className={cn(
-                  "relative p-6 rounded-3xl border-2 flex flex-col transition-all",
-                  currentPlan.toLowerCase() === plan.name.toLowerCase() 
-                    ? "border-primary bg-primary/5 ring-4 ring-primary/10" 
-                    : "border-slate-100 hover:border-slate-200"
-                )}
-              >
-                {currentPlan.toLowerCase() === plan.name.toLowerCase() && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
-                    Your Current Plan
-                  </div>
-                )}
-                
-                <div className="mb-6">
-                  <h3 className="text-xl font-black text-slate-900">{plan.name}</h3>
-                  <p className="text-xs text-slate-500 font-medium">{plan.description}</p>
-                </div>
-                
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black text-slate-900">{plan.price}</span>
-                    {plan.period && <span className="text-slate-400 text-sm font-medium">{plan.period}</span>}
-                  </div>
-                </div>
-                
-                <div className="space-y-3 mb-8 flex-1">
-                  {plan.features.map(f => (
-                    <div key={f} className="flex items-center gap-3 text-sm">
-                      <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                        <Check className="w-3 h-3 text-emerald-600" />
-                      </div>
-                      <span className="text-slate-600 font-medium">{f}</span>
-                    </div>
-                  ))}
-                  {plan.notIncluded?.map(f => (
-                    <div key={f} className="flex items-center gap-3 text-sm opacity-50 grayscale">
-                      <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                        <X className="w-3 h-3 text-slate-400" />
-                      </div>
-                      <span className="text-slate-400 font-medium">{f}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                <Button 
-                  onClick={() => openWhatsApp('03321379924', `Hi! I want to upgrade to the ${plan.name} plan for my shop.`)}
-                  variant={currentPlan.toLowerCase() === plan.name.toLowerCase() ? "outline" : "default"}
-                  className="w-full h-12 rounded-xl font-bold"
+          <div className="flex overflow-x-auto gap-6 pb-6 pt-2 snap-x snap-mandatory scrollbar-thin md:grid md:grid-cols-3">
+            {PLANS.map((plan) => {
+              const isActive = currentPlan.toLowerCase() === plan.id.toLowerCase();
+              
+              // Custom block bars
+              const getBlockBar = (current: number, max: number, totalSpots: number) => {
+                if (max === 0) return '▓'.repeat(totalSpots); // Unlimited
+                const filled = Math.min(totalSpots, Math.max(0, Math.round((current / max) * totalSpots)));
+                const empty = Math.max(0, totalSpots - filled);
+                return '▓'.repeat(filled) + '░'.repeat(empty);
+              };
+              const formatMax = (max: number) => max === 0 ? '∞' : max.toString();
+
+              return (
+                <div 
+                  key={plan.id}
+                  className={cn(
+                    "snap-align-start shrink-0 w-[280px] md:w-full md:shrink relative p-6 rounded-3xl border-2 flex flex-col justify-between transition-all",
+                    isActive 
+                      ? "border-primary bg-primary/5 ring-4 ring-primary/10" 
+                      : "border-slate-100 dark:border-slate-800 hover:border-slate-200"
+                  )}
                 >
-                  {currentPlan.toLowerCase() === plan.name.toLowerCase() ? "Already Active" : `Upgrade to ${plan.name}`}
-                </Button>
-              </div>
-            ))}
+                  {isActive && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                      Currently Active
+                    </div>
+                  )}
+                  
+                  <div>
+                    <div className="mb-4">
+                      <h3 className="text-xl font-black text-slate-900 dark:text-white">{plan.name}</h3>
+                      <p className="text-xs text-slate-500 font-semibold leading-tight">{plan.description}</p>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-slate-900 dark:text-white">{plan.price}</span>
+                        <span className="text-slate-400 text-xs font-semibold">{plan.period}</span>
+                      </div>
+                    </div>
+
+                    {/* Usage Bars */}
+                    <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2 mb-5 font-mono text-[10px]">
+                      <div className="flex justify-between items-center text-slate-700 dark:text-slate-350">
+                        <span>Customers:</span>
+                        <span className="font-bold flex items-center gap-1">
+                          <span className="text-primary tracking-tighter">{getBlockBar(usage.customers, plan.limits.customers, 6)}</span>
+                          <span>{usage.customers}/{formatMax(plan.limits.customers)}</span>
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-slate-700 dark:text-slate-350">
+                        <span>Orders:</span>
+                        <span className="font-bold flex items-center gap-1">
+                          <span className="text-primary tracking-tighter">{getBlockBar(usage.ordersThisMonth, plan.limits.ordersPerMonth, 6)}</span>
+                          <span>{usage.ordersThisMonth}/{formatMax(plan.limits.ordersPerMonth)}</span>
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-slate-700 dark:text-slate-350">
+                        <span>Workers:</span>
+                        <span className="font-bold flex items-center gap-1">
+                          <span className="text-primary tracking-tighter">{getBlockBar(usage.workers, plan.limits.workers, 4)}</span>
+                          <span>{usage.workers}/{formatMax(plan.limits.workers)}</span>
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Feature Lists */}
+                    <div className="space-y-2.5 mb-6">
+                      {plan.features.map(f => (
+                        <div key={f.name} className={cn("flex items-start gap-2.5 text-xs font-semibold", !f.included && "opacity-40")}>
+                          {f.included ? (
+                            <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                          ) : (
+                            <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                          )}
+                          <span className={f.included ? "text-slate-700 dark:text-slate-200" : "text-slate-400 line-through"}>{f.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={() => handleUpgradePlan(plan.name)}
+                    variant={isActive ? "outline" : "default"}
+                    className="w-full h-11 rounded-xl font-bold text-xs"
+                    disabled={isActive}
+                  >
+                    {isActive ? "Current Plan" : "Upgrade Plan"}
+                  </Button>
+                </div>
+              );
+            })}
           </div>
           
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
+          <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between mt-2">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center">
                 <Smartphone className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-900">Need a custom plan?</p>
-                <p className="text-xs text-slate-500">Contact our support for enterprise assistance.</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">Need custom enterprise assistance?</p>
+                <p className="text-xs text-slate-500">Contact admin support on WhatsApp anytime.</p>
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={() => openWhatsApp('03321379924', 'Hi! I need a custom plan for my shop.')}>

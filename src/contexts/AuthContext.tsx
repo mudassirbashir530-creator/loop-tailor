@@ -41,6 +41,64 @@ export const useAuth = () => useContext(AuthContext);
 
 import { safeStorage } from '../lib/safeStorage';
 
+// Defined subscription plans details
+export const PLAN_DETAILS = {
+  basic: {
+    plan: "basic" as const,
+    planPrice: 500,
+    planLimits: {
+      customers: 50,
+      ordersPerMonth: 60,
+      workers: 3
+    },
+    features: {
+      canDownloadInvoice: false,
+      canUploadImages: false,
+      canUseWhatsApp: false,
+      canUsePayroll: false,
+      canViewAnalytics: false,
+      canCustomBranding: false,
+      canManageWorkers: true
+    }
+  },
+  standard: {
+    plan: "standard" as const,
+    planPrice: 1000,
+    planLimits: {
+      customers: 200,
+      ordersPerMonth: 200,
+      workers: 7
+    },
+    features: {
+      canDownloadInvoice: true,
+      canUploadImages: false,
+      canUseWhatsApp: true,
+      canUsePayroll: false,
+      canViewAnalytics: false,
+      canCustomBranding: false,
+      canManageWorkers: true
+    }
+  },
+  premium: {
+    plan: "premium" as const,
+    planPrice: 2000,
+    planLimits: {
+      customers: 0, // unlimited
+      ordersPerMonth: 0, // unlimited
+      workers: 0 // unlimited
+    },
+    features: {
+      canDownloadInvoice: true,
+      canUploadImages: true,
+      canUseWhatsApp: true,
+      canUsePayroll: true,
+      canViewAnalytics: true,
+      canCustomBranding: true,
+      canManageWorkers: true
+    }
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<any | null>(null);
@@ -68,8 +126,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             userDataUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (userDoc) => {
               const processSnapshot = async () => {
                 try {
-                  const userDataFetched = userDoc.exists() ? userDoc.data() : null;
-                  setUserData(userDataFetched);
+                  if (userDoc.exists()) {
+                    const userDataFetched = userDoc.data();
+                    
+                    const now = new Date();
+                    let needsUpdate = false;
+                    let lastReset = userDataFetched?.currentUsage?.lastResetDate;
+
+                    const isNewMonth = (lr: any) => {
+                      if (!lr) return true;
+                      let date: Date;
+                      if (lr.toDate) date = lr.toDate();
+                      else if (lr instanceof Date) date = lr;
+                      else date = new Date(lr);
+                      return date.getMonth() !== now.getMonth() || date.getFullYear() !== now.getFullYear();
+                    };
+
+                    const migrationNeeded = !userDataFetched?.plan || !userDataFetched?.planLimits || !userDataFetched?.currentUsage;
+
+                    if (isNewMonth(lastReset) || migrationNeeded) {
+                      needsUpdate = true;
+                    }
+
+                    if (needsUpdate) {
+                      const activePlan = (userDataFetched?.plan || 'basic') as 'basic' | 'standard' | 'premium';
+                      const details = PLAN_DETAILS[activePlan] || PLAN_DETAILS.basic;
+                      
+                      const updatedFields = {
+                        plan: activePlan,
+                        planPrice: details.planPrice,
+                        planLimits: details.planLimits,
+                        features: details.features,
+                        planActivatedAt: userDataFetched?.planActivatedAt || serverTimestamp(),
+                        planExpiresAt: userDataFetched?.planExpiresAt || new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()),
+                        currentUsage: {
+                          customers: userDataFetched?.currentUsage?.customers ?? 0,
+                          ordersThisMonth: isNewMonth(lastReset) ? 0 : (userDataFetched?.currentUsage?.ordersThisMonth ?? 0),
+                          workers: userDataFetched?.currentUsage?.workers ?? 0,
+                          lastResetDate: serverTimestamp()
+                        }
+                      };
+
+                      await setDoc(doc(db, 'users', currentUser.uid), updatedFields, { merge: true });
+                      return; // Retries process via next onSnapshot emissions
+                    }
+
+                    setUserData(userDataFetched);
+                  } else {
+                    setUserData(null);
+                  }
                   
                   let isUserAdmin = false;
                   if (currentUser.email) {
@@ -84,22 +189,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   }
                   
                   if (isUserAdmin || (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email))) {
-                    if (userDoc.exists() && (!userDataFetched?.isAdmin || userDataFetched?.role !== 'admin')) {
-                      let retries = 3;
-                      while (retries > 0) {
-                        try {
-                          await setDoc(doc(db, 'users', currentUser.uid), {
-                            role: 'admin',
-                            isAdmin: true,
-                            plan: 'enterprise',
-                          }, { merge: true });
-                          break; 
-                        } catch (e) {
-                          retries--;
-                          if (retries === 0) {
-                            console.warn("Could not auto-upgrade admin, will retry later:", e);
-                          } else {
-                            await new Promise(resolve => setTimeout(resolve, 1000));
+                    if (userDoc.exists()) {
+                      const userDataFetched = userDoc.data();
+                      if (!userDataFetched?.isAdmin || userDataFetched?.role !== 'admin') {
+                        let retries = 3;
+                        while (retries > 0) {
+                          try {
+                            await setDoc(doc(db, 'users', currentUser.uid), {
+                              role: 'admin',
+                              isAdmin: true,
+                              plan: 'enterprise',
+                            }, { merge: true });
+                            break; 
+                          } catch (e) {
+                            retries--;
+                            if (retries === 0) {
+                              console.warn("Could not auto-upgrade admin, will retry later:", e);
+                            } else {
+                              await new Promise(resolve => setTimeout(resolve, 1000));
+                            }
                           }
                         }
                       }
@@ -168,6 +276,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const userSnap = await getDoc(userRef);
         
         if (!userSnap.exists()) {
+          const defaultPlan = 'basic';
+          const details = PLAN_DETAILS[defaultPlan];
+          const now = new Date();
+
           await setDoc(userRef, {
             uid: user.uid,
             ownerName: name || user.displayName || 'New User',
@@ -178,21 +290,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             photoURL: photoURL || user.photoURL || '',
             provider: provider,
             preferred_language: language || 'en',
-            subscriptionPlan: plan || 'free',
             role: 'user',
             isAdmin: false,
-            paymentStatus: 'not_paid',
-            subscriptionActive: false,
-            trialActive: true,
-            trialStartDate: serverTimestamp(),
             createdAt: serverTimestamp(),
-            features: {
-              cms: true,
-              workerAssign: false,
-              whatsapp: false,
-              invoice: false,
-              imageUpload: false,
-              aiSuggestions: false
+            
+            // New detailed fields for plans structure
+            plan: defaultPlan,
+            planPrice: details.planPrice,
+            planLimits: details.planLimits,
+            features: details.features,
+            planActivatedAt: serverTimestamp(),
+            planExpiresAt: new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()),
+            currentUsage: {
+              customers: 0,
+              ordersThisMonth: 0,
+              workers: 0,
+              lastResetDate: serverTimestamp()
             }
           });
         }

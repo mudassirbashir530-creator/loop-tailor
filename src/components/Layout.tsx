@@ -7,8 +7,9 @@ import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import MobileBottomNav from './MobileBottomNav';
 import { db } from '../lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import NotificationBell from './NotificationBell';
+import { toast } from 'sonner';
 
 export default function Layout() {
   const { logOut, user } = useAuth();
@@ -17,6 +18,37 @@ export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [shop, setShop] = useState({ name: '', phone: '', address: '' });
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) return;
+    
+    // Real-time block listener
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(userDocRef, async (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data && data.isBlocked === true) {
+          try {
+            await logOut();
+            localStorage.clear();
+            sessionStorage.clear();
+            navigate('/auth/login', { replace: true });
+            toast.error("Your account has been suspended. Contact support for assistance.", {
+              duration: 12000,
+            });
+          } catch (logoutErr) {
+            console.error("Error signing out blocked user:", logoutErr);
+          }
+        }
+      }
+    }, (error) => {
+      console.error("Layout real-time block observer error:", error);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user, logOut, navigate]);
 
   useEffect(() => {
     if (!user) return;

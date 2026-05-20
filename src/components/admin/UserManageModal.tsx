@@ -7,6 +7,11 @@ import { toast } from 'sonner';
 
 export default function UserManageModal({ user, onClose }: { user: any; onClose: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+  const [showUnblockConfirm, setShowUnblockConfirm] = useState(false);
+  const [blockReason, setBlockReason] = useState('Suspicious Activity');
+  const [blockNote, setBlockNote] = useState('');
+
   const [formData, setFormData] = useState({
     plan: user.plan || user.subscriptionPlan || 'Free',
     paymentNote: user.subscription?.paymentNote || '',
@@ -22,6 +27,83 @@ export default function UserManageModal({ user, onClose }: { user: any; onClose:
       orderLimit: user.permissions?.orderLimit ?? (user.features?.orderLimit || 20),
     }
   });
+
+  const handleBlockUser = async () => {
+    setLoading(true);
+    try {
+      const now = new Date();
+      await updateDoc(doc(db, 'users', user.id), {
+        isBlocked: true,
+        blockedAt: now.toISOString(),
+        blockedReason: blockReason,
+        blockedCustomNote: blockNote,
+        blockedBy: 'admin',
+        updatedAt: serverTimestamp()
+      });
+      
+      await setDoc(doc(collection(db, 'adminLogs')), {
+        action: 'Blocked User',
+        targetUser: user.name || user.email,
+        targetUserId: user.id,
+        performedBy: 'admin',
+        timestamp: serverTimestamp(),
+        details: `Reason: ${blockReason}. Note: ${blockNote}`
+      });
+
+      setFormData(prev => ({ ...prev, isBlocked: true }));
+      user.isBlocked = true;
+      user.blockedAt = now.toISOString();
+      user.blockedReason = blockReason;
+      user.blockedCustomNote = blockNote;
+      user.blockedBy = 'admin';
+      
+      toast.success('User has been blocked');
+      setShowBlockConfirm(false);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to block user');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    setLoading(true);
+    try {
+      await updateDoc(doc(db, 'users', user.id), {
+        isBlocked: false,
+        blockedAt: null,
+        blockedReason: "",
+        blockedCustomNote: "",
+        blockedBy: "",
+        updatedAt: serverTimestamp()
+      });
+      
+      await setDoc(doc(collection(db, 'adminLogs')), {
+        action: 'Unblocked User',
+        targetUser: user.name || user.email,
+        targetUserId: user.id,
+        performedBy: 'admin',
+        timestamp: serverTimestamp(),
+        details: 'User Unblocked'
+      });
+
+      setFormData(prev => ({ ...prev, isBlocked: false }));
+      user.isBlocked = false;
+      user.blockedAt = null;
+      user.blockedReason = "";
+      user.blockedCustomNote = "";
+      user.blockedBy = "";
+
+      toast.success('User has been unblocked');
+      setShowUnblockConfirm(false);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to unblock user');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePlanChange = (newPlan: string) => {
     let updates = { plan: newPlan, features: { ...formData.features } };
@@ -203,15 +285,62 @@ export default function UserManageModal({ user, onClose }: { user: any; onClose:
           </div>
 
           <div className="border-t pt-4">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold text-slate-900">SUBSCRIPTION PLAN</h3>
-              <button 
-                onClick={() => setFormData(prev => ({ ...prev, isBlocked: !prev.isBlocked }))}
-                className={`px-3 py-1 text-xs font-bold rounded ${formData.isBlocked ? 'bg-red-600 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
-              >
-                {formData.isBlocked ? 'User Blocked 🚫' : 'Block User'}
-              </button>
+            <h3 className="font-bold text-slate-900 mb-3">ACCOUNT STATUS & SECURITY</h3>
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Status</span>
+                  {formData.isBlocked ? (
+                    <span className="inline-flex items-center gap-1.5 text-red-500 font-extrabold text-sm uppercase">
+                      🚫 Blocked
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-emerald-500 font-extrabold text-sm uppercase">
+                      🟢 Active
+                    </span>
+                  )}
+                </div>
+                
+                {formData.isBlocked ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBlockReason('Suspicious Activity');
+                      setBlockNote('');
+                      setShowUnblockConfirm(true);
+                    }}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-colors shadow-sm cursor-pointer"
+                  >
+                    Unblock User
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBlockReason('Suspicious Activity');
+                      setBlockNote('');
+                      setShowBlockConfirm(true);
+                    }}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors shadow-sm cursor-pointer"
+                  >
+                    Block User
+                  </button>
+                )}
+              </div>
+
+              {formData.isBlocked && (
+                <div className="text-xs text-slate-500 pt-3 border-t border-slate-200/60 space-y-1">
+                  <p><span className="font-bold text-slate-700">Reason:</span> {user.blockedReason || 'Terms Violation'}</p>
+                  {user.blockedCustomNote && <p><span className="font-bold text-slate-700">Note:</span> {user.blockedCustomNote}</p>}
+                  {user.blockedAt && <p><span className="font-bold text-slate-700">Blocked At:</span> {formatDate(user.blockedAt)}</p>}
+                  {user.blockedBy && <p><span className="font-bold text-slate-700">Blocked By:</span> {user.blockedBy}</p>}
+                </div>
+              )}
             </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="font-bold text-slate-900 mb-2">SUBSCRIPTION PLAN</h3>
             <select 
               value={formData.plan} 
               onChange={e => handlePlanChange(e.target.value)}
@@ -253,56 +382,150 @@ export default function UserManageModal({ user, onClose }: { user: any; onClose:
               />
             </div>
           </div>
+ 
+           <div className="border-t pt-4 pb-12">
+             <h3 className="font-bold text-slate-900 mb-3">FEATURE ACCESS & LIMITS</h3>
+             <div className="space-y-4">
+                {['whatsapp', 'imageUpload', 'invoice', 'staffManagement'].map((key) => (
+                  <div key={key} className="flex items-center justify-between border-b pb-2">
+                     <span className="capitalize text-sm font-medium">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                     <button 
+                       onClick={() => toggleFeature(key as keyof typeof formData.features)}
+                       className={`px-3 py-1 text-xs font-bold rounded ${formData.features[key as keyof typeof formData.features] ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}
+                     >
+                       {formData.features[key as keyof typeof formData.features] ? 'ON ✅' : 'OFF ❌'}
+                     </button>
+                  </div>
+                ))}
+                
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">Customer Limit</label>
+                    <input 
+                      type="number" 
+                      value={formData.features.customerLimit}
+                      onChange={(e) => setFormData(prev => ({...prev, features: { ...prev.features, customerLimit: parseInt(e.target.value) || 0 }}))}
+                      className="w-full p-2 border rounded-md text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">Order Limit</label>
+                    <input 
+                      type="number" 
+                      value={formData.features.orderLimit}
+                      onChange={(e) => setFormData(prev => ({...prev, features: { ...prev.features, orderLimit: parseInt(e.target.value) || 0 }}))}
+                      className="w-full p-2 border rounded-md text-sm"
+                    />
+                  </div>
+                </div>
+             </div>
+           </div>
+         </div>
+ 
+         <div className="p-6 border-t bg-slate-50">
+           <button 
+             onClick={handleSave} 
+             disabled={loading}
+             className="w-full py-3 bg-[#22C55E] hover:bg-green-600 text-white rounded-xl font-bold flex justify-center items-center cursor-pointer"
+           >
+             {loading ? 'Saving...' : 'Save All Changes'}
+           </button>
+         </div>
+       </motion.div>
 
-          <div className="border-t pt-4 pb-12">
-            <h3 className="font-bold text-slate-900 mb-3">FEATURE ACCESS & LIMITS</h3>
-            <div className="space-y-4">
-               {['whatsapp', 'imageUpload', 'invoice', 'staffManagement'].map((key) => (
-                 <div key={key} className="flex items-center justify-between border-b pb-2">
-                    <span className="capitalize text-sm font-medium">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                    <button 
-                      onClick={() => toggleFeature(key as keyof typeof formData.features)}
-                      className={`px-3 py-1 text-xs font-bold rounded ${formData.features[key as keyof typeof formData.features] ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}
-                    >
-                      {formData.features[key as keyof typeof formData.features] ? 'ON ✅' : 'OFF ❌'}
-                    </button>
-                 </div>
-               ))}
-               
-               <div className="grid grid-cols-2 gap-4 pt-2">
-                 <div>
-                   <label className="text-xs font-bold text-slate-700 block mb-1">Customer Limit</label>
-                   <input 
-                     type="number" 
-                     value={formData.features.customerLimit}
-                     onChange={(e) => setFormData(prev => ({...prev, features: { ...prev.features, customerLimit: parseInt(e.target.value) || 0 }}))}
-                     className="w-full p-2 border rounded-md text-sm"
-                   />
-                 </div>
-                 <div>
-                   <label className="text-xs font-bold text-slate-700 block mb-1">Order Limit</label>
-                   <input 
-                     type="number" 
-                     value={formData.features.orderLimit}
-                     onChange={(e) => setFormData(prev => ({...prev, features: { ...prev.features, orderLimit: parseInt(e.target.value) || 0 }}))}
-                     className="w-full p-2 border rounded-md text-sm"
-                   />
-                 </div>
+       {/* Block User Confirmation Dialog Overlay */}
+       {showBlockConfirm && (
+         <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-6 backdrop-blur-[1px]">
+           <div className="bg-white rounded-3xl border border-red-100 shadow-2xl p-6 w-full max-w-sm space-y-4">
+             <div className="text-center">
+               <span className="text-4xl">⚠️</span>
+               <h3 className="text-lg font-black text-slate-900 mt-2">Block this User?</h3>
+               <p className="text-xs text-slate-500 mt-1">
+                 This user will be immediately logged out and blocked from reading or writing data.
+               </p>
+             </div>
+
+             <div className="space-y-3">
+               <div>
+                 <label className="text-xs font-bold text-slate-700 block mb-1">Reason for Block</label>
+                 <select
+                   value={blockReason}
+                   onChange={(e) => setBlockReason(e.target.value)}
+                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-750 outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                 >
+                   <option value="Suspicious Activity">Suspicious Activity</option>
+                   <option value="Payment Fraud">Payment Fraud</option>
+                   <option value="Fake Account">Fake Account</option>
+                   <option value="Terms Violation">Terms Violation</option>
+                   <option value="Other">Other</option>
+                 </select>
                </div>
-            </div>
-          </div>
-        </div>
 
-        <div className="p-6 border-t bg-slate-50">
-          <button 
-            onClick={handleSave} 
-            disabled={loading}
-            className="w-full py-3 bg-[#22C55E] hover:bg-green-600 text-white rounded-xl font-bold flex justify-center items-center"
-          >
-            {loading ? 'Saving...' : 'Save All Changes'}
-          </button>
-        </div>
-      </motion.div>
-    </div>
+               <div>
+                 <label className="text-xs font-bold text-slate-700 block mb-1">Custom Note (Optional)</label>
+                 <textarea
+                   rows={2}
+                   value={blockNote}
+                   onChange={(e) => setBlockNote(e.target.value)}
+                   placeholder="Provide details about the suspension..."
+                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none"
+                 />
+               </div>
+             </div>
+
+             <div className="flex gap-3 pt-2">
+               <button
+                 type="button"
+                 onClick={() => setShowBlockConfirm(false)}
+                 className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+               >
+                 Cancel
+               </button>
+               <button
+                 type="button"
+                 disabled={loading}
+                 onClick={handleBlockUser}
+                 className="flex-1 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer flex justify-center items-center"
+               >
+                 {loading ? 'Blocking...' : 'Confirm Block'}
+               </button>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Unblock User Confirmation Dialog Overlay */}
+       {showUnblockConfirm && (
+         <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-6 backdrop-blur-[1px]">
+           <div className="bg-white rounded-3xl border border-emerald-100 shadow-2xl p-6 w-full max-w-sm space-y-4">
+             <div className="text-center">
+               <span className="text-4xl">🔓</span>
+               <h3 className="text-lg font-black text-slate-900 mt-2">Unblock this User?</h3>
+               <p className="text-xs text-slate-500 mt-1">
+                 This will restore full read and write access for this user's account.
+               </p>
+             </div>
+
+             <div className="flex gap-3 pt-2">
+               <button
+                 type="button"
+                 onClick={() => setShowUnblockConfirm(false)}
+                 className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+               >
+                 Cancel
+               </button>
+               <button
+                 type="button"
+                 disabled={loading}
+                 onClick={handleUnblockUser}
+                 className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer flex justify-center items-center"
+               >
+                 {loading ? 'Unblocking...' : 'Confirm Unblock'}
+               </button>
+             </div>
+           </div>
+         </div>
+       )}
+     </div>
   );
 }

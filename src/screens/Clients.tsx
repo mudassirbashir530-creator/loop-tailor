@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { uploadToCloudinary } from '../lib/cloudinary';
 import { useAuth } from '../contexts/AuthContext';
 import { openWhatsApp } from '../lib/whatsapp';
+import { usePlanLimits } from '../hooks/usePlanLimits';
 
 // Validates whether input is a valid Pakistani phone number pattern
 const isValidPakistaniMobile = (phone: string): boolean => {
@@ -48,6 +49,7 @@ export default function Clients() {
   const [search, setSearch] = useState('');
   const { userData } = useAuth();
   const { customers, loading, addCustomer, updateCustomer, deleteCustomer } = useCustomers();
+  const { canAddCustomer, limits } = usePlanLimits();
   
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -107,9 +109,9 @@ export default function Clients() {
   };
 
   const openAddModal = () => {
-    const limit = userData?.permissions?.customerLimit ?? 10;
-    if (customers.length >= limit) {
-      toast.error(`Customer limit reached (${limit}). Upgrade your plan to add more customers.`);
+    if (!canAddCustomer) {
+      const limitStr = limits.customers === 0 ? "unlimited" : limits.customers;
+      toast.error(`Customer limit reached (${limitStr}). Upgrade your plan to add more customers.`);
       return;
     }
     resetForm();

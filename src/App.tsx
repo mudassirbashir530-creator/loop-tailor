@@ -37,6 +37,17 @@ import Orders from './screens/Orders';
 import NewOrder from './screens/NewOrder';
 import Settings from './screens/Settings';
 import Invoice from './pages/Invoice';
+import Upgrade from './screens/Upgrade';
+import { useFeatureAccess } from './hooks/useFeatureAccess';
+
+function FeatureRouteGuard({ children, feature }: { children: React.ReactNode, feature: 'canUsePayroll' | 'canViewAnalytics' | 'canManageWorkers' }) {
+  const { isLoading, ...feats } = useFeatureAccess();
+  if (isLoading) return <LoadingFallback />;
+  if (!feats[feature]) {
+    return <Navigate to="/app/upgrade" state={{ message: "Upgrade your plan to access this section" }} replace />;
+  }
+  return <>{children}</>;
+}
 
 function LoadingFallback() {
   return (
@@ -137,13 +148,27 @@ export default function App() {
                 }>
                   <Route index element={<Home />} />
                   <Route path="clients" element={<Clients />} />
-                  <Route path="workers" element={<Workers />} />
-                  <Route path="payroll" element={<Payroll />} />
+                  <Route path="workers" element={
+                    <FeatureRouteGuard feature="canManageWorkers">
+                      <Workers />
+                    </FeatureRouteGuard>
+                  } />
+                  <Route path="payroll" element={
+                    <FeatureRouteGuard feature="canUsePayroll">
+                      <Payroll />
+                    </FeatureRouteGuard>
+                  } />
+                  <Route path="analytics" element={
+                    <FeatureRouteGuard feature="canViewAnalytics">
+                      <Home />
+                    </FeatureRouteGuard>
+                  } />
                   <Route path="orders" element={<Orders />} />
                   <Route path="orders/:id" element={<OrderDetails />} />
                   <Route path="invoice/:id" element={<Invoice />} />
                   <Route path="new-order" element={<NewOrder />} />
                   <Route path="settings" element={<Settings />} />
+                  <Route path="upgrade" element={<Upgrade />} />
                 </Route>
 
                 {/* Admin Routes */}

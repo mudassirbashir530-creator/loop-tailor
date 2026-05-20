@@ -18,6 +18,7 @@ import { uploadToCloudinary } from '../lib/cloudinary';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { openWhatsApp } from '../lib/whatsapp';
+import { usePlanLimits } from '../hooks/usePlanLimits';
 
 const ROLE_OPTIONS: { value: WorkerRole; label: string }[] = [
   { value: 'tailor', label: 'Tailor' },
@@ -39,6 +40,7 @@ export default function Workers() {
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState<WorkerRole | 'all'>('all');
   const { workers, loading, addWorker, updateWorker, deleteWorker } = useWorkers();
+  const { canAddWorker, limits } = usePlanLimits();
   
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -108,6 +110,11 @@ export default function Workers() {
   };
 
   const openAddModal = () => {
+    if (!canAddWorker) {
+      const limitStr = limits.workers === 0 ? "unlimited" : limits.workers;
+      toast.error(`Worker limit reached (${limitStr}). Upgrade your plan to add more workers.`);
+      return;
+    }
     resetForm();
     setIsAddOpen(true);
   };
