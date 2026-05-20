@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useAuth, PLAN_DETAILS } from '../contexts/AuthContext';
 import { useShop } from '../contexts/ShopContext';
 import { usePlanLimits } from '../hooks/usePlanLimits';
+import { PLANS } from '../constants/plans';
 import { doc, updateDoc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
@@ -169,64 +170,6 @@ export default function Settings() {
   };
 
   const [isPricingOpen, setIsPricingOpen] = useState(false);
-
-  const PLANS = [
-    {
-      id: 'basic',
-      name: 'Basic',
-      price: 'Rs. 500',
-      period: '/month',
-      description: 'Ideal for small home tailors',
-      limits: { customers: 50, ordersPerMonth: 60, workers: 3 },
-      features: [
-        { name: '50 Customers', included: true },
-        { name: '60 Orders/month', included: true },
-        { name: '3 Workers', included: true },
-        { name: 'Basic Invoice', included: true },
-        { name: 'Standard Support', included: true },
-        { name: 'Invoice Download', included: false },
-        { name: 'WhatsApp Integration', included: false },
-        { name: 'Image Upload', included: false },
-        { name: 'Payroll System', included: false },
-        { name: 'Analytics', included: false }
-      ]
-    },
-    {
-      id: 'standard',
-      name: 'Standard',
-      price: 'Rs. 1000',
-      period: '/month',
-      description: 'Perfect for growing tailor shops',
-      limits: { customers: 200, ordersPerMonth: 200, workers: 7 },
-      features: [
-        { name: '200 Customers', included: true },
-        { name: '200 Orders/month', included: true },
-        { name: '7 Workers', included: true },
-        { name: 'Professional Invoice + Download', included: true },
-        { name: 'WhatsApp Integration', included: true },
-        { name: 'Priority Support', included: true },
-        { name: 'Image Upload', included: false },
-        { name: 'Payroll System', included: false },
-        { name: 'Analytics', included: false }
-      ]
-    },
-    {
-      id: 'premium',
-      name: 'Premium',
-      price: 'Rs. 2000',
-      period: '/month',
-      description: 'Full bespoke tailoring software suite',
-      limits: { customers: 0, ordersPerMonth: 0, workers: 0 },
-      features: [
-        { name: 'Unlimited Everything', included: true },
-        { name: 'Image Upload', included: true },
-        { name: 'Payroll System', included: true },
-        { name: 'Advanced Analytics', included: true },
-        { name: 'Custom Branding', included: true },
-        { name: 'WhatsApp Priority Support', included: true }
-      ]
-    }
-  ];
 
   const currentPlan = userData?.plan || userData?.subscriptionPlan || 'Free';
 
@@ -729,7 +672,7 @@ export default function Settings() {
           </DialogHeader>
           
           <div className="flex overflow-x-auto gap-6 pb-6 pt-2 snap-x snap-mandatory scrollbar-thin md:grid md:grid-cols-3">
-            {PLANS.map((plan) => {
+            {Object.values(PLANS).map((plan) => {
               const isActive = currentPlan.toLowerCase() === plan.id.toLowerCase();
               
               // Custom block bars
@@ -765,8 +708,8 @@ export default function Settings() {
                     
                     <div className="mb-4">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-slate-900 dark:text-white">{plan.price}</span>
-                        <span className="text-slate-400 text-xs font-semibold">{plan.period}</span>
+                        <span className="text-3xl font-black text-slate-900 dark:text-white">Rs. {plan.price}</span>
+                        <span className="text-slate-400 text-xs font-semibold">/month</span>
                       </div>
                     </div>
 
@@ -797,14 +740,14 @@ export default function Settings() {
                     
                     {/* Feature Lists */}
                     <div className="space-y-2.5 mb-6">
-                      {plan.features.map(f => (
-                        <div key={f.name} className={cn("flex items-start gap-2.5 text-xs font-semibold", !f.included && "opacity-40")}>
+                      {plan.featureList.map(f => (
+                        <div key={f.label} className={cn("flex items-start gap-2.5 text-xs font-semibold", !f.included && "opacity-40")}>
                           {f.included ? (
                             <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                           ) : (
                             <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                           )}
-                          <span className={f.included ? "text-slate-700 dark:text-slate-200" : "text-slate-400 line-through"}>{f.name}</span>
+                          <span className={f.included ? "text-slate-700 dark:text-slate-200" : "text-slate-400 line-through"}>{f.label}</span>
                         </div>
                       ))}
                     </div>

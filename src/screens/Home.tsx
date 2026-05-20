@@ -225,31 +225,53 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Limit Warning banner if any usage > 80% */}
+            {/* Limit Warning banners */}
             {(() => {
-              const warnings: string[] = [];
-              if (limits.customers > 0 && (usage.customers / limits.customers) > 0.8) {
-                warnings.push(`You're running low on customers (${usage.customers}/${limits.customers})`);
-              }
-              if (limits.ordersPerMonth > 0 && (usage.ordersThisMonth / limits.ordersPerMonth) > 0.8) {
-                warnings.push(`You're running low on orders (${usage.ordersThisMonth}/${limits.ordersPerMonth})`);
-              }
-              if (limits.workers > 0 && (usage.workers / limits.workers) > 0.8) {
-                warnings.push(`You're running low on workers (${usage.workers}/${limits.workers})`);
-              }
+              const warnings: React.ReactNode[] = [];
+              
+              const checkLimit = (type: string, current: number, max: number) => {
+                if (max <= 0) return;
+                const ratio = current / max;
+                if (ratio >= 1) {
+                  warnings.push(
+                    <div key={`${type}-max`} className="flex items-center justify-between p-4 bg-rose-50 border border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/20 rounded-2xl max-w-3xl mb-3">
+                      <div>
+                        <p className="text-sm font-black text-rose-600 dark:text-rose-500 flex items-center gap-2 mb-1">
+                          <span className="text-lg">🚫</span> Limit Reached
+                        </p>
+                        <p className="text-xs text-rose-600/80 dark:text-rose-400 font-medium capitalize">
+                          {type}: {current}/{max} — Upgrade now
+                        </p>
+                      </div>
+                      <Link to="/app/upgrade" className="text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 px-4 py-2 rounded-xl transition-all">
+                        Upgrade Plan →
+                      </Link>
+                    </div>
+                  );
+                } else if (ratio >= 0.8) {
+                  warnings.push(
+                    <div key={`${type}-low`} className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20 rounded-2xl max-w-3xl mb-3">
+                      <div>
+                        <p className="text-sm font-black text-amber-600 dark:text-amber-500 flex items-center gap-2 mb-1">
+                          <span className="text-lg">⚠️</span> Running Low
+                        </p>
+                        <p className="text-xs text-amber-600/80 dark:text-amber-400 font-medium capitalize">
+                          {type}: {current}/{max} — {max - current} remaining
+                        </p>
+                      </div>
+                      <Link to="/app/upgrade" className="text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-xl transition-all">
+                        Upgrade Plan →
+                      </Link>
+                    </div>
+                  );
+                }
+              };
 
-              if (warnings.length === 0) return null;
+              checkLimit('customers', usage.customers, limits.customers);
+              checkLimit('ordersThisMonth', usage.ordersThisMonth, limits.ordersPerMonth);
+              checkLimit('workers', usage.workers, limits.workers);
 
-              return (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-2xl max-w-3xl">
-                  {warnings.map((warn, index) => (
-                    <p key={index} className="text-xs font-bold text-red-600 flex items-center gap-1.5 leading-snug">
-                      <span>⚠️</span>
-                      <span>{warn}</span>
-                    </p>
-                  ))}
-                </div>
-              );
+              return <div className="pt-2">{warnings}</div>;
             })()}
           </CardContent>
         </Card>

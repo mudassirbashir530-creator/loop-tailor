@@ -27,6 +27,7 @@ export const CLOTHING_CATEGORIES = [
 import { uploadToCloudinary } from '../lib/cloudinary';
 import { CloudinaryImage, OrderStatus } from '../lib/types';
 import { motion, AnimatePresence } from 'motion/react';
+import LimitReachedModal from '../components/LimitReachedModal';
 
 function ImagePreview({ file, onRemove, progress }: { file: File, onRemove: () => void, progress?: number }) {
   const [url, setUrl] = useState<string>('');
@@ -61,11 +62,14 @@ export default function NewOrder() {
   const { customers, loading: loadingCustomers, addCustomer } = useCustomers();
   const { workers, loading: loadingWorkers, addWorker } = useWorkers();
   const { orders, addOrder } = useOrders();
-  const { canAddOrder, canAddCustomer, canAddWorker, limits } = usePlanLimits();
+  const { canAddOrder, canAddCustomer, canAddWorker, limits, usage } = usePlanLimits();
   
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  
+  const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
+  const [limitModalType, setLimitModalType] = useState<'customers' | 'orders' | 'workers'>('orders');
 
   // Customer State
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -117,7 +121,8 @@ export default function NewOrder() {
 
   const handleCreateCustomer = async () => {
     if (!canAddCustomer) {
-      toast.error(`Customer limit reached (${limits.customers}/${limits.customers}). Upgrade your plan.`);
+      setLimitModalType('customers');
+      setIsLimitModalOpen(true);
       return;
     }
     if (!newCustomer.name || !newCustomer.phone) {
@@ -163,8 +168,8 @@ export default function NewOrder() {
 
   const handleSubmit = async () => {
     if (!canAddOrder) {
-      const limitStr = limits.ordersPerMonth === 0 ? "unlimited" : limits.ordersPerMonth;
-      toast.error(`Order limit reached (${limitStr} orders per month). Upgrade your plan to add more orders.`);
+      setLimitModalType('orders');
+      setIsLimitModalOpen(true);
       return;
     }
 
@@ -362,7 +367,8 @@ export default function NewOrder() {
                                     className="w-full text-primary justify-start gap-2 hover:bg-primary/10 transition-colors" 
                                     onClick={() => {
                                       if (!canAddCustomer) {
-                                        toast.error(`Customer limit reached (${limits.customers}/${limits.customers}). Upgrade your plan.`);
+                                        setLimitModalType('customers');
+                                        setIsLimitModalOpen(true);
                                         return;
                                       }
                                       setIsCreatingCustomer(true); 
@@ -388,7 +394,8 @@ export default function NewOrder() {
                           className="w-full h-12 rounded-xl gap-2 border-dashed border-primary/50 text-primary hover:bg-primary/5" 
                           onClick={() => {
                             if (!canAddCustomer) {
-                              toast.error(`Customer limit reached (${limits.customers}/${limits.customers}). Upgrade your plan.`);
+                              setLimitModalType('customers');
+                              setIsLimitModalOpen(true);
                               return;
                             }
                             setIsCreatingCustomer(true);
@@ -806,6 +813,14 @@ export default function NewOrder() {
         </motion.div>
       )}
 
+      {/* Limit Modal */}
+      <LimitReachedModal 
+        isOpen={isLimitModalOpen}
+        onClose={() => setIsLimitModalOpen(false)}
+        limitType={limitModalType}
+        current={limitModalType === 'customers' ? usage.customers : limitModalType === 'orders' ? usage.ordersThisMonth : usage.workers}
+        limit={limitModalType === 'customers' ? limits.customers : limitModalType === 'orders' ? limits.ordersPerMonth : limits.workers}
+      />
     </div>
   );
 }

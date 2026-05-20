@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, onSnapshot, doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
+import { PLANS } from '../constants/plans';
 
 export interface UserFeatures {
   canDownloadInvoice: boolean;
@@ -48,48 +49,6 @@ export interface AdminUser {
   photoURL?: string;
   logoUrl?: string; // from shop
 }
-
-export const PLAN_CONFIGS = {
-  basic: {
-    planPrice: 500,
-    planLimits: { customers: 50, ordersPerMonth: 60, workers: 3 },
-    features: {
-      canDownloadInvoice: false,
-      canUploadImages: false,
-      canUseWhatsApp: false,
-      canUsePayroll: false,
-      canViewAnalytics: false,
-      canCustomBranding: false,
-      canManageWorkers: true,
-    },
-  },
-  standard: {
-    planPrice: 1000,
-    planLimits: { customers: 200, ordersPerMonth: 200, workers: 7 },
-    features: {
-      canDownloadInvoice: true,
-      canUploadImages: false,
-      canUseWhatsApp: true,
-      canUsePayroll: false,
-      canViewAnalytics: false,
-      canCustomBranding: false,
-      canManageWorkers: true,
-    },
-  },
-  premium: {
-    planPrice: 2000,
-    planLimits: { customers: 0, ordersPerMonth: 0, workers: 0 },
-    features: {
-      canDownloadInvoice: true,
-      canUploadImages: true,
-      canUseWhatsApp: true,
-      canUsePayroll: true,
-      canViewAnalytics: true,
-      canCustomBranding: true,
-      canManageWorkers: true,
-    },
-  },
-};
 
 export function useAdminUsers() {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -176,13 +135,13 @@ export function useAdminUsers() {
 
   const changeUserPlan = async (userId: string, planName: 'basic' | 'standard' | 'premium') => {
     try {
-      const config = PLAN_CONFIGS[planName];
+      const config = PLANS[planName];
       if (!config) throw new Error(`Invalid plan: ${planName}`);
 
       await updateDoc(doc(db, 'users', userId), {
         plan: planName,
-        planPrice: config.planPrice,
-        planLimits: config.planLimits,
+        planPrice: config.price,
+        planLimits: config.limits,
         features: config.features,
         planActivatedAt: serverTimestamp(),
       });

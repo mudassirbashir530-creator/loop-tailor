@@ -38,16 +38,7 @@ import NewOrder from './screens/NewOrder';
 import Settings from './screens/Settings';
 import Invoice from './pages/Invoice';
 import Upgrade from './screens/Upgrade';
-import { useFeatureAccess } from './hooks/useFeatureAccess';
-
-function FeatureRouteGuard({ children, feature }: { children: React.ReactNode, feature: 'canUsePayroll' | 'canViewAnalytics' | 'canManageWorkers' }) {
-  const { isLoading, ...feats } = useFeatureAccess();
-  if (isLoading) return <LoadingFallback />;
-  if (!feats[feature]) {
-    return <Navigate to="/app/upgrade" state={{ message: "Upgrade your plan to access this section" }} replace />;
-  }
-  return <>{children}</>;
-}
+import FeatureRoute from './components/FeatureRoute';
 
 function LoadingFallback() {
   return (
@@ -149,19 +140,19 @@ export default function App() {
                   <Route index element={<Home />} />
                   <Route path="clients" element={<Clients />} />
                   <Route path="workers" element={
-                    <FeatureRouteGuard feature="canManageWorkers">
+                    <FeatureRoute feature="canManageWorkers">
                       <Workers />
-                    </FeatureRouteGuard>
+                    </FeatureRoute>
                   } />
                   <Route path="payroll" element={
-                    <FeatureRouteGuard feature="canUsePayroll">
+                    <FeatureRoute feature="canUsePayroll">
                       <Payroll />
-                    </FeatureRouteGuard>
+                    </FeatureRoute>
                   } />
                   <Route path="analytics" element={
-                    <FeatureRouteGuard feature="canViewAnalytics">
+                    <FeatureRoute feature="canViewAnalytics">
                       <Home />
-                    </FeatureRouteGuard>
+                    </FeatureRoute>
                   } />
                   <Route path="orders" element={<Orders />} />
                   <Route path="orders/:id" element={<OrderDetails />} />

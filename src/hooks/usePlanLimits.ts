@@ -168,10 +168,25 @@ export function usePlanLimits() {
     // Already synced using real-time onSnapshot listeners, but provides a placeholder method for interface compatibility
   }, []);
 
+  const safePercent = (current: number, max: number) => {
+    if (max === 0) return 0;
+    return Math.min(100, Math.round((current / max) * 100));
+  };
+
+  const usagePercent = {
+    customers: safePercent(usage.customers, limits.customers),
+    orders: safePercent(effectiveOrdersCount, limits.ordersPerMonth),
+    workers: safePercent(usage.workers, limits.workers)
+  };
+
   return {
     plan,
     limits,
-    usage,
+    usage: {
+      ...usage,
+      ordersThisMonth: effectiveOrdersCount
+    },
+    usagePercent,
     canAddCustomer,
     canAddOrder,
     canAddWorker,

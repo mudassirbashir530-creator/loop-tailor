@@ -18,6 +18,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { openWhatsApp } from '../lib/whatsapp';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 
+import LimitReachedModal from '../components/LimitReachedModal';
+
 // Validates whether input is a valid Pakistani phone number pattern
 const isValidPakistaniMobile = (phone: string): boolean => {
   if (!phone) return false;
@@ -49,11 +51,12 @@ export default function Clients() {
   const [search, setSearch] = useState('');
   const { userData } = useAuth();
   const { customers, loading, addCustomer, updateCustomer, deleteCustomer } = useCustomers();
-  const { canAddCustomer, limits } = usePlanLimits();
+  const { canAddCustomer, limits, usage } = usePlanLimits();
   
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Custom interactive dropdown menu tracking
@@ -110,8 +113,7 @@ export default function Clients() {
 
   const openAddModal = () => {
     if (!canAddCustomer) {
-      const limitStr = limits.customers === 0 ? "unlimited" : limits.customers;
-      toast.error(`Customer limit reached (${limitStr}). Upgrade your plan to add more customers.`);
+      setIsLimitModalOpen(true);
       return;
     }
     resetForm();
@@ -761,6 +763,15 @@ export default function Clients() {
           </div>
         )}
       </div>
+
+      {/* Limit Modal */}
+      <LimitReachedModal 
+        isOpen={isLimitModalOpen}
+        onClose={() => setIsLimitModalOpen(false)}
+        limitType="customers"
+        current={usage.customers}
+        limit={limits.customers}
+      />
 
       {/* FAB Button */}
       {!isAddOpen && (

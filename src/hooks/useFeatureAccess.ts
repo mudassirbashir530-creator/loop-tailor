@@ -1,19 +1,9 @@
 import { useAuth } from '../contexts/AuthContext';
 
-export interface PlanFeatures {
-  canDownloadInvoice: boolean;
-  canUploadImages: boolean;
-  canUseWhatsApp: boolean;
-  canUsePayroll: boolean;
-  canViewAnalytics: boolean;
-  canCustomBranding: boolean;
-  canManageWorkers: boolean;
-}
-
 export function useFeatureAccess() {
   const { userData, loading } = useAuth();
 
-  const features: PlanFeatures = userData?.features || {
+  const features = userData?.features || {
     canDownloadInvoice: false,
     canUploadImages: false,
     canUseWhatsApp: false,
@@ -31,6 +21,7 @@ export function useFeatureAccess() {
     canViewAnalytics: !!features.canViewAnalytics,
     canCustomBranding: !!features.canCustomBranding,
     canManageWorkers: !!features.canManageWorkers,
-    isLoading: loading
+    isLoading: loading,
+    currentPlan: userData?.plan || 'basic'
   };
 }

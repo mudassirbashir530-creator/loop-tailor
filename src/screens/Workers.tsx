@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { openWhatsApp } from '../lib/whatsapp';
 import { usePlanLimits } from '../hooks/usePlanLimits';
+import LimitReachedModal from '../components/LimitReachedModal';
 
 const ROLE_OPTIONS: { value: WorkerRole; label: string }[] = [
   { value: 'tailor', label: 'Tailor' },
@@ -40,12 +41,13 @@ export default function Workers() {
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState<WorkerRole | 'all'>('all');
   const { workers, loading, addWorker, updateWorker, deleteWorker } = useWorkers();
-  const { canAddWorker, limits } = usePlanLimits();
+  const { canAddWorker, limits, usage } = usePlanLimits();
   
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isLimitModalOpen, setIsLimitModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
@@ -111,8 +113,7 @@ export default function Workers() {
 
   const openAddModal = () => {
     if (!canAddWorker) {
-      const limitStr = limits.workers === 0 ? "unlimited" : limits.workers;
-      toast.error(`Worker limit reached (${limitStr}). Upgrade your plan to add more workers.`);
+      setIsLimitModalOpen(true);
       return;
     }
     resetForm();
@@ -963,6 +964,14 @@ export default function Workers() {
         </DialogContent>
       </Dialog>
 
+      {/* Limit Modal */}
+      <LimitReachedModal 
+        isOpen={isLimitModalOpen}
+        onClose={() => setIsLimitModalOpen(false)}
+        limitType="workers"
+        current={usage.workers}
+        limit={limits.workers}
+      />
     </div>
   );
 }

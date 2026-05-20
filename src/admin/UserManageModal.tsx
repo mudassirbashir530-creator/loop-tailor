@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, ShieldAlert, Check, AlertTriangle, Play, RefreshCw, Layers, Sliders, BarChart3, AlertOctagon, User } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { AdminUser, UserFeatures, PLAN_CONFIGS } from '../hooks/useAdminUsers';
+import { AdminUser, UserFeatures } from '../hooks/useAdminUsers';
 import BlockUserModal from '../components/BlockUserModal';
 
 interface UserManageModalProps {
