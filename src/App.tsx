@@ -27,8 +27,8 @@ import SignupPage from './pages/auth/SignupPage';
 
 // Admin Routes
 import { AdminLayout } from './layouts/AdminLayout';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import UsersList from './components/admin/UsersList';
+import AdminDashboard from './admin/AdminDashboard';
+import UsersList from './admin/AdminUsersList';
 import Home from './screens/Home';
 import Clients from './screens/Clients';
 import Workers from './screens/Workers';
@@ -178,6 +178,7 @@ export default function App() {
                   </AdminRoute>
                 }>
                   <Route index element={<AdminDashboard />} />
+                  <Route path="dashboard" element={<Navigate to="/admin" replace />} />
                   <Route path="users" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><UsersList /></div>} />
                 </Route>
 

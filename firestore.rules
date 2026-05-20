@@ -14,8 +14,7 @@ service cloud.firestore {
     
     function isAdmin() { 
       return isSignedIn() && 
-             exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) && 
-             get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isAdmin == true; 
+             exists(/databases/$(database)/documents/admins/$(request.auth.token.email)); 
     }
 
     function isBlocked() {

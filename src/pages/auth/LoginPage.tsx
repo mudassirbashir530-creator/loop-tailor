@@ -6,12 +6,14 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
+import { doc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../../lib/firebase';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, logOut } = useAuth();
   
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -24,6 +26,24 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password);
+      
+      // Immediately verify block status before letting user enter the app
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const udata = userSnap.data();
+          if (udata && udata.isBlocked === true) {
+            await logOut();
+            setError('Your account has been suspended. Contact: looptailor@gmail.com');
+            toast.error('Your account has been suspended. Contact: looptailor@gmail.com');
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      
       toast.success('Logged in successfully');
       // Navigation is handled by PublicRoute in App.tsx
     } catch (error: any) {

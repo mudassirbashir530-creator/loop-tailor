@@ -6,11 +6,38 @@ import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrders } from '../hooks/useOrders';
 import { PWAPrompt } from '../components/PWAPrompt';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { toast } from 'sonner';
 
 export default function AppLayout() {
   const location = useLocation();
-  const { user, userData } = useAuth();
+  const { user, userData, logOut } = useAuth();
   const { orders } = useOrders();
+
+  // Handle Real-time user block listener
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(userDocRef, async (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data && data.isBlocked === true) {
+          toast.error('Your account has been suspended. Contact: looptailor@gmail.com');
+          // Clear standard local storage/cache as requested
+          localStorage.clear();
+          sessionStorage.clear();
+          // Sign out immediately
+          await logOut();
+        }
+      }
+    }, (err) => {
+      console.warn("Real-time block listener error:", err);
+    });
+
+    return () => unsubscribe();
+  }, [user, logOut]);
 
   // Handle App Badge
   useEffect(() => {
