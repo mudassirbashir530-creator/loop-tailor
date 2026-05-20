@@ -129,12 +129,6 @@ export default function Login() {
                 <label className="block text-sm font-semibold text-[#0D3D33]">
                   {t('auth.password')}
                 </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-sm font-bold text-[#2ECC71] hover:text-[#0D3D33] transition-colors"
-                >
-                  {t('auth.forgotPassword')}
-                </Link>
               </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#2ECC71] transition-colors">

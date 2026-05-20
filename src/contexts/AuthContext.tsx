@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { normalizePlanStatus } from '../lib/planUtils';
@@ -23,7 +23,6 @@ interface AuthContextType {
     shopAddress?: string,
     plan?: string
   ) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
   logOut: () => Promise<void>;
 }
 
@@ -35,7 +34,6 @@ const AuthContext = createContext<AuthContextType>({
   wasLoggedIn: false,
   signIn: async () => {},
   signUp: async () => {},
-  resetPassword: async () => {},
   logOut: async () => {},
 });
 
@@ -258,12 +256,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await signOut(auth);
   };
 
-  const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(auth, email);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, userData, isAdmin, loading, wasLoggedIn, signIn, signUp, resetPassword, logOut }}>
+    <AuthContext.Provider value={{ user, userData, isAdmin, loading, wasLoggedIn, signIn, signUp, logOut }}>
       {children}
     </AuthContext.Provider>
   );
