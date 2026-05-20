@@ -9,7 +9,7 @@ import { Button } from '../components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, isBefore, startOfDay } from 'date-fns';
 import { Plus, Search, Loader2, Filter, Package, MapPin, Calendar, CheckCircle2, Hash, Scissors, ArrowRight, AlertCircle, ChevronDown, X, LayoutGrid, List, Layers, CheckSquare } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn, isOrderOverdue } from '../lib/utils';
 import { ORDER_STATUS } from '../lib/config';
 import { toast } from 'sonner';
@@ -122,7 +122,7 @@ export default function Orders() {
                   tokenId: order.tokenId,
                   customerName: order.customerName,
                   orderPrice: Number(order.price || 0),
-                  paymentAmount: staffMember.salaryType === 'per-order' ? Number(staffMember.salaryAmount || 0) : 0,
+                  paymentAmount: (staffMember.salaryType === 'per-order' || staffMember.salaryType === 'per_order' || staffMember.salaryType === 'per_suit') ? Number(staffMember.salaryAmount || 0) : 0,
                   paidStatus: 'pending',
                   createdAt: serverTimestamp()
                 });

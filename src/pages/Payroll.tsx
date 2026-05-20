@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { format, subMonths, addMonths, startOfMonth, parseISO } from 'date-fns';
 import { useStaff } from '../hooks/useStaff';
 import { usePayroll, StaffPayment } from '../hooks/usePayroll';
@@ -20,19 +20,29 @@ export function Payroll() {
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
+  // Payroll shows ALL workers automatically (monthly + per_suit)
   const filteredStaff = useMemo(() => {
-    return staff.filter(s => s.salaryType === 'fixed' && s.name.toLowerCase().includes(search.toLowerCase()));
+    return staff.filter(s => s.name.toLowerCase().includes(search.toLowerCase()));
   }, [staff, search]);
 
   const existingPayments = payroll?.payments || [];
   const isLocked = payroll?.status === 'closed';
 
-  const totalPayroll = useMemo(() => filteredStaff.reduce((acc, s) => acc + (s.salaryAmount || 0), 0), [filteredStaff]);
+  // Total payroll for monthly-salaried team members
+  const totalPayroll = useMemo(() => {
+    return filteredStaff
+      .filter(s => s.salaryType === 'monthly')
+      .reduce((acc, s) => acc + (s.salaryAmount || 0), 0);
+  }, [filteredStaff]);
+
   const totalPaid = useMemo(() => existingPayments.reduce((acc, p) => acc + (p.amountPaid || 0), 0), [existingPayments]);
+  
   const unpaidStaffCount = useMemo(() => {
     return filteredStaff.filter(s => {
-      const paid = existingPayments.find(p => p.staffId === s.id)?.amountPaid || 0;
-      return paid < (s.salaryAmount || 0);
+      const payment = existingPayments.find(p => p.staffId === s.id);
+      const paid = payment?.amountPaid || 0;
+      const targetAmount = s.salaryAmount || 0;
+      return paid < targetAmount;
     }).length;
   }, [filteredStaff, existingPayments]);
 
@@ -42,7 +52,7 @@ export function Payroll() {
     // Check if already paid
     const isAlreadyPaid = existingPayments.some(p => p.staffId === staffId);
     if (isAlreadyPaid) {
-        toast.error("Already recorded payment for this staff for this month.");
+        toast.error("Already recorded payment for this worker for this month.");
         return;
     }
 
@@ -85,8 +95,8 @@ export function Payroll() {
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Staff Payroll</h1>
-          <p className="text-sm text-gray-500">Manage monthly salaries and payments</p>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Team Payroll</h1>
+          <p className="text-sm text-gray-500">Manage monthly salaries and per-suit payments from workers</p>
         </div>
 
         <div className="flex items-center bg-white border border-gray-200 rounded-full p-1 shadow-sm">
@@ -105,7 +115,7 @@ export function Payroll() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-white border-gray-200 shadow-sm rounded-2xl overflow-hidden">
           <CardContent className="p-5">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Payroll</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Monthly Payroll</p>
             <p className="text-2xl font-bold text-gray-900">Rs {totalPayroll.toLocaleString()}</p>
           </CardContent>
         </Card>
@@ -117,7 +127,7 @@ export function Payroll() {
         </Card>
         <Card className="bg-white border-gray-200 shadow-sm rounded-2xl overflow-hidden">
           <CardContent className="p-5">
-            <p className="text-xs font-semibold text-amber-500 uppercase tracking-wider mb-1">Unpaid Staff</p>
+            <p className="text-xs font-semibold text-amber-500 uppercase tracking-wider mb-1">Unpaid Workers</p>
             <p className="text-2xl font-bold text-amber-600">{unpaidStaffCount}</p>
           </CardContent>
         </Card>
@@ -128,7 +138,7 @@ export function Payroll() {
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input 
-              placeholder="Search staff..." 
+              placeholder="Search workers..." 
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-9 bg-gray-50 border-gray-200 rounded-full h-10 w-full"
@@ -155,7 +165,7 @@ export function Payroll() {
 
         {filteredStaff.length === 0 ? (
             <div className="text-center py-10">
-                <p className="text-gray-500 text-sm">No fixed salary staff found.</p>
+                <p className="text-gray-500 text-sm">No workers found.</p>
             </div>
         ) : (
             <div className="space-y-3 mt-4">
@@ -167,7 +177,9 @@ export function Payroll() {
                         <div key={s.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-gray-50 rounded-2xl border border-gray-100 gap-4">
                             <div className="flex flex-col">
                                 <span className="font-semibold text-gray-900">{s.name}</span>
-                                <span className="text-xs text-gray-500">{s.role} • Rs {s.salaryAmount?.toLocaleString()}</span>
+                                <span className="text-xs text-gray-500">
+                                  <span className="capitalize">{s.role}</span> • Rs {s.salaryAmount?.toLocaleString()} ({s.salaryType === 'monthly' ? 'Monthly' : 'Per Suit'})
+                                </span>
                             </div>
 
                             <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">

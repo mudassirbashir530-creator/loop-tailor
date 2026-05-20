@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { X, Share, PlusSquare } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
+import { safeSessionGetItem, safeSessionSetItem } from '../utils/storage';
 
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -15,7 +16,7 @@ export default function InstallPrompt() {
                          document.referrer.includes('android-app://');
     
     // 2. Check if user already dismissed it this session
-    const hasDismissed = sessionStorage.getItem('installPromptDismissed') === 'true';
+    const hasDismissed = safeSessionGetItem('installPromptDismissed') === 'true';
 
     if (isStandalone || hasDismissed) {
       return;
@@ -60,7 +61,7 @@ export default function InstallPrompt() {
 
   const handleDismiss = () => {
     setIsVisible(false);
-    sessionStorage.setItem('installPromptDismissed', 'true');
+    safeSessionSetItem('installPromptDismissed', 'true');
   };
 
   const handleInstall = async () => {

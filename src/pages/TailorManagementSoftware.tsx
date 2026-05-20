@@ -1,6 +1,6 @@
 import React from 'react';
 import PublicLayout from '../components/PublicLayout';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Scissors, CheckCircle, Clock, Users, Zap } from 'lucide-react';
 

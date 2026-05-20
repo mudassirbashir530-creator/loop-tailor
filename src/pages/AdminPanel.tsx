@@ -7,7 +7,7 @@ import UsersList from '../components/admin/UsersList';
 import PaymentsTab from '../components/admin/PaymentsTab';
 import ActivityLog from '../components/admin/ActivityLog';
 import { Scissors } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 export default function AdminPanel() {
   const { user } = useAuth();

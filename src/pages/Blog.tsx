@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PublicLayout from '../components/PublicLayout';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Card, CardContent } from '../components/ui/card';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';

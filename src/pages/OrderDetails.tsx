@@ -11,7 +11,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { MeasurementsDisplay } from '../components/MeasurementsDisplay';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
@@ -155,7 +155,7 @@ export default function OrderDetails() {
               tokenId: order.tokenId,
               customerName: order.customerName,
               orderPrice: Number(order.price || 0),
-              paymentAmount: (staffMember as any).salaryType === 'per_order' ? Number((staffMember as any).salaryAmount || 0) : 0,
+              paymentAmount: ((staffMember as any).salaryType === 'per_order' || (staffMember as any).salaryType === 'per_suit' || (staffMember as any).salaryType === 'per-order') ? Number((staffMember as any).salaryAmount || 0) : 0,
               paidStatus: 'pending',
               createdAt: serverTimestamp()
             });

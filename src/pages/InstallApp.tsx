@@ -1,6 +1,6 @@
 import React from 'react';
 import PublicLayout from '../components/PublicLayout';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Smartphone, WifiOff, Download, CheckCircle } from 'lucide-react';
 import InstallButton from '../components/InstallButton';
 

@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import PublicLayout from '../components/PublicLayout';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { SEO } from '../components/SEO';
 import { Calendar, Tag, ArrowLeft } from 'lucide-react';
 

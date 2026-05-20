@@ -21,7 +21,7 @@ export interface Customer {
 
 export type WorkerRole = 'tailor' | 'master' | 'helper' | 'cutter' | 'embroidery' | 'other';
 export type WorkerStatus = 'available' | 'busy' | 'on_leave' | 'offline';
-export type SalaryType = 'monthly' | 'per_order';
+export type SalaryType = 'monthly' | 'per_order' | 'per_suit';
 
 export interface Worker {
   id: string;

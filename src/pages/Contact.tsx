@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PublicLayout from '../components/PublicLayout';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Mail, MapPin, User, MessageSquare, Loader2, CheckCircle2, Phone } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';

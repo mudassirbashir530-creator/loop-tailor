@@ -2,7 +2,7 @@ import React from 'react';
 import { X, Download, Trash2, Edit2, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ImagePreviewModalProps {
   isOpen: boolean;
@@ -41,29 +41,29 @@ export function ImagePreviewModal({
              <span className="text-sm font-medium">{title}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setZoom(z => Math.min(z + 0.25, 3))}>
+            <Button variant="ghost" className="text-white hover:bg-white/20 h-11 w-11 p-2 flex items-center justify-center rounded-lg" onClick={() => setZoom(z => Math.min(z + 0.25, 3))}>
               <ZoomIn className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setZoom(z => Math.max(z - 0.25, 0.5))}>
+            <Button variant="ghost" className="text-white hover:bg-white/20 h-11 w-11 p-2 flex items-center justify-center rounded-lg" onClick={() => setZoom(z => Math.max(z - 0.25, 0.5))}>
               <ZoomOut className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setRotation(r => r + 90)}>
+            <Button variant="ghost" className="text-white hover:bg-white/20 h-11 w-11 p-2 flex items-center justify-center rounded-lg" onClick={() => setRotation(r => r + 90)}>
               <RotateCw className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={handleDownload}>
+            <Button variant="ghost" className="text-white hover:bg-white/20 h-11 w-11 p-2 flex items-center justify-center rounded-lg" onClick={handleDownload}>
               <Download className="w-4 h-4" />
             </Button>
             {onReplace && (
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={onReplace}>
+              <Button variant="ghost" className="text-white hover:bg-white/20 h-11 w-11 p-2 flex items-center justify-center rounded-lg" onClick={onReplace}>
                 <Edit2 className="w-4 h-4" />
               </Button>
             )}
             {onDelete && (
-              <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/20" onClick={onDelete}>
+              <Button variant="ghost" className="text-destructive hover:bg-destructive/20 h-11 w-11 p-2 flex items-center justify-center rounded-lg" onClick={onDelete}>
                 <Trash2 className="w-4 h-4" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 ml-2" onClick={onClose}>
+            <Button variant="ghost" className="text-white hover:bg-white/20 h-11 w-11 p-2 flex items-center justify-center rounded-lg ml-2" onClick={onClose}>
               <X className="w-5 h-5" />
             </Button>
           </div>

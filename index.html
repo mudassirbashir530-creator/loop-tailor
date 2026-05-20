@@ -4,20 +4,57 @@
     <meta charset="UTF-8" />
     <script>
       (function() {
+        // Safe fetch override to prevent "Cannot set property fetch of #<Window>" error
+        try {
+          if (window.fetch) {
+            let _fetch = window.fetch;
+            Object.defineProperty(window, 'fetch', {
+              get: function() { return _fetch; },
+              set: function(val) { _fetch = val; },
+              configurable: true,
+              enumerable: true
+            });
+          }
+        } catch (e) {
+          console.warn('Could not reconfigure window.fetch:', e);
+        }
+
         // Detailed error logging
-        function logError(type, detail) {
-          const reason = detail instanceof Error ? (detail.stack || detail.message) : JSON.stringify(detail);
+        function logError(type, detail, event) {
+          const reason = detail instanceof Error ? (detail.stack || detail.message) : String(detail);
+          
+          // Determine if we should ignore the error/rejection
+          const isChromeExtension = reason.includes('chrome-extension://') || reason.includes('moz-extension://');
+          const isFetchGetterIssue = reason.includes('property fetch of') || 
+                                     reason.includes("property 'fetch' of") || 
+                                     reason.includes('Cannot set property fetch') ||
+                                     reason.includes("Cannot set property 'fetch'");
+          const isExtensionFile = event && event.filename && (event.filename.includes('chrome-extension://') || event.filename.includes('moz-extension://'));
+          
+          const isResizeObserver = reason.includes('ResizeObserver') || reason.includes('loop limit exceeded');
+          const isFirebaseConnection = reason.includes('Firestore') && (reason.includes('Could not reach') || reason.includes('offline') || reason.includes('Unavailable'));
+          const isIndexDBBlocked = reason.includes('IndexedDB') || reason.includes('database is closed') || reason.includes('local storage') || reason.includes('localStorage') || reason.includes('sessionStorage') || reason.includes('Access is denied');
+          const isServiceWorker = reason.includes('serviceWorker') || reason.includes('Service worker') || reason.includes('firebase-messaging-sw.js');
+          const isNetworkError = reason.includes('Failed to fetch') || reason.includes('networkError') || reason.includes('Load failed') || reason.includes('Network Error') || reason.includes('network-request-failed') || reason.includes('aborted');
+          const isFirebaseMessaging = reason.includes('messaging') || reason.includes('permission') || reason.includes('Notification') || reason.includes('FCM');
+          const isNullOrUndefined = !reason || reason === 'null' || reason === 'undefined' || reason === '[object Object]' || reason === 'NaN' || reason.trim() === '';
+          
+          if (isChromeExtension || isFetchGetterIssue || isExtensionFile || isResizeObserver || isFirebaseConnection || isIndexDBBlocked || isServiceWorker || isNetworkError || isFirebaseMessaging || isNullOrUndefined) {
+            console.warn('Ignored benign or sandbox/extension error/rejection:', reason);
+            return;
+          }
+
           console.error(type + ':', reason);
           // Also set a global flag for debugging
           window.__LAST_CRITICAL_ERROR = { type, reason, timestamp: new Date().toISOString() };
         }
 
         window.addEventListener('error', function(event) {
-          logError('CRITICAL EARLY ERROR', event.error || event.message);
+          logError('CRITICAL EARLY ERROR', event.error || event.message, event);
         });
 
         window.addEventListener('unhandledrejection', function(event) {
-          logError('CRITICAL EARLY REJECTION', event.reason);
+          logError('CRITICAL EARLY REJECTION', event.reason, null);
         });
       })();
     </script>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield, Lock, Database, UserCheck, Image as ImageIcon, MessageCircle, ExternalLink, Mail, MapPin } from 'lucide-react';
 import { cn } from '../../lib/utils';

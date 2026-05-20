@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { doc, updateDoc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';

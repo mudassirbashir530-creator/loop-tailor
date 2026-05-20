@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useMeasurementTemplates, MeasurementTemplate, MeasurementField } from '../hooks/useMeasurementTemplates';
 import { Plus, Trash2, Edit2, Check, X, GripVertical, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 
 export function MeasurementTemplatesManager() {
@@ -222,7 +222,7 @@ export function MeasurementTemplatesManager() {
                           dir="rtl"
                           className="flex-1 h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-lowest focus:border-primary text-sm font-medium outline-none transition-all font-urdu"
                         />
-                        <Button variant="ghost" size="icon" onClick={() => removeField(index)} className="text-error hover:text-error hover:bg-error/10 h-8 w-8 rounded-lg">
+                        <Button variant="ghost" onClick={() => removeField(index)} className="text-error hover:text-error hover:bg-error/10 h-11 w-11 p-2 flex items-center justify-center rounded-lg">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -274,10 +274,10 @@ export function MeasurementTemplatesManager() {
                             Make Default
                           </Button>
                         )}
-                        <Button variant="ghost" size="icon" onClick={() => handleStartEdit(template)} className="h-8 w-8 rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/5">
+                        <Button variant="ghost" onClick={() => handleStartEdit(template)} className="h-11 w-11 p-2 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/5">
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(template.id)} className="text-error hover:text-error hover:bg-error/10 h-8 w-8 rounded-lg">
+                        <Button variant="ghost" onClick={() => handleDelete(template.id)} className="text-error hover:text-error hover:bg-error/10 h-11 w-11 p-2 flex items-center justify-center rounded-lg">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

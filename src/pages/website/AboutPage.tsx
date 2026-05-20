@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { motion, useAnimation } from 'framer-motion';
+import { motion, useAnimation } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { 
   Users, Ruler, Scissors, Calculator, CheckCircle2,

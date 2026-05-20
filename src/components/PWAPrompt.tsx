@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Smartphone, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { safeGetItem, safeSetItem } from '../utils/storage';
 
 export function PWAPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -14,7 +15,7 @@ export function PWAPrompt() {
       // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
       // Check if user has already dismissed it
-      const isDismissed = localStorage.getItem('pwa-prompt-dismissed');
+      const isDismissed = safeGetItem('pwa-prompt-dismissed');
       if (!isDismissed) {
         setShowPrompt(true);
       }
@@ -48,7 +49,7 @@ export function PWAPrompt() {
 
   const handleDismiss = () => {
     setShowPrompt(false);
-    localStorage.setItem('pwa-prompt-dismissed', 'true');
+    safeSetItem('pwa-prompt-dismissed', 'true');
   };
 
   if (!showPrompt) return null;

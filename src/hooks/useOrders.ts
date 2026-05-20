@@ -132,7 +132,7 @@ export function useOrders() {
            // Handle salary if per_order
            const workerSnap = await getDoc(workerRef);
            const workerData = workerSnap.data();
-           if (workerData?.salaryType === 'per_order') {
+           if (workerData?.salaryType === 'per_order' || workerData?.salaryType === 'per_suit' || workerData?.salaryType === 'per-order') {
              updates.totalEarnings = increment(workerData.salaryAmount || 0);
            }
 

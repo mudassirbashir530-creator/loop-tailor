@@ -12,7 +12,7 @@ import { cn } from '../lib/utils';
 import { useOrderTemplates } from '../hooks/useOrderTemplates';
 import { toast } from 'sonner';
 import { MeasurementTemplatesManager } from '../components/MeasurementTemplatesManager';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 export interface ShopSettings {
   name: string;
@@ -387,7 +387,7 @@ export default function Settings() {
                       <div className="font-medium text-on-surface text-base">{template.name}</div>
                       <div className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-widest mt-1">{template.dressType}</div>
                     </div>
-                    <button onClick={() => deleteTemplate(template.id)} className="w-10 h-10 rounded-xl bg-surface border border-outline-variant flex items-center justify-center text-error hover:bg-error/10 hover:border-error/20 transition-colors shadow-soft">
+                    <button onClick={() => deleteTemplate(template.id)} className="w-11 h-11 p-2 rounded-xl bg-surface border border-outline-variant flex items-center justify-center text-error hover:bg-error/10 hover:border-error/20 transition-colors shadow-soft">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

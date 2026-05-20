@@ -12,11 +12,21 @@ import twilio from "twilio";
 dotenv.config();
 
 // Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'LoopTailor',
-  api_key: process.env.CLOUDINARY_API_KEY || '822749848441664',
-  api_secret: process.env.CLOUDINARY_API_SECRET || 'gqIlc11KOB1o8pcAC6a-qAMUQZA'
-});
+const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY;
+const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET;
+
+const hasCloudinary = !!(cloudinaryCloudName && cloudinaryApiKey && cloudinaryApiSecret);
+
+if (hasCloudinary) {
+  cloudinary.config({
+    cloud_name: cloudinaryCloudName,
+    api_key: cloudinaryApiKey,
+    api_secret: cloudinaryApiSecret
+  });
+} else {
+  console.error("Missing Cloudinary credentials. Check your .env file");
+}
 
 const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN)
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
@@ -124,6 +134,10 @@ async function startServer() {
    */
   app.post("/api/upload", upload.single("image"), async (req, res) => {
     try {
+      if (!cloudinaryCloudName || !cloudinaryApiKey || !cloudinaryApiSecret) {
+        throw new Error("Missing Cloudinary credentials. Check your .env file");
+      }
+
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
       }

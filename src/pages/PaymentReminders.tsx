@@ -10,7 +10,7 @@ import { Input } from '../components/ui/input';
 import { Search, Loader2, BellRing, User, Phone, CheckCircle2, AlertCircle } from 'lucide-react';
 import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 import { openWhatsApp } from '../lib/whatsapp';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 

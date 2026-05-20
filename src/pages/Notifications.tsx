@@ -6,7 +6,7 @@ import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
 import { Bell, CheckCircle2, Clock, FileText, Trash2, CheckCircle, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
 export default function Notifications() {

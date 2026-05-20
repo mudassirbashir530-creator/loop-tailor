@@ -4,7 +4,7 @@ import { db } from '../../lib/firebase';
 import { Users, DollarSign, Package, UserX, UserCheck, Star, TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
 
 export default function AdminStats() {

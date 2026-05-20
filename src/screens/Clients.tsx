@@ -452,10 +452,10 @@ export default function Clients() {
                   <div className="bg-muted/30 px-5 py-3 border-t flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">Added: {formatDate(customer.createdAt)}</span>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => openEditModal(customer)}>
+                      <Button variant="ghost" className="h-11 w-11 p-2 flex items-center justify-center text-muted-foreground hover:text-primary" onClick={() => openEditModal(customer)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => openDeleteModal(customer)}>
+                      <Button variant="ghost" className="h-11 w-11 p-2 flex items-center justify-center text-muted-foreground hover:text-destructive" onClick={() => openDeleteModal(customer)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Scissors, Users, LayoutDashboard, Settings, LogOut, FileText, Globe, Plus, UserCheck, BellRing } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import MobileBottomNav from './MobileBottomNav';
 import { db } from '../lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';

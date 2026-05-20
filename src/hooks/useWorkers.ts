@@ -32,7 +32,12 @@ export function useWorkers() {
             whatsappPhone: data.whatsappPhone || '',
             countryCode: data.countryCode || '+92',
             role: data.role || 'tailor',
-            salaryType: data.salaryType || 'monthly',
+            salaryType: (() => {
+              const st = data.salaryType || 'monthly';
+              if (st === 'fixed') return 'monthly';
+              if (st === 'per-order' || st === 'per_order') return 'per_suit';
+              return st;
+            })(),
             salaryAmount: data.salaryAmount || 0,
             speciality: data.speciality || '',
             address: data.address || '',
@@ -61,8 +66,13 @@ export function useWorkers() {
   const addWorker = async (workerData: Omit<Worker, 'id' | 'activeOrders' | 'completedOrders' | 'totalEarnings' | 'userId' | 'createdAt'>) => {
     if (!user) return null;
     try {
+      let mappedSalaryType = workerData.salaryType;
+      if ((mappedSalaryType as any) === 'fixed') mappedSalaryType = 'monthly';
+      if ((mappedSalaryType as any) === 'per-order' || (mappedSalaryType as any) === 'per_order') mappedSalaryType = 'per_suit';
+
       const dataToSave: any = {
         ...workerData,
+        salaryType: mappedSalaryType,
         userId: user.uid,
         createdBy: user.uid,
         activeOrders: 0,
@@ -85,10 +95,17 @@ export function useWorkers() {
   const updateWorker = async (id: string, workerData: Partial<Worker>) => {
     if (!user) return;
     try {
+      let mappedSalaryType = workerData.salaryType;
+      if ((mappedSalaryType as any) === 'fixed') mappedSalaryType = 'monthly';
+      if ((mappedSalaryType as any) === 'per-order' || (mappedSalaryType as any) === 'per_order') mappedSalaryType = 'per_suit';
+
       const dataToUpdate: any = {
         ...workerData,
         updatedAt: serverTimestamp(),
       };
+      if (mappedSalaryType !== undefined) {
+        dataToUpdate.salaryType = mappedSalaryType;
+      }
       
       Object.keys(dataToUpdate).forEach(key => dataToUpdate[key] === undefined && delete dataToUpdate[key]);
 

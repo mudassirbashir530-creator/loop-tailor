@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfFjCVpUt9urjINekoaRdi3-JSZx2gJJ52zt1Fi_Z3gKsqK1S6LWIhvSkvoc_iwGZk/exec";
 

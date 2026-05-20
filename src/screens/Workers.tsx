@@ -15,7 +15,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Worker, CloudinaryImage, WorkerRole, WorkerStatus, SalaryType } from '../lib/types';
 import { toast } from 'sonner';
 import { uploadToCloudinary } from '../lib/cloudinary';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { openWhatsApp } from '../lib/whatsapp';
 
@@ -120,7 +120,7 @@ export default function Workers() {
       whatsappPhone: w.whatsappPhone || '',
       countryCode: w.countryCode || '+92',
       role: w.role || 'tailor',
-      salaryType: w.salaryType || 'monthly',
+      salaryType: w.salaryType === 'per_suit' ? 'per_order' : (w.salaryType || 'monthly'),
       salaryAmount: w.salaryAmount || 0,
       speciality: w.speciality || '',
       address: w.address || '',
@@ -399,13 +399,13 @@ export default function Workers() {
                        </span>
                     </div>
                     <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                       <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => openWhatsApp(worker.phone)}>
+                       <Button variant="ghost" className="h-11 w-11 p-2 flex items-center justify-center rounded-full" onClick={() => openWhatsApp(worker.phone)}>
                           <MessageSquare className="h-4 w-4" />
                        </Button>
-                       <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => openEditModal(worker)}>
+                       <Button variant="ghost" className="h-11 w-11 p-2 flex items-center justify-center rounded-full" onClick={() => openEditModal(worker)}>
                           <Edit className="h-4 w-4" />
                        </Button>
-                       <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/10" onClick={() => openDeleteModal(worker)}>
+                       <Button variant="ghost" className="h-11 w-11 p-2 flex items-center justify-center rounded-full text-destructive hover:bg-destructive/10" onClick={() => openDeleteModal(worker)}>
                           <Trash2 className="h-4 w-4" />
                        </Button>
                     </div>
@@ -805,8 +805,7 @@ export default function Workers() {
                   </div>
                   <Button 
                     variant="secondary" 
-                    size="icon" 
-                    className="absolute top-4 right-4 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/40 border-none h-10 w-10"
+                    className="absolute top-4 right-4 rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/40 border-none h-11 w-11 p-2 flex items-center justify-center"
                     onClick={() => setIsDetailsOpen(false)}
                   >
                     <X className="w-5 h-5" />

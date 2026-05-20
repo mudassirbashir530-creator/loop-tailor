@@ -25,7 +25,7 @@ export const CLOTHING_CATEGORIES = [
 
 import { uploadToCloudinary } from '../lib/cloudinary';
 import { CloudinaryImage, OrderStatus } from '../lib/types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 function ImagePreview({ file, onRemove, progress }: { file: File, onRemove: () => void, progress?: number }) {
   const [url, setUrl] = useState<string>('');
@@ -41,9 +41,9 @@ function ImagePreview({ file, onRemove, progress }: { file: File, onRemove: () =
       {url && <img src={url} className="w-full h-full object-cover" alt="preview" />}
       <button 
         onClick={onRemove}
-        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 shadow-sm hover:scale-110 transition-transform"
+        className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full h-11 w-11 p-3 shadow-md hover:scale-110 transition-transform flex items-center justify-center"
       >
-        <X className="w-3 h-3" />
+        <X className="w-3.5 h-3.5" />
       </button>
       {progress !== undefined && progress < 100 && (
         <div className="absolute inset-x-0 bottom-0 bg-black/60 h-1">
@@ -379,7 +379,7 @@ export default function NewOrder() {
                   <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
                      <div className="flex items-center justify-between border-b pb-2 mb-4">
                         <h3 className="font-semibold text-lg">New Customer Details</h3>
-                        <Button variant="ghost" size="icon" onClick={() => setIsCreatingCustomer(false)}><X className="w-4 h-4" /></Button>
+                        <Button variant="ghost" onClick={() => setIsCreatingCustomer(false)} className="h-11 w-11 p-2 flex items-center justify-center rounded-lg"><X className="w-4 h-4" /></Button>
                      </div>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5"><label className="text-sm font-medium">Full Name *</label><Input value={newCustomer.name} onChange={e => setNewCustomer({...newCustomer, name: e.target.value})} placeholder="John Doe" required /></div>
