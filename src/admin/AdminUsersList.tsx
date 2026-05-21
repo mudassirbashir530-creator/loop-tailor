@@ -7,6 +7,11 @@ import BlockUserModal from '../components/BlockUserModal';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
 
+const isValidUrl = (url: string | undefined | null): boolean => {
+  if (!url) return false;
+  return url.startsWith('https://') || url.startsWith('http://');
+};
+
 export default function AdminUsersList() {
   const {
     users,
@@ -345,9 +350,9 @@ export default function AdminUsersList() {
                       {/* Shop Image and Details */}
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          {u.logoUrl || u.photoURL ? (
+                          {isValidUrl(u.logoUrl || u.photoURL) ? (
                             <img
-                              src={u.logoUrl || u.photoURL}
+                              src={u.logoUrl || u.photoURL || undefined}
                               alt={u.shopName}
                               referrerPolicy="no-referrer"
                               className="w-10 h-10 rounded-xl object-cover ring-2 ring-primary/5"

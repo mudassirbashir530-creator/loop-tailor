@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export function useFeatureAccess() {
-  const { userData, loading } = useAuth();
-
-  const features = userData?.features || {
+  const { user, loading } = useAuth();
+  const [features, setFeatures] = useState<any>({
     canDownloadInvoice: false,
     canUploadImages: false,
     canUseWhatsApp: false,
@@ -11,7 +13,45 @@ export function useFeatureAccess() {
     canViewAnalytics: false,
     canCustomBranding: false,
     canManageWorkers: true
-  };
+  });
+  const [currentPlan, setCurrentPlan] = useState<string>('basic');
+  const [localLoading, setLocalLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setLocalLoading(false);
+      return;
+    }
+
+    const docRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(docRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data?.features) {
+          setFeatures({
+            canDownloadInvoice: !!data.features.canDownloadInvoice,
+            canUploadImages: !!data.features.canUploadImages,
+            canUseWhatsApp: !!data.features.canUseWhatsApp,
+            canUsePayroll: !!data.features.canUsePayroll,
+            canViewAnalytics: !!data.features.canViewAnalytics,
+            canCustomBranding: !!data.features.canCustomBranding,
+            canManageWorkers: !!data.features.canManageWorkers,
+          });
+        }
+        if (data?.plan) {
+          setCurrentPlan(data.plan);
+        }
+      }
+      setLocalLoading(false);
+    }, (error) => {
+      console.error("Error fetching feature access:", error);
+      setLocalLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid]);
+
+  const isLoading = loading || localLoading;
 
   return {
     canDownloadInvoice: !!features.canDownloadInvoice,
@@ -21,7 +61,8 @@ export function useFeatureAccess() {
     canViewAnalytics: !!features.canViewAnalytics,
     canCustomBranding: !!features.canCustomBranding,
     canManageWorkers: !!features.canManageWorkers,
-    isLoading: loading,
-    currentPlan: userData?.plan || 'basic'
+    isLoading,
+    currentPlan
   };
 }
+

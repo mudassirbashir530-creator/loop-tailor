@@ -5,6 +5,13 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { AdminUser, UserFeatures } from '../hooks/useAdminUsers';
 import BlockUserModal from '../components/BlockUserModal';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+
+const isValidUrl = (url: string | undefined | null): boolean => {
+  if (!url) return false;
+  return url.startsWith('https://') || url.startsWith('http://');
+};
 
 interface UserManageModalProps {
   user: AdminUser;
@@ -27,6 +34,9 @@ export default function UserManageModal({
   onBlockUser,
   onUnblockUser,
 }: UserManageModalProps) {
+  const [userData, setUserData] = useState<AdminUser>(user);
+  const [loadingFresh, setLoadingFresh] = useState(true);
+
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'standard' | 'premium'>(
     user.plan === 'enterprise' ? 'premium' : (user.plan as any) || 'basic'
   );
@@ -38,10 +48,71 @@ export default function UserManageModal({
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
   const [isUnblockConfirmOpen, setIsUnblockConfirmOpen] = useState(false);
 
-  // Keep state sync'd if user updates in background
+  const [localFeatures, setLocalFeatures] = useState<UserFeatures>({
+    canDownloadInvoice: !!user.features?.canDownloadInvoice,
+    canUploadImages: !!user.features?.canUploadImages,
+    canUseWhatsApp: !!user.features?.canUseWhatsApp,
+    canUsePayroll: !!user.features?.canUsePayroll,
+    canViewAnalytics: !!user.features?.canViewAnalytics,
+    canCustomBranding: !!user.features?.canCustomBranding,
+    canManageWorkers: !!user.features?.canManageWorkers,
+  });
+
+  // Always fetch fresh data on open (Problem 3)
   useEffect(() => {
+    let active = true;
+    const fetchFreshData = async () => {
+      try {
+        const userRef = doc(db, 'users', user.id);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists() && active) {
+          const fresh = { id: userSnap.id, ...userSnap.data() } as AdminUser;
+          setUserData(fresh);
+          setSelectedPlan(fresh.plan === 'enterprise' ? 'premium' : (fresh.plan as any) || 'basic');
+          setOrderLimitInput(fresh.planLimits?.ordersPerMonth?.toString() ?? '60');
+          if (fresh.features) {
+            setLocalFeatures({
+              canDownloadInvoice: !!fresh.features.canDownloadInvoice,
+              canUploadImages: !!fresh.features.canUploadImages,
+              canUseWhatsApp: !!fresh.features.canUseWhatsApp,
+              canUsePayroll: !!fresh.features.canUsePayroll,
+              canViewAnalytics: !!fresh.features.canViewAnalytics,
+              canCustomBranding: !!fresh.features.canCustomBranding,
+              canManageWorkers: !!fresh.features.canManageWorkers,
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching fresh user data inside modal:", err);
+      } finally {
+        if (active) setLoadingFresh(false);
+      }
+    };
+    fetchFreshData();
+    return () => {
+      active = false;
+    };
+  }, [user.id]);
+
+  // Keep state sync'd if user updates in background or prop changes
+  useEffect(() => {
+    setUserData(prev => ({
+      ...prev,
+      ...user
+    }));
     setSelectedPlan(user.plan === 'enterprise' ? 'premium' : (user.plan as any) || 'basic');
     setOrderLimitInput(user.planLimits?.ordersPerMonth?.toString() ?? '60');
+    if (user.features) {
+      setLocalFeatures({
+        canDownloadInvoice: !!user.features.canDownloadInvoice,
+        canUploadImages: !!user.features.canUploadImages,
+        canUseWhatsApp: !!user.features.canUseWhatsApp,
+        canUsePayroll: !!user.features.canUsePayroll,
+        canViewAnalytics: !!user.features.canViewAnalytics,
+        canCustomBranding: !!user.features.canCustomBranding,
+        canManageWorkers: !!user.features.canManageWorkers,
+      });
+    }
   }, [user]);
 
   const formatDate = (dateValue: any) => {
@@ -79,7 +150,7 @@ export default function UserManageModal({
   };
 
   const handleResetCounterClick = async () => {
-    if (window.confirm(`Are you sure you want to reset current order usage for ${user.shopName || user.email}?`)) {
+    if (window.confirm(`Are you sure you want to reset current order usage for ${userData.shopName || userData.email}?`)) {
       await onResetUsage(user.id);
     }
   };
@@ -89,17 +160,34 @@ export default function UserManageModal({
     setIsUnblockConfirmOpen(false);
   };
 
-  const limits = user.planLimits || { customers: 50, ordersPerMonth: 60, workers: 3 };
-  const usage = user.currentUsage || { customers: 0, ordersThisMonth: 0, workers: 0, lastResetDate: null };
-  const features = user.features || {
-    canDownloadInvoice: false,
-    canUploadImages: false,
-    canUseWhatsApp: false,
-    canUsePayroll: false,
-    canViewAnalytics: false,
-    canCustomBranding: false,
-    canManageWorkers: true,
+  // Optimistic Toggle Handler (Problem 1, 4)
+  const handleToggle = async (feature: keyof UserFeatures, newValue: boolean) => {
+    // 1. Update UI immediately
+    setLocalFeatures(prev => ({
+      ...prev,
+      [feature]: newValue
+    }));
+    
+    try {
+      // 2. Save directly to Firestore using exact boolean value assignment (Problem 1)
+      const userRef = doc(db, 'users', user.id);
+      await updateDoc(userRef, {
+        [`features.${feature}`]: newValue
+      });
+      toast.success('Saved!');
+    } catch (error) {
+      // 3. Revert on failure
+      setLocalFeatures(prev => ({
+        ...prev,
+        [feature]: !newValue
+      }));
+      toast.error('Failed to save. Try again.');
+    }
   };
+
+  const limits = userData.planLimits || { customers: 50, ordersPerMonth: 60, workers: 3 };
+  const usage = userData.currentUsage || { customers: 0, ordersThisMonth: 0, workers: 0, lastResetDate: null };
+  const features = localFeatures;
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
@@ -141,29 +229,29 @@ export default function UserManageModal({
               <User className="w-3.5 h-3.5" /> SECTION A — USER INFO
             </h3>
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border dark:border-slate-800">
-              {user.logoUrl || user.photoURL ? (
+              {isValidUrl(userData.logoUrl || userData.photoURL) ? (
                 <img
-                  src={user.logoUrl || user.photoURL}
-                  alt={user.shopName}
+                  src={userData.logoUrl || userData.photoURL || undefined}
+                  alt={userData.shopName}
                   referrerPolicy="no-referrer"
                   className="w-16 h-16 rounded-2xl object-cover ring-2 ring-primary/10"
                 />
               ) : (
                 <div className="w-16 h-16 rounded-2xl bg-primary/15 text-primary flex items-center justify-center font-black text-xl tracking-tight uppercase">
-                  {getInitials(user.shopName || user.ownerName)}
+                  {getInitials(userData.shopName || userData.ownerName)}
                 </div>
               )}
               <div className="flex-1 text-center sm:text-left space-y-1">
                 <h4 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
-                  {user.shopName || 'No Shop Registered'}
+                  {userData.shopName || 'No Shop Registered'}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs font-semibold text-slate-655 dark:text-slate-350">
-                  <p>Owner: <span className="text-foreground">{user.ownerName || 'N/A'}</span></p>
-                  <p>Email: <span className="text-foreground">{user.email}</span></p>
-                  <p>Phone: <span className="text-foreground">{user.phone || 'N/A'}</span></p>
-                  <p>Status: <span className={user.isBlocked ? 'text-destructive font-bold' : 'text-emerald-500 font-bold'}>{user.isBlocked ? '🛡️ Blocked' : '● Active'}</span></p>
-                  <p>Joined: <span className="text-slate-500">{formatDate(user.createdAt)}</span></p>
-                  <p>Last Active: <span className="text-slate-500">{formatDate(user.lastActiveAt)}</span></p>
+                  <p>Owner: <span className="text-foreground">{userData.ownerName || 'N/A'}</span></p>
+                  <p>Email: <span className="text-foreground">{userData.email}</span></p>
+                  <p>Phone: <span className="text-foreground">{userData.phone || 'N/A'}</span></p>
+                  <p>Status: <span className={userData.isBlocked ? 'text-destructive font-bold' : 'text-emerald-500 font-bold'}>{userData.isBlocked ? '🛡️ Blocked' : '● Active'}</span></p>
+                  <p>Joined: <span className="text-slate-500">{formatDate(userData.createdAt)}</span></p>
+                  <p>Last Active: <span className="text-slate-500">{formatDate(userData.lastActiveAt)}</span></p>
                 </div>
               </div>
             </div>
@@ -278,7 +366,7 @@ export default function UserManageModal({
                 <input
                   type="checkbox"
                   checked={features.canUseWhatsApp}
-                  onChange={(e) => onFeatureToggle(user.id, 'canUseWhatsApp', e.target.checked)}
+                  onChange={(e) => handleToggle('canUseWhatsApp', e.target.checked)}
                   className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
                 />
               </div>
@@ -291,7 +379,7 @@ export default function UserManageModal({
                 <input
                   type="checkbox"
                   checked={features.canDownloadInvoice}
-                  onChange={(e) => onFeatureToggle(user.id, 'canDownloadInvoice', e.target.checked)}
+                  onChange={(e) => handleToggle('canDownloadInvoice', e.target.checked)}
                   className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
                 />
               </div>
@@ -304,7 +392,7 @@ export default function UserManageModal({
                 <input
                   type="checkbox"
                   checked={features.canUploadImages}
-                  onChange={(e) => onFeatureToggle(user.id, 'canUploadImages', e.target.checked)}
+                  onChange={(e) => handleToggle('canUploadImages', e.target.checked)}
                   className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
                 />
               </div>
@@ -317,7 +405,7 @@ export default function UserManageModal({
                 <input
                   type="checkbox"
                   checked={features.canUsePayroll}
-                  onChange={(e) => onFeatureToggle(user.id, 'canUsePayroll', e.target.checked)}
+                  onChange={(e) => handleToggle('canUsePayroll', e.target.checked)}
                   className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
                 />
               </div>
@@ -330,7 +418,7 @@ export default function UserManageModal({
                 <input
                   type="checkbox"
                   checked={features.canViewAnalytics}
-                  onChange={(e) => onFeatureToggle(user.id, 'canViewAnalytics', e.target.checked)}
+                  onChange={(e) => handleToggle('canViewAnalytics', e.target.checked)}
                   className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
                 />
               </div>
@@ -343,7 +431,7 @@ export default function UserManageModal({
                 <input
                   type="checkbox"
                   checked={features.canCustomBranding}
-                  onChange={(e) => onFeatureToggle(user.id, 'canCustomBranding', e.target.checked)}
+                  onChange={(e) => handleToggle('canCustomBranding', e.target.checked)}
                   className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
                 />
               </div>
@@ -356,7 +444,7 @@ export default function UserManageModal({
                 <input
                   type="checkbox"
                   checked={features.canManageWorkers}
-                  onChange={(e) => onFeatureToggle(user.id, 'canManageWorkers', e.target.checked)}
+                  onChange={(e) => handleToggle('canManageWorkers', e.target.checked)}
                   className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
                 />
               </div>

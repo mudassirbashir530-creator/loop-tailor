@@ -6,6 +6,11 @@ import UserManageModal from './UserManageModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 
+const isValidUrl = (url: string | undefined | null): boolean => {
+  if (!url) return false;
+  return url.startsWith('https://') || url.startsWith('http://');
+};
+
 export default function UsersList() {
   const [users, setUsers] = useState<any[]>([]);
   const [shops, setShops] = useState<Record<string, any>>({});
@@ -184,8 +189,8 @@ export default function UsersList() {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center font-black text-slate-400 overflow-hidden border border-slate-200 group-hover:scale-105 transition-transform duration-300 shrink-0">
-                          {shopLogo ? (
-                            <img src={shopLogo} alt="Shop" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          {isValidUrl(shopLogo) ? (
+                            <img src={shopLogo || undefined} alt="Shop" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           ) : (
                             getInitials(shopName)
                           )}

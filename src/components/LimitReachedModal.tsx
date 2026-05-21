@@ -19,7 +19,7 @@ export default function LimitReachedModal({ limitType, current, limit, isOpen, o
   const currentPlan = PLANS[currentPlanId as keyof typeof PLANS] || PLANS.basic;
 
   // Let's determine the next plan to suggest
-  let nextPlan = PLANS.standard;
+  let nextPlan: any = PLANS.standard;
   if (currentPlanId === 'standard') {
     nextPlan = PLANS.premium;
   } else if (currentPlanId === 'premium') {
