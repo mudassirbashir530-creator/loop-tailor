@@ -4,9 +4,9 @@ import { Check, X, Shield, Sparkles, ArrowLeft, Smartphone } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../components/ui/card';
 import { openWhatsApp } from '../lib/whatsapp';
 import { cn } from '../lib/utils';
+import { PLANS } from '../constants/plans';
 
 export default function Upgrade() {
   const location = useLocation();
@@ -15,70 +15,7 @@ export default function Upgrade() {
   const { usage } = usePlanLimits();
 
   const customMessage = location.state?.message || "Choose the best plan to grow your tailoring business.";
-  const currentPlan = userData?.plan || 'basic';
-
-  const PLANS = [
-    {
-      id: 'basic',
-      name: 'Basic',
-      price: 'Rs. 500',
-      period: '/month',
-      description: 'Ideal for small home tailors',
-      limits: { customers: 50, ordersPerMonth: 60, workers: 3 },
-      color: 'border-slate-200 bg-white dark:bg-slate-900',
-      features: [
-        { name: '50 Customers', included: true },
-        { name: '60 Orders/month', included: true },
-        { name: '3 Workers', included: true },
-        { name: 'Basic Invoice', included: true },
-        { name: 'Standard Support', included: true },
-        { name: 'Invoice Download', included: false },
-        { name: 'WhatsApp Integration', included: false },
-        { name: 'Image Upload', included: false },
-        { name: 'Payroll System', included: false },
-        { name: 'Analytics', included: false }
-      ]
-    },
-    {
-      id: 'standard',
-      name: 'Standard',
-      price: 'Rs. 1000',
-      period: '/month',
-      description: 'Perfect for growing tailor shops',
-      limits: { customers: 200, ordersPerMonth: 200, workers: 7 },
-      color: 'border-emerald-500 ring-2 ring-emerald-500/20 bg-white dark:bg-slate-900 shadow-md',
-      tag: 'Most Popular',
-      features: [
-        { name: '200 Customers', included: true },
-        { name: '200 Orders/month', included: true },
-        { name: '7 Workers', included: true },
-        { name: 'Professional Invoice + Download', included: true },
-        { name: 'WhatsApp Integration', included: true },
-        { name: 'Priority Support', included: true },
-        { name: 'Image Upload', included: false },
-        { name: 'Payroll System', included: false },
-        { name: 'Analytics', included: false }
-      ]
-    },
-    {
-      id: 'premium',
-      name: 'Premium',
-      price: 'Rs. 2000',
-      period: '/month',
-      description: 'Full bespoke tailoring software suite',
-      limits: { customers: 0, ordersPerMonth: 0, workers: 0 },
-      color: 'border-primary ring-2 ring-primary/20 bg-primary/5 dark:bg-primary/10 shadow-lg',
-      tag: 'Best Value',
-      features: [
-        { name: 'Unlimited Everything', included: true },
-        { name: 'Image Upload', included: true },
-        { name: 'Payroll System', included: true },
-        { name: 'Advanced Analytics', included: true },
-        { name: 'Custom Branding', included: true },
-        { name: 'WhatsApp Priority Support', included: true }
-      ]
-    }
-  ];
+  const currentPlan = userData?.plan || userData?.subscriptionPlan || 'basic';
 
   const handleUpgrade = (selectedPlanName: string) => {
     const userEmail = user?.email || 'N/A';
@@ -95,7 +32,7 @@ export default function Upgrade() {
           variant="ghost" 
           size="sm" 
           onClick={() => navigate(-1)} 
-          className="h-10 rounded-xl font-medium flex items-center gap-2 -ml-2"
+          className="h-10 rounded-xl font-medium flex items-center gap-2 -ml-2 hover:bg-slate-100 dark:hover:bg-slate-800"
         >
           <ArrowLeft className="w-4 h-4" />
           Go Back
@@ -103,140 +40,149 @@ export default function Upgrade() {
       </div>
 
       {/* Header Info Banner */}
-      <div className="max-w-3xl">
-        <div className="flex items-center gap-2 text-primary font-bold text-sm tracking-wider uppercase mb-1.5">
-          <Sparkles className="w-5 h-5 fill-primary/20" />
-          Loop Tailor Subscription
+      <div className="max-w-3xl text-center md:text-left mx-auto md:mx-0">
+        <div className="flex items-center justify-center md:justify-start gap-2 text-primary font-black text-[10px] sm:text-xs tracking-widest uppercase mb-3">
+          <Sparkles className="w-5 h-5 text-primary opacity-80" />
+          <span>Loop Tailor Subscription</span>
         </div>
-        <h1 className="text-3xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">Upgrade Your Tailoring Business</h1>
+        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">Upgrade Your Tailoring Business</h1>
         
         {location.state?.message ? (
-          <div className="mt-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-250 text-xs font-bold flex items-center gap-2.5 animate-pulse">
+          <div className="mt-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-250 text-xs font-bold flex items-center gap-2.5 animate-pulse max-w-max mx-auto md:mx-0">
             <span>⚠️</span>
             <span>{customMessage}</span>
           </div>
         ) : (
-          <p className="text-muted-foreground mt-2 text-sm font-medium">
+          <p className="text-muted-foreground mt-4 text-sm md:text-base font-medium max-w-2xl">
             {customMessage}
           </p>
         )}
       </div>
 
       {/* Comparison Grid with horizontal scrolling on mobile */}
-      <div className="flex overflow-x-auto gap-6 pb-6 pt-2 snap-x snap-mandatory scrollbar-thin md:grid md:grid-cols-3 md:items-stretch">
-        {PLANS.map((plan) => {
+      <div className="flex flex-nowrap overflow-x-auto gap-4 md:gap-6 pb-8 pt-4 snap-x snap-mandatory hide-scrollbar md:grid md:grid-cols-3 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth">
+        {Object.values(PLANS).map((plan) => {
           const isActive = currentPlan.toLowerCase() === plan.id.toLowerCase();
           
-          // Custom block bars
-          const getBlockBar = (current: number, max: number, totalSpots: number) => {
-            if (max === 0) return '▓'.repeat(totalSpots); // Unlimited
+          // Custom rendering for usage stats
+          const renderUsageLine = (label: string, current: number, max: number) => {
+            if (max === 0) {
+              return (
+                <div className="flex justify-between items-center text-slate-700 dark:text-slate-350 py-1 md:py-0.5 border-b border-white/50 dark:border-white/5 last:border-0 md:border-0 relative">
+                  <span className="font-medium text-[12px] md:text-[11px]">{label}:</span>
+                  <span className="font-bold flex items-center gap-1.5">
+                    <span className="text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-black">Unlimited</span>
+                    <span className="text-[12px] md:text-[11px]">{current} / ∞</span>
+                  </span>
+                </div>
+              );
+            }
+            
+            const totalSpots = 5;
             const filled = Math.min(totalSpots, Math.max(0, Math.round((current / max) * totalSpots)));
             const empty = Math.max(0, totalSpots - filled);
-            return '▓'.repeat(filled) + '░'.repeat(empty);
+            const bar = '▓'.repeat(filled) + '░'.repeat(empty);
+            
+            return (
+              <div className="flex justify-between items-center text-slate-700 dark:text-slate-350 py-1 md:py-0.5 border-b border-white/50 dark:border-white/5 last:border-0 md:border-0 relative">
+                <span className="font-medium text-[12px] md:text-[11px]">{label}:</span>
+                <span className="font-bold flex items-center gap-1.5">
+                  <span className="text-primary tracking-tighter opacity-80 text-[10px] sm:text-[11px]">{bar}</span>
+                  <span className="text-[12px] md:text-[11px]">{current}/{max}</span>
+                </span>
+              </div>
+            );
           };
-          const formatMax = (max: number) => max === 0 ? '∞' : max.toString();
 
           return (
-            <Card key={plan.id} className={cn("snap-align-start shrink-0 w-[280px] md:w-full md:shrink flex flex-col justify-between border-2 rounded-3xl overflow-hidden transition-all duration-300", plan.color)}>
-              <CardHeader className="p-6 pb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase tracking-widest text-[#0D3D33] dark:text-[#2ECC71]">
-                    {plan.name} Plan
-                  </span>
-                  {plan.tag && (
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-primary text-primary-foreground">
-                      {plan.tag}
-                    </span>
-                  )}
+            <div 
+              key={plan.id}
+              className={cn(
+                "snap-center shrink-0 w-[85vw] sm:w-[320px] md:w-full md:shrink relative p-6 md:p-8 rounded-[2rem] border-2 flex flex-col justify-between transition-all duration-300",
+                isActive 
+                  ? "border-primary bg-primary/5 ring-4 ring-primary/10 shadow-xl shadow-primary/5 scale-[1.02] md:scale-105 z-10" 
+                  : "border-slate-100 dark:border-slate-800 hover:border-slate-200 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm"
+              )}
+            >
+              {isActive && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md">
+                  Currently Active
                 </div>
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-foreground">{plan.price}</span>
-                  <span className="text-sm text-muted-foreground font-semibold">{plan.period}</span>
+              )}
+              
+              <div>
+                <div className="mb-4 text-center md:text-left flex flex-col items-center md:items-start">
+                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{plan.name}</h3>
+                  <p className="text-[13px] text-slate-500 font-semibold leading-tight mt-1 max-w-[200px] md:max-w-none">{plan.description}</p>
                 </div>
-                <CardDescription className="text-xs font-semibold mt-1 text-slate-500 leading-snug">
-                  {plan.description}
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="p-6 pt-0 flex-1 space-y-4">
-                <div className="border-t my-1" />
-
-                {/* Usage Bars inside card */}
-                <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2 font-mono text-[10px]">
-                  <div className="flex justify-between items-center text-slate-705 dark:text-slate-350">
-                    <span>Customers:</span>
-                    <span className="font-bold flex items-center gap-1">
-                      <span className="text-primary tracking-tighter">{getBlockBar(usage.customers, plan.limits.customers, 6)}</span>
-                      <span>{usage.customers}/{formatMax(plan.limits.customers)}</span>
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-slate-705 dark:text-slate-350">
-                    <span>Orders:</span>
-                    <span className="font-bold flex items-center gap-1">
-                      <span className="text-primary tracking-tighter">{getBlockBar(usage.ordersThisMonth, plan.limits.ordersPerMonth, 6)}</span>
-                      <span>{usage.ordersThisMonth}/{formatMax(plan.limits.ordersPerMonth)}</span>
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-slate-705 dark:text-slate-350">
-                    <span>Workers:</span>
-                    <span className="font-bold flex items-center gap-1">
-                      <span className="text-primary tracking-tighter">{getBlockBar(usage.workers, plan.limits.workers, 4)}</span>
-                      <span>{usage.workers}/{formatMax(plan.limits.workers)}</span>
-                    </span>
+                
+                <div className="mb-8 text-center md:text-left">
+                  <div className="flex items-baseline justify-center md:justify-start gap-1">
+                    <span className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter">Rs. {plan.price}</span>
+                    <span className="text-slate-400 text-sm font-semibold">/mo</span>
                   </div>
                 </div>
 
-                <div className="border-t my-1" />
-                <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">Plan Checklist:</p>
-                <ul className="space-y-2">
-                  {plan.features.map((f) => (
-                    <li key={f.name} className={cn("text-xs font-semibold flex items-center gap-2", !f.included && "opacity-40")}>
+                {/* Usage Bars */}
+                <div className="bg-slate-50 dark:bg-slate-900/50 p-4 md:p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1 mb-6 font-mono shadow-inner">
+                  {renderUsageLine("Customers", usage.customers, plan.limits.customers)}
+                  {renderUsageLine("Orders", usage.ordersThisMonth, plan.limits.ordersPerMonth)}
+                  {renderUsageLine("Workers", usage.workers, plan.limits.workers)}
+                </div>
+                
+                <div className="border-t border-slate-100 dark:border-slate-800 my-6" />
+
+                {/* Feature Lists */}
+                <div className="space-y-3.5 mb-8 px-1">
+                  {plan.featureList.map((f) => (
+                    <div key={f.label} className={cn("flex items-start gap-3.5 text-[14px] md:text-[13px] font-medium", !f.included && "opacity-40")}>
                       {f.included ? (
-                        <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                        <Check className="w-5 h-5 md:w-[18px] md:h-[18px] text-emerald-500 shrink-0" />
                       ) : (
-                        <X className="w-4 h-4 text-red-500 shrink-0" />
+                        <X className="w-5 h-5 md:w-[18px] md:h-[18px] text-red-400 shrink-0" />
                       )}
-                      <span className={f.included ? "text-slate-700 dark:text-slate-300" : "text-slate-400 line-through"}>{f.name}</span>
-                    </li>
+                      <span className={f.included ? "text-slate-700 dark:text-slate-200" : "text-slate-400 line-through"}>{f.label}</span>
+                    </div>
                   ))}
-                </ul>
-              </CardContent>
-
-              <CardFooter className="p-6 pt-0">
-                <Button
-                  className={cn("w-full h-11 rounded-xl font-bold text-xs flex items-center justify-center gap-2",
-                    isActive 
-                      ? 'bg-emerald-500/10 hover:bg-emerald-500/10 text-emerald-600 border border-emerald-500 dark:text-emerald-400 cursor-default'
-                      : 'bg-primary text-primary-foreground hover:opacity-90'
+                </div>
+              </div>
+              
+              <div className="mt-auto">
+                <Button 
+                  onClick={() => handleUpgrade(plan.name)}
+                  variant={isActive ? "outline" : "default"}
+                  className={cn("w-full h-14 md:h-12 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-[0.98]", 
+                    isActive && "opacity-60 cursor-default bg-transparent border-slate-200 text-slate-500 hover:bg-transparent"
                   )}
                   disabled={isActive}
-                  onClick={() => handleUpgrade(plan.name)}
                 >
-                  {isActive ? 'Current Plan (Active)' : `Upgrade to ${plan.name} Plan`}
+                  {isActive ? "Current Plan" : `Upgrade to ${plan.name} Plan`}
                 </Button>
-              </CardFooter>
-            </Card>
+              </div>
+            </div>
           );
         })}
       </div>
 
       {/* Security notice and Sales CTA */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-        <div className="p-4 bg-muted/40 border border-border rounded-2xl flex items-center gap-3.5">
-          <Shield className="w-5 h-5 text-emerald-500 shrink-0" />
-          <p className="text-xs font-semibold text-muted-foreground leading-snug">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 items-center px-0">
+        <div className="p-5 md:p-4 bg-muted/40 border border-border rounded-2xl flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4 md:gap-3.5">
+          <Shield className="w-6 h-6 md:w-5 md:h-5 text-emerald-500 shrink-0" />
+          <p className="text-[13px] md:text-xs font-medium text-muted-foreground leading-relaxed md:leading-snug">
             All upgrade requests are managed securely through official helpdesk validation. Active shop limits are adjusted immediately upon receipt.
           </p>
         </div>
-        <div className="p-4 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Smartphone className="w-5 h-5 text-primary" />
+        <div className="p-5 md:p-4 bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-3">
+            <div className="w-12 h-12 md:w-auto md:h-auto rounded-full bg-white md:bg-transparent dark:bg-slate-800 md:dark:bg-transparent shadow-sm md:shadow-none flex items-center justify-center shrink-0">
+              <Smartphone className="w-6 h-6 md:w-5 md:h-5 text-primary" />
+            </div>
             <div>
-              <p className="text-xs font-bold text-slate-900 dark:text-white">Need a dedicated custom setup?</p>
-              <p className="text-[10px] text-slate-500">Fast assistance is available on WhatsApp.</p>
+              <p className="text-[14px] md:text-xs font-bold text-slate-900 dark:text-white">Need a dedicated custom setup?</p>
+              <p className="text-[12px] md:text-[10px] text-slate-500 mt-1 md:mt-0">Fast assistance is available on WhatsApp.</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="text-xs font-bold" onClick={() => openWhatsApp('03321379924', 'Hi! I am looking for a custom plan setup.')}>
+          <Button variant="outline" className="w-full md:w-auto h-12 md:h-9 text-[13px] md:text-xs font-bold rounded-xl md:rounded-md active:scale-[0.98] transition-transform" onClick={() => openWhatsApp('03321379924', 'Hi! I am looking for a custom plan setup.')}>
             Contact Sales
           </Button>
         </div>

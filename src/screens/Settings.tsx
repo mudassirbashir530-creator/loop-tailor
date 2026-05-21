@@ -671,81 +671,84 @@ export default function Settings() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex overflow-x-auto gap-6 pb-6 pt-2 snap-x snap-mandatory scrollbar-thin md:grid md:grid-cols-3">
+          <div className="flex overflow-x-auto gap-4 md:gap-6 pb-6 pt-2 snap-x snap-mandatory hide-scrollbar md:grid md:grid-cols-3">
             {Object.values(PLANS).map((plan) => {
               const isActive = currentPlan.toLowerCase() === plan.id.toLowerCase();
               
-              // Custom block bars
-              const getBlockBar = (current: number, max: number, totalSpots: number) => {
-                if (max === 0) return '▓'.repeat(totalSpots); // Unlimited
+              // Custom rendering for usage stats
+              const renderUsageLine = (label: string, current: number, max: number) => {
+                if (max === 0) {
+                  return (
+                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-350 py-0.5">
+                      <span>{label}:</span>
+                      <span className="font-bold flex items-center gap-1.5">
+                        <span className="text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-black">Unlimited</span>
+                        <span>{current} / ∞</span>
+                      </span>
+                    </div>
+                  );
+                }
+                
+                const totalSpots = 5;
                 const filled = Math.min(totalSpots, Math.max(0, Math.round((current / max) * totalSpots)));
                 const empty = Math.max(0, totalSpots - filled);
-                return '▓'.repeat(filled) + '░'.repeat(empty);
+                const bar = '▓'.repeat(filled) + '░'.repeat(empty);
+                
+                return (
+                  <div className="flex justify-between items-center text-slate-700 dark:text-slate-350 py-0.5">
+                    <span>{label}:</span>
+                    <span className="font-bold flex items-center gap-1.5">
+                      <span className="text-primary tracking-tighter opacity-80">{bar}</span>
+                      <span>{current}/{max}</span>
+                    </span>
+                  </div>
+                );
               };
-              const formatMax = (max: number) => max === 0 ? '∞' : max.toString();
 
               return (
                 <div 
                   key={plan.id}
                   className={cn(
-                    "snap-align-start shrink-0 w-[280px] md:w-full md:shrink relative p-6 rounded-3xl border-2 flex flex-col justify-between transition-all",
+                    "snap-align-start shrink-0 w-[85vw] sm:w-[320px] md:w-full md:shrink relative p-5 md:p-6 rounded-[2rem] border-2 flex flex-col justify-between transition-all",
                     isActive 
-                      ? "border-primary bg-primary/5 ring-4 ring-primary/10" 
+                      ? "border-primary bg-primary/5 ring-4 ring-primary/10 shadow-lg shadow-primary/5" 
                       : "border-slate-100 dark:border-slate-800 hover:border-slate-200"
                   )}
                 >
                   {isActive && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md">
                       Currently Active
                     </div>
                   )}
                   
                   <div>
-                    <div className="mb-4">
-                      <h3 className="text-xl font-black text-slate-900 dark:text-white">{plan.name}</h3>
-                      <p className="text-xs text-slate-500 font-semibold leading-tight">{plan.description}</p>
+                    <div className="mb-4 text-center md:text-left">
+                      <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{plan.name}</h3>
+                      <p className="text-[13px] text-slate-500 font-semibold leading-tight mt-1">{plan.description}</p>
                     </div>
                     
-                    <div className="mb-4">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-slate-900 dark:text-white">Rs. {plan.price}</span>
-                        <span className="text-slate-400 text-xs font-semibold">/month</span>
+                    <div className="mb-6 text-center md:text-left">
+                      <div className="flex items-baseline justify-center md:justify-start gap-1">
+                        <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Rs. {plan.price}</span>
+                        <span className="text-slate-400 text-sm font-semibold">/mo</span>
                       </div>
                     </div>
 
                     {/* Usage Bars */}
-                    <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2 mb-5 font-mono text-[10px]">
-                      <div className="flex justify-between items-center text-slate-700 dark:text-slate-350">
-                        <span>Customers:</span>
-                        <span className="font-bold flex items-center gap-1">
-                          <span className="text-primary tracking-tighter">{getBlockBar(usage.customers, plan.limits.customers, 6)}</span>
-                          <span>{usage.customers}/{formatMax(plan.limits.customers)}</span>
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-slate-700 dark:text-slate-350">
-                        <span>Orders:</span>
-                        <span className="font-bold flex items-center gap-1">
-                          <span className="text-primary tracking-tighter">{getBlockBar(usage.ordersThisMonth, plan.limits.ordersPerMonth, 6)}</span>
-                          <span>{usage.ordersThisMonth}/{formatMax(plan.limits.ordersPerMonth)}</span>
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center text-slate-700 dark:text-slate-350">
-                        <span>Workers:</span>
-                        <span className="font-bold flex items-center gap-1">
-                          <span className="text-primary tracking-tighter">{getBlockBar(usage.workers, plan.limits.workers, 4)}</span>
-                          <span>{usage.workers}/{formatMax(plan.limits.workers)}</span>
-                        </span>
-                      </div>
+                    <div className="bg-slate-50 dark:bg-slate-900/50 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1 mb-6 font-mono text-[11px] shadow-inner">
+                      {renderUsageLine("Customers", usage.customers, plan.limits.customers)}
+                      {renderUsageLine("Orders", usage.ordersThisMonth, plan.limits.ordersPerMonth)}
+                      {renderUsageLine("Workers", usage.workers, plan.limits.workers)}
                     </div>
                     
                     {/* Feature Lists */}
-                    <div className="space-y-2.5 mb-6">
+                    <div className="space-y-3 mb-6 px-1">
                       {plan.featureList.map(f => (
-                        <div key={f.label} className={cn("flex items-start gap-2.5 text-xs font-semibold", !f.included && "opacity-40")}>
+                        <div key={f.label} className={cn("flex items-start gap-3 text-[13px] font-semibold", !f.included && "opacity-40")}>
                           {f.included ? (
-                            <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                            <Check className="w-[18px] h-[18px] text-emerald-500 shrink-0" />
                           ) : (
-                            <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                            <X className="w-[18px] h-[18px] text-red-400 shrink-0" />
                           )}
                           <span className={f.included ? "text-slate-700 dark:text-slate-200" : "text-slate-400 line-through"}>{f.label}</span>
                         </div>
@@ -753,31 +756,33 @@ export default function Settings() {
                     </div>
                   </div>
                   
-                  <Button 
-                    onClick={() => handleUpgradePlan(plan.name)}
-                    variant={isActive ? "outline" : "default"}
-                    className="w-full h-11 rounded-xl font-bold text-xs"
-                    disabled={isActive}
-                  >
-                    {isActive ? "Current Plan" : "Upgrade Plan"}
-                  </Button>
+                  <div className="mt-auto pt-2">
+                    <Button 
+                      onClick={() => handleUpgradePlan(plan.name)}
+                      variant={isActive ? "outline" : "default"}
+                      className={cn("w-full h-12 rounded-xl font-bold text-sm shadow-sm", isActive && "opacity-60 cursor-default bg-transparent border-slate-200 text-slate-500")}
+                      disabled={isActive}
+                    >
+                      {isActive ? "Current Plan" : "Upgrade Plan"}
+                    </Button>
+                  </div>
                 </div>
               );
             })}
           </div>
           
-          <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between mt-2">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center">
-                <Smartphone className="w-5 h-5 text-primary" />
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between mt-4 gap-4">
+            <div className="flex items-center gap-4 text-center md:text-left">
+              <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700">
+                <Smartphone className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <p className="text-sm font-bold text-slate-900 dark:text-white">Need custom enterprise assistance?</p>
-                <p className="text-xs text-slate-500">Contact admin support on WhatsApp anytime.</p>
+                <p className="text-xs text-slate-500 mt-0.5">Contact admin support on WhatsApp anytime.</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={() => openWhatsApp('03321379924', 'Hi! I need a custom plan for my shop.')}>
-              Contact Sales
+            <Button variant="outline" className="w-full md:w-auto h-11 px-6 rounded-xl text-sm font-bold shadow-sm" onClick={() => openWhatsApp('03321379924', 'Hi! I need a custom plan for my shop.')}>
+              Contact Admin
             </Button>
           </div>
         </DialogContent>
