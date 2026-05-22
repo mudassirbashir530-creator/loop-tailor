@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, Crown, Bell, MessageSquare, Globe, Palette, HelpCircle, LogOut, ChevronRight, Moon, Sun, Smartphone, Check, UserCircle, X, FileText } from 'lucide-react';
+import { Store, Crown, Bell, MessageSquare, Globe, Palette, HelpCircle, LogOut, ChevronRight, Moon, Sun, Smartphone, Check, UserCircle, X, FileText, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -658,132 +658,163 @@ export default function Settings() {
 
       {/* Pricing Dialog */}
       <Dialog open={isPricingOpen} onOpenChange={setIsPricingOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 md:p-8">
-          <DialogHeader className="space-y-2 mb-4">
-            <div className="flex justify-center">
-              <span className="bg-[#0D3D33] text-[#2ECC71] text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-sm border border-emerald-500/10">
-                YOUR CURRENT PLAN: {currentPlan?.toUpperCase()}
-              </span>
-            </div>
-            <DialogTitle className="text-2xl font-extrabold text-center text-slate-900 dark:text-white">Software Plans</DialogTitle>
-            <DialogDescription className="text-center text-slate-500 max-w-lg mx-auto">
-              Choose the best plan for your shop's growth. Contact us on WhatsApp for upgrades.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="flex overflow-x-auto gap-4 md:gap-6 pb-6 pt-2 snap-x snap-mandatory hide-scrollbar md:grid md:grid-cols-3">
-            {Object.values(PLANS).map((plan) => {
-              const isActive = currentPlan.toLowerCase() === plan.id.toLowerCase();
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0 md:p-6 bg-slate-50 dark:bg-slate-950 border-0 md:border">
+          <div className="p-4 md:p-2 sticky top-0 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md z-10 border-b md:border-none border-slate-200 dark:border-slate-800">
+            <DialogHeader className="space-y-4">
+              <DialogTitle className="text-2xl font-black text-center text-slate-900 dark:text-white mt-4 md:mt-0">Subscription Plans</DialogTitle>
               
-              // Custom rendering for usage stats
-              const renderUsageLine = (label: string, current: number, max: number) => {
-                if (max === 0) {
+              {/* Current Plan Banner */}
+              <div className="max-w-md mx-auto w-full bg-[#1a3a2a] text-white p-4 rounded-2xl shadow-md border border-[#2ECC71]/30 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Sparkles className="w-16 h-16" />
+                </div>
+                <p className="text-[#2ECC71] text-[10px] font-black tracking-widest uppercase mb-1 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" /> YOUR CURRENT PLAN
+                </p>
+                <div className="flex justify-between items-end relative z-10">
+                  <div>
+                    <h3 className="text-xl font-bold">{PLANS[currentPlan.toLowerCase() as keyof typeof PLANS]?.name || 'Unknown'} <span className="font-normal opacity-80 text-sm">— Rs.{PLANS[currentPlan.toLowerCase() as keyof typeof PLANS]?.price || 0}/mo</span></h3>
+                    <p className="text-xs text-slate-300 mt-1 opacity-80">Active now</p>
+                  </div>
+                </div>
+              </div>
+            </DialogHeader>
+          </div>
+          
+          <div className="p-4 md:p-2">
+            <div className="flex flex-col md:grid md:grid-cols-3 gap-6">
+              {Object.values(PLANS).map((plan, index) => {
+                const currentPlanObj = PLANS[currentPlan.toLowerCase() as keyof typeof PLANS];
+                const currentPlanPrice = currentPlanObj ? currentPlanObj.price : 0;
+                const isActive = currentPlan.toLowerCase() === plan.id.toLowerCase();
+                const isLower = plan.price < currentPlanPrice;
+                
+                // Custom rendering for usage stats
+                const renderUsageLine = (label: string, current: number, max: number) => {
+                  if (max === 0) {
+                    return (
+                      <div className="flex justify-between items-center text-slate-700 dark:text-slate-350 py-0.5">
+                        <span className="font-medium text-xs">{label}:</span>
+                        <span className="font-bold flex items-center gap-1.5">
+                          <span className="text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-black">Unlimited</span>
+                          <span className="text-xs">{current} / ∞</span>
+                        </span>
+                      </div>
+                    );
+                  }
+                  
+                  const totalSpots = 5;
+                  const filled = Math.min(totalSpots, Math.max(0, Math.round((current / max) * totalSpots)));
+                  const empty = Math.max(0, totalSpots - filled);
+                  const bar = '▓'.repeat(filled) + '░'.repeat(empty);
+                  
                   return (
                     <div className="flex justify-between items-center text-slate-700 dark:text-slate-350 py-0.5">
-                      <span>{label}:</span>
+                      <span className="font-medium text-xs">{label}:</span>
                       <span className="font-bold flex items-center gap-1.5">
-                        <span className="text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-black">Unlimited</span>
-                        <span>{current} / ∞</span>
+                        <span className="text-primary tracking-tighter opacity-80 text-[10px]">{bar}</span>
+                        <span className="text-xs">{current}/{max}</span>
                       </span>
                     </div>
                   );
-                }
-                
-                const totalSpots = 5;
-                const filled = Math.min(totalSpots, Math.max(0, Math.round((current / max) * totalSpots)));
-                const empty = Math.max(0, totalSpots - filled);
-                const bar = '▓'.repeat(filled) + '░'.repeat(empty);
-                
-                return (
-                  <div className="flex justify-between items-center text-slate-700 dark:text-slate-350 py-0.5">
-                    <span>{label}:</span>
-                    <span className="font-bold flex items-center gap-1.5">
-                      <span className="text-primary tracking-tighter opacity-80">{bar}</span>
-                      <span>{current}/{max}</span>
-                    </span>
-                  </div>
-                );
-              };
+                };
 
-              return (
-                <div 
-                  key={plan.id}
-                  className={cn(
-                    "snap-align-start shrink-0 w-[85vw] sm:w-[320px] md:w-full md:shrink relative p-5 md:p-6 rounded-[2rem] border-2 flex flex-col justify-between transition-all",
-                    isActive 
-                      ? "border-primary bg-primary/5 ring-4 ring-primary/10 shadow-lg shadow-primary/5" 
-                      : "border-slate-100 dark:border-slate-800 hover:border-slate-200"
-                  )}
-                >
-                  {isActive && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md">
-                      Currently Active
-                    </div>
-                  )}
-                  
-                  <div>
-                    <div className="mb-4 text-center md:text-left">
-                      <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{plan.name}</h3>
-                      <p className="text-[13px] text-slate-500 font-semibold leading-tight mt-1">{plan.description}</p>
-                    </div>
-                    
-                    <div className="mb-6 text-center md:text-left">
-                      <div className="flex items-baseline justify-center md:justify-start gap-1">
-                        <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Rs. {plan.price}</span>
-                        <span className="text-slate-400 text-sm font-semibold">/mo</span>
+                const handlePlanAction = () => {
+                  if (isActive) return;
+                  const message = `Hi, I want to ${isLower ? 'downgrade' : 'upgrade'} my Loop Tailor plan to ${plan.name}.\nMy account: ${userData?.email || 'N/A'}`;
+                  openWhatsApp('03321379924', message);
+                };
+
+                return (
+                  <div 
+                    key={plan.id}
+                    className={cn(
+                      "w-full relative p-6 rounded-[2rem] border-2 flex flex-col justify-between transition-all bg-white dark:bg-slate-900 shadow-sm",
+                      isActive 
+                        ? "border-[#1a3a2a] ring-4 ring-[#1a3a2a]/5 shadow-xl scale-[1.02] md:scale-100 z-10" 
+                        : "border-slate-200 dark:border-slate-800"
+                    )}
+                  >
+                    <div>
+                      <div className="mb-4">
+                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{plan.name}</h3>
+                        <p className="text-[13px] text-slate-500 font-medium leading-tight mt-1">{plan.description}</p>
+                      </div>
+                      
+                      <div className="mb-6">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Rs.{plan.price}</span>
+                          <span className="text-slate-400 text-sm font-medium">/mo</span>
+                        </div>
+                      </div>
+
+                      {/* Usage Bars - ONLY SHOW ON ACTIVE PLAN */}
+                      {isActive && (
+                        <div className="mb-6">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Current Usage</p>
+                          <div className="bg-slate-50 dark:bg-slate-900/50 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1 font-mono text-[11px] shadow-inner">
+                            {renderUsageLine("Customers", usage.customers, plan.limits.customers)}
+                            {renderUsageLine("Orders", usage.ordersThisMonth, plan.limits.ordersPerMonth)}
+                            {renderUsageLine("Workers", usage.workers, plan.limits.workers)}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Feature Lists */}
+                      <div className="space-y-3 mb-8 px-1">
+                        {plan.featureList.map(f => (
+                          <div key={f.label} className={cn("flex items-start gap-3 text-[13px] font-medium", !f.included && "opacity-45")}>
+                            {f.included ? (
+                              <Check className="w-[18px] h-[18px] text-emerald-500 shrink-0" />
+                            ) : (
+                              <X className="w-[18px] h-[18px] text-red-500 shrink-0" />
+                            )}
+                            <span className={f.included ? "text-slate-700 dark:text-slate-200" : "text-slate-500 line-through"}>{f.label}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-
-                    {/* Usage Bars */}
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1 mb-6 font-mono text-[11px] shadow-inner">
-                      {renderUsageLine("Customers", usage.customers, plan.limits.customers)}
-                      {renderUsageLine("Orders", usage.ordersThisMonth, plan.limits.ordersPerMonth)}
-                      {renderUsageLine("Workers", usage.workers, plan.limits.workers)}
-                    </div>
                     
-                    {/* Feature Lists */}
-                    <div className="space-y-3 mb-6 px-1">
-                      {plan.featureList.map(f => (
-                        <div key={f.label} className={cn("flex items-start gap-3 text-[13px] font-semibold", !f.included && "opacity-40")}>
-                          {f.included ? (
-                            <Check className="w-[18px] h-[18px] text-emerald-500 shrink-0" />
-                          ) : (
-                            <X className="w-[18px] h-[18px] text-red-400 shrink-0" />
-                          )}
-                          <span className={f.included ? "text-slate-700 dark:text-slate-200" : "text-slate-400 line-through"}>{f.label}</span>
-                        </div>
-                      ))}
+                    <div className="mt-auto pt-4">
+                      {isActive ? (
+                        <Button 
+                          variant="secondary"
+                          className="w-full h-12 rounded-xl font-bold text-sm bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-default hover:bg-slate-100"
+                          disabled
+                        >
+                          Current Plan <Check className="w-4 h-4 ml-2" />
+                        </Button>
+                      ) : isLower ? (
+                        <Button 
+                          onClick={handlePlanAction}
+                          variant="outline"
+                          className="w-full h-12 rounded-xl font-bold text-sm border-slate-300 text-slate-600 hover:bg-slate-50"
+                        >
+                          Downgrade
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={handlePlanAction}
+                          className="w-full h-12 rounded-xl font-bold text-sm bg-[#1a3a2a] hover:bg-[#1a3a2a]/90 text-white shadow-md active:scale-95 transition-transform"
+                        >
+                          Upgrade Plan
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  
-                  <div className="mt-auto pt-2">
-                    <Button 
-                      onClick={() => handleUpgradePlan(plan.name)}
-                      variant={isActive ? "outline" : "default"}
-                      className={cn("w-full h-12 rounded-xl font-bold text-sm shadow-sm", isActive && "opacity-60 cursor-default bg-transparent border-slate-200 text-slate-500")}
-                      disabled={isActive}
-                    >
-                      {isActive ? "Current Plan" : "Upgrade Plan"}
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between mt-4 gap-4">
-            <div className="flex items-center gap-4 text-center md:text-left">
-              <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700">
-                <Smartphone className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">Need custom enterprise assistance?</p>
-                <p className="text-xs text-slate-500 mt-0.5">Contact admin support on WhatsApp anytime.</p>
-              </div>
+                );
+              })}
             </div>
-            <Button variant="outline" className="w-full md:w-auto h-11 px-6 rounded-xl text-sm font-bold shadow-sm" onClick={() => openWhatsApp('03321379924', 'Hi! I need a custom plan for my shop.')}>
-              Contact Admin
-            </Button>
+            
+            <div className="bg-slate-100 dark:bg-slate-900/50 p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between mt-8 gap-4 shadow-sm border border-slate-200 dark:border-slate-800">
+              <div className="text-center sm:text-left">
+                <p className="text-sm font-black text-slate-900 dark:text-white">Need custom enterprise assistance?</p>
+                <p className="text-[13px] text-slate-500 mt-1 font-medium">Contact admin support on WhatsApp anytime.</p>
+              </div>
+              <Button variant="outline" className="w-full sm:w-auto h-12 px-6 rounded-xl text-sm font-bold shadow-sm bg-white hover:bg-slate-50" onClick={() => openWhatsApp('03321379924', `Hi! I need a custom plan for my shop.\nMy account: ${userData?.email || 'N/A'}`)}>
+                Contact Sales
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
