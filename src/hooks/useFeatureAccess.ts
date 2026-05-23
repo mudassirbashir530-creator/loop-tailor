@@ -35,7 +35,7 @@ export function useFeatureAccess() {
             canUsePayroll: !!data.features.canUsePayroll,
             canViewAnalytics: !!data.features.canViewAnalytics,
             canCustomBranding: !!data.features.canCustomBranding,
-            canManageWorkers: !!data.features.canManageWorkers,
+            canManageWorkers: data.features.canManageWorkers !== false,
           });
         }
         if (data?.plan) {
@@ -53,6 +53,12 @@ export function useFeatureAccess() {
 
   const isLoading = loading || localLoading;
 
+  const canManageWorkers = 
+    features?.canManageWorkers !== false 
+    || currentPlan === 'basic'
+    || currentPlan === 'standard'
+    || currentPlan === 'premium';
+
   return {
     canDownloadInvoice: !!features.canDownloadInvoice,
     canUploadImages: !!features.canUploadImages,
@@ -60,7 +66,7 @@ export function useFeatureAccess() {
     canUsePayroll: !!features.canUsePayroll,
     canViewAnalytics: !!features.canViewAnalytics,
     canCustomBranding: !!features.canCustomBranding,
-    canManageWorkers: !!features.canManageWorkers,
+    canManageWorkers,
     isLoading,
     currentPlan
   };

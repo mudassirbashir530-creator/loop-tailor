@@ -24,12 +24,12 @@ export default function FeatureRoute({ feature, children }: FeatureRouteProps) {
     );
   }
 
-  if (features[feature]) {
-    return <>{children}</>;
-  }
-
   const currentPlanId = userData?.plan || 'basic';
   const requiredPlanId = REQUIRED_PLAN[feature];
+
+  if (features[feature] || requiredPlanId === 'basic' || currentPlanId === requiredPlanId) {
+    return <>{children}</>;
+  }
   
   const currentPlan = PLANS[currentPlanId as keyof typeof PLANS] || PLANS.basic;
   const requiredPlan = PLANS[requiredPlanId as keyof typeof PLANS] || PLANS.basic;

@@ -9,7 +9,7 @@ import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, collect
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors, AlertCircle, Layers } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { MeasurementsDisplay } from '../components/MeasurementsDisplay';
@@ -335,51 +335,20 @@ export default function OrderDetails() {
               <span className="text-[24px] md:text-[28px] font-extrabold tracking-tight text-primary">
                 TOKEN #{order.tokenId || `T-${order.id.slice(0, 6).toUpperCase()}`}
               </span>
-              {order.deliveryType === 'Home Delivery' ? (
-                <span className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-widest text-[#22C55E] bg-green-100 px-2.5 py-1 rounded-full"><Home className="w-3.5 h-3.5"/> Home Delivery</span>
-              ) : order.deliveryType === 'Self Pickup' ? (
-                <span className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-widest text-blue-600 bg-blue-100 px-2.5 py-1 rounded-full"><Store className="w-3.5 h-3.5"/> Self Pickup</span>
-              ) : null}
             </div>
-            <h1 className="text-[20px] font-semibold text-on-surface">{order.customerName}</h1>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {order.status !== 'cancelled' && !isEditing && (ORDER_STATUS_TRANSITIONS[order.status as OrderStatus] || []).map(nextStatus => (
-            <Button
-              key={nextStatus}
-              onClick={() => {
-                if (nextStatus === ORDER_STATUS.CANCELLED) {
-                  setIsCancellationModalOpen(true);
-                } else {
-                  handleUpdateStatus(nextStatus);
-                }
-              }}
-              className={cn(
-                "font-medium rounded-full px-6 h-12 shadow-sm transition-all border-none",
-                nextStatus === ORDER_STATUS.CANCELLED ? "bg-red-100 text-red-600 hover:bg-red-200" :
-                nextStatus === ORDER_STATUS.DELIVERED ? "bg-primary hover:bg-on-surface text-primary-foreground" :
-                "bg-blue-100 text-blue-700 hover:bg-blue-200"
-              )}
-            >
-              {nextStatus === ORDER_STATUS.DELIVERED && <CheckCircle className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
-              {nextStatus === ORDER_STATUS.CANCELLED && <X className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
-              {nextStatus === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
-               nextStatus === ORDER_STATUS.READY ? t('orderDetails.ready') :
-               nextStatus === ORDER_STATUS.DELIVERED ? t('orderDetails.deliver') :
-               nextStatus}
-            </Button>
-          ))}
           {order.status !== 'cancelled' && (
             <Button 
               variant="ghost"
               onClick={() => isEditing ? handleSaveEdit() : setIsEditing(true)}
               className={cn(
-                "rounded-full font-medium h-12 px-6 transition-all border border-outline-variant",
-                isEditing ? "bg-surface-variant text-primary" : "bg-surface hover:bg-surface-variant text-on-surface shadow-sm"
+                "rounded-full font-medium h-10 px-5 transition-all border border-outline-variant",
+                isEditing ? "bg-primary text-primary-foreground border-primary" : "bg-surface hover:bg-surface-variant text-on-surface shadow-sm"
               )}
             >
-              {isEditing ? <Save className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} /> : <Edit2 className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
+              {isEditing ? <Save className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} /> : <Edit2 className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} />}
               {isEditing ? t('orderDetails.save') : t('orderDetails.edit')}
             </Button>
           )}
@@ -388,15 +357,15 @@ export default function OrderDetails() {
               variant="ghost"
               onClick={handleDeleteOrder}
               disabled={isDeleting}
-              className="rounded-full font-medium h-12 px-6 border border-outline-variant text-error bg-surface hover:bg-error hover:text-white shadow-sm transition-all"
+              className="rounded-full font-medium h-10 px-5 border border-outline-variant text-error bg-surface hover:bg-error hover:text-white shadow-sm transition-all"
             >
-              {isDeleting ? <Loader2 className={cn("h-5 w-5 animate-spin", isRTL ? "ml-2" : "mr-2")} /> : <Trash2 className={cn("h-5 w-5", isRTL ? "ml-2" : "mr-2")} />}
+              {isDeleting ? <Loader2 className={cn("h-4 w-4 animate-spin", isRTL ? "ml-2" : "mr-2")} /> : <Trash2 className={cn("h-4 w-4", isRTL ? "ml-2" : "mr-2")} />}
               {t('orderDetails.delete')}
             </Button>
           )}
           {order.status !== 'cancelled' && isEditing && (
-            <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="rounded-full h-12 w-12 bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-on-surface-variant">
-              <X className="h-6 w-6" />
+            <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)} className="rounded-full h-10 w-10 bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-on-surface-variant">
+              <X className="h-5 w-5" />
             </Button>
           )}
         </div>
@@ -439,32 +408,50 @@ export default function OrderDetails() {
               <div className="space-y-6">
                 <div className="space-y-1">
                   <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.customerDetails')}</span>
-                  <div className="flex items-center gap-3 text-on-surface mt-1">
-                    <User className="h-4 w-4 text-primary" />
-                    <span className="font-semibold">{order.customerName}</span>
-                  </div>
-                  {order.phone && (
-                    <div className="flex items-center gap-3 text-on-surface mt-2.5">
-                      <Phone className="h-4 w-4 text-primary" />
-                      <span className="font-semibold">{order.phone}</span>
+                  <div 
+                    className="flex flex-col gap-1 p-3 mt-1.5 rounded-xl border border-outline-variant cursor-pointer hover:bg-surface-variant transition-colors bg-surface-container-lowest"
+                    onClick={() => navigate(`/app/clients/${order.customerId}`)}
+                  >
+                    <div className="flex items-center justify-between text-on-surface">
+                       <div className="flex items-center gap-2">
+                         <User className="h-4 w-4 text-primary shrink-0" />
+                         <span className="font-semibold text-[14px]">{order.customerName}</span>
+                       </div>
+                       <ArrowRight className="h-4 w-4 text-on-surface-variant" />
                     </div>
-                  )}
+                    {order.phone && (
+                      <div className="flex items-center gap-2 text-on-surface-variant ml-[24px]">
+                        <span className="font-medium text-[13px]">{order.phone}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1">
                   <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.dressType')}</span>
-                  <div className="text-[18px] font-semibold text-on-surface mt-1">{order.dressType}</div>
+                  <div className="text-[16px] font-semibold text-on-surface mt-1">{order.dressType || 'Not specified'}</div>
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.status')}</span>
-                  <div className="h-12 w-full rounded-2xl bg-surface border border-outline-variant px-4 text-[15px] font-semibold text-on-surface flex items-center">
-                    {order.status === ORDER_STATUS.PENDING ? t('orderDetails.pending') :
-                     order.status === ORDER_STATUS.STITCHING ? t('orderDetails.stitching') :
-                     order.status === ORDER_STATUS.READY ? t('orderDetails.ready') :
-                     order.status === ORDER_STATUS.DELIVERED ? t('orderDetails.delivered') :
-                     order.status}
-                  </div>
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">Current Status</span>
+                  <select
+                     disabled={order.status === ORDER_STATUS.CANCELLED || order.status === ORDER_STATUS.DELIVERED || isEditing}
+                     value={order.status}
+                     onChange={(e) => {
+                       const nextStatus = e.target.value;
+                       if (nextStatus === ORDER_STATUS.CANCELLED) {
+                         setIsCancellationModalOpen(true);
+                       } else {
+                         handleUpdateStatus(nextStatus as OrderStatus);
+                       }
+                     }}
+                     className="h-12 w-full rounded-2xl bg-surface border border-outline-variant px-4 text-[15px] font-semibold text-on-surface focus:outline-none focus:border-primary cursor-pointer disabled:opacity-100 disabled:bg-surface-container-lowest disabled:cursor-not-allowed transition-all"
+                  >
+                    <option value={order.status}>{order.status}</option>
+                    {(ORDER_STATUS_TRANSITIONS[order.status as OrderStatus] || []).map(st => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-2">
@@ -474,7 +461,7 @@ export default function OrderDetails() {
                       disabled={!isEditing || order.status !== ORDER_STATUS.PENDING}
                       value={isEditing ? (editData.deliveryType || 'Self Pickup') : (order.deliveryType || 'Self Pickup')}
                       onChange={(e) => setEditData({...editData, deliveryType: e.target.value})}
-                      className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[15px] font-semibold text-on-surface focus:outline-none focus:border-primary disabled:opacity-100 disabled:bg-surface disabled:border-transparent transition-all"
+                      className="h-12 w-full rounded-2xl bg-surface border border-outline-variant px-4 text-[15px] font-semibold text-on-surface focus:outline-none focus:border-primary disabled:opacity-100 disabled:bg-surface-container-lowest disabled:border-outline-variant disabled:cursor-not-allowed transition-all"
                     >
                       <option value="Self Pickup">🏪 Self Pickup</option>
                       <option value="Home Delivery">🏠 Home Delivery</option>
@@ -485,7 +472,6 @@ export default function OrderDetails() {
                 <div className="space-y-2">
                   <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">Assigned Staff</span>
                   <div className="flex items-center gap-3 text-on-surface mt-1">
-                    <User className="h-4 w-4 text-primary" />
                     {isEditing ? (
                       <select
                         value={editData.workerId || ''}
@@ -497,7 +483,7 @@ export default function OrderDetails() {
                             workerName: selectedStaff ? selectedStaff.name : ''
                           });
                         }}
-                        className="h-12 w-full rounded-2xl bg-surface-container-highest border border-outline-variant px-4 text-[14px] font-semibold text-on-surface focus:outline-none focus:border-primary transition-all"
+                        className="h-12 w-full rounded-2xl bg-surface border border-outline-variant px-4 text-[14px] font-semibold text-on-surface focus:outline-none focus:border-primary transition-all"
                       >
                         <option value="">Unassigned</option>
                         {staff.map(w => (
@@ -505,11 +491,12 @@ export default function OrderDetails() {
                         ))}
                       </select>
                     ) : (
-                      <span className="font-semibold flex items-center gap-1">
-                        {order.workerId 
-                          ? <><span className="text-primary">👤</span> {staff.find(w => w.id === order.workerId)?.name || order.workerName || 'Unknown'}</>
-                          : 'Unassigned'}
-                      </span>
+                      <div 
+                        className="flex-1 font-semibold text-[14px] h-12 flex items-center bg-surface-container-lowest border border-dashed border-outline-variant hover:border-primary/50 hover:bg-surface-variant rounded-2xl px-4 cursor-pointer transition-colors w-full"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        {order.workerId ? (staff.find(w => w.id === order.workerId)?.name || order.workerName || 'Unknown') : <span className="text-on-surface-variant font-normal">Tap to assign</span>}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -606,7 +593,7 @@ export default function OrderDetails() {
               </div>
               <div className="pt-6 border-t border-outline-variant space-y-1">
                 <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant">{t('orderDetails.balanceDue')}</span>
-                <div className="text-[24px] font-semibold text-primary">
+                <div className={cn("text-[24px] font-semibold", balanceDue > 0 ? "text-error" : "text-primary")}>
                   {settings.currency} {balanceDue}
                 </div>
               </div>
@@ -656,6 +643,15 @@ export default function OrderDetails() {
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-surface-container flex items-center justify-center text-primary">
                   <Hash className="h-5 w-5" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant block mb-1">Token Number</span>
+                  <span className="text-[14px] font-semibold text-on-surface">{order.tokenId || `T-${order.id.slice(0, 6).toUpperCase()}`}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-surface-container flex items-center justify-center text-primary">
+                  <Layers className="h-5 w-5" />
                 </div>
                 <div>
                   <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant block mb-1">{t('orderDetails.systemId')}</span>
@@ -711,7 +707,7 @@ export default function OrderDetails() {
                 <Button 
                   variant="ghost" 
                   className="w-full rounded-xl h-12 text-[14px] font-semibold bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-primary mt-2"
-                  onClick={() => navigate(`/app/orders/${order.id}/invoice`)}
+                  onClick={() => navigate(`/app/invoice/${order.id}`)}
                 >
                   {t('orderDetails.viewFullInvoice')}
                 </Button>
@@ -729,8 +725,18 @@ export default function OrderDetails() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               {!order.phone ? (
-                <div className="text-[14px] font-medium text-on-surface-variant bg-surface-container-highest border border-outline-variant p-4 rounded-xl text-center shadow-sm">
-                  Customer phone missing
+                <div className="flex flex-col gap-3 shadow-sm p-5 rounded-2xl bg-surface-container-low border border-outline-variant">
+                  <div className="text-[14px] font-medium text-on-surface-variant flex gap-2 items-start">
+                    <span className="text-red-500 mt-0.5">⚠️</span>
+                    <span>Customer phone number not found.<br/>Please update customer profile first.</span>
+                  </div>
+                  <Button 
+                    onClick={() => setIsEditing(true)} 
+                    variant="outline" 
+                    className="w-full text-[13px] bg-surface hover:bg-surface-variant border border-outline-variant text-on-surface shadow-sm rounded-xl h-11 font-semibold"
+                  >
+                    Update Customer Profile
+                  </Button>
                 </div>
               ) : (
                 <>
@@ -758,7 +764,7 @@ export default function OrderDetails() {
                   </Button>
                   <Button 
                     variant="outline"
-                    onClick={() => sendPaymentReminderMessage(order.customerName, balanceDue.toString(), settings?.name || 'Loop Tailor', order.phone, settings?.messageTemplates)}
+                    onClick={() => sendPaymentReminderMessage(order.customerName, balanceDue.toString(), order.tokenId || order.id.slice(-6).toUpperCase(), settings?.name || 'Loop Tailor', order.phone, settings?.messageTemplates)}
                     className="w-full bg-surface hover:bg-surface-variant text-on-surface font-medium rounded-full h-12 shadow-sm border border-outline-variant flex justify-center items-center gap-2"
                   >
                     <CreditCard className="h-4 w-4" /> Payment Reminder

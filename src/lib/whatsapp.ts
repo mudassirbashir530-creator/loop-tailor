@@ -45,15 +45,9 @@ export const sendOrderConfirmationMessage = (
   }
 
   let tpl = templates?.orderConfirmation || 
-    `السلام علیکم {customerName}! 🎉\n` +
-    `آپ کا آرڈر کنفرم ہو گیا ہے۔\n` +
-    `📋 Token: #{orderId}\n` +
-    `👗 Dress: {dressType}\n` +
-    `💰 Total: PKR {totalPrice}\n` +
-    `✅ Paid: PKR {advancePayment}\n` +
-    `🔴 Balance: PKR {balanceDue}\n` +
-    `شکریہ!\n` +
-    `*{shopName}*`;
+    `Dear ${customerName}, your order ${orderId} at ${shopName} is confirmed.\n` +
+    `Total: PKR ${totalPrice}\n` +
+    `Thank you!`;
 
   tpl = tpl
     .replace(/\{customerName\}/g, customerName)
@@ -81,12 +75,8 @@ export const sendOrderReadyMessage = (
   }
 
   let tpl = templates?.readyForDelivery || 
-    `السلام علیکم {customerName}! 🎉\n` +
-    `آپ کا آرڈر تیار ہو چکا ہے اور وصول کرنے کے لیے دستیاب ہے۔\n` +
-    `📋 Token: #{orderId}\n` +
-    `👗 Dress: {dressType}\n` +
-    `ہماری دکان پر تشریف لائیں۔ شکریہ!\n` +
-    `*{shopName}*`;
+    `Dear ${customerName}, your order ${orderId} is ready for pickup!\n` +
+    `Please visit us at your convenience.`;
 
   tpl = tpl
     .replace(/\{customerName\}/g, customerName)
@@ -100,6 +90,7 @@ export const sendOrderReadyMessage = (
 export const sendPaymentReminderMessage = (
   customerName: string,
   remainingAmount: string,
+  orderId: string,
   shopName: string,
   phone: string,
   templates: any
@@ -110,15 +101,13 @@ export const sendPaymentReminderMessage = (
   }
 
   let tpl = templates?.paymentReminder || 
-    `السلام علیکم {customerName}! ✨\n` +
-    `یہ آپ کے بقیہ واجب الادا چارجز کی یاددہانی ہے۔\n` +
-    `🔴 Balance Due: PKR {remainingAmount}\n` +
-    `مہربانی کر کے جلد ادائیگی کریں۔ شکریہ!\n` +
-    `*{shopName}*`;
+    `Dear ${customerName}, your balance due for order ${orderId} is PKR ${remainingAmount}.\n` +
+    `Please clear payment at pickup.`;
 
   tpl = tpl
     .replace(/\{customerName\}/g, customerName)
     .replace(/\{remainingAmount\}/g, remainingAmount)
+    .replace(/\{orderId\}/g, orderId)
     .replace(/\{shopName\}/g, shopName);
 
   openWhatsApp(phone, tpl);

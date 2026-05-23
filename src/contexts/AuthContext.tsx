@@ -298,7 +298,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             plan: defaultPlan,
             planPrice: details.planPrice,
             planLimits: details.planLimits,
-            features: details.features,
+            features: {
+              canManageWorkers: true,
+              canDownloadInvoice: false,
+              canUploadImages: false,
+              canUseWhatsApp: false,
+              canUsePayroll: false,
+              canViewAnalytics: false,
+              canCustomBranding: false
+            },
             planActivatedAt: serverTimestamp(),
             planExpiresAt: new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()),
             currentUsage: {
