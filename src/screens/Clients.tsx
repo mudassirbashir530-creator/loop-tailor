@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PageWrapper } from '../components/animations/PageWrapper';
+import { motion } from 'motion/react';
 import { 
   UserPlus, Search, Phone, MapPin, ShoppingBag, Loader2, Edit, 
   Trash2, Check, Camera, Upload, X, MoreVertical, MessageCircle, AlertCircle, Plus 
@@ -254,7 +256,7 @@ export default function Clients() {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto pb-24 relative">
+    <PageWrapper className="p-4 md:p-8 space-y-6 max-w-6xl mx-auto pb-24 relative">
       
       {/* Translucent overlay to handle standard backdrop dismiss of our touch menu */}
       {activeMenuId && (
@@ -775,13 +777,27 @@ export default function Clients() {
 
       {/* FAB Button */}
       {!isAddOpen && (
-         <button 
-           className="fixed bottom-[88px] right-4 lg:hidden z-30 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+         <motion.button 
+           className="fixed bottom-[88px] right-4 lg:hidden z-30 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center cursor-pointer"
            onClick={openAddModal}
+           whileHover={{ scale: 1.08 }}
+           whileTap={{ scale: 0.92 }}
+           animate={{
+             scale: [1, 1.08, 1],
+             boxShadow: [
+               "0px 4px 10px rgba(0,0,0,0.15)",
+               "0px 8px 24px rgba(26,58,42,0.4)",
+               "0px 4px 10px rgba(0,0,0,0.15)"
+             ]
+           }}
+           transition={{
+             scale: { repeat: 2, duration: 1.2, ease: "easeInOut", delay: 1 },
+             boxShadow: { repeat: 2, duration: 1.2, ease: "easeInOut", delay: 1 }
+           }}
          >
            <Plus className="w-6 h-6" />
-         </button>
+         </motion.button>
       )}
-    </div>
+    </PageWrapper>
   );
 }

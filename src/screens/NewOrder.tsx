@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PageWrapper } from '../components/animations/PageWrapper';
 import { 
   ArrowLeft, User, Scissors, Ruler, DollarSign, Loader2, Search, Plus, 
   CheckCircle2, Camera, UserSquare2, ChevronRight, X, Check, Upload, Briefcase
@@ -269,7 +270,7 @@ export default function NewOrder() {
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
   return (
-    <div className="p-4 md:p-8 space-y-6 animate-in slide-in-from-right-4 duration-300 pb-32 max-w-4xl mx-auto">
+    <PageWrapper className="p-4 md:p-8 space-y-6 pb-32 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 bg-card p-4 rounded-2xl shadow-sm border">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors" type="button">
@@ -821,6 +822,6 @@ export default function NewOrder() {
         current={limitModalType === 'customers' ? usage.customers : limitModalType === 'orders' ? usage.ordersThisMonth : usage.workers}
         limit={limitModalType === 'customers' ? limits.customers : limitModalType === 'orders' ? limits.ordersPerMonth : limits.workers}
       />
-    </div>
+    </PageWrapper>
   );
 }

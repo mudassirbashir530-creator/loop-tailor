@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PageWrapper } from '../components/animations/PageWrapper';
 import { Store, Crown, Bell, MessageSquare, Globe, Palette, HelpCircle, LogOut, ChevronRight, Moon, Sun, Smartphone, Check, UserCircle, X, FileText, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -288,7 +289,7 @@ export default function Settings() {
   );
 
   return (
-    <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500 pb-24 h-full overflow-y-auto w-full max-w-4xl mx-auto">
+    <PageWrapper className="p-4 md:p-8 space-y-6 pb-24 h-full overflow-y-auto w-full max-w-4xl mx-auto">
       
       {/* Header */}
       <div>
@@ -819,7 +820,7 @@ export default function Settings() {
         </DialogContent>
       </Dialog>
 
-    </div>
+    </PageWrapper>
   );
 }
 

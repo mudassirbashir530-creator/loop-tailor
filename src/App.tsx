@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { AnimatePresence } from 'motion/react';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ShopProvider } from './contexts/ShopContext';
@@ -82,6 +83,89 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 import { safeStorage } from './lib/safeStorage';
 
+function AppContent() {
+  const location = useLocation();
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          {/* Website Routes */}
+          <Route element={<WebsiteLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/blog" element={<GenericPage title="Blog" />} />
+            <Route path="/careers" element={<GenericPage title="Careers" />} />
+            <Route path="/partners" element={<GenericPage title="Partners" />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+          </Route>
+
+          {/* Auth Routes */}
+          <Route path="/auth/login" element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          } />
+          <Route path="/auth/signup" element={
+            <PublicRoute>
+              <SignupPage />
+            </PublicRoute>
+          } />
+          <Route path="/login" element={<Navigate to="/auth/login" replace />} />
+          <Route path="/signup" element={<Navigate to="/auth/signup" replace />} />
+
+          {/* App Routes */}
+          <Route path="/app" element={
+            <PrivateRoute>
+              <AppLayout />
+            </PrivateRoute>
+          }>
+            <Route index element={<Home />} />
+            <Route path="clients" element={<Clients />} />
+            <Route path="workers" element={
+              <FeatureRoute feature="canManageWorkers">
+                <Workers />
+              </FeatureRoute>
+            } />
+            <Route path="payroll" element={
+              <FeatureRoute feature="canUsePayroll">
+                <Payroll />
+              </FeatureRoute>
+            } />
+            <Route path="analytics" element={
+              <FeatureRoute feature="canViewAnalytics">
+                <Home />
+              </FeatureRoute>
+            } />
+            <Route path="orders" element={<Orders />} />
+            <Route path="orders/:id" element={<OrderDetails />} />
+            <Route path="invoice/:id" element={<Invoice />} />
+            <Route path="new-order" element={<NewOrder />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="upgrade" element={<Upgrade />} />
+          </Route>
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }>
+            <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<Navigate to="/admin" replace />} />
+            <Route path="users" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><UsersList /></div>} />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AnimatePresence>
+    </Suspense>
+  );
+}
+
 export default function App() {
   React.useEffect(() => {
     try {
@@ -102,86 +186,12 @@ export default function App() {
         <ShopProvider>
           <LanguageProvider>
             <BrowserRouter>
-              <Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                {/* Website Routes */}
-                <Route element={<WebsiteLayout />}>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/pricing" element={<PricingPage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/blog" element={<GenericPage title="Blog" />} />
-                  <Route path="/careers" element={<GenericPage title="Careers" />} />
-                  <Route path="/partners" element={<GenericPage title="Partners" />} />
-                  <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                  <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
-                </Route>
-
-                {/* Auth Routes */}
-                <Route path="/auth/login" element={
-                  <PublicRoute>
-                    <LoginPage />
-                  </PublicRoute>
-                } />
-                <Route path="/auth/signup" element={
-                  <PublicRoute>
-                    <SignupPage />
-                  </PublicRoute>
-                } />
-                <Route path="/login" element={<Navigate to="/auth/login" replace />} />
-                <Route path="/signup" element={<Navigate to="/auth/signup" replace />} />
-
-                {/* App Routes */}
-                <Route path="/app" element={
-                  <PrivateRoute>
-                    <AppLayout />
-                  </PrivateRoute>
-                }>
-                  <Route index element={<Home />} />
-                  <Route path="clients" element={<Clients />} />
-                  <Route path="workers" element={
-                    <FeatureRoute feature="canManageWorkers">
-                      <Workers />
-                    </FeatureRoute>
-                  } />
-                  <Route path="payroll" element={
-                    <FeatureRoute feature="canUsePayroll">
-                      <Payroll />
-                    </FeatureRoute>
-                  } />
-                  <Route path="analytics" element={
-                    <FeatureRoute feature="canViewAnalytics">
-                      <Home />
-                    </FeatureRoute>
-                  } />
-                  <Route path="orders" element={<Orders />} />
-                  <Route path="orders/:id" element={<OrderDetails />} />
-                  <Route path="invoice/:id" element={<Invoice />} />
-                  <Route path="new-order" element={<NewOrder />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="upgrade" element={<Upgrade />} />
-                </Route>
-
-                {/* Admin Routes */}
-                <Route path="/admin" element={
-                  <AdminRoute>
-                    <AdminLayout />
-                  </AdminRoute>
-                }>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="dashboard" element={<Navigate to="/admin" replace />} />
-                  <Route path="users" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><UsersList /></div>} />
-                </Route>
-
-                {/* Fallback */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Suspense>
-            <Toaster position="top-center" richColors />
-          </BrowserRouter>
-        </LanguageProvider>
-      </ShopProvider>
-    </AuthProvider>
+              <AppContent />
+              <Toaster position="top-center" richColors />
+            </BrowserRouter>
+          </LanguageProvider>
+        </ShopProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

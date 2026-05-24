@@ -139,14 +139,29 @@ export default function Layout() {
                 key={item.name}
                 to={item.path}
                 className={cn(
-                  "group flex items-center w-full px-4 h-11 rounded-full text-sm font-medium transition-all duration-200",
+                  "group relative flex items-center w-full px-4 h-11 rounded-full text-sm font-medium transition-all duration-200 select-none overflow-hidden",
                   isActive 
-                    ? "bg-primary text-white shadow-soft" 
+                    ? "text-white shadow-soft" 
                     : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
                 )}
               >
-                <Icon className={cn("h-5 w-5 flex-shrink-0", isRTL ? "ml-3" : "mr-3", isActive ? "text-white" : "text-on-surface-variant group-hover:text-on-surface")} />
-                {item.name}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeNav"
+                    className="absolute inset-0 bg-primary rounded-full z-0"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center w-full">
+                  <motion.span
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    className={cn("flex items-center justify-center shrink-0", isRTL ? "ml-3" : "mr-3")}
+                  >
+                    <Icon className={cn("h-5 w-5 flex-shrink-0", isActive ? "text-white" : "text-on-surface-variant group-hover:text-on-surface transition-colors duration-200")} />
+                  </motion.span>
+                  {item.name}
+                </span>
               </Link>
             );
           })}

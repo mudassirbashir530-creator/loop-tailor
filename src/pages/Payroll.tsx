@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
+import { PageWrapper } from '../components/animations/PageWrapper';
 import { format, subMonths, addMonths, startOfMonth, parseISO } from 'date-fns';
 import { useWorkers } from '../hooks/useWorkers';
 import { useOrders } from '../hooks/useOrders';
@@ -16,7 +17,8 @@ import {
   Clock, 
   CheckCircle, 
   LockKeyhole,
-  Info
+  Info,
+  Scissors
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -144,15 +146,40 @@ export function Payroll() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 z-10 relative">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-        <p className="mt-4 text-[14px] text-slate-500 font-bold animate-pulse">Syncing employee ledger ledger ledger...</p>
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 z-10 relative space-y-6">
+        <motion.div
+          animate={{
+            scale: [1, 1.15, 1],
+            opacity: [0.6, 1, 0.6]
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 1.5,
+            ease: "easeInOut"
+          }}
+          className="bg-indigo-50 text-indigo-600 p-5 rounded-3xl shadow-sm"
+        >
+          <Scissors className="h-10 w-10 text-indigo-600" />
+        </motion.div>
+        <div className="space-y-2 text-center">
+          <p className="text-xs font-bold text-slate-500 tracking-wider uppercase animate-pulse">
+            Syncing Employee Ledger...
+          </p>
+          <div className="h-1 w-20 bg-slate-200 rounded-full overflow-hidden mx-auto relative">
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              className="absolute left-0 top-0 h-full w-1/2 bg-indigo-600 rounded-full"
+            />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-[#F8FAFC] z-10 p-4 sm:p-8 pb-24 text-[#0F172A] selection:bg-indigo-100">
+    <PageWrapper className="relative min-h-screen w-full bg-[#F8FAFC] z-10 p-4 sm:p-8 pb-24 text-[#0F172A] selection:bg-indigo-100">
       {/* Container Inner with solid boundaries */}
       <div className="max-w-4xl mx-auto space-y-6">
         
@@ -362,6 +389,6 @@ export function Payroll() {
         </div>
         
       </div>
-    </div>
+    </PageWrapper>
   );
 }

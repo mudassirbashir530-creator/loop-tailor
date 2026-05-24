@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { PageWrapper } from '../components/animations/PageWrapper';
 import { Calendar, DollarSign, User, Loader2, Download, MessageCircle, Ruler, Image as ImageIcon, ExternalLink, Share2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
@@ -253,7 +254,7 @@ export default function Orders() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500 flex flex-col h-full">
+    <PageWrapper className="p-4 md:p-8 space-y-6 flex flex-col h-full">
       
       {/* Header */}
       <div>
@@ -618,6 +619,6 @@ export default function Orders() {
         </div>
       )}
 
-    </div>
+    </PageWrapper>
   );
 }

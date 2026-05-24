@@ -12,6 +12,7 @@ import { Input } from '../components/ui/input';
 import { ArrowLeft, ArrowRight, Calendar, MapPin, Ruler, User, Phone, Hash, CheckCircle, Edit2, Save, X, Loader2, Clock, CreditCard, Trash2, Home, Store, Scissors, AlertCircle, Layers } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
+import { PageWrapper } from '../components/animations/PageWrapper';
 import { MeasurementsDisplay } from '../components/MeasurementsDisplay';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
@@ -310,9 +311,34 @@ export default function OrderDetails() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 space-y-4">
-        <Loader2 className="h-12 w-12 text-brand-primary animate-spin" />
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{t('orderDetails.loading')}</p>
+      <div className="flex flex-col items-center justify-center h-96 space-y-6">
+        <motion.div
+          animate={{
+            scale: [1, 1.15, 1],
+            opacity: [0.6, 1, 0.6]
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 1.5,
+            ease: "easeInOut"
+          }}
+          className="bg-primary/10 text-primary p-5 rounded-3xl shadow-sm"
+        >
+          <Scissors className="h-10 w-10 text-primary" />
+        </motion.div>
+        <div className="space-y-2 text-center">
+          <p className="text-xs font-bold text-muted-foreground tracking-wider uppercase animate-pulse">
+            {t('orderDetails.loading')}
+          </p>
+          <div className="h-1 w-20 bg-muted rounded-full overflow-hidden mx-auto relative">
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              className="absolute left-0 top-0 h-full w-1/2 bg-primary rounded-full"
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -320,11 +346,7 @@ export default function OrderDetails() {
   if (!order) return null;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="max-w-5xl mx-auto space-y-8 pb-12"
-    >
+    <PageWrapper className="max-w-5xl mx-auto space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/app/orders')} className="bg-surface border border-outline-variant shadow-sm hover:bg-surface-variant rounded-full text-on-surface transition-colors">
@@ -1017,6 +1039,6 @@ export default function OrderDetails() {
           </div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </PageWrapper>
   );
 }

@@ -1,4 +1,5 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
+import { motion } from "motion/react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/src/lib/utils"
@@ -8,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80 shadow-sm",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
@@ -16,7 +17,7 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 shadow-sm",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -40,6 +41,8 @@ const buttonVariants = cva(
   }
 )
 
+const AnimatedButtonPrimitive = motion(ButtonPrimitive)
+
 function Button({
   className,
   variant = "default",
@@ -47,11 +50,38 @@ function Button({
   fullWidth,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants> & { fullWidth?: boolean }) {
+  // Hover & tap animations according to constraints
+  let hoverAnimation = {}
+  let tapAnimation = {}
+
+  if (variant === "default") {
+    hoverAnimation = {
+      scale: 1.02,
+      filter: 'brightness(1.05)',
+      boxShadow: '0 4px 12px -2px rgba(0, 0, 0, 0.08)'
+    }
+    tapAnimation = { scale: 0.97 }
+  } else if (variant === "destructive") {
+    hoverAnimation = {
+      scale: 1.02,
+      filter: 'brightness(1.10)'
+    }
+    tapAnimation = { scale: 0.95 }
+  } else if (variant === "outline" || variant === "secondary" || variant === "ghost") {
+    hoverAnimation = {
+      filter: 'brightness(1.02)'
+    }
+    tapAnimation = { scale: 0.97 }
+  }
+
   return (
-    <ButtonPrimitive
+    <AnimatedButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }), fullWidth && "w-full")}
-      {...props}
+      whileHover={props.disabled ? {} : hoverAnimation}
+      whileTap={props.disabled ? {} : tapAnimation}
+      transition={{ duration: 0.15, ease: 'easeOut' }}
+      {...(props as any)}
     />
   )
 }

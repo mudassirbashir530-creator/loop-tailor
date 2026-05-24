@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PageWrapper } from '../components/animations/PageWrapper';
 import { 
   Users, Search, Phone, MapPin, Loader2, Edit, Trash2, Check, Camera, 
   Upload, X, MessageSquare, Briefcase, DollarSign, Calendar, Star, 
@@ -228,7 +229,7 @@ export default function Workers() {
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pb-24">
+    <PageWrapper className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto pb-24">
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -972,6 +973,6 @@ export default function Workers() {
         current={usage.workers}
         limit={limits.workers}
       />
-    </div>
+    </PageWrapper>
   );
 }
