@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useShop } from '../contexts/ShopContext';
 import { ORDER_STATUS, ORDER_STATUS_TRANSITIONS, isValidStatusTransition, OrderStatus } from '../lib/config';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, collection, query, where, addDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, collection, query, where, addDoc, setDoc } from 'firebase/firestore';
+import { Invoice } from '../components/Invoice';
+import { InvoiceActions } from '../components/InvoiceActions';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -50,6 +52,9 @@ export default function OrderDetails() {
   const [paymentsList, setPaymentsList] = useState<any[]>([]);
   const [customWaMessage, setCustomWaMessage] = useState('');
   const [showCustomWa, setShowCustomWa] = useState(false);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [shopDoc, setShopDoc] = useState<any>(null);
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -76,6 +81,14 @@ export default function OrderDetails() {
       }
     }, (error) => handleFirestoreError(error, OperationType.GET, `settings/${user.uid}`));
 
+    const unsubShopDoc = onSnapshot(doc(db, 'shops', user.uid), (shopSnap) => {
+      if (shopSnap.exists()) {
+        setShopDoc(shopSnap.data());
+      }
+    }, (error) => {
+      console.warn("Silent failure subscribing to shops:", error);
+    });
+
     const qPayments = query(collection(db, `orders/${id}/payments`));
     const unsubPayments = onSnapshot(qPayments, (paymentsSnap) => {
       const pData = paymentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -89,6 +102,7 @@ export default function OrderDetails() {
     return () => {
       unsubOrder();
       unsubShop();
+      unsubShopDoc();
       unsubPayments();
     };
   }, [user, id]);
@@ -729,7 +743,7 @@ export default function OrderDetails() {
                 <Button 
                   variant="ghost" 
                   className="w-full rounded-xl h-12 text-[14px] font-semibold bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm text-primary mt-2"
-                  onClick={() => navigate(`/app/invoice/${order.id}`)}
+                  onClick={() => setIsInvoiceModalOpen(true)}
                 >
                   {t('orderDetails.viewFullInvoice')}
                 </Button>
@@ -840,6 +854,80 @@ export default function OrderDetails() {
       </div>
 
       <AnimatePresence>
+        {isInvoiceModalOpen && order && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ duration: 0.25 }}
+              className="bg-slate-100 rounded-3xl p-6 md:p-8 max-w-[650px] w-full shadow-2xl relative max-h-[92vh] overflow-y-auto"
+            >
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsInvoiceModalOpen(false)}
+                className="absolute right-4 top-4 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 p-2 z-10"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+
+              <h2 className="text-xl font-bold text-slate-900 mb-6 border-b pb-3">Order Invoice</h2>
+              
+              <div className="overflow-x-auto hide-scrollbar rounded-2xl border border-gray-200/50">
+                <Invoice 
+                  ref={invoiceRef}
+                  order={order} 
+                  shop={{
+                    name: shopDoc?.shopName || shop?.name || settings?.name || 'Loop Tailor',
+                    phone: shopDoc?.shopPhone || shop?.phone || settings?.phone || '',
+                    address: shopDoc?.shopAddress || shop?.address || settings?.address || '',
+                    email: shopDoc?.shopEmail || user?.email || '',
+                    logoUrl: shopDoc?.shopLogo || shop?.logoUrl || settings?.logoUrl || settings?.shopLogo || '',
+                    invoiceFooter: shopDoc?.invoiceFooter || shop?.invoiceFooter || settings?.invoiceFooter || '',
+                    currency: settings?.currency || 'PKR',
+                    shopName: shopDoc?.shopName || shop?.name || settings?.name || 'Loop Tailor',
+                    shopLogo: shopDoc?.shopLogo || shop?.logoUrl || settings?.logoUrl || settings?.shopLogo || '',
+                    shopPhone: shopDoc?.shopPhone || shop?.phone || settings?.phone || '',
+                    shopAddress: shopDoc?.shopAddress || shop?.address || settings?.address || '',
+                    shopEmail: shopDoc?.shopEmail || user?.email || '',
+                  }}
+                  customer={null} 
+                  paymentsList={paymentsList} 
+                />
+              </div>
+
+              <InvoiceActions 
+                invoiceRef={invoiceRef}
+                orderId={order.id}
+                order={order}
+                onSaveOrderFields={async (fields) => {
+                  try {
+                    await updateDoc(doc(db, 'orders', order.id), fields);
+                    toast.success('Invoice content updated successfully!');
+                  } catch (e) {
+                    console.error(e);
+                    toast.error('Failed to update invoice fields');
+                  }
+                }}
+                customerName={order.customerName}
+                shopName={shopDoc?.shopName || shop?.name || settings?.name || 'Loop Tailor'}
+                currentFooter={shopDoc?.invoiceFooter || shop?.invoiceFooter || settings?.invoiceFooter || ''}
+                onSaveFooter={async (newFooter) => {
+                  try {
+                    await setDoc(doc(db, 'shops', user.uid), { invoiceFooter: newFooter }, { merge: true });
+                    await setDoc(doc(db, 'settings', user.uid), { invoiceFooter: newFooter }, { merge: true });
+                    toast.success('Invoice footer updated successfully!');
+                  } catch (e) {
+                    console.error(e);
+                    toast.error('Failed to update footer');
+                  }
+                }}
+              />
+            </motion.div>
+          </div>
+        )}
+
         {isPaymentModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <motion.div 

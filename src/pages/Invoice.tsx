@@ -13,7 +13,7 @@ export default function InvoicePage() {
   const { t } = useLanguage();
   const invoiceRef = useRef<HTMLDivElement>(null);
   
-  const { order, shop, customer, paymentsList, loading, updateFooter } = useInvoice(id);
+  const { order, shop, customer, paymentsList, loading, updateFooter, updateOrderFields } = useInvoice(id);
 
   if (loading) {
     return (
@@ -37,7 +37,7 @@ export default function InvoicePage() {
   return (
     <div className="min-h-screen bg-slate-100 py-6 px-4 md:px-8">
       {/* Top Banner Navigation */}
-      <div className="max-w-[800px] mx-auto mb-6 flex items-center justify-start">
+      <div className="max-w-[600px] mx-auto mb-6 flex items-center justify-start">
         <Button 
           variant="outline" 
           onClick={() => navigate(`/app/orders/${id}`)}
@@ -63,6 +63,8 @@ export default function InvoicePage() {
       <InvoiceActions 
         invoiceRef={invoiceRef}
         orderId={order.id}
+        order={order}
+        onSaveOrderFields={updateOrderFields}
         customerName={order.customerName}
         shopName={shop?.name || 'Loop Tailor'}
         currentFooter={currentFooter}
