@@ -18,7 +18,8 @@ import { PageWrapper } from '../components/animations/PageWrapper';
 import { MeasurementsDisplay } from '../components/MeasurementsDisplay';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
-import { sendOrderReadyMessage, sendPaymentReminderMessage, sendWhatsAppMessage, sendOrderConfirmationMessage } from '../lib/whatsapp';
+import { formatWhatsAppNumber } from '../utils/phoneFormatter';
+import { getOrderConfirmationMessage, getOrderReadyMessage, getPaymentReminderMessage, openWhatsApp } from '../utils/whatsappMessages';
 import { createNotification, sendWhatsappNotification } from '../lib/notifications';
 import { useWorkers } from '../hooks/useWorkers';
 import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
@@ -55,6 +56,11 @@ export default function OrderDetails() {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [shopDoc, setShopDoc] = useState<any>(null);
   const invoiceRef = useRef<HTMLDivElement>(null);
+  const [customerPhone, setCustomerPhone] = useState<string | null>(null);
+  const [customerDoc, setCustomerDoc] = useState<any>(null);
+  const [customerPhoneLoading, setCustomerPhoneLoading] = useState(false);
+  const [isUpdateCustomerOpen, setIsUpdateCustomerOpen] = useState(false);
+  const [newCustomerPhone, setNewCustomerPhone] = useState('');
 
   useEffect(() => {
     if (!user || !id) return;
@@ -106,6 +112,99 @@ export default function OrderDetails() {
       unsubPayments();
     };
   }, [user, id]);
+
+  // Handle real-time client/customer document updates
+  useEffect(() => {
+    if (!user || !order) return;
+    const clientId = order.clientId || order.customerId;
+    if (!clientId) {
+      setCustomerPhone(null);
+      setCustomerDoc(null);
+      return;
+    }
+
+    setCustomerPhoneLoading(true);
+
+    let activeUnsub: (() => void) | null = null;
+
+    const checkAndSubscribe = async () => {
+      try {
+        const clientRef = doc(db, 'clients', clientId);
+        const clientSnap = await getDoc(clientRef);
+        
+        if (clientSnap.exists()) {
+          activeUnsub = onSnapshot(clientRef, (snap) => {
+            if (snap.exists()) {
+              const data = snap.data();
+              setCustomerDoc({ id: clientId, collection: 'clients', ...data });
+              const phone = data.phone || data.phoneNumber || data.mobile || data.contact || null;
+              setCustomerPhone(phone);
+            }
+            setCustomerPhoneLoading(false);
+          });
+        } else {
+          const customerRef = doc(db, 'customers', clientId);
+          activeUnsub = onSnapshot(customerRef, (snap) => {
+            if (snap.exists()) {
+              const data = snap.data();
+              setCustomerDoc({ id: clientId, collection: 'customers', ...data });
+              const phone = data.phone || data.phoneNumber || data.mobile || data.contact || null;
+              setCustomerPhone(phone);
+            } else {
+              setCustomerDoc(null);
+              setCustomerPhone(null);
+            }
+            setCustomerPhoneLoading(false);
+          });
+        }
+      } catch (err) {
+        console.error("Error subscribing to customer/client doc:", err);
+        setCustomerPhoneLoading(false);
+      }
+    };
+
+    checkAndSubscribe();
+
+    return () => {
+      if (activeUnsub) {
+        activeUnsub();
+      }
+    };
+  }, [user, order]);
+
+  const handleUpdateCustomerProfile = async (newPhone: string) => {
+    if (!user || !order) return;
+    const clientId = order.clientId || order.customerId;
+    if (!clientId) {
+      toast.error("Customer reference missing on order");
+      return;
+    }
+
+    try {
+      const colName = customerDoc?.collection || 'clients';
+      const docRef = doc(db, colName, clientId);
+      
+      await updateDoc(docRef, {
+        phone: newPhone,
+        phoneNumber: newPhone,
+        updatedAt: serverTimestamp()
+      });
+
+      // Also update isEditing fields or order doc phone so layout stays fully synchronized
+      if (order.id) {
+        await updateDoc(doc(db, 'orders', order.id), {
+          phone: newPhone,
+          updatedAt: serverTimestamp()
+        });
+      }
+
+      toast.success("Customer profile phone number updated successfully!");
+      setIsUpdateCustomerOpen(false);
+    } catch (error) {
+      console.error("Error updating customer profile:", error);
+      toast.error("Failed to update customer profile");
+    }
+  };
 
   const handleDeleteOrder = async () => {
     if (!window.confirm(t('orderDetails.deleteConfirm'))) return;
@@ -760,100 +859,235 @@ export default function OrderDetails() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              {!order.phone ? (
-                <div className="flex flex-col gap-3 shadow-sm p-5 rounded-2xl bg-surface-container-low border border-outline-variant">
-                  <div className="text-[14px] font-medium text-on-surface-variant flex gap-2 items-start">
-                    <span className="text-red-500 mt-0.5">⚠️</span>
-                    <span>Customer phone number not found.<br/>Please update customer profile first.</span>
-                  </div>
-                  <Button 
-                    onClick={() => setIsEditing(true)} 
-                    variant="outline" 
-                    className="w-full text-[13px] bg-surface hover:bg-surface-variant border border-outline-variant text-on-surface shadow-sm rounded-xl h-11 font-semibold"
-                  >
-                    Update Customer Profile
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <Button 
-                    onClick={() => sendOrderConfirmationMessage(
-                      order.customerName, 
-                      order.dressType || 'Suit', 
-                      order.tokenId || order.id.slice(-6).toUpperCase(), 
-                      Number(order.price || 0).toString(), 
-                      (Number(order.advancePayment || 0) + (paymentsList || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0)).toString(), 
-                      balanceDue.toString(), 
-                      settings?.name || 'Loop Tailor', 
-                      order.phone, 
-                      settings?.messageTemplates
-                    )}
-                    className="w-full bg-[#128C7E] hover:bg-[#0c6b60] text-white font-medium rounded-full h-12 shadow-sm border-none flex justify-center items-center gap-2"
-                  >
-                    <WhatsAppIcon className="h-4 w-4 fill-current" /> Order Confirmation
-                  </Button>
-                  <Button 
-                    onClick={() => sendOrderReadyMessage(order.customerName, order.dressType || 'Suit', order.tokenId, settings?.name || 'Loop Tailor', order.phone, settings?.messageTemplates)}
-                    className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-medium rounded-full h-12 shadow-sm border-none flex justify-center items-center gap-2"
-                  >
-                    <WhatsAppIcon className="h-4 w-4 fill-current" /> Send "Order Ready"
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => sendPaymentReminderMessage(order.customerName, balanceDue.toString(), order.tokenId || order.id.slice(-6).toUpperCase(), settings?.name || 'Loop Tailor', order.phone, settings?.messageTemplates)}
-                    className="w-full bg-surface hover:bg-surface-variant text-on-surface font-medium rounded-full h-12 shadow-sm border border-outline-variant flex justify-center items-center gap-2"
-                  >
-                    <CreditCard className="h-4 w-4" /> Payment Reminder
-                  </Button>
-
-                  {showCustomWa ? (
-                    <div className="pt-4 border-t border-outline-variant space-y-3">
-                      <span className="text-[11px] font-medium uppercase tracking-widest text-on-surface-variant block">Custom Message</span>
-                      <textarea
-                        value={customWaMessage}
-                        onChange={(e) => setCustomWaMessage(e.target.value)}
-                        placeholder="Write a custom message for WhatsApp..."
-                        className="w-full p-4 rounded-2xl resize-none bg-surface-container-highest border border-outline-variant focus:border-primary text-[14px] font-medium text-on-surface outline-none shadow-sm"
-                        rows={3}
-                      />
-                      <div className="flex gap-3">
-                        <Button
-                          variant="ghost" 
-                          onClick={() => setShowCustomWa(false)}
-                          className="flex-1 bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm rounded-full h-12 text-on-surface-variant font-medium"
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={() => {
-                            sendWhatsAppMessage(order.phone, customWaMessage);
-                            setShowCustomWa(false);
-                            setCustomWaMessage('');
-                          }}
-                          className="flex-1 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-full h-12 shadow-sm border-none font-medium"
-                          disabled={!customWaMessage.trim()}
-                        >
-                          Send WhatsApp
-                        </Button>
+              {(() => {
+                const formattedPhone = formatWhatsAppNumber(customerPhone);
+                if (!customerPhone) {
+                  return (
+                    <div className="flex flex-col gap-3 shadow-sm p-5 rounded-2xl bg-[#fff5f5] border border-red-200">
+                      <div className="text-[14px] font-medium text-slate-800 flex flex-col gap-1 text-left">
+                        <span className="text-red-650 text-red-600 font-bold flex items-center gap-1.5">
+                          ⚠️ Phone number not found
+                        </span>
+                        <p className="text-xs text-slate-600 leading-relaxed font-semibold">
+                          Customer profile mein phone number add nahi hai.
+                        </p>
                       </div>
+                      <Button 
+                        onClick={() => {
+                          setNewCustomerPhone('');
+                          setIsUpdateCustomerOpen(true);
+                        }} 
+                        className="w-full text-xs font-bold bg-[#1a3a2a] hover:bg-[#152e21] text-white rounded-xl h-10 transition-all shadow-md active:scale-95 cursor-pointer"
+                      >
+                        Update Customer Profile
+                      </Button>
                     </div>
-                  ) : (
+                  );
+                }
+
+                if (!formattedPhone) {
+                  return (
+                    <div className="flex flex-col gap-3 shadow-sm p-5 rounded-2xl bg-amber-50 border border-amber-200">
+                      <div className="text-[14px] font-medium text-slate-800 flex flex-col gap-1 text-left">
+                        <span className="text-amber-600 font-bold flex items-center gap-1.5">
+                          ⚠️ Invalid Phone Number Format
+                        </span>
+                        <p className="text-xs text-slate-600 leading-normal font-medium">
+                          "{customerPhone}" is not recognized as a standard format. Please enter a valid phone number.
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={() => {
+                          setNewCustomerPhone(customerPhone);
+                          setIsUpdateCustomerOpen(true);
+                        }} 
+                        className="w-full text-xs font-bold bg-[#1a3a2a] hover:bg-[#152e21] text-white rounded-xl h-10 transition-all shadow-md active:scale-95 cursor-pointer"
+                      >
+                        Update Customer Profile
+                      </Button>
+                    </div>
+                  );
+                }
+
+                const tokenNumber = order.tokenId || order.id?.substring(0, 8).toUpperCase() || 'N/A';
+                const totalPrice = order.price || '0';
+                const deliveryDateStr = order.deliveryDate ? formatDate(order.deliveryDate) : 'N/A';
+                const shopName = shopDoc?.shopName || shop?.name || 'Loop Tailor';
+                const deliveryType = order.deliveryType || 'Self Pickup';
+
+                return (
+                  <>
+                    <div className="text-xs text-slate-500 font-semibold pb-1.5 border-b border-slate-100 flex items-center justify-between">
+                      <span>Recipient WhatsApp Phone:</span>
+                      <span className="font-mono bg-green-50 text-green-700 px-2 py-0.5 rounded font-bold">
+                        +{formattedPhone}
+                      </span>
+                    </div>
+
                     <Button 
-                      variant="ghost"
-                      onClick={() => setShowCustomWa(true)}
-                      className="w-full text-primary font-medium rounded-full h-12 bg-surface hover:bg-surface-variant border border-outline-variant shadow-sm flex justify-center items-center gap-2"
+                      onClick={() => {
+                        const msg = getOrderConfirmationMessage(
+                          order.customerName || 'Walk-in Customer',
+                          tokenNumber,
+                          totalPrice,
+                          deliveryDateStr,
+                          shopName
+                        );
+                        openWhatsApp(customerPhone, msg);
+                      }}
+                      className="w-full bg-[#128C7E] hover:bg-[#0c6b60] text-white font-bold rounded-xl h-12 shadow-sm border-none flex justify-center items-center gap-2 text-sm transition-all active:scale-[0.98] cursor-pointer"
                     >
-                      <Edit2 className="h-4 w-4" /> Custom Message
+                      <WhatsAppIcon className="h-4 w-4 fill-current" /> Order Confirmation
                     </Button>
-                  )}
-                </>
-              )}
+
+                    <Button 
+                      onClick={() => {
+                        const msg = getOrderReadyMessage(
+                          order.customerName || 'Walk-in Customer',
+                          tokenNumber,
+                          deliveryType,
+                          shopName
+                        );
+                        openWhatsApp(customerPhone, msg);
+                      }}
+                      className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-xl h-12 shadow-sm border-none flex justify-center items-center gap-2 text-sm transition-all active:scale-[0.98] cursor-pointer"
+                    >
+                      <WhatsAppIcon className="h-4 w-4 fill-current" /> Send "Order Ready"
+                    </Button>
+
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        const msg = getPaymentReminderMessage(
+                          order.customerName || 'Walk-in Customer',
+                          tokenNumber,
+                          totalPrice,
+                          totalPaid,
+                          balanceDue,
+                          shopName
+                        );
+                        openWhatsApp(customerPhone, msg);
+                      }}
+                      className="w-full bg-white hover:bg-slate-50 border-gray-200 text-slate-700 border border-outline-variant font-bold rounded-xl h-12 shadow-sm flex justify-center items-center gap-2 text-sm transition-all active:scale-[0.98] cursor-pointer"
+                    >
+                      <CreditCard className="h-4 w-4 text-green-600" /> Payment Reminder
+                    </Button>
+
+                    {showCustomWa ? (
+                      <div className="pt-4 border-t border-outline-variant space-y-3">
+                        <span className="text-[11px] font-medium uppercase tracking-widest text-[#1a3a2a] block">Custom Message</span>
+                        <textarea
+                          value={customWaMessage}
+                          onChange={(e) => setCustomWaMessage(e.target.value)}
+                          placeholder="Write a custom message for WhatsApp..."
+                          className="w-full p-4 rounded-2xl resize-none bg-slate-50 border border-gray-200 focus:border-[#1a3a2a] focus:ring-1 focus:ring-[#1a3a2a] text-[14px] font-medium text-slate-800 outline-none shadow-inner"
+                          rows={3}
+                        />
+                        <div className="flex gap-3">
+                          <Button
+                            variant="ghost" 
+                            onClick={() => setShowCustomWa(false)}
+                            className="flex-1 bg-white hover:bg-slate-100 border border-gray-250 shadow-sm rounded-xl h-11 text-slate-600 font-bold border border-outline-variant"
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={() => {
+                              openWhatsApp(customerPhone, customWaMessage);
+                              setShowCustomWa(false);
+                              setCustomWaMessage('');
+                            }}
+                            className="flex-1 bg-[#1a3a2a] hover:bg-[#152e21] text-white rounded-xl h-11 shadow-md border-none font-bold"
+                            disabled={!customWaMessage.trim()}
+                          >
+                            Send WhatsApp
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button 
+                        variant="ghost"
+                        onClick={() => setShowCustomWa(true)}
+                        className="w-full text-[#1a3a2a] font-bold rounded-xl h-12 bg-white hover:bg-slate-50 border border-gray-200 shadow-sm flex justify-center items-center gap-2 text-sm border border-outline-variant"
+                      >
+                        <Edit2 className="h-4 w-4" /> Custom Message
+                      </Button>
+                    )}
+                  </>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>
       </div>
 
       <AnimatePresence>
+        {isUpdateCustomerOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ duration: 0.25 }}
+              className="bg-white text-slate-800 rounded-3xl p-6 md:p-8 max-w-[450px] w-full shadow-2xl relative border border-slate-100"
+            >
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsUpdateCustomerOpen(false)}
+                className="absolute right-4 top-4 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-650 text-slate-600 p-2 z-10 cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+
+              <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <User className="h-5 w-5 text-[#1a3a2a]" />
+                Update Customer Phone
+              </h3>
+
+              <div className="space-y-4">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-left">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Customer Name</p>
+                  <p className="text-sm font-bold text-slate-900">{order?.customerName || 'Walk-in Customer'}</p>
+                </div>
+
+                <div className="space-y-1.5 text-left">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={newCustomerPhone}
+                    onChange={(e) => setNewCustomerPhone(e.target.value)}
+                    className="w-full text-sm font-semibold p-3 border border-gray-200 rounded-xl outline-none focus:border-[#1a3a2a] focus:ring-1 focus:ring-[#1a3a2a] transition-all bg-slate-50 shadow-inner"
+                    placeholder="e.g. 03001234567 or 923001234567"
+                  />
+                  <p className="text-[11px] text-slate-400 font-semibold leading-normal">
+                    Enter a valid Pakistani mobile number (starting with 0 or 92) or international number.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="ghost" 
+                    onClick={() => setIsUpdateCustomerOpen(false)}
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl h-11 text-xs font-bold border border-transparent"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={() => handleUpdateCustomerProfile(newCustomerPhone)}
+                    disabled={!newCustomerPhone.trim()}
+                    className="flex-1 bg-[#1a3a2a] hover:bg-[#152e21] text-white rounded-xl h-11 text-xs font-bold shadow-md cursor-pointer"
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
         {isInvoiceModalOpen && order && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
             <motion.div 
