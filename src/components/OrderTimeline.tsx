@@ -17,14 +17,41 @@ const timelineSteps = [
   { status: ORDER_STATUS.DELIVERED, icon: Truck },
 ];
 
+const formatTimelineDate = (dateVal: any, formatStr: string): string => {
+  if (!dateVal) return '';
+  try {
+    let date: Date;
+    if (typeof dateVal.toDate === 'function') {
+      date = dateVal.toDate();
+    } else if (dateVal && typeof dateVal === 'object' && 'seconds' in dateVal) {
+      date = new Date(dateVal.seconds * 1000);
+    } else if (dateVal instanceof Date) {
+      date = dateVal;
+    } else if (typeof dateVal === 'string' || typeof dateVal === 'number') {
+      date = new Date(dateVal);
+    } else {
+      return '';
+    }
+    
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    return format(date, formatStr);
+  } catch (err) {
+    console.error("formatTimelineDate error:", err);
+    return '';
+  }
+};
+
 export function OrderTimeline({ currentStatus, statusHistory = {} }: OrderTimelineProps) {
   if (currentStatus === ORDER_STATUS.CANCELLED) {
+    const cancelledTime = formatTimelineDate(statusHistory[ORDER_STATUS.CANCELLED], 'MMM d, yyyy h:mm a');
     return (
       <div className="w-full bg-red-50 border border-red-200 rounded-3xl p-6 flex flex-col items-center justify-center text-center space-y-3">
         <XCircle className="h-10 w-10 text-red-500" />
         <h3 className="text-red-700 font-semibold text-lg">Order Cancelled</h3>
         <p className="text-red-600/80 text-sm">
-          {statusHistory[ORDER_STATUS.CANCELLED] && `Cancelled on ${format(new Date(statusHistory[ORDER_STATUS.CANCELLED]), 'MMM d, yyyy h:mm a')}`}
+          {cancelledTime && `Cancelled on ${cancelledTime}`}
         </p>
       </div>
     );
@@ -42,6 +69,7 @@ export function OrderTimeline({ currentStatus, statusHistory = {} }: OrderTimeli
           const isFuture = index > currentIndex;
           const Icon = step.icon;
           const timestamp = statusHistory[step.status];
+          const formattedTime = formatTimelineDate(timestamp, 'MMM d, h:mm a');
 
           return (
             <div key={step.status} className="flex gap-4 items-start relative pb-8 last:pb-0">
@@ -88,9 +116,9 @@ export function OrderTimeline({ currentStatus, statusHistory = {} }: OrderTimeli
                 >
                   {step.status}
                 </h4>
-                {timestamp ? (
+                {formattedTime ? (
                   <div className="text-xs text-slate-500 mt-0.5 font-medium">
-                    {format(new Date(timestamp), 'MMM d, h:mm a')}
+                    {formattedTime}
                   </div>
                 ) : (
                   <span className="text-[10px] text-slate-400 italic mt-0.5 select-none">
@@ -121,6 +149,7 @@ export function OrderTimeline({ currentStatus, statusHistory = {} }: OrderTimeli
             const isFuture = index > currentIndex;
             const Icon = step.icon;
             const timestamp = statusHistory[step.status];
+            const formattedTime = formatTimelineDate(timestamp, 'MMM d, h:mm a');
 
             return (
               <div key={step.status} className="relative z-10 flex flex-col items-center flex-1">
@@ -157,9 +186,9 @@ export function OrderTimeline({ currentStatus, statusHistory = {} }: OrderTimeli
                   >
                     {step.status}
                   </div>
-                  {timestamp && (
+                  {formattedTime && (
                     <div className="text-[10px] text-slate-500 mt-1 font-medium whitespace-nowrap">
-                      {format(new Date(timestamp), 'MMM d, h:mm a')}
+                      {formattedTime}
                     </div>
                   )}
                 </div>

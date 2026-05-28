@@ -51,10 +51,23 @@ export default function Invoices() {
       
       let matchesDate = true;
       if (dateFilter) {
-        const invoiceDate = invoice.createdAt?.seconds 
-          ? new Date(invoice.createdAt.seconds * 1000) 
-          : new Date(invoice.createdAt);
-        matchesDate = isSameDay(invoiceDate, parseISO(dateFilter));
+        try {
+          const invoiceDate = invoice.createdAt?.seconds 
+            ? new Date(invoice.createdAt.seconds * 1000) 
+            : new Date(invoice.createdAt);
+          if (isNaN(invoiceDate.getTime())) {
+            matchesDate = false;
+          } else {
+            const parsedFilter = parseISO(dateFilter);
+            if (isNaN(parsedFilter.getTime())) {
+              matchesDate = false;
+            } else {
+              matchesDate = isSameDay(invoiceDate, parsedFilter);
+            }
+          }
+        } catch {
+          matchesDate = false;
+        }
       }
 
       return matchesSearch && matchesStatus && matchesDate;

@@ -163,15 +163,23 @@ export default function Orders() {
       
       let matchesDate = true;
       if (dateFilter !== 'All Time' && order.createdAt) {
-        const orderDate = order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt || 0);
-        const today = new Date();
-        if (dateFilter === 'Today') {
-          matchesDate = orderDate.toDateString() === today.toDateString();
-        } else if (dateFilter === 'This Week') {
-          const weekAgo = new Date(today.setDate(today.getDate() - 7));
-          matchesDate = orderDate >= weekAgo;
-        } else if (dateFilter === 'This Month') {
-          matchesDate = orderDate.getMonth() === today.getMonth() && orderDate.getFullYear() === today.getFullYear();
+        try {
+          const orderDate = order.createdAt?.seconds ? new Date(order.createdAt.seconds * 1000) : new Date(order.createdAt || 0);
+          if (isNaN(orderDate.getTime())) {
+            matchesDate = false;
+          } else {
+            const today = new Date();
+            if (dateFilter === 'Today') {
+              matchesDate = orderDate.toDateString() === today.toDateString();
+            } else if (dateFilter === 'This Week') {
+              const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+              matchesDate = orderDate >= weekAgo;
+            } else if (dateFilter === 'This Month') {
+              matchesDate = orderDate.getMonth() === today.getMonth() && orderDate.getFullYear() === today.getFullYear();
+            }
+          }
+        } catch {
+          matchesDate = false;
         }
       }
 

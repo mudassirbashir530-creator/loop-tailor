@@ -5,13 +5,33 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(dateString: string) {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-PK', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  }).format(date);
+export function formatDate(dateValue: any) {
+  if (!dateValue) return 'N/A';
+  try {
+    let date: Date;
+    if (typeof dateValue.toDate === 'function') {
+      date = dateValue.toDate();
+    } else if (dateValue && typeof dateValue === 'object' && 'seconds' in dateValue) {
+      date = new Date(dateValue.seconds * 1000);
+    } else if (dateValue instanceof Date) {
+      date = dateValue;
+    } else {
+      date = new Date(dateValue);
+    }
+
+    if (isNaN(date.getTime())) {
+      return 'N/A';
+    }
+
+    return new Intl.DateTimeFormat('en-PK', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    }).format(date);
+  } catch (error) {
+    console.error("formatDate error:", error);
+    return 'N/A';
+  }
 }
 
 export function formatCurrency(amount: number) {
@@ -22,9 +42,15 @@ export function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-export function isOrderOverdue(deliveryDate: string, status?: string) {
-  if (status === 'delivered') return false;
-  return new Date(deliveryDate).getTime() < new Date().setHours(0, 0, 0, 0);
+export function isOrderOverdue(deliveryDate: any, status?: string) {
+  if (status === 'delivered' || !deliveryDate) return false;
+  try {
+    const date = deliveryDate.seconds ? new Date(deliveryDate.seconds * 1000) : new Date(deliveryDate);
+    if (isNaN(date.getTime())) return false;
+    return date.getTime() < new Date().setHours(0, 0, 0, 0);
+  } catch {
+    return false;
+  }
 }
 
 export async function generateTokenId(userId: string): Promise<string> {

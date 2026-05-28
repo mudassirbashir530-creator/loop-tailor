@@ -47,7 +47,20 @@ export function Payroll() {
       const workerOrdersInMonth = orders.filter(order => {
         if (!order.workerId || order.workerId !== worker.id) return false;
         try {
-          const date = order.createdAt ? new Date(order.createdAt) : new Date();
+          let date: Date;
+          const createdAtVal = order.createdAt as any;
+          if (createdAtVal?.seconds) {
+            date = new Date(createdAtVal.seconds * 1000);
+          } else if (createdAtVal && typeof createdAtVal.toDate === 'function') {
+            date = createdAtVal.toDate();
+          } else if (createdAtVal) {
+            date = new Date(createdAtVal);
+          } else {
+            date = new Date();
+          }
+          if (isNaN(date.getTime())) {
+            return false;
+          }
           return format(date, 'yyyy-MM') === monthStr;
         } catch {
           return false;
@@ -362,7 +375,25 @@ export function Payroll() {
                               <span className="text-[11px] font-black text-emerald-600 uppercase tracking-wider leading-none block">Paid</span>
                               {w.paymentDate && (
                                 <span className="text-[9px] text-slate-400 font-bold leading-none mt-0.5 block">
-                                  {format(parseISO(w.paymentDate), 'MMM d, p')}
+                                  {(() => {
+                                    try {
+                                      let d: Date;
+                                      const pDate = w.paymentDate as any;
+                                      if (pDate?.seconds) {
+                                        d = new Date(pDate.seconds * 1000);
+                                      } else if (pDate && typeof pDate.toDate === 'function') {
+                                        d = pDate.toDate();
+                                      } else if (typeof pDate === 'string' && pDate.includes('T')) {
+                                        d = parseISO(pDate);
+                                      } else {
+                                        d = new Date(pDate);
+                                      }
+                                      if (isNaN(d.getTime())) return '';
+                                      return format(d, 'MMM d, p');
+                                    } catch {
+                                      return '';
+                                    }
+                                  })()}
                                 </span>
                               )}
                             </div>

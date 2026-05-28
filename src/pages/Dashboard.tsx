@@ -239,7 +239,24 @@ export default function Dashboard() {
             totalCol += paidAmount;
             totalPend += Math.max(0, orderPrice - paidAmount);
 
-            const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt || Date.now());
+            let createdAt: Date;
+            try {
+              if (data.createdAt?.toDate) {
+                createdAt = data.createdAt.toDate();
+              } else if (data.createdAt && typeof data.createdAt === 'object' && 'seconds' in data.createdAt) {
+                createdAt = new Date(data.createdAt.seconds * 1000);
+              } else if (data.createdAt) {
+                createdAt = new Date(data.createdAt);
+              } else {
+                createdAt = new Date();
+              }
+              if (isNaN(createdAt.getTime())) {
+                createdAt = new Date();
+              }
+            } catch {
+              createdAt = new Date();
+            }
+
             if (isThisMonth(createdAt)) {
               monthRev += paidAmount;
               ordersThisMo++;
@@ -252,8 +269,16 @@ export default function Dashboard() {
               revenue += orderPrice;
             } else {
               active++;
-              const deliveryDate = new Date(data.deliveryDate);
-              if (isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
+              let deliveryDate: Date | null = null;
+              if (data.deliveryDate) {
+                try {
+                  deliveryDate = data.deliveryDate.seconds ? new Date(data.deliveryDate.seconds * 1000) : new Date(data.deliveryDate);
+                  if (isNaN(deliveryDate.getTime())) deliveryDate = null;
+                } catch {
+                  deliveryDate = null;
+                }
+              }
+              if (deliveryDate && isAfter(deliveryDate, today) && isBefore(deliveryDate, nextWeek)) {
                 upcoming.push(order);
               }
             }
@@ -265,16 +290,31 @@ export default function Dashboard() {
       });
 
       upcoming.sort((a, b) => {
-        const dateA = a.deliveryDate?.toDate ? a.deliveryDate.toDate() : new Date(a.deliveryDate);
-        const dateB = b.deliveryDate?.toDate ? b.deliveryDate.toDate() : new Date(b.deliveryDate);
-        return dateA.getTime() - dateB.getTime();
+        const getVal = (val: any) => {
+          if (!val) return 0;
+          try {
+            const d = val.seconds ? new Date(val.seconds * 1000) : new Date(val);
+            return isNaN(d.getTime()) ? 0 : d.getTime();
+          } catch {
+            return 0;
+          }
+        };
+        return getVal(a.deliveryDate) - getVal(b.deliveryDate);
       });
 
       const recent = [...allOrders]
         .sort((a, b) => {
-          const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
-          const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
-          return dateB.getTime() - dateA.getTime();
+          const getVal = (val: any) => {
+            if (!val) return 0;
+            try {
+              if (val.toDate) return val.toDate().getTime();
+              const d = val.seconds ? new Date(val.seconds * 1000) : new Date(val);
+              return isNaN(d.getTime()) ? 0 : d.getTime();
+            } catch {
+              return 0;
+            }
+          };
+          return getVal(b.createdAt) - getVal(a.createdAt);
         })
         .slice(0, 5);
 
@@ -334,10 +374,18 @@ export default function Dashboard() {
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const monthDate = subMonths(now, i);
-      const monthOrders = allOrders.filter(o => 
-        o.status === ORDER_STATUS.DELIVERED && 
-        isSameMonth(o.updatedAt?.toDate ? o.updatedAt.toDate() : new Date(o.updatedAt || o.createdAt), monthDate)
-      );
+      const monthOrders = allOrders.filter(o => {
+        if (o.status !== ORDER_STATUS.DELIVERED) return false;
+        try {
+          const rawVal = o.updatedAt || o.createdAt;
+          if (!rawVal) return false;
+          const d = rawVal.toDate ? rawVal.toDate() : (rawVal.seconds ? new Date(rawVal.seconds * 1000) : new Date(rawVal));
+          if (isNaN(d.getTime())) return false;
+          return isSameMonth(d, monthDate);
+        } catch {
+          return false;
+        }
+      });
       const revenue = monthOrders.reduce((sum, o) => sum + (o.price || 0), 0);
       data.push({
         name: format(monthDate, 'MMM'),
