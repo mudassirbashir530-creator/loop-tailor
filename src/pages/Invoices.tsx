@@ -140,7 +140,16 @@ export default function Invoices() {
                       <div>
                         <div className="font-bold text-slate-900 group-hover:text-brand-primary transition-colors">{invoice.customerName}</div>
                         <div className="text-xs text-slate-500 font-medium">
-                          {invoice.dressType} • {invoice.createdAt ? format(invoice.createdAt.seconds ? new Date(invoice.createdAt.seconds * 1000) : new Date(invoice.createdAt), 'MMM dd, yyyy') : t('invoices.na')}
+                          {invoice.dressType} • {(() => {
+                            if (!invoice.createdAt) return t('invoices.na');
+                            try {
+                              const d = invoice.createdAt.seconds ? new Date(invoice.createdAt.seconds * 1000) : new Date(invoice.createdAt);
+                              if (isNaN(d.getTime())) return t('invoices.na');
+                              return format(d, 'MMM dd, yyyy');
+                            } catch {
+                              return t('invoices.na');
+                            }
+                          })()}
                         </div>
                       </div>
                     </div>

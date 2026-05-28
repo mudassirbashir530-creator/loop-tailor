@@ -63,10 +63,18 @@ export default function Notifications() {
     const older: any[] = [];
 
     filteredNotifications.forEach(n => {
-      const date = n.createdAt?.toDate ? n.createdAt.toDate() : new Date(n.createdAt);
-      if (isToday(date)) today.push(n);
-      else if (isYesterday(date)) yesterday.push(n);
-      else older.push(n);
+      try {
+        const date = n.createdAt?.toDate ? n.createdAt.toDate() : (n.createdAt?.seconds ? new Date(n.createdAt.seconds * 1000) : new Date(n.createdAt));
+        if (!date || isNaN(date.getTime())) {
+          older.push(n);
+          return;
+        }
+        if (isToday(date)) today.push(n);
+        else if (isYesterday(date)) yesterday.push(n);
+        else older.push(n);
+      } catch {
+        older.push(n);
+      }
     });
 
     return { today, yesterday, older };

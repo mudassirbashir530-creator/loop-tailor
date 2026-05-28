@@ -412,14 +412,24 @@ export default function OrderDetails() {
 
   const formatDate = (date: any) => {
     if (!date) return t('orderDetails.na');
-    const d = date.seconds ? new Date(date.seconds * 1000) : new Date(date);
-    return format(d, 'MMMM dd, yyyy');
+    try {
+      const d = date.seconds ? new Date(date.seconds * 1000) : new Date(date);
+      if (isNaN(d.getTime())) return t('orderDetails.na');
+      return format(d, 'MMMM dd, yyyy');
+    } catch {
+      return t('orderDetails.na');
+    }
   };
 
   const formatDateTime = (date: any) => {
     if (!date) return t('orderDetails.na');
-    const d = date.seconds ? new Date(date.seconds * 1000) : new Date(date);
-    return format(d, 'MMM dd, yyyy HH:mm');
+    try {
+      const d = date.seconds ? new Date(date.seconds * 1000) : new Date(date);
+      if (isNaN(d.getTime())) return t('orderDetails.na');
+      return format(d, 'MMM dd, yyyy HH:mm');
+    } catch {
+      return t('orderDetails.na');
+    }
   };
 
   if (loading) {

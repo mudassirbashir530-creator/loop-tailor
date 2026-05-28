@@ -136,9 +136,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     const isNewMonth = (lr: any) => {
                       if (!lr) return true;
                       let date: Date;
-                      if (lr.toDate) date = lr.toDate();
-                      else if (lr instanceof Date) date = lr;
-                      else date = new Date(lr);
+                      if (typeof lr.toDate === 'function') {
+                        date = lr.toDate();
+                      } else if (lr instanceof Date) {
+                        date = lr;
+                      } else if (lr && typeof lr === 'object' && 'seconds' in lr) {
+                        date = new Date(lr.seconds * 1000);
+                      } else {
+                        date = new Date(lr);
+                      }
+                      
+                      if (isNaN(date.getTime())) {
+                        return true; // Default to triggering update/reset if invalid date representation
+                      }
                       return date.getMonth() !== now.getMonth() || date.getFullYear() !== now.getFullYear();
                     };
 

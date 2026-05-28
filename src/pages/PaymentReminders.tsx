@@ -253,7 +253,18 @@ export default function PaymentReminders() {
                         <div className="bg-white rounded-xl p-4 shadow-neu-pressed-sm space-y-3 mb-6">
                           <div className="flex justify-between items-center text-sm font-bold border-b border-gray-100 pb-2">
                             <span className="text-slate-500">{order.dressType}</span>
-                            <span className="text-slate-900">Due: {order.deliveryDate ? format(new Date(order.deliveryDate), 'MMM d, yyyy') : 'No Date'}</span>
+                            <span className="text-slate-900">
+                              Due: {(() => {
+                                if (!order.deliveryDate) return 'No Date';
+                                try {
+                                  const dateVal = order.deliveryDate.seconds ? new Date(order.deliveryDate.seconds * 1000) : new Date(order.deliveryDate);
+                                  if (isNaN(dateVal.getTime())) return 'No Date';
+                                  return format(dateVal, 'MMM d, yyyy');
+                                } catch {
+                                  return 'No Date';
+                                }
+                              })()}
+                            </span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <span className="font-bold text-slate-500">Total Price</span>

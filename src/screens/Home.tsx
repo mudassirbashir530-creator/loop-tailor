@@ -57,8 +57,15 @@ export default function Home() {
         const orderRevenue = safeNum(order.price);
         rev += orderRevenue;
 
-        if (order.updatedAt && isToday(new Date(order.updatedAt))) {
-          todayCount++;
+        if (order.updatedAt) {
+          try {
+            const parsedDate = new Date(order.updatedAt);
+            if (!isNaN(parsedDate.getTime()) && isToday(parsedDate)) {
+              todayCount++;
+            }
+          } catch (e) {
+            console.warn("Invalid date on order updatedAt field:", e);
+          }
         }
       }
     });

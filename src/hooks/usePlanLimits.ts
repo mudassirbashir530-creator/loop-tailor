@@ -80,11 +80,14 @@ export function usePlanLimits() {
         if (data.createdAt) {
           if (typeof data.createdAt.toDate === 'function') {
             orderDate = data.createdAt.toDate();
+          } else if (data.createdAt && typeof data.createdAt === 'object' && 'seconds' in data.createdAt) {
+            orderDate = new Date(data.createdAt.seconds * 1000);
           } else {
             orderDate = new Date(data.createdAt);
           }
         }
         if (orderDate && 
+            !isNaN(orderDate.getTime()) &&
             orderDate.getMonth() === now.getMonth() && 
             orderDate.getFullYear() === now.getFullYear()) {
           monthlyCount++;
@@ -143,10 +146,21 @@ export function usePlanLimits() {
   const lr = userData?.currentUsage?.lastResetDate;
   if (lr) {
     let date: Date;
-    if (typeof lr.toDate === 'function') date = lr.toDate();
-    else if (lr instanceof Date) date = lr;
-    else date = new Date(lr);
-    hasMonthChanged = date.getMonth() !== now.getMonth() || date.getFullYear() !== now.getFullYear();
+    if (typeof lr.toDate === 'function') {
+      date = lr.toDate();
+    } else if (lr instanceof Date) {
+      date = lr;
+    } else if (lr && typeof lr === 'object' && 'seconds' in lr) {
+      date = new Date(lr.seconds * 1000);
+    } else {
+      date = new Date(lr);
+    }
+    
+    if (!isNaN(date.getTime())) {
+      hasMonthChanged = date.getMonth() !== now.getMonth() || date.getFullYear() !== now.getFullYear();
+    } else {
+      hasMonthChanged = true;
+    }
   }
 
   const effectiveOrdersCount = hasMonthChanged ? 0 : usage.ordersThisMonth;
