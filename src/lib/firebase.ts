@@ -17,7 +17,9 @@ const firebaseConfig = {
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence).catch(console.error);
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.warn('Persistence not available:', error);
+});
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 

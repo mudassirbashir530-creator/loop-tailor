@@ -177,6 +177,8 @@ export default function App() {
       }
     } catch (e) {
       console.warn("Theme initial load error:", e);
+      document.documentElement.classList.remove('dark', 'system');
+      document.documentElement.classList.add('light');
     }
   }, []);
 

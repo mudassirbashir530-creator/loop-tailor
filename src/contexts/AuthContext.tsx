@@ -124,6 +124,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             userDataUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (userDoc) => {
+              if (userDoc.metadata.hasPendingWrites) {
+                return;
+              }
               const processSnapshot = async () => {
                 try {
                   if (userDoc.exists()) {
@@ -135,20 +138,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                     const isNewMonth = (lr: any) => {
                       if (!lr) return true;
+                      
                       let date: Date;
-                      if (typeof lr.toDate === 'function') {
+                      if (lr?.toDate) {
                         date = lr.toDate();
-                      } else if (lr instanceof Date) {
-                        date = lr;
-                      } else if (lr && typeof lr === 'object' && 'seconds' in lr) {
+                      } else if (lr?.seconds) {
                         date = new Date(lr.seconds * 1000);
                       } else {
                         date = new Date(lr);
                       }
                       
                       if (isNaN(date.getTime())) {
-                        return true; // Default to triggering update/reset if invalid date representation
+                        return false; 
                       }
+                      
+                      const now = new Date();
                       return date.getMonth() !== now.getMonth() || date.getFullYear() !== now.getFullYear();
                     };
 
@@ -190,7 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   if (currentUser.email) {
                     try {
                       const adminDoc = await getDoc(doc(db, 'admins', currentUser.email));
-                      if (adminDoc.exists() && adminDoc.data().isAdmin === true) {
+                      if (adminDoc.exists()) {
                         isUserAdmin = true;
                       }
                     } catch (e) {
@@ -198,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     }
                   }
                   
-                  if (isUserAdmin || (currentUser.email && ["mudassirbashir530@gmail.com", "looptailor@gmail.com"].includes(currentUser.email))) {
+                  if (isUserAdmin) {
                     if (userDoc.exists()) {
                       const userDataFetched = userDoc.data();
                       if (!userDataFetched?.isAdmin || userDataFetched?.role !== 'admin') {
@@ -352,7 +356,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
   const signIn = async (email: string, password: string) => {
-    await setPersistence(auth, browserLocalPersistence);
     await signInWithEmailAndPassword(auth, email, password);
     // Removed saveUserData call to prevent unnecessary writes and permission errors (Bug 2 Fix)
   };
@@ -371,7 +374,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     shopAddress?: string,
     plan?: string
   ) => {
-    await setPersistence(auth, browserLocalPersistence);
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
     const profileUpdates: any = { displayName: name };
