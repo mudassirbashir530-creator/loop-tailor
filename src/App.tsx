@@ -167,9 +167,12 @@ function AppContent() {
 }
 
 export default function App() {
+  const [theme, setTheme] = React.useState('system');
+
   React.useEffect(() => {
     try {
       const savedTheme = safeStorage.getItem('theme') || 'system';
+      setTheme(savedTheme);
       if (savedTheme === 'dark' || (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
       } else {
@@ -177,8 +180,10 @@ export default function App() {
       }
     } catch (e) {
       console.warn("Theme initial load error:", e);
+      // Apply light theme as safe fallback
       document.documentElement.classList.remove('dark', 'system');
       document.documentElement.classList.add('light');
+      setTheme('light');
     }
   }, []);
 

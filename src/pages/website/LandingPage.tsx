@@ -28,9 +28,13 @@ export default function LandingPage() {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-foreground max-w-4xl mx-auto">
             Manage Your <span className="text-primary">Tailoring Business</span> Digitally
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto">
             Say goodbye to diaries and WhatsApp chaos. Streamline your orders, measurements, and customer communication in one place.
           </p>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 font-medium text-xs mb-10 border border-emerald-200/50 dark:border-emerald-800/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            WhatsApp Integration: Available on Standard & Premium plans
+          </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
             <Link to="/auth/signup">
               <Button size="lg" className="w-full sm:w-auto text-white font-semibold">Start Free Trial</Button>
@@ -59,31 +63,37 @@ export default function LandingPage() {
               icon={<Package className="h-6 w-6" />}
               title="Order Management"
               description="Create, track, and manage all your tailoring orders from start to finish."
+              plan="Basic"
             />
             <FeatureCard 
               icon={<Users className="h-6 w-6" />}
               title="Customer Database"
               description="Store customer information, measurements, and order history securely."
+              plan="Basic"
             />
             <FeatureCard 
               icon={<MessageSquare className="h-6 w-6" />}
               title="WhatsApp Integration"
               description="Auto-send order updates, receipts, and delivery reminders to customers."
+              plan="Standard"
             />
             <FeatureCard 
               icon={<FileText className="h-6 w-6" />}
               title="Digital Invoices"
               description="Generate professional digital invoices instantly for any order."
+              plan="Standard"
             />
             <FeatureCard 
               icon={<BarChart3 className="h-6 w-6" />}
               title="Business Analytics"
               description="Track revenue, pending orders, and performance across your shop."
+              plan="Premium"
             />
             <FeatureCard 
               icon={<Scissors className="h-6 w-6" />}
               title="Worker Assignment"
               description="Assign specific orders to your team members and track their progress."
+              plan="Premium"
             />
           </div>
         </div>
@@ -128,7 +138,7 @@ export default function LandingPage() {
               initials="FM"
             />
             <TestimonialCard 
-              quote="Finally, a system designed for tailors! It completely removed the need for my old dairies."
+              quote="Finally, a system designed for tailors! It completely removed the need for my old diaries."
               name="Hassan Khan"
               location="Islamabad"
               initials="HK"
@@ -167,7 +177,7 @@ export default function LandingPage() {
               <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">Start Free Trial</Button>
             </Link>
             <Link to="/contact">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 font-semibold" style={{ backgroundColor: '#0d0702' }}>Contact Sales</Button>
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 font-semibold" style={{ backgroundColor: '#f1ebe6', color: '#5ae016' }}>Contact Sales</Button>
             </Link>
           </div>
         </div>
@@ -176,12 +186,40 @@ export default function LandingPage() {
   );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+function FeatureCard({ 
+  icon, 
+  title, 
+  description, 
+  plan 
+}: { 
+  icon: React.ReactNode, 
+  title: string, 
+  description: string, 
+  plan: 'Basic' | 'Standard' | 'Premium' 
+}) {
+  const getBadgeColors = (p: string) => {
+    switch (p) {
+      case 'Basic':
+        return 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/20';
+      case 'Standard':
+        return 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/20';
+      case 'Premium':
+        return 'bg-purple-100 dark:bg-purple-950/40 text-purple-800 dark:text-purple-400 border border-purple-200/50 dark:border-purple-800/20';
+      default:
+        return 'bg-muted text-muted-foreground';
+    }
+  };
+
   return (
-    <Card>
+    <Card className="relative overflow-hidden flex flex-col h-full justify-between">
       <CardContent className="pt-6">
-        <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
-          {icon}
+        <div className="flex items-center justify-between mb-4">
+          <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+            {icon}
+          </div>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getBadgeColors(plan)}`}>
+            {plan}
+          </span>
         </div>
         <h3 className="text-xl font-semibold mb-2">{title}</h3>
         <p className="text-muted-foreground leading-relaxed">{description}</p>

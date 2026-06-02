@@ -106,6 +106,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [wasLoggedIn, setWasLoggedIn] = useState(() => safeStorage.getItem('wasLoggedIn') === 'true');
 
+  const checkIfAdmin = async (email: string) => {
+    try {
+      const adminDoc = await getDoc(doc(db, 'admins', email));
+      return adminDoc.exists();
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
     let userDataUnsub: (() => void) | null = null;
 
@@ -122,6 +131,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (userDataUnsub) {
               userDataUnsub();
             }
+
+            const adminStatus = currentUser.email ? await checkIfAdmin(currentUser.email) : false;
+            setIsAdmin(adminStatus);
 
             userDataUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (userDoc) => {
               if (userDoc.metadata.hasPendingWrites) {
@@ -190,17 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setUserData(null);
                   }
                   
-                  let isUserAdmin = false;
-                  if (currentUser.email) {
-                    try {
-                      const adminDoc = await getDoc(doc(db, 'admins', currentUser.email));
-                      if (adminDoc.exists()) {
-                        isUserAdmin = true;
-                      }
-                    } catch (e) {
-                      console.error("Error checking admin status", e);
-                    }
-                  }
+                  const isUserAdmin = currentUser.email ? await checkIfAdmin(currentUser.email) : false;
                   
                   if (isUserAdmin) {
                     if (userDoc.exists()) {

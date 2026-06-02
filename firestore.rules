@@ -81,7 +81,6 @@ service cloud.firestore {
       allow create: if ownsResource(request.resource.data);
     }
 
-    // Direct alias for clients
     match /clients/{docId} {
       allow read, delete: if ownsResource(resource.data);
       allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
@@ -164,7 +163,6 @@ service cloud.firestore {
       allow create: if ownsResource(request.resource.data);
     }
 
-    // Direct standalone payments collection match
     match /payments/{docId} {
       allow read, delete: if ownsResource(resource.data);
       allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
