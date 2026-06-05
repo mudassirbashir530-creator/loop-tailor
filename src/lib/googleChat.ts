@@ -42,6 +42,10 @@ export const linkGoogleChat = async (): Promise<{ accessToken: string; email: st
   try {
     const provider = new GoogleAuthProvider();
     provider.addScope('https://www.googleapis.com/auth/chat');
+    provider.addScope('https://www.googleapis.com/auth/chat.spaces.readonly');
+    provider.addScope('https://www.googleapis.com/auth/chat.spaces');
+    provider.addScope('https://www.googleapis.com/auth/chat.messages');
+    provider.addScope('https://www.googleapis.com/auth/chat.messages.create');
     
     // We open popup for credential acquisition
     const result = await signInWithPopup(auth, provider);
