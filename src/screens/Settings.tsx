@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageWrapper } from '../components/animations/PageWrapper';
-import { Store, Crown, Bell, MessageSquare, Globe, Palette, HelpCircle, LogOut, ChevronRight, Moon, Sun, Smartphone, Check, UserCircle, X, FileText, Sparkles } from 'lucide-react';
+import { Store, Crown, Bell, MessageSquare, Globe, Palette, HelpCircle, LogOut, ChevronRight, Moon, Sun, Smartphone, Check, UserCircle, X, FileText, Sparkles, Send, RefreshCw, Share2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -13,6 +13,18 @@ import { usePlanLimits } from '../hooks/usePlanLimits';
 import { PLANS } from '../constants/plans';
 import { doc, updateDoc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { 
+  linkGoogleChat, 
+  disconnectGoogleChat, 
+  fetchGoogleChatSpaces, 
+  sendGoogleChatMessage, 
+  saveGoogleChatConfig, 
+  fetchGoogleChatConfig, 
+  getGoogleAccessToken, 
+  subscribeToGoogleChatAuth,
+  GoogleChatSpace, 
+  GoogleChatConfig 
+} from '../lib/googleChat';
 import { toast } from 'sonner';
 import { openWhatsApp } from '../lib/whatsapp';
 import { uploadToCloudinary } from '../lib/cloudinary';
@@ -112,6 +124,145 @@ export default function Settings() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+
+  // Google Chat States
+  const [isGoogleChatOpen, setIsGoogleChatOpen] = useState(false);
+  const [googleChatConnected, setGoogleChatConnected] = useState(false);
+  const [googleChatEmail, setGoogleChatEmail] = useState<string | null>(null);
+  const [googleChatSpaces, setGoogleChatSpaces] = useState<GoogleChatSpace[]>([]);
+  const [isFetchingSpaces, setIsFetchingSpaces] = useState(false);
+  const [broadcastText, setBroadcastText] = useState('');
+  const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
+  const [chatConfig, setChatConfig] = useState<GoogleChatConfig>({
+    newOrderSpaceId: '',
+    orderReadySpaceId: '',
+    paymentReminderSpaceId: '',
+    broadcastSpaceId: '',
+    autoNotificationsEnabled: true,
+    connectedEmail: null
+  });
+
+  // Listen to Google token updates and link configuration
+  useEffect(() => {
+    const unsubToken = subscribeToGoogleChatAuth((token) => {
+      setGoogleChatConnected(!!token);
+    });
+
+    if (user) {
+      // Get the connected status from user document
+      const docRef = doc(db, 'users', user.uid);
+      const unsubUserDoc = onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setGoogleChatEmail(data.googleChatConnectedEmail || null);
+        }
+      });
+
+      // Fetch Firestore Google Chat Config
+      fetchGoogleChatConfig(user.uid).then(config => {
+        setChatConfig(config);
+      }).catch(err => {
+        console.error("Error loading chat config:", err);
+      });
+
+      return () => {
+        unsubToken();
+        unsubUserDoc();
+      };
+    }
+
+    return () => {
+      unsubToken();
+    };
+  }, [user]);
+
+  // Load spaces when connected or manually clicked
+  const handleLoadSpaces = async () => {
+    const token = getGoogleAccessToken();
+    if (!token) {
+      toast.error("Please connect your Google Account first.");
+      return;
+    }
+    setIsFetchingSpaces(true);
+    try {
+      const spaces = await fetchGoogleChatSpaces(token);
+      setGoogleChatSpaces(spaces);
+      toast.success(`Successfully loaded ${spaces.length} space(s) from your Google Workspace!`);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to load Google Chat spaces. Please try reconnecting.");
+    } finally {
+      setIsFetchingSpaces(false);
+    }
+  };
+
+  const handleConnectChat = async () => {
+    try {
+      const res = await linkGoogleChat();
+      if (res) {
+        setGoogleChatConnected(true);
+        setGoogleChatEmail(res.email);
+        toast.success(`Google Workspace Account Connected: ${res.email}`);
+        
+        // Immediately load spaces
+        const spaces = await fetchGoogleChatSpaces(res.accessToken);
+        setGoogleChatSpaces(spaces);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to connect to Google Chat.");
+    }
+  };
+
+  const handleDisconnectChat = async () => {
+    const confirmed = window.confirm("Are you sure you want to disconnect Google Chat integration?");
+    if (!confirmed) return;
+    try {
+      await disconnectGoogleChat();
+      setGoogleChatConnected(false);
+      setGoogleChatEmail(null);
+      setGoogleChatSpaces([]);
+      toast.success("Disconnected from Google Chat.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to disconnect.");
+    }
+  };
+
+  const handleSaveConfig = async () => {
+    if (!user) return;
+    try {
+      await saveGoogleChatConfig(user.uid, chatConfig);
+      toast.success("Google Chat automation settings saved successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save spaces setup.");
+    }
+  };
+
+  const handleSendBroadcast = async () => {
+    const token = getGoogleAccessToken();
+    if (!token) {
+      toast.error("Google Chat is not connected. Please connect above.");
+      return;
+    }
+    if (!chatConfig.broadcastSpaceId) {
+      toast.error("Please select a target Broadcast Space first.");
+      return;
+    }
+    if (!broadcastText.trim()) {
+      toast.error("Please type a message to send.");
+      return;
+    }
+
+    setIsSendingBroadcast(true);
+    try {
+      await sendGoogleChatMessage(token, chatConfig.broadcastSpaceId, broadcastText);
+      toast.success("Announcement broadcast successfully to Google Chat!");
+      setBroadcastText('');
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send broadcast message.");
+    } finally {
+      setIsSendingBroadcast(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -363,6 +514,7 @@ export default function Settings() {
             <div className="divide-y divide-border">
               <SettingsRow onClick={() => setIsNotificationsOpen(true)} icon={<Bell className="h-5 w-5 text-orange-500" />} title="Notifications" subtitle={notificationsEnabled ? "Enabled" : "Disabled"} />
               <SettingsRow onClick={() => setIsTemplatesOpen(true)} icon={<MessageSquare className="h-5 w-5 text-emerald-500" />} title="WhatsApp Templates" subtitle="Customize auto-messages" />
+              <SettingsRow onClick={() => setIsGoogleChatOpen(true)} icon={<Share2 className="h-5 w-5 text-blue-500" />} title="Google Chat Integration" subtitle={googleChatConnected ? `Connected (${googleChatEmail || "Google"})` : "Connect & route automated workspace updates"} />
               <SettingsRow 
                 icon={<Globe className="h-5 w-5 text-indigo-500" />} 
                 title="Country Code" 
@@ -517,6 +669,190 @@ export default function Settings() {
                   setIsTemplatesOpen(false);
                 }} className="shadow-lg">Save All Templates</Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Google Chat Spaces Dialog */}
+      <Dialog open={isGoogleChatOpen} onOpenChange={setIsGoogleChatOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="flex items-center gap-2 text-xl text-[#0D3D33] dark:text-[#F7F5F0] font-bold">
+              <Share2 className="h-6 w-6 text-blue-600 animate-pulse" />
+              <span>Google Chat Workspace Integration</span>
+            </DialogTitle>
+            <DialogDescription className="mt-1">
+              Connect your Google Workspace pro account to list your Spaces. This allows sending automated loop updates to your teams, with permission from your users.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            
+            {/* Account Status Card */}
+            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Connection Status</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`h-2.5 w-2.5 rounded-full ${googleChatConnected ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`}></span>
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {googleChatConnected 
+                      ? `Active: ${googleChatEmail || "Authorized Account"}` 
+                      : "Not Connected (Token cached in-memory)"
+                    }
+                  </span>
+                </div>
+              </div>
+              <div className="flex gap-2 w-full md:w-auto">
+                {!googleChatConnected ? (
+                  <Button onClick={handleConnectChat} className="flex-1 md:flex-none h-10 px-5 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md">
+                    Connect Account
+                  </Button>
+                ) : (
+                  <>
+                    <Button onClick={handleLoadSpaces} disabled={isFetchingSpaces} variant="outline" className="flex-1 md:flex-none h-10 px-4 text-sm font-bold flex items-center justify-center gap-1.5 border-slate-300">
+                      <RefreshCw className={`h-3.5 w-3.5 ${isFetchingSpaces ? "animate-spin" : ""}`} />
+                      Load Spaces
+                    </Button>
+                    <Button onClick={handleDisconnectChat} variant="destructive" className="flex-1 md:flex-none h-10 px-4 text-sm font-bold">
+                      Disconnect
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {googleChatConnected && (
+              <>
+                {/* Automation Rules */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Automatic Workspace Alerts</h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">Automated event logs sent directly to target team rooms.</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                      <input 
+                        type="checkbox" 
+                        checked={chatConfig.autoNotificationsEnabled} 
+                        onChange={(e) => setChatConfig({ ...chatConfig, autoNotificationsEnabled: e.target.checked })}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    {/* New Order Space */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">New Orders Space</label>
+                      <select 
+                        value={chatConfig.newOrderSpaceId} 
+                        onChange={(e) => setChatConfig({ ...chatConfig, newOrderSpaceId: e.target.value })}
+                        disabled={googleChatSpaces.length === 0}
+                        className="w-full h-10 px-3 rounded-lg border border-border bg-card text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                      >
+                        <option value="">-- Do Not Notify --</option>
+                        {googleChatSpaces.map(space => (
+                          <option key={space.name} value={space.name}>{space.displayName} ({space.type})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Order Ready Space */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Order Ready/Stitch Alert Space</label>
+                      <select 
+                        value={chatConfig.orderReadySpaceId} 
+                        onChange={(e) => setChatConfig({ ...chatConfig, orderReadySpaceId: e.target.value })}
+                        disabled={googleChatSpaces.length === 0}
+                        className="w-full h-10 px-3 rounded-lg border border-border bg-card text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                      >
+                        <option value="">-- Do Not Notify --</option>
+                        {googleChatSpaces.map(space => (
+                          <option key={space.name} value={space.name}>{space.displayName} ({space.type})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Payment Alert Space */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Invoices & Payment Alert Space</label>
+                      <select 
+                        value={chatConfig.paymentReminderSpaceId} 
+                        onChange={(e) => setChatConfig({ ...chatConfig, paymentReminderSpaceId: e.target.value })}
+                        disabled={googleChatSpaces.length === 0}
+                        className="w-full h-10 px-3 rounded-lg border border-border bg-card text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                      >
+                        <option value="">-- Do Not Notify --</option>
+                        {googleChatSpaces.map(space => (
+                          <option key={space.name} value={space.name}>{space.displayName} ({space.type})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* All Staff Broadcast Space */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Shop Broadcast/Staff Channel</label>
+                      <select 
+                        value={chatConfig.broadcastSpaceId} 
+                        onChange={(e) => setChatConfig({ ...chatConfig, broadcastSpaceId: e.target.value })}
+                        disabled={googleChatSpaces.length === 0}
+                        className="w-full h-10 px-3 rounded-lg border border-border bg-card text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
+                      >
+                        <option value="">-- Choose Space --</option>
+                        {googleChatSpaces.map(space => (
+                          <option key={space.name} value={space.name}>{space.displayName} ({space.type})</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="text-right pt-2 border-b border-border pb-4">
+                    <Button onClick={handleSaveConfig} className="bg-primary hover:bg-primary/90 h-9 font-semibold text-xs px-4 rounded-lg shadow">
+                      Save Alert Routing
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Instant Shop Announcement Broadcast Panel */}
+                {chatConfig.broadcastSpaceId && (
+                  <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/50 dark:border-blue-900/30 dark:bg-blue-950/10 space-y-3">
+                    <div>
+                      <h5 className="text-xs font-bold text-blue-800 dark:text-blue-400 uppercase tracking-wide">Instant Shop Announcement</h5>
+                      <p className="text-[11px] text-blue-600/80 dark:text-blue-300 mt-0.5">
+                        Send a manual broadcast to the team space selected in "Shop Broadcast/Staff Channel".
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="e.g., Shop meeting today at 6 PM. All tailors please complete active urgent suits." 
+                        value={broadcastText}
+                        onChange={(e) => setBroadcastText(e.target.value)}
+                        className="flex-1 bg-card border-slate-200 dark:border-slate-800 text-sm h-10"
+                        onKeyDown={(e) => { if(e.key === 'Enter') handleSendBroadcast(); }}
+                      />
+                      <Button onClick={handleSendBroadcast} disabled={isSendingBroadcast} className="h-10 px-4 flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 font-bold text-sm shadow">
+                        <Send className="h-4 w-4" />
+                        <span>{isSendingBroadcast ? "Sending..." : "Send"}</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Instruction Footer help */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-xl text-[11px] text-slate-500 space-y-1">
+              <p className="font-bold">💡 Integration Benefits For Your Business:</p>
+              <ul className="list-disc pl-4 space-y-0.5">
+                <li><strong>Auto-Logs for New Orders</strong>: Automatically logs newly placed orders into the specified chat space.</li>
+                <li><strong>Real-time ready status alerts</strong>: Broadcasts order stitching status updates instantly so masters and tailors are fully synchronized.</li>
+                <li><strong>Manual announcements</strong>: Easily broadcast urgent workshop meetings, custom alerts, or fabric delivery logs right from your dashboard.</li>
+                <li><strong>No Spam</strong>: Disconnecting completely wipes active tokens from device memory.</li>
+              </ul>
+            </div>
+
           </div>
         </DialogContent>
       </Dialog>

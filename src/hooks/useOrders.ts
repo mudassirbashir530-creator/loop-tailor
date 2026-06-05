@@ -4,6 +4,7 @@ import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Order, OrderStatus } from '../lib/types';
 import { toast } from 'sonner';
+import { sendAutoWorkspaceNotification } from '../lib/googleChat';
 
 export function useOrders() {
   const { user } = useAuth();
@@ -96,6 +97,20 @@ export function useOrders() {
         });
       }
 
+      // Trigger automated Google Chat notification
+      try {
+        const orderMsg = `🧵 *New Loop Order Placed* 🧵\n` +
+                         `• *Order ID:* ${tokenId}\n` +
+                         `• *Customer:* ${orderData.customerName}\n` +
+                         `• *Clothing Item:* ${orderData.clothingType}\n` +
+                         `• *Price:* Rs. ${orderData.price}\n` +
+                         `• *Advance Paid:* Rs. ${orderData.advancePayment}\n` +
+                         `• *Delivery Due:* ${orderData.deliveryDate}`;
+        sendAutoWorkspaceNotification(user.uid, 'newOrder', orderMsg);
+      } catch (err) {
+        console.warn("Failed to trigger automatic Google Chat notification:", err);
+      }
+
       toast.success("Order created successfully");
       return orderDocRef.id;
     } catch (error) {
@@ -154,6 +169,28 @@ export function useOrders() {
              completedOrders: increment(-1)
            });
          }
+       }
+
+       // Trigger automated Google Chat notification
+       try {
+         if (status === 'ready') {
+           const readyMsg = `✨ *Order Ready for Collection* ✨\n` +
+                            `• *Order ID:* ${previousData?.tokenId || 'N/A'}\n` +
+                            `• *Customer:* ${previousData?.customerName || 'N/A'}\n` +
+                            `• *Dress Type:* ${previousData?.clothingType || 'N/A'}\n` +
+                            `• *Remaining Payment:* Rs. ${previousData?.remainingPayment || 0}\n` +
+                            `• *Status Notice:* Active stitching complete. Ready for instant pickup by the client!`;
+           sendAutoWorkspaceNotification(user.uid, 'orderReady', readyMsg);
+         } else if (status === 'stitching') {
+           const stitchMsg = `🪡 *Order Stitching Started* 🪡\n` +
+                             `• *Order ID:* ${previousData?.tokenId || 'N/A'}\n` +
+                             `• *Customer:* ${previousData?.customerName || 'N/A'}\n` +
+                             `• *Dress Type:* ${previousData?.clothingType || 'N/A'}\n` +
+                             `• *Stitcher Assigned:* ${previousData?.workerName || 'Not Assigned'}`;
+           sendAutoWorkspaceNotification(user.uid, 'orderReady', stitchMsg);
+         }
+       } catch (err) {
+         console.warn("Failed to trigger automatic Google Chat status update:", err);
        }
 
        toast.success("Status updated");
