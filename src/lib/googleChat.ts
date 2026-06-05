@@ -171,14 +171,16 @@ export const sendGoogleChatMessage = async (
  * Saves configuration for spaces matching business event notifications
  */
 export const saveGoogleChatConfig = async (userId: string, config: Partial<GoogleChatConfig>): Promise<void> => {
-  await setDoc(doc(db, 'googleChatConfig', userId), config, { merge: true });
+  await setDoc(doc(db, 'users', userId), {
+    googleChatConfig: config
+  }, { merge: true });
 };
 
 /**
  * Fetches configuration for user's Google Chat settings
  */
 export const fetchGoogleChatConfig = async (userId: string): Promise<GoogleChatConfig> => {
-  const docRef = doc(db, 'googleChatConfig', userId);
+  const docRef = doc(db, 'users', userId);
   const docSnap = await getDoc(docRef);
   
   const defaultConfig: GoogleChatConfig = {
@@ -191,7 +193,10 @@ export const fetchGoogleChatConfig = async (userId: string): Promise<GoogleChatC
   };
 
   if (docSnap.exists()) {
-    return { ...defaultConfig, ...docSnap.data() } as GoogleChatConfig;
+    const data = docSnap.data();
+    if (data && data.googleChatConfig) {
+      return { ...defaultConfig, ...data.googleChatConfig } as GoogleChatConfig;
+    }
   }
 
   return defaultConfig;
