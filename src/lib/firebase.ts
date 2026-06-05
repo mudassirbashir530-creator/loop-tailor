@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { initializeFirestore, memoryLocalCache, getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, isSupported } from 'firebase/messaging';
 
@@ -20,7 +20,20 @@ export const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.warn('Persistence not available:', error);
 });
-export const db = getFirestore(app);
+
+// Configure memoryLocalCache to prevent IndexedDB assertion errors in some sandboxed/iframe development browsers
+let dbInstance;
+try {
+  dbInstance = initializeFirestore(app, {
+    localCache: memoryLocalCache()
+  });
+  console.log('Firestore initialized successfully with memoryLocalCache');
+} catch (err) {
+  console.warn('initializeFirestore with memoryLocalCache failed, falling back to getFirestore:', err);
+  dbInstance = getFirestore(app);
+}
+
+export const db = dbInstance;
 export const storage = getStorage(app);
 
 // Initialize Messaging conditionally (not supported in all browsers i.e Safari)

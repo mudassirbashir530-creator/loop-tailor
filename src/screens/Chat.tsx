@@ -52,6 +52,7 @@ export default function Chat() {
   // New Chat modal toggle
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
   const [newChatSearch, setNewChatSearch] = useState('');
+  const [isCreatingChat, setIsCreatingChat] = useState<string | null>(null);
 
   // Input states
   const [inputText, setInputText] = useState('');
@@ -167,11 +168,24 @@ export default function Chat() {
 
   // Handle trigger new chat
   const handleStartNewChat = async (cust: any) => {
-    const cid = await getOrCreateChannel(cust);
-    if (cid) {
-      setIsNewChatOpen(false);
-      setNewChatSearch('');
-      navigate(`/app/chat/${cid}`);
+    if (isCreatingChat) return;
+    setIsCreatingChat(cust.id);
+    const toastId = toast.loading(`Starting chat with ${cust.name}...`);
+    try {
+      const cid = await getOrCreateChannel(cust);
+      if (cid) {
+        setIsNewChatOpen(false);
+        setNewChatSearch('');
+        toast.success(`Chat started with ${cust.name}!`, { id: toastId });
+        navigate(`/app/chat/${cid}`);
+      } else {
+        toast.error(`Could not start chat`, { id: toastId });
+      }
+    } catch (err) {
+      console.error("Error creating chat channel:", err);
+      toast.error(`Error starting chat: ${err instanceof Error ? err.message : String(err)}`, { id: toastId });
+    } finally {
+      setIsCreatingChat(null);
     }
   };
 
@@ -640,8 +654,8 @@ export default function Chat() {
                   filteredNewChatCustomers.map((cust) => (
                     <div
                       key={cust.id}
-                      onClick={() => handleStartNewChat(cust)}
-                      className="p-3 flex items-center justify-between hover:bg-[#FAF9F6] cursor-pointer transition-colors"
+                      onClick={() => !isCreatingChat && handleStartNewChat(cust)}
+                      className={`p-3 flex items-center justify-between hover:bg-[#FAF9F6] cursor-pointer transition-colors ${isCreatingChat ? 'opacity-60 pointer-events-none' : ''}`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs uppercase shrink-0">
@@ -654,13 +668,21 @@ export default function Chat() {
                       </div>
                       <Button
                         size="sm"
-                        className="h-[28px] rounded px-2 text-[10px] bg-[#0D3D33] text-white hover:bg-[#1a5c4e] cursor-pointer"
+                        disabled={isCreatingChat !== null}
+                        className="h-[28px] rounded px-3 text-[10px] bg-[#0D3D33] text-white hover:bg-[#1a5c4e] cursor-pointer flex items-center gap-1"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleStartNewChat(cust);
                         }}
                       >
-                        Open Chat
+                        {isCreatingChat === cust.id ? (
+                          <>
+                            <Clock className="w-3 h-3 animate-spin" />
+                            Opening...
+                          </>
+                        ) : (
+                          'Open Chat'
+                        )}
                       </Button>
                     </div>
                   ))
