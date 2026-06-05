@@ -741,6 +741,20 @@ export default function Clients() {
                           Orders
                         </Button>
 
+                        {/* 2.5 In-App Chat button */}
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-[40px] px-3 text-slate-800 border-slate-500/15 hover:bg-slate-500/5 rounded-xl font-bold text-xs flex items-center gap-1 shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/app/chat/${customer.id}`);
+                          }}
+                        >
+                          <MessageCircle className="w-4 h-4 text-slate-600" />
+                          Chat
+                        </Button>
+
                         {/* 3. Send WhatsApp button (renders only if they have a phone) */}
                         {customer.phone && phoneValid && (
                           <Button 

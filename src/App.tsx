@@ -6,6 +6,7 @@ import { AnimatePresence } from 'motion/react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ShopProvider } from './contexts/ShopContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { NotificationProvider } from './components/NotificationProvider';
 
 import OrderDetails from './pages/OrderDetails';
 
@@ -39,6 +40,7 @@ import NewOrder from './screens/NewOrder';
 import Settings from './screens/Settings';
 import Invoice from './pages/Invoice';
 import Upgrade from './screens/Upgrade';
+import Chat from './screens/Chat';
 import FeatureRoute from './components/FeatureRoute';
 
 function LoadingFallback() {
@@ -145,6 +147,8 @@ function AppContent() {
             <Route path="new-order" element={<NewOrder />} />
             <Route path="settings" element={<Settings />} />
             <Route path="upgrade" element={<Upgrade />} />
+            <Route path="chat" element={<Chat />} />
+            <Route path="chat/:customerId" element={<Chat />} />
           </Route>
 
           {/* Admin Routes */}
@@ -193,8 +197,10 @@ export default function App() {
         <ShopProvider>
           <LanguageProvider>
             <BrowserRouter>
-              <AppContent />
-              <Toaster position="top-center" richColors />
+              <NotificationProvider>
+                <AppContent />
+                <Toaster position="top-center" richColors />
+              </NotificationProvider>
             </BrowserRouter>
           </LanguageProvider>
         </ShopProvider>

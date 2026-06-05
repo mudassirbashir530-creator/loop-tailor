@@ -222,6 +222,38 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["url", "name"]
+    },
+    "ChatChannel": {
+      "title": "ChatChannel",
+      "description": "A communication channel (thread) between tailor and customer.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "lastMessageText": { "type": "string" },
+        "lastMessageTime": { "type": "number" },
+        "unreadCount": { "type": "number" },
+        "shopId": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "customerName", "lastMessageText", "lastMessageTime", "unreadCount", "shopId", "createdAt"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "A single message inside a communication channel.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderRole": { "type": "string", "enum": ["tailor", "customer"] },
+        "text": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "read": { "type": "boolean" },
+        "orderId": { "type": "string" },
+        "attachments": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "senderId", "senderRole", "text", "createdAt", "read"]
     }
   },
   "firestore": {
@@ -268,6 +300,14 @@
     "/shops/{shopId}/notifications/{notificationId}": {
       "schema": { "$ref": "#/entities/Notification" },
       "description": "Stores user notifications for a specific shop."
+    },
+    "/chats/{channelId}": {
+      "schema": { "$ref": "#/entities/ChatChannel" },
+      "description": "Stores chat channel thread metadata."
+    },
+    "/chats/{channelId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Stores messages within a specific chat channel."
     }
   }
 }

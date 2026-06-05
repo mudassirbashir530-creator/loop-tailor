@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
-import { Home, Users, Plus, Package, Settings, Scissors, UserCircle, FileText } from 'lucide-react';
+import { Home, Users, Plus, Package, Settings, Scissors, UserCircle, FileText, MessageSquare } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrders } from '../hooks/useOrders';
@@ -77,6 +77,7 @@ export default function AppLayout() {
   const navItems = [
     { icon: Home, label: 'Dashboard', path: '/app' },
     { icon: Users, label: 'Clients', path: '/app/clients' },
+    { icon: MessageSquare, label: 'Chats', path: '/app/chat' },
     { icon: UserCircle, label: 'Workers', path: '/app/workers' },
     { icon: FileText, label: 'Payroll', path: '/app/payroll' },
     { icon: Package, label: 'Orders', path: '/app/orders' },

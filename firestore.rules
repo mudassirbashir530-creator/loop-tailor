@@ -184,5 +184,21 @@ service cloud.firestore {
       allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
       allow create: if ownsResource(request.resource.data);
     }
+
+    match /chats/{channelId} {
+      allow read, delete: if isSignedIn() && isNotBlocked() && (resource == null || resource.data.shopId == request.auth.uid);
+      allow create: if isSignedIn() && isNotBlocked() && request.resource.data.shopId == request.auth.uid;
+      allow update: if isSignedIn() && isNotBlocked() && (
+        resource.data.shopId == request.auth.uid || 
+        request.resource.data.shopId == request.auth.uid
+      );
+
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn() && isNotBlocked() && (
+          exists(/databases/$(database)/documents/chats/$(channelId)) && 
+          get(/databases/$(database)/documents/chats/$(channelId)).data.shopId == request.auth.uid
+        );
+      }
+    }
   }
 }

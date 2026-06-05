@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Users, Plus, Package, Settings } from 'lucide-react';
+import { Home, Users, Plus, Package, MessageSquare } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function BottomNav() {
@@ -10,8 +10,8 @@ export default function BottomNav() {
     { icon: Home, label: 'Home', path: '/app' },
     { icon: Users, label: 'Clients', path: '/app/clients' },
     { icon: Plus, label: 'New Order', path: '/app/new-order', isCenter: true },
+    { icon: MessageSquare, label: 'Chats', path: '/app/chat' },
     { icon: Package, label: 'Orders', path: '/app/orders' },
-    { icon: Settings, label: 'Settings', path: '/app/settings' },
   ];
 
   return (
