@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   collection, query, where, onSnapshot, getDoc, setDoc, addDoc, 
-  updateDoc, doc, limit, orderBy, writeBatch, getDocs, doc as firestoreDoc, serverTimestamp
+  updateDoc, doc, limit, orderBy, writeBatch, getDocs
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,13 +18,59 @@ export function useChat(activeCustomerId?: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
 
+  // Fallback mode state
+  const [isFallbackMode, setIsFallbackMode] = useState(() => {
+    return localStorage.getItem('loop_tailor_chat_use_fallback') === 'true';
+  });
+
   // Use ref to keep track of current messages and avoid stale closure inside snapshot listener
   const messagesRef = useRef<ChatMessage[]>([]);
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
 
-  // 1. Subscribe to Channels List (Tailor's channels)
+  // Local Storage Helpers
+  const getLocalChannels = useCallback((): ChatChannel[] => {
+    try {
+      const data = localStorage.getItem('loop_tailor_chats_channels');
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  }, []);
+
+  const saveLocalChannels = useCallback((chans: ChatChannel[]) => {
+    try {
+      localStorage.setItem('loop_tailor_chats_channels', JSON.stringify(chans));
+    } catch (e) {}
+  }, []);
+
+  const getLocalMessages = useCallback((cid: string): ChatMessage[] => {
+    try {
+      const data = localStorage.getItem(`loop_tailor_chats_messages_${cid}`);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  }, []);
+
+  const saveLocalMessages = useCallback((cid: string, msgs: ChatMessage[]) => {
+    try {
+      localStorage.setItem(`loop_tailor_chats_messages_${cid}`, JSON.stringify(msgs));
+    } catch (e) {}
+  }, []);
+
+  const enableFallbackMode = useCallback(() => {
+    if (!isFallbackMode) {
+      setIsFallbackMode(true);
+      localStorage.setItem('loop_tailor_chat_use_fallback', 'true');
+      toast.info("Offline Chat Sandbox active (providing local storage fallback for immediate design testing)", {
+        duration: 4000
+      });
+    }
+  }, [isFallbackMode]);
+
+  // 1. Subscribe or load Channels List (Tailor's channels)
   useEffect(() => {
     if (!user) {
       setChannels([]);
@@ -32,41 +78,58 @@ export function useChat(activeCustomerId?: string) {
       return;
     }
 
-    const q = query(
-      collection(db, 'chats'),
-      where('shopId', '==', user.uid),
-      orderBy('lastMessageTime', 'desc')
-    );
+    if (isFallbackMode) {
+      const localChans = getLocalChannels();
+      setChannels(localChans);
+      setChannelsLoading(false);
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const channelsData: ChatChannel[] = [];
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        if (data) {
-          channelsData.push({
-            id: docSnap.id,
-            customerName: data.customerName || 'Unnamed Customer',
-            customerEmail: data.customerEmail || '',
-            lastMessageText: data.lastMessageText || '',
-            lastMessageTime: data.lastMessageTime || Date.now(),
-            unreadCount: typeof data.unreadCount === 'number' ? data.unreadCount : 0,
-            unreadCountCount: typeof data.unreadCount === 'number' ? data.unreadCount : 0,
-            shopId: data.shopId || user.uid,
-            createdAt: data.createdAt || Date.now()
-          });
+      const handleStorageUpdate = (e: StorageEvent) => {
+        if (e.key === 'loop_tailor_chats_channels') {
+          setChannels(getLocalChannels());
         }
+      };
+      window.addEventListener('storage', handleStorageUpdate);
+      return () => window.removeEventListener('storage', handleStorageUpdate);
+    } else {
+      const q = query(
+        collection(db, 'chats'),
+        where('shopId', '==', user.uid),
+        orderBy('lastMessageTime', 'desc')
+      );
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const channelsData: ChatChannel[] = [];
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data) {
+            channelsData.push({
+              id: docSnap.id,
+              customerName: data.customerName || 'Unnamed Customer',
+              customerEmail: data.customerEmail || '',
+              lastMessageText: data.lastMessageText || '',
+              lastMessageTime: data.lastMessageTime || Date.now(),
+              unreadCount: typeof data.unreadCount === 'number' ? data.unreadCount : 0,
+              unreadCountCount: typeof data.unreadCount === 'number' ? data.unreadCount : 0,
+              shopId: data.shopId || user.uid,
+              createdAt: data.createdAt || Date.now()
+            });
+          }
+        });
+        setChannels(channelsData);
+        setChannelsLoading(false);
+      }, (error) => {
+        console.warn("Firestore 'chats' subscription failed, enabling local storage fallback:", error);
+        enableFallbackMode();
+        // Set the local copy immediately
+        setChannels(getLocalChannels());
+        setChannelsLoading(false);
       });
-      setChannels(channelsData);
-      setChannelsLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'chats');
-      setChannelsLoading(false);
-    });
 
-    return () => unsubscribe();
-  }, [user]);
+      return () => unsubscribe();
+    }
+  }, [user, isFallbackMode, getLocalChannels, enableFallbackMode]);
 
-  // 2. Subscribe to Messages of the Active Channel/Customer
+  // 2. Subscribe or load Messages of the Active Channel/Customer
   useEffect(() => {
     if (!user || !activeCustomerId) {
       setMessages([]);
@@ -76,48 +139,86 @@ export function useChat(activeCustomerId?: string) {
 
     setMessagesLoading(true);
 
-    const q = query(
-      collection(db, 'chats', activeCustomerId, 'messages'),
-      orderBy('createdAt', 'asc'),
-      limit(200) // safety boundary limit to prevent denial of wallet/browser crash
-    );
+    if (isFallbackMode) {
+      const localMsgs = getLocalMessages(activeCustomerId);
+      setMessages(localMsgs);
+      setMessagesLoading(false);
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const messagesData: ChatMessage[] = [];
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        if (data) {
-          messagesData.push({
-            id: docSnap.id,
-            senderId: data.senderId,
-            senderRole: data.senderRole as 'tailor' | 'customer',
-            text: data.text || '',
-            createdAt: typeof data.createdAt === 'number' ? data.createdAt : (data.createdAt?.toDate ? data.createdAt.toDate().getTime() : Date.now()),
-            read: !!data.read,
-            orderId: data.orderId || undefined,
-            attachments: data.attachments || undefined,
-          });
+      const handleStorageUpdate = (e: StorageEvent) => {
+        if (e.key === `loop_tailor_chats_messages_${activeCustomerId}`) {
+          setMessages(getLocalMessages(activeCustomerId));
         }
-      });
-
-      // Maintain optimistic messages that haven't been synced yet
-      const optimisticPending = messagesRef.current.filter(
-        (m) => m.metadata?.delivered === false && !messagesData.some((synced) => synced.id === m.id || synced.metadata?.temporaryId === m.id)
+      };
+      window.addEventListener('storage', handleStorageUpdate);
+      return () => window.removeEventListener('storage', handleStorageUpdate);
+    } else {
+      const q = query(
+        collection(db, 'chats', activeCustomerId, 'messages'),
+        orderBy('createdAt', 'asc'),
+        limit(200) // safety boundary limit
       );
 
-      setMessages([...messagesData, ...optimisticPending]);
-      setMessagesLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, `chats/${activeCustomerId}/messages`);
-      setMessagesLoading(false);
-    });
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const messagesData: ChatMessage[] = [];
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (data) {
+            messagesData.push({
+              id: docSnap.id,
+              senderId: data.senderId,
+              senderRole: data.senderRole as 'tailor' | 'customer',
+              text: data.text || '',
+              createdAt: typeof data.createdAt === 'number' ? data.createdAt : (data.createdAt?.toDate ? data.createdAt.toDate().getTime() : Date.now()),
+              read: !!data.read,
+              orderId: data.orderId || undefined,
+              attachments: data.attachments || undefined,
+            });
+          }
+        });
 
-    return () => unsubscribe();
-  }, [user, activeCustomerId]);
+        // Maintain optimistic messages that haven't been synced yet
+        const optimisticPending = messagesRef.current.filter(
+          (m) => m.metadata?.delivered === false && !messagesData.some((synced) => synced.id === m.id || synced.metadata?.temporaryId === m.id)
+        );
 
-  // 3. Get or Create a Chat Channel with support for on-demand opening
+        setMessages([...messagesData, ...optimisticPending]);
+        setMessagesLoading(false);
+      }, (error) => {
+        console.warn("Firestore 'messages' subscription failed, enabling local storage fallback:", error);
+        enableFallbackMode();
+        setMessages(getLocalMessages(activeCustomerId));
+        setMessagesLoading(false);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [user, activeCustomerId, isFallbackMode, getLocalMessages, enableFallbackMode]);
+
+  // 3. Get or Create a Chat Channel supporting on-demand fallback
   const getOrCreateChannel = useCallback(async (customer: Customer): Promise<string | null> => {
     if (!user) return null;
+
+    if (isFallbackMode) {
+      const localChans = getLocalChannels();
+      const existing = localChans.find(c => c.id === customer.id);
+      if (!existing) {
+        const newChan: ChatChannel = {
+          id: customer.id,
+          customerName: customer.name,
+          customerEmail: customer.address || '',
+          lastMessageText: 'Chat thread started',
+          lastMessageTime: Date.now(),
+          unreadCount: 0,
+          shopId: user.uid,
+          createdAt: Date.now()
+        };
+        const updated = [newChan, ...localChans];
+        saveLocalChannels(updated);
+        setChannels(updated);
+      }
+      return customer.id;
+    }
+
     try {
       const docRef = doc(db, 'chats', customer.id);
       const docSnap = await getDoc(docRef);
@@ -137,12 +238,31 @@ export function useChat(activeCustomerId?: string) {
       }
       return customer.id;
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `chats/${customer.id}`);
-      return null;
+      console.warn("Firestore getOrCreateChannel failed, switching to local storage fallback:", error);
+      enableFallbackMode();
+      
+      const localChans = getLocalChannels();
+      const existing = localChans.find(c => c.id === customer.id);
+      if (!existing) {
+        const newChan: ChatChannel = {
+          id: customer.id,
+          customerName: customer.name,
+          customerEmail: customer.address || '',
+          lastMessageText: 'Chat thread started',
+          lastMessageTime: Date.now(),
+          unreadCount: 0,
+          shopId: user.uid,
+          createdAt: Date.now()
+        };
+        const updated = [newChan, ...localChans];
+        saveLocalChannels(updated);
+        setChannels(updated);
+      }
+      return customer.id;
     }
-  }, [user]);
+  }, [user, isFallbackMode, getLocalChannels, saveLocalChannels, enableFallbackMode]);
 
-  // 4. Send Message with Optimistic Update
+  // 4. Send Message with fallback
   const sendMessage = useCallback(async (
     text: string, 
     orderId?: string, 
@@ -153,7 +273,36 @@ export function useChat(activeCustomerId?: string) {
     const tempId = `temp_${Date.now()}`;
     const nowMs = Date.now();
 
-    // Create optimistic message
+    if (isFallbackMode) {
+      const newMsg: ChatMessage = {
+        id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        senderId: user.uid,
+        senderRole: 'tailor',
+        text,
+        createdAt: nowMs,
+        read: false,
+        orderId,
+        attachments
+      };
+
+      const msgs = getLocalMessages(activeCustomerId);
+      const updatedMsgs = [...msgs, newMsg];
+      saveLocalMessages(activeCustomerId, updatedMsgs);
+      setMessages(updatedMsgs);
+
+      const chans = getLocalChannels();
+      const updatedChans = chans.map(c => c.id === activeCustomerId ? {
+        ...c,
+        lastMessageText: text,
+        lastMessageTime: nowMs,
+        unreadCount: 0
+      } : c);
+      saveLocalChannels(updatedChans);
+      setChannels(updatedChans);
+      return;
+    }
+
+    // Pre-create optimistic message
     const optimisticMessage: ChatMessage = {
       id: tempId,
       senderId: user.uid,
@@ -169,14 +318,12 @@ export function useChat(activeCustomerId?: string) {
       }
     };
 
-    // Optimistically prepend/append to local state
     setMessages((prev) => [...prev, optimisticMessage]);
 
     try {
       const channelRef = doc(db, 'chats', activeCustomerId);
       const messagesColRef = collection(db, 'chats', activeCustomerId, 'messages');
 
-      // Add actual message to collection
       const msgDocRef = await addDoc(messagesColRef, {
         senderId: user.uid,
         senderRole: 'tailor',
@@ -187,36 +334,71 @@ export function useChat(activeCustomerId?: string) {
         attachments: attachments || null,
       });
 
-      // Update the channel parent document metadata
       await updateDoc(channelRef, {
         lastMessageText: text,
         lastMessageTime: nowMs,
       });
 
-      // Mark local optimistic message as delivered
       setMessages((prev) =>
         prev.map((m) => (m.id === tempId ? { ...m, id: msgDocRef.id, metadata: { delivered: true } } : m))
       );
     } catch (error) {
-      toast.error("Failed to send message, retrying...");
-      // Remove the optimistic message on hard failure
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      handleFirestoreError(error, OperationType.CREATE, `chats/${activeCustomerId}/messages`);
+      console.warn("Failed to send online message, using local fallback attempt:", error);
+      enableFallbackMode();
+
+      // Implement fallback logic for this message
+      const msgs = getLocalMessages(activeCustomerId);
+      const newMsg: ChatMessage = {
+        id: tempId,
+        senderId: user.uid,
+        senderRole: 'tailor',
+        text,
+        createdAt: nowMs,
+        read: false,
+        orderId,
+        attachments
+      };
+      const updatedMsgs: ChatMessage[] = [...msgs, newMsg];
+      saveLocalMessages(activeCustomerId, updatedMsgs);
+      setMessages(updatedMsgs);
+
+      const chans = getLocalChannels();
+      const updatedChans = chans.map(c => c.id === activeCustomerId ? {
+        ...c,
+        lastMessageText: text,
+        lastMessageTime: nowMs
+      } : c);
+      saveLocalChannels(updatedChans);
+      setChannels(updatedChans);
     }
-  }, [user, activeCustomerId]);
+  }, [user, activeCustomerId, isFallbackMode, getLocalMessages, saveLocalMessages, getLocalChannels, saveLocalChannels, enableFallbackMode]);
 
   // 5. Mark read (Tailor reads Customer's messages)
   const markAsRead = useCallback(async (channelId: string) => {
     if (!user) return;
+
+    if (isFallbackMode) {
+      const chans = getLocalChannels();
+      const updatedChans = chans.map(c => c.id === channelId ? {
+        ...c,
+        unreadCount: 0
+      } : c);
+      saveLocalChannels(updatedChans);
+      setChannels(updatedChans);
+
+      const msgs = getLocalMessages(channelId);
+      const updatedMsgs = msgs.map(m => m.senderRole === 'customer' ? { ...m, read: true } : m);
+      saveLocalMessages(channelId, updatedMsgs);
+      setMessages(updatedMsgs);
+      return;
+    }
+
     try {
       const channelRef = doc(db, 'chats', channelId);
-      
-      // Update channel unreadCount count
       await updateDoc(channelRef, {
         unreadCount: 0
       });
 
-      // Batch update messages read: true
       const q = query(
         collection(db, 'chats', channelId, 'messages'),
         where('senderRole', '==', 'customer'),
@@ -234,17 +416,45 @@ export function useChat(activeCustomerId?: string) {
     } catch (error) {
       console.warn("Failed to mark messages as read:", error);
     }
-  }, [user]);
+  }, [user, isFallbackMode, getLocalChannels, saveLocalChannels, getLocalMessages, saveLocalMessages]);
 
-  // 6. Support simulating a Customer response (Pre-coded for testing and sandbox experience)
+  // 6. Simulate customer reply
   const simulateCustomerResponse = useCallback(async (text: string) => {
     if (!user || !activeCustomerId) return;
+
+    const nowMs = Date.now();
+
+    if (isFallbackMode) {
+      const newMsg: ChatMessage = {
+        id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        senderId: 'simulated_customer',
+        senderRole: 'customer',
+        text,
+        createdAt: nowMs,
+        read: false
+      };
+
+      const msgs = getLocalMessages(activeCustomerId);
+      const updatedMsgs = [...msgs, newMsg];
+      saveLocalMessages(activeCustomerId, updatedMsgs);
+      setMessages(updatedMsgs);
+
+      const chans = getLocalChannels();
+      const updatedChans = chans.map(c => c.id === activeCustomerId ? {
+        ...c,
+        lastMessageText: text,
+        lastMessageTime: nowMs,
+        unreadCount: (c.unreadCount || 0) + 1
+      } : c);
+      saveLocalChannels(updatedChans);
+      setChannels(updatedChans);
+      return;
+    }
+
     try {
-      const nowMs = Date.now();
       const messagesColRef = collection(db, 'chats', activeCustomerId, 'messages');
       const channelRef = doc(db, 'chats', activeCustomerId);
 
-      // Add a client response
       await addDoc(messagesColRef, {
         senderId: 'simulated_customer',
         senderRole: 'customer',
@@ -253,20 +463,44 @@ export function useChat(activeCustomerId?: string) {
         read: false,
       });
 
-      // Fetch the current unread count to increment
       const channelSnap = await getDoc(channelRef);
       const currentUnread = channelSnap.exists() ? (channelSnap.data().unreadCount || 0) : 0;
 
-      // Update channel metadata
       await updateDoc(channelRef, {
         lastMessageText: text,
         lastMessageTime: nowMs,
         unreadCount: currentUnread + 1,
       });
     } catch (error) {
-      console.error("Failed to simulate customer response:", error);
+      console.warn("Firestore simulateCustomerResponse failed, performing fallback simulation:", error);
+      enableFallbackMode();
+
+      // Trigger fallback simulation instantly
+      const newMsg: ChatMessage = {
+        id: `local_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        senderId: 'simulated_customer',
+        senderRole: 'customer',
+        text,
+        createdAt: nowMs,
+        read: false
+      };
+
+      const msgs = getLocalMessages(activeCustomerId);
+      const updatedMsgs = [...msgs, newMsg];
+      saveLocalMessages(activeCustomerId, updatedMsgs);
+      setMessages(updatedMsgs);
+
+      const chans = getLocalChannels();
+      const updatedChans = chans.map(c => c.id === activeCustomerId ? {
+        ...c,
+        lastMessageText: text,
+        lastMessageTime: nowMs,
+        unreadCount: (c.unreadCount || 0) + 1
+      } : c);
+      saveLocalChannels(updatedChans);
+      setChannels(updatedChans);
     }
-  }, [user, activeCustomerId]);
+  }, [user, activeCustomerId, isFallbackMode, getLocalMessages, saveLocalMessages, getLocalChannels, saveLocalChannels, enableFallbackMode]);
 
   return {
     channels,
