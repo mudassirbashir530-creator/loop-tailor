@@ -24,14 +24,14 @@ export default function FeatureRoute({ feature, children }: FeatureRouteProps) {
     );
   }
 
-  const currentPlanId = userData?.plan || 'basic';
+  const currentPlanId = userData?.plan || 'free';
   const requiredPlanId = REQUIRED_PLAN[feature];
 
-  if (features[feature] || requiredPlanId === 'basic' || currentPlanId === requiredPlanId) {
+  if (features[feature] || requiredPlanId === 'free' || currentPlanId === requiredPlanId) {
     return <>{children}</>;
   }
   
-  const currentPlan = PLANS[currentPlanId as keyof typeof PLANS] || PLANS.basic;
+  const currentPlan = PLANS[currentPlanId as keyof typeof PLANS] || PLANS.free;
   const requiredPlan = PLANS[requiredPlanId as keyof typeof PLANS] || PLANS.basic;
 
   const handleUpgrade = () => {

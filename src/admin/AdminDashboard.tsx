@@ -9,6 +9,7 @@ import PaymentsTab from '../components/admin/PaymentsTab';
 
 interface StatsState {
   total: number;
+  free: number;
   basic: number;
   standard: number;
   premium: number;
@@ -24,6 +25,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<StatsState>({
     total: 0,
+    free: 0,
     basic: 0,
     standard: 0,
     premium: 0,
@@ -45,6 +47,7 @@ export default function AdminDashboard() {
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
       let total = 0;
+      let free = 0;
       let basic = 0;
       let standard = 0;
       let premium = 0;
@@ -62,13 +65,15 @@ export default function AdminDashboard() {
         total++;
 
         // Plan filtration
-        const plan = (data.plan || 'basic').toLowerCase();
+        const plan = (data.plan || 'free').toLowerCase();
         if (plan === 'premium' || plan === 'enterprise') {
           premium++;
         } else if (plan === 'standard') {
           standard++;
-        } else {
+        } else if (plan === 'basic') {
           basic++;
+        } else {
+          free++;
         }
 
         // Status block count
@@ -109,6 +114,7 @@ export default function AdminDashboard() {
 
       setStats({
         total,
+        free,
         basic,
         standard,
         premium,
@@ -138,6 +144,14 @@ export default function AdminDashboard() {
       action: () => navigate('/admin/users'),
       trend: stats.trendPercentage ? `${stats.trendIsPositive ? '↑' : '↓'} ${stats.trendPercentage}% vs last week` : 'Subs are stable',
       trendPos: stats.trendIsPositive,
+    },
+    {
+      title: 'Free Plan',
+      value: stats.free,
+      description: 'Rs. 0 subscription',
+      icon: Sparkles,
+      color: 'text-sky-600 bg-sky-50 dark:text-sky-350 dark:bg-sky-950/20',
+      action: () => navigate('/admin/users?plan=free'),
     },
     {
       title: 'Basic Plan',

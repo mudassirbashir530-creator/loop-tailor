@@ -1,4 +1,38 @@
 export const PLANS = {
+  free: {
+    id: "free",
+    name: "Free",
+    price: 0,
+    priceLabel: "Free Forever",
+    description: "Get started with basics",
+    limits: {
+      customers: 10,
+      ordersPerMonth: 15,
+      workers: 1
+    },
+    features: {
+      canDownloadInvoice: false,
+      canUploadImages: false,
+      canUseWhatsApp: false,
+      canUsePayroll: false,
+      canViewAnalytics: false,
+      canCustomBranding: false,
+      canManageWorkers: false
+    },
+    featureList: [
+      { label: "10 Customers", included: true },
+      { label: "15 Orders/month", included: true },
+      { label: "1 Worker", included: true },
+      { label: "Basic Invoice", included: true },
+      { label: "Standard Support", included: true },
+      { label: "Invoice Download", included: false },
+      { label: "WhatsApp Integration", included: false },
+      { label: "Image Upload", included: false },
+      { label: "Worker Management", included: false },
+      { label: "Payroll System", included: false },
+      { label: "Analytics", included: false }
+    ]
+  },
   basic: {
     id: "basic",
     name: "Basic",

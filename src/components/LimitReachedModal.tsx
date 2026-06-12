@@ -15,12 +15,16 @@ export interface LimitReachedModalProps {
 
 export default function LimitReachedModal({ limitType, current, limit, isOpen, onClose }: LimitReachedModalProps) {
   const { userData } = useAuth();
-  const currentPlanId = userData?.plan || 'basic';
-  const currentPlan = PLANS[currentPlanId as keyof typeof PLANS] || PLANS.basic;
+  const currentPlanId = userData?.plan || 'free';
+  const currentPlan = PLANS[currentPlanId as keyof typeof PLANS] || PLANS.free;
 
   // Let's determine the next plan to suggest
-  let nextPlan: any = PLANS.standard;
-  if (currentPlanId === 'standard') {
+  let nextPlan: any = PLANS.basic;
+  if (currentPlanId === 'free') {
+    nextPlan = PLANS.basic;
+  } else if (currentPlanId === 'basic') {
+    nextPlan = PLANS.standard;
+  } else if (currentPlanId === 'standard') {
     nextPlan = PLANS.premium;
   } else if (currentPlanId === 'premium') {
     // Edge case if someone hits a limit on premium (almost impossible)

@@ -13,10 +13,10 @@ export interface FeatureLockModalProps {
 
 export default function FeatureLockModal({ feature, isOpen, onClose }: FeatureLockModalProps) {
   const { userData } = useAuth();
-  const currentPlanId = userData?.plan || 'basic';
+  const currentPlanId = userData?.plan || 'free';
   const requiredPlanId = REQUIRED_PLAN[feature];
   
-  const currentPlan = PLANS[currentPlanId as keyof typeof PLANS] || PLANS.basic;
+  const currentPlan = PLANS[currentPlanId as keyof typeof PLANS] || PLANS.free;
   const requiredPlan = PLANS[requiredPlanId as keyof typeof PLANS] || PLANS.basic;
 
   const handleUpgrade = () => {

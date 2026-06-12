@@ -31,7 +31,7 @@ export interface AdminUser {
   id: string; // userId
   uid: string;
   email: string;
-  plan: 'basic' | 'standard' | 'premium' | 'enterprise';
+  plan: 'free' | 'basic' | 'standard' | 'premium' | 'enterprise';
   planPrice: number;
   planActivatedAt: any;
   planLimits: UserPlanLimits;
@@ -92,10 +92,10 @@ export function useAdminUsers() {
           id: doc.id,
           uid: udata.uid || doc.id,
           email: udata.email || '',
-          plan: udata.plan || 'basic',
-          planPrice: udata.planPrice || 500,
+          plan: udata.plan || 'free',
+          planPrice: udata.planPrice !== undefined ? udata.planPrice : 0,
           planActivatedAt: udata.planActivatedAt || null,
-          planLimits: udata.planLimits || { customers: 50, ordersPerMonth: 60, workers: 3 },
+          planLimits: udata.planLimits || { customers: 10, ordersPerMonth: 15, workers: 1 },
           currentUsage: udata.currentUsage || { customers: 0, ordersThisMonth: 0, workers: 0, lastResetDate: null },
           features: udata.features || {
             canDownloadInvoice: false,
@@ -104,7 +104,7 @@ export function useAdminUsers() {
             canUsePayroll: false,
             canViewAnalytics: false,
             canCustomBranding: false,
-            canManageWorkers: true,
+            canManageWorkers: false,
           },
           isBlocked: udata.isBlocked || false,
           blockedAt: udata.blockedAt || null,
@@ -133,7 +133,7 @@ export function useAdminUsers() {
     };
   }, []);
 
-  const changeUserPlan = async (userId: string, planName: 'basic' | 'standard' | 'premium') => {
+  const changeUserPlan = async (userId: string, planName: 'free' | 'basic' | 'standard' | 'premium') => {
     try {
       const config = PLANS[planName];
       if (!config) throw new Error(`Invalid plan: ${planName}`);

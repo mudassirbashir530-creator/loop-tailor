@@ -43,6 +43,24 @@ import { safeStorage } from '../lib/safeStorage';
 
 // Defined subscription plans details
 export const PLAN_DETAILS = {
+  free: {
+    plan: "free" as const,
+    planPrice: 0,
+    planLimits: {
+      customers: 10,
+      ordersPerMonth: 15,
+      workers: 1
+    },
+    features: {
+      canDownloadInvoice: false,
+      canUploadImages: false,
+      canUseWhatsApp: false,
+      canUsePayroll: false,
+      canViewAnalytics: false,
+      canCustomBranding: false,
+      canManageWorkers: false
+    }
+  },
   basic: {
     plan: "basic" as const,
     planPrice: 500,
@@ -175,8 +193,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     }
 
                     if (needsUpdate) {
-                      const activePlan = (userDataFetched?.plan || 'basic') as 'basic' | 'standard' | 'premium';
-                      const details = PLAN_DETAILS[activePlan] || PLAN_DETAILS.basic;
+                      const activePlan = (userDataFetched?.plan || 'free') as 'free' | 'basic' | 'standard' | 'premium';
+                      const details = PLAN_DETAILS[activePlan] || PLAN_DETAILS.free;
                       
                       const updatedFields = {
                         plan: activePlan,
@@ -292,7 +310,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const userSnap = await getDoc(userRef);
         
         if (!userSnap.exists()) {
-          const defaultPlan = 'basic';
+          const defaultPlan = 'free';
           const details = PLAN_DETAILS[defaultPlan];
           const now = new Date();
 
@@ -314,15 +332,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             plan: defaultPlan,
             planPrice: details.planPrice,
             planLimits: details.planLimits,
-            features: {
-              canManageWorkers: true,
-              canDownloadInvoice: false,
-              canUploadImages: false,
-              canUseWhatsApp: false,
-              canUsePayroll: false,
-              canViewAnalytics: false,
-              canCustomBranding: false
-            },
+            features: details.features,
             planActivatedAt: serverTimestamp(),
             planExpiresAt: new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()),
             currentUsage: {

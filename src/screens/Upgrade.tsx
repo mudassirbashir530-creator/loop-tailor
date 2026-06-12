@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Check, X, Shield, Sparkles, ArrowLeft, Smartphone } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,17 +13,18 @@ export default function Upgrade() {
   const navigate = useNavigate();
   const { user, userData } = useAuth();
   const { usage } = usePlanLimits();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const customMessage = location.state?.message || "Choose the best plan to grow your tailoring business.";
-  const currentPlan = userData?.plan || userData?.subscriptionPlan || 'basic';
+  const currentPlan = userData?.plan || userData?.subscriptionPlan || 'free';
 
-  const currentPlanObj = PLANS[currentPlan.toLowerCase() as keyof typeof PLANS] || PLANS.basic;
+  const currentPlanObj = PLANS[currentPlan.toLowerCase() as keyof typeof PLANS] || PLANS.free;
   const currentPlanPrice = currentPlanObj.price;
 
-  const handlePlanAction = (targetPlanName: string, actionType: "upgrade" | "downgrade") => {
+  const handlePlanAction = (targetPlanName: string) => {
     const userEmail = user?.email || 'N/A';
-    const currentPlanName = PLANS[currentPlan.toLowerCase() as keyof typeof PLANS]?.name || 'Basic';
-    const msg = `Hi, I want to ${actionType} my Loop Tailor plan from ${currentPlanName} to ${targetPlanName}.\nMy account: ${userEmail}`;
+    const msg = `Hi, I want to upgrade my Loop Tailor plan to ${targetPlanName}.\nMy account: ${userEmail}`;
     openWhatsApp('03321379924', msg);
   };
 
@@ -54,6 +55,25 @@ export default function Upgrade() {
       isWarning,
       text: `${current} / ${max}`
     };
+  };
+
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    const { scrollLeft, clientWidth } = containerRef.current;
+    if (clientWidth > 0) {
+      const index = Math.round(scrollLeft / clientWidth);
+      setActiveIndex(index);
+    }
+  };
+
+  const scrollToCard = (index: number) => {
+    if (!containerRef.current) return;
+    const clientWidth = containerRef.current.clientWidth;
+    containerRef.current.scrollTo({
+      left: clientWidth * index,
+      behavior: 'smooth'
+    });
+    setActiveIndex(index);
   };
 
   return (
@@ -105,7 +125,7 @@ export default function Upgrade() {
         <div className="flex justify-between items-end relative z-10">
           <div>
             <h3 className="text-2xl md:text-3xl font-black">
-              {currentPlanObj.name} <span className="font-normal opacity-80 text-lg md:text-xl">— Rs.{currentPlanPrice}/month</span>
+              {currentPlanObj.name} <span className="font-normal opacity-80 text-lg md:text-xl">— {currentPlanObj.priceLabel}</span>
             </h3>
             <p className="text-xs md:text-sm text-slate-300 mt-1.5 opacity-80">Active now</p>
           </div>
@@ -113,168 +133,192 @@ export default function Upgrade() {
       </div>
 
       {/* Comparison Grid */}
-      <div className="flex flex-col md:flex-row md:justify-center md:items-stretch gap-4 md:gap-5 w-full px-0">
-        {Object.values(PLANS).map((plan) => {
-          const isActive = currentPlan.toLowerCase() === plan.id.toLowerCase();
-          const isHigher = plan.price > currentPlanPrice;
-          const isLower = plan.price < currentPlanPrice;
-          
-          return (
-            <div 
-              key={plan.id}
-              className={cn(
-                "w-full flex-1 flex flex-col justify-between transition-all duration-300 bg-white dark:bg-slate-900 shadow-xs",
-                "p-4 md:p-6", // exact 16px padding on mobile (p-4)
-                "rounded-xl md:rounded-2xl", // exact 12px border radius on mobile (rounded-xl)
-                isActive 
-                  ? "border-2 border-[#1a3a2a] ring-4 ring-[#1a3a2a]/5 shadow-sm scale-[1.01] md:scale-105 z-10" 
-                  : "border border-slate-200 dark:border-slate-800",
-                "md:min-w-[280px] md:max-w-[380px] break-words"
-              )}
-            >
-              <div>
-                {/* Plan Header */}
-                <div className="mb-4 flex justify-between items-start gap-2">
-                  <div>
-                    <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                      {plan.name}
-                    </h3>
-                    <p className="text-[12px] text-slate-500 font-medium leading-tight mt-1">
-                      {plan.description}
-                    </p>
-                  </div>
-                  {isActive && (
-                    <span className="text-[10px] bg-[#1a3a2a]/10 dark:bg-emerald-500/10 text-[#1a3a2a] dark:text-[#2ECC71] uppercase tracking-wider font-extrabold px-2 py-1 rounded">
-                      Active
-                    </span>
-                  )}
-                  {plan.id === "premium" && !isActive && (
-                    <span className="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-500 uppercase tracking-wider font-extrabold px-2 py-1 rounded whitespace-nowrap">
-                      ⭐ Best Value
-                    </span>
-                  )}
-                </div>
-                
-                {/* Price Label */}
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span 
-                      className="font-black text-slate-900 dark:text-white leading-none whitespace-nowrap" 
-                      style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)" }}
-                    >
-                      Rs.{plan.price}
-                    </span>
-                    <span className="text-slate-400 text-xs font-semibold">/month</span>
-                  </div>
-                </div>
-
-                {/* Usage Bars - ONLY SHOW ON ACTIVE PLAN */}
-                {isActive && (
-                  <div className="mb-6 animate-in fade-in slide-in-from-top-1 duration-300">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                      Current Usage
-                    </p>
-                    <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800 space-y-4 shadow-inner">
-                      {/* Customers Bar */}
-                      {(() => {
-                        const { percentage, barColorClass, isWarning, text } = getUsageConfig("CUSTOMERS", usage.customers, plan.limits.customers);
-                        return (
-                          <div>
-                            <div className="flex justify-between items-center mb-1 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-                              <span className="flex items-center gap-1">CUSTOMERS {isWarning && "⚠️"}</span>
-                              <span className="font-mono text-[11px] font-semibold">{text}</span>
-                            </div>
-                            <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                              <div className={cn("h-full rounded-full transition-all duration-500", barColorClass)} style={{ width: `${percentage}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* Orders Bar */}
-                      {(() => {
-                        const { percentage, barColorClass, isWarning, text } = getUsageConfig("ORDERS", usage.ordersThisMonth, plan.limits.ordersPerMonth);
-                        return (
-                          <div>
-                            <div className="flex justify-between items-center mb-1 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-                              <span className="flex items-center gap-1">ORDERS {isWarning && "⚠️"}</span>
-                              <span className="font-mono text-[11px] font-semibold">{text}</span>
-                            </div>
-                            <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                              <div className={cn("h-full rounded-full transition-all duration-500", barColorClass)} style={{ width: `${percentage}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* Workers Bar */}
-                      {(() => {
-                        const { percentage, barColorClass, isWarning, text } = getUsageConfig("WORKERS", usage.workers, plan.limits.workers);
-                        return (
-                          <div>
-                            <div className="flex justify-between items-center mb-1 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-                              <span className="flex items-center gap-1">WORKERS {isWarning && "⚠️"}</span>
-                              <span className="font-mono text-[11px] font-semibold">{text}</span>
-                            </div>
-                            <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                              <div className={cn("h-full rounded-full transition-all duration-500", barColorClass)} style={{ width: `${percentage}%` }} />
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
+      <div className="relative w-full">
+        {/* Scroll Container */}
+        <div 
+          ref={containerRef}
+          onScroll={handleScroll}
+          style={{ 
+            scrollbarWidth: 'none', 
+            msOverflowStyle: 'none',
+            scrollSnapType: 'x mandatory'
+          }}
+          className="flex lg:grid lg:grid-cols-4 overflow-x-auto lg:overflow-x-visible pb-8 lg:pb-0 gap-6 lg:gap-6 max-w-full lg:max-w-[1200px] mx-auto px-[7.5vw] md:px-[15vw] lg:px-0 scrollbar-none items-stretch"
+        >
+          {Object.values(PLANS).map((plan, index) => {
+            const isActive = currentPlan.toLowerCase() === plan.id.toLowerCase();
+            const isHigher = plan.price > currentPlanPrice;
+            const isLower = plan.price < currentPlanPrice;
+            
+            return (
+              <div 
+                key={plan.id}
+                style={{ scrollSnapAlign: 'center' }}
+                className={cn(
+                  "w-[85vw] md:w-[70vw] lg:w-auto min-w-[85vw] md:min-w-[70vw] lg:min-w-0 flex-shrink-0 flex flex-col justify-between transition-all duration-300 bg-white dark:bg-slate-900 shadow-xs",
+                  "p-4 md:p-6", 
+                  "rounded-xl md:rounded-2xl",
+                  isActive 
+                    ? "border-2 border-[#1a3a2a] dark:border-[#2ECC71] ring-4 ring-[#1a3a2a]/5 shadow-sm scale-[1.0] lg:scale-105 z-10" 
+                    : "border border-slate-200 dark:border-slate-800",
+                  "break-words h-full"
                 )}
-                
-                <div className="border-t border-slate-100 dark:border-slate-800 my-4" />
-
-                {/* Feature Lists */}
-                <div className="space-y-3 mb-6 px-1">
-                  {plan.featureList.map((f) => (
-                    <div key={f.label} className={cn("flex items-start gap-2.5 text-[13px] font-medium leading-tight", !f.included && "opacity-45")}>
-                      {f.included ? (
-                        <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                      ) : (
-                        <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      )}
-                      <span className={f.included ? "text-slate-700 dark:text-slate-200" : "text-slate-500 line-through"}>
-                        {f.label}
+              >
+                <div>
+                  {/* Plan Header */}
+                  <div className="mb-4 flex justify-between items-start gap-2">
+                    <div>
+                      <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                        {plan.name}
+                      </h3>
+                      <p className="text-[12px] text-slate-500 font-medium leading-tight mt-1">
+                        {plan.description}
+                      </p>
+                    </div>
+                    {isActive && (
+                      <span className="text-[10px] bg-[#1a3a2a]/10 dark:bg-emerald-500/10 text-[#1a3a2a] dark:text-[#2ECC71] uppercase tracking-wider font-extrabold px-2 py-1 rounded">
+                        {plan.id === "free" ? "YOUR CURRENT PLAN" : "Active"}
                       </span>
+                    )}
+                    {plan.id === "premium" && !isActive && (
+                      <span className="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-500 uppercase tracking-wider font-extrabold px-2 py-1 rounded whitespace-nowrap">
+                        ⭐ Best Value
+                      </span>
+                    )}
+                    {plan.id === "standard" && !isActive && (
+                      <span className="text-[10px] bg-emerald-55 border border-emerald-300 text-emerald-700 uppercase tracking-wider font-extrabold px-2 py-1 rounded whitespace-nowrap">
+                        🔥 Most Popular
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Price Label */}
+                  <div className="mb-6">
+                    <div className="flex items-baseline gap-1">
+                      <span 
+                        className="font-black text-slate-900 dark:text-white leading-none whitespace-nowrap" 
+                        style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)" }}
+                      >
+                        Rs.{plan.price}
+                      </span>
+                      <span className="text-slate-400 text-xs font-semibold">/month</span>
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Usage Bars - ONLY SHOW ON ACTIVE PLAN */}
+                  {isActive && (
+                    <div className="mb-6 animate-in fade-in slide-in-from-top-1 duration-300">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                        Current Usage
+                      </p>
+                      <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800 space-y-4 shadow-inner">
+                        {/* Customers Bar */}
+                        {(() => {
+                          const { percentage, barColorClass, isWarning, text } = getUsageConfig("CUSTOMERS", usage.customers, plan.limits.customers);
+                          return (
+                            <div>
+                              <div className="flex justify-between items-center mb-1 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                                <span className="flex items-center gap-1">CUSTOMERS {isWarning && "⚠️"}</span>
+                                <span className="font-mono text-[11px] font-semibold">{text}</span>
+                              </div>
+                              <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                <div className={cn("h-full rounded-full transition-all duration-500", barColorClass)} style={{ width: `${percentage}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* Orders Bar */}
+                        {(() => {
+                          const { percentage, barColorClass, isWarning, text } = getUsageConfig("ORDERS", usage.ordersThisMonth, plan.limits.ordersPerMonth);
+                          return (
+                            <div>
+                              <div className="flex justify-between items-center mb-1 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                                <span className="flex items-center gap-1">ORDERS {isWarning && "⚠️"}</span>
+                                <span className="font-mono text-[11px] font-semibold">{text}</span>
+                              </div>
+                              <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                <div className={cn("h-full rounded-full transition-all duration-500", barColorClass)} style={{ width: `${percentage}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* Workers Bar */}
+                        {(() => {
+                          const { percentage, barColorClass, isWarning, text } = getUsageConfig("WORKERS", usage.workers, plan.limits.workers);
+                          return (
+                            <div>
+                              <div className="flex justify-between items-center mb-1 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                                <span className="flex items-center gap-1">WORKERS {isWarning && "⚠️"}</span>
+                                <span className="font-mono text-[11px] font-semibold">{text}</span>
+                              </div>
+                              <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                <div className={cn("h-full rounded-full transition-all duration-500", barColorClass)} style={{ width: `${percentage}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="border-t border-slate-100 dark:border-slate-800 my-4" />
+
+                  {/* Feature Lists */}
+                  <div className="space-y-3 mb-6 px-1">
+                    {plan.featureList.map((f) => (
+                      <div key={f.label} className={cn("flex items-start gap-2.5 text-[13px] font-medium leading-tight", !f.included && "opacity-45")}>
+                        {f.included ? (
+                          <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                        ) : (
+                          <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                        )}
+                        <span className={f.included ? "text-slate-700 dark:text-slate-200" : "text-slate-500 line-through"}>
+                          {f.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Button Section */}
+                <div className="mt-auto pt-2">
+                  {isActive ? (
+                    <Button 
+                      variant="secondary"
+                      className="w-full h-12 rounded-xl font-bold text-sm bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-transparent select-none uppercase"
+                      disabled
+                    >
+                      ✓ Current Plan
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => handlePlanAction(plan.name)}
+                      className="w-full h-12 rounded-xl font-bold text-sm bg-[#1a3a2a] hover:bg-[#1a3a2a]/90 text-white shadow-xs active:scale-[0.98] transition-all"
+                    >
+                      Upgrade to {plan.name}
+                    </Button>
+                  )}
                 </div>
               </div>
-              
-              {/* Button Section */}
-              <div className="mt-auto pt-2">
-                {isActive ? (
-                  <Button 
-                    variant="secondary"
-                    className="w-full h-12 rounded-xl font-bold text-sm bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-transparent select-none uppercase"
-                    disabled
-                  >
-                    ✓ Current Plan
-                  </Button>
-                ) : isLower ? (
-                  <Button 
-                    onClick={() => handlePlanAction(plan.name, "downgrade")}
-                    variant="outline"
-                    className="w-full h-12 rounded-xl font-bold text-sm border-slate-350 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    Downgrade
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={() => handlePlanAction(plan.name, "upgrade")}
-                    className="w-full h-12 rounded-xl font-bold text-sm bg-[#1a3a2a] hover:bg-[#1a3a2a]/90 text-white shadow-xs active:scale-[0.98] transition-all"
-                  >
-                    Upgrade to {plan.name} →
-                  </Button>
-                )}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {/* Dot Indicators */}
+        <div className="flex lg:hidden justify-center items-center gap-2 mt-4">
+          {Object.values(PLANS).map((_, index) => (
+            <button
+              key={index}
+              onClick={() => scrollToCard(index)}
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                activeIndex === index ? "bg-[#1a3a2a] dark:bg-[#2ECC71] w-6" : "bg-slate-300 hover:bg-slate-400"
+              }`}
+              aria-label={`Go to card ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Security notice and Custom Help Sales CTA */}

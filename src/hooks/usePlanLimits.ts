@@ -34,12 +34,12 @@ export function usePlanLimits() {
     workers: 0
   });
 
-  const plan = userData?.plan || 'basic';
+  const plan = userData?.plan || 'free';
   
   const limits: PlanLimits = userData?.planLimits || {
-    customers: 50,
-    ordersPerMonth: 60,
-    workers: 3
+    customers: 10,
+    ordersPerMonth: 15,
+    workers: 1
   };
 
   // Setup real-time listeners to dynamic collections to track usage accurately

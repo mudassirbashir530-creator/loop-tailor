@@ -16,7 +16,7 @@ const isValidUrl = (url: string | undefined | null): boolean => {
 interface UserManageModalProps {
   user: AdminUser;
   onClose: () => void;
-  onPlanChange: (userId: string, planName: 'basic' | 'standard' | 'premium') => Promise<void>;
+  onPlanChange: (userId: string, planName: 'free' | 'basic' | 'standard' | 'premium') => Promise<void>;
   onFeatureToggle: (userId: string, featureName: keyof UserFeatures, value: boolean) => Promise<void>;
   onSaveLimit: (userId: string, limit: number) => Promise<void>;
   onResetUsage: (userId: string) => Promise<void>;
@@ -37,8 +37,8 @@ export default function UserManageModal({
   const [userData, setUserData] = useState<AdminUser>(user);
   const [loadingFresh, setLoadingFresh] = useState(true);
 
-  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'standard' | 'premium'>(
-    user.plan === 'enterprise' ? 'premium' : (user.plan as any) || 'basic'
+  const [selectedPlan, setSelectedPlan] = useState<'free' | 'basic' | 'standard' | 'premium'>(
+    user.plan === 'enterprise' ? 'premium' : (user.plan as any) || 'free'
   );
   
   const [orderLimitInput, setOrderLimitInput] = useState<string>(
@@ -68,7 +68,7 @@ export default function UserManageModal({
         if (userSnap.exists() && active) {
           const fresh = { id: userSnap.id, ...userSnap.data() } as AdminUser;
           setUserData(fresh);
-          setSelectedPlan(fresh.plan === 'enterprise' ? 'premium' : (fresh.plan as any) || 'basic');
+          setSelectedPlan(fresh.plan === 'enterprise' ? 'premium' : (fresh.plan as any) || 'free');
           setOrderLimitInput(fresh.planLimits?.ordersPerMonth?.toString() ?? '60');
           if (fresh.features) {
             setLocalFeatures({
@@ -100,7 +100,7 @@ export default function UserManageModal({
       ...prev,
       ...user
     }));
-    setSelectedPlan(user.plan === 'enterprise' ? 'premium' : (user.plan as any) || 'basic');
+    setSelectedPlan(user.plan === 'enterprise' ? 'premium' : (user.plan as any) || 'free');
     setOrderLimitInput(user.planLimits?.ordersPerMonth?.toString() ?? '60');
     if (user.features) {
       setLocalFeatures({
@@ -135,7 +135,7 @@ export default function UserManageModal({
   };
 
   const handlePlanDropdownChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value as 'basic' | 'standard' | 'premium';
+    const val = e.target.value as 'free' | 'basic' | 'standard' | 'premium';
     setSelectedPlan(val);
     await onPlanChange(user.id, val);
   };
@@ -289,6 +289,7 @@ export default function UserManageModal({
                   onChange={handlePlanDropdownChange}
                   className="w-full text-foreground bg-slate-55 dark:bg-slate-850 border dark:border-slate-800 rounded-xl px-3 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
                 >
+                  <option value="free">Free — Rs. 0 (Forever) (10 customers, 15 orders, 1 worker)</option>
                   <option value="basic">Basic — Rs. 500/month (50 customers, 60 orders, 3 workers)</option>
                   <option value="standard">Standard — Rs. 1,000/month (200 customers, 200 orders, 7 workers)</option>
                   <option value="premium">Premium — Rs. 2,000/month (Unlimited everything)</option>
