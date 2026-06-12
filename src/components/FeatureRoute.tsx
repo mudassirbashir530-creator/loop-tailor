@@ -27,7 +27,7 @@ export default function FeatureRoute({ feature, children }: FeatureRouteProps) {
   const currentPlanId = userData?.plan || 'free';
   const requiredPlanId = REQUIRED_PLAN[feature];
 
-  if (features[feature] || requiredPlanId === 'free' || currentPlanId === requiredPlanId) {
+  if (features[feature] || (requiredPlanId as string) === 'free' || currentPlanId === requiredPlanId) {
     return <>{children}</>;
   }
   

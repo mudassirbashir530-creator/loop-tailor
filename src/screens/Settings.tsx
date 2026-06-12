@@ -11,6 +11,7 @@ import { useAuth, PLAN_DETAILS } from '../contexts/AuthContext';
 import { useShop } from '../contexts/ShopContext';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import { PLANS } from '../constants/plans';
+import Subscription from '../components/Subscription';
 import { doc, updateDoc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { 
@@ -322,13 +323,34 @@ export default function Settings() {
   };
 
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [activePlanIndex, setActivePlanIndex] = useState(0);
+  const planContainerRef = React.useRef<HTMLDivElement>(null);
 
-  const currentPlan = userData?.plan || userData?.subscriptionPlan || 'Free';
+  const currentPlan = userData?.plan || userData?.subscriptionPlan || 'free';
 
   const handleUpgradePlan = (selectedPlanName: string) => {
     const userEmail = user?.email || 'N/A';
     const msg = `Hi, I want to upgrade my Loop Tailor\nplan to ${selectedPlanName}.\nMy account: ${userEmail}`;
     openWhatsApp('03321379924', msg);
+  };
+
+  const handlePlanScroll = () => {
+    if (!planContainerRef.current) return;
+    const { scrollLeft, clientWidth } = planContainerRef.current;
+    if (clientWidth > 0) {
+      const index = Math.round(scrollLeft / clientWidth);
+      setActivePlanIndex(index);
+    }
+  };
+
+  const scrollToPlanCard = (index: number) => {
+    if (!planContainerRef.current) return;
+    const clientWidth = planContainerRef.current.clientWidth;
+    planContainerRef.current.scrollTo({
+      left: clientWidth * index,
+      behavior: 'smooth'
+    });
+    setActivePlanIndex(index);
   };
 
   const handleUpdateProfile = async () => {
@@ -995,160 +1017,28 @@ export default function Settings() {
 
       {/* Pricing Dialog */}
       <Dialog open={isPricingOpen} onOpenChange={setIsPricingOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0 md:p-6 bg-slate-50 dark:bg-slate-950 border-0 md:border">
-          <div className="p-4 md:p-2 sticky top-0 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-md z-10 border-b md:border-none border-slate-200 dark:border-slate-800">
-            <DialogHeader className="space-y-4">
-              <DialogTitle className="text-2xl font-black text-center text-slate-900 dark:text-white mt-4 md:mt-0">Subscription Plans</DialogTitle>
-              
-              {/* Current Plan Banner */}
-              <div className="max-w-md mx-auto w-full bg-[#1a3a2a] text-white p-4 rounded-2xl shadow-md border border-[#2ECC71]/30 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <Sparkles className="w-16 h-16" />
-                </div>
-                <p className="text-[#2ECC71] text-[10px] font-black tracking-widest uppercase mb-1 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" /> YOUR CURRENT PLAN
-                </p>
-                <div className="flex justify-between items-end relative z-10">
-                  <div>
-                    <h3 className="text-xl font-bold">{PLANS[currentPlan.toLowerCase() as keyof typeof PLANS]?.name || 'Unknown'} <span className="font-normal opacity-80 text-sm">— Rs.{PLANS[currentPlan.toLowerCase() as keyof typeof PLANS]?.price || 0}/mo</span></h3>
-                    <p className="text-xs text-slate-300 mt-1 opacity-80">Active now</p>
-                  </div>
-                </div>
-              </div>
+        <DialogContent className="fixed top-1/2 left-1/2 z-50 grid w-screen h-screen md:max-w-[900px] md:w-[90vw] md:h-auto -translate-x-1/2 -translate-y-1/2 outline-none [&>div]:h-full md:[&>div]:h-auto [&>div]:max-h-full md:[&>div]:max-h-[90vh] [&>div]:p-4 md:[&>div]:p-8 [&>div]:bg-slate-50 [&>div]:dark:bg-slate-950 [&>div]:overflow-y-auto [&>div]:rounded-none md:[&>div]:rounded-3xl border-0 md:border border-slate-200 dark:border-slate-800">
+          <div className="sticky top-0 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md z-20 pb-4 border-b border-slate-200 dark:border-slate-800">
+            <DialogHeader className="space-y-3">
+              <DialogTitle className="text-xl md:text-2xl font-black text-center text-slate-900 dark:text-white mt-2 md:mt-0">
+                Subscription Plans
+              </DialogTitle>
             </DialogHeader>
           </div>
           
-          <div className="p-4 md:p-2">
-            <div className="flex flex-col md:grid md:grid-cols-3 gap-6">
-              {Object.values(PLANS).map((plan, index) => {
-                const currentPlanObj = PLANS[currentPlan.toLowerCase() as keyof typeof PLANS];
-                const currentPlanPrice = currentPlanObj ? currentPlanObj.price : 0;
-                const isActive = currentPlan.toLowerCase() === plan.id.toLowerCase();
-                const isLower = plan.price < currentPlanPrice;
-                
-                // Custom rendering for usage stats
-                const renderUsageLine = (label: string, current: number, max: number) => {
-                  if (max === 0) {
-                    return (
-                      <div className="flex justify-between items-center text-slate-700 dark:text-slate-350 py-0.5">
-                        <span className="font-medium text-xs">{label}:</span>
-                        <span className="font-bold flex items-center gap-1.5">
-                          <span className="text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-black">Unlimited</span>
-                          <span className="text-xs">{current} / ∞</span>
-                        </span>
-                      </div>
-                    );
-                  }
-                  
-                  const totalSpots = 5;
-                  const filled = Math.min(totalSpots, Math.max(0, Math.round((current / max) * totalSpots)));
-                  const empty = Math.max(0, totalSpots - filled);
-                  const bar = '▓'.repeat(filled) + '░'.repeat(empty);
-                  
-                  return (
-                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-350 py-0.5">
-                      <span className="font-medium text-xs">{label}:</span>
-                      <span className="font-bold flex items-center gap-1.5">
-                        <span className="text-primary tracking-tighter opacity-80 text-[10px]">{bar}</span>
-                        <span className="text-xs">{current}/{max}</span>
-                      </span>
-                    </div>
-                  );
-                };
+          <div className="pt-4 pb-2">
+            <Subscription isModal />
 
-                const handlePlanAction = () => {
-                  if (isActive) return;
-                  const message = `Hi, I want to ${isLower ? 'downgrade' : 'upgrade'} my Loop Tailor plan to ${plan.name}.\nMy account: ${userData?.email || 'N/A'}`;
-                  openWhatsApp('03321379924', message);
-                };
-
-                return (
-                  <div 
-                    key={plan.id}
-                    className={cn(
-                      "w-full relative p-6 rounded-[2rem] border-2 flex flex-col justify-between transition-all bg-white dark:bg-slate-900 shadow-sm",
-                      isActive 
-                        ? "border-[#1a3a2a] ring-4 ring-[#1a3a2a]/5 shadow-xl scale-[1.02] md:scale-100 z-10" 
-                        : "border-slate-200 dark:border-slate-800"
-                    )}
-                  >
-                    <div>
-                      <div className="mb-4">
-                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{plan.name}</h3>
-                        <p className="text-[13px] text-slate-500 font-medium leading-tight mt-1">{plan.description}</p>
-                      </div>
-                      
-                      <div className="mb-6">
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Rs.{plan.price}</span>
-                          <span className="text-slate-400 text-sm font-medium">/mo</span>
-                        </div>
-                      </div>
-
-                      {/* Usage Bars - ONLY SHOW ON ACTIVE PLAN */}
-                      {isActive && (
-                        <div className="mb-6">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Current Usage</p>
-                          <div className="bg-slate-50 dark:bg-slate-900/50 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1 font-mono text-[11px] shadow-inner">
-                            {renderUsageLine("Customers", usage.customers, plan.limits.customers)}
-                            {renderUsageLine("Orders", usage.ordersThisMonth, plan.limits.ordersPerMonth)}
-                            {renderUsageLine("Workers", usage.workers, plan.limits.workers)}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Feature Lists */}
-                      <div className="space-y-3 mb-8 px-1">
-                        {plan.featureList.map(f => (
-                          <div key={f.label} className={cn("flex items-start gap-3 text-[13px] font-medium", !f.included && "opacity-45")}>
-                            {f.included ? (
-                              <Check className="w-[18px] h-[18px] text-emerald-500 shrink-0" />
-                            ) : (
-                              <X className="w-[18px] h-[18px] text-red-500 shrink-0" />
-                            )}
-                            <span className={f.included ? "text-slate-700 dark:text-slate-200" : "text-slate-500 line-through"}>{f.label}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="mt-auto pt-4">
-                      {isActive ? (
-                        <Button 
-                          variant="secondary"
-                          className="w-full h-12 rounded-xl font-bold text-sm bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-default hover:bg-slate-100"
-                          disabled
-                        >
-                          Current Plan <Check className="w-4 h-4 ml-2" />
-                        </Button>
-                      ) : isLower ? (
-                        <Button 
-                          onClick={handlePlanAction}
-                          variant="outline"
-                          className="w-full h-12 rounded-xl font-bold text-sm border-slate-300 text-slate-600 hover:bg-slate-50"
-                        >
-                          Downgrade
-                        </Button>
-                      ) : (
-                        <Button 
-                          onClick={handlePlanAction}
-                          className="w-full h-12 rounded-xl font-bold text-sm bg-[#1a3a2a] hover:bg-[#1a3a2a]/90 text-white shadow-md active:scale-95 transition-transform"
-                        >
-                          Upgrade Plan
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            
-            <div className="bg-slate-100 dark:bg-slate-900/50 p-5 rounded-3xl flex flex-col sm:flex-row items-center justify-between mt-8 gap-4 shadow-sm border border-slate-200 dark:border-slate-800">
+            <div className="bg-slate-100 dark:bg-slate-900/50 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between mt-6 gap-4 shadow-xs border border-slate-200 dark:border-slate-800">
               <div className="text-center sm:text-left">
-                <p className="text-sm font-black text-slate-900 dark:text-white">Need custom enterprise assistance?</p>
-                <p className="text-[13px] text-slate-500 mt-1 font-medium">Contact admin support on WhatsApp anytime.</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white">Need custom enterprise assistance?</p>
+                <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Contact admin support on WhatsApp anytime.</p>
               </div>
-              <Button variant="outline" className="w-full sm:w-auto h-12 px-6 rounded-xl text-sm font-bold shadow-sm bg-white hover:bg-slate-50" onClick={() => openWhatsApp('03321379924', `Hi! I need a custom plan for my shop.\nMy account: ${userData?.email || 'N/A'}`)}>
+              <Button 
+                variant="outline" 
+                className="w-full sm:w-auto h-10 px-5 rounded-xl text-xs font-bold shadow-xs bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800" 
+                onClick={() => openWhatsApp('03321379924', `Hi! I need a custom plan for my shop.\nMy account: ${user?.email || 'N/A'}`)}
+              >
                 Contact Sales
               </Button>
             </div>
