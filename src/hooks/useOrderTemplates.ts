@@ -77,7 +77,7 @@ export function useOrderTemplates(shopId: string | undefined): UseOrderTemplates
   };
 
   const applyTemplate = (template: OrderTemplate, setOrderData: Function, setMeasurements: Function, setGender?: Function) => {
-    setOrderData((prev: any) => ({
+    setOrderData((prev: Record<string, unknown>) => ({
       ...prev,
       dressType: template.dressType,
       price: template.price ? template.price.toString() : '',
