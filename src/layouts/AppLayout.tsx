@@ -132,6 +132,37 @@ export default function AppLayout() {
         </div>
       </aside>
 
+      {/* Mobile Top Header */}
+      <div className="lg:hidden sticky top-0 bg-card/95 backdrop-blur-md border-b border-border z-40 px-4 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="bg-primary text-white p-1.5 rounded-lg">
+            <Scissors className="h-5 w-5" />
+          </div>
+          <span className="font-bold text-lg tracking-tight text-foreground">Loop Tailor</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <NavLink 
+            to="/app/workers" 
+            className={({ isActive }) => cn(
+              "p-2 rounded-full transition-colors",
+              isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+            )}
+            aria-label="Worker Assign"
+          >
+             <UserCircle className="w-6 h-6" strokeWidth={1.8} />
+          </NavLink>
+          <NavLink 
+            to="/app/settings" 
+            className="p-1.5 rounded-full transition-colors hover:bg-muted"
+            aria-label="Profile Settings"
+          >
+             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm border border-primary/20 shadow-sm">
+               {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+             </div>
+          </NavLink>
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="flex-1 pb-24 lg:pb-0 overflow-y-auto w-full lg:max-w-none max-w-screen-xl mx-auto">
         <Outlet />
