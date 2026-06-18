@@ -87,6 +87,11 @@ import { safeStorage } from './lib/safeStorage';
 
 function AppContent() {
   const location = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
     <Suspense fallback={<LoadingFallback />}>
       <AnimatePresence mode="wait">

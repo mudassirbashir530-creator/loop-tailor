@@ -34,7 +34,7 @@ export default function AboutPage() {
       {/* Decorative Blur Blobs */}
       <div className="absolute top-0 -left-64 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute top-1/4 -right-64 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 px-4">
@@ -48,7 +48,7 @@ export default function AboutPage() {
           
           <motion.h1 initial="hidden" animate="visible" variants={fadeUp} className="text-4xl md:text-6xl font-extrabold tracking-tight mb-8 text-foreground">
             Empowering Tailors <br className="hidden md:block"/>
-            Through <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">Technology</span>
+            Through <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">Technology</span>
           </motion.h1>
           
           <motion.p initial="hidden" animate="visible" variants={fadeUp} className="text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed">
@@ -130,7 +130,7 @@ export default function AboutPage() {
               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity bg-gradient-to-br from-primary/20 to-transparent">
                 <Eye className="w-32 h-32" />
               </div>
-              <div className="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500 mb-8">
+              <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-8">
                 <Eye className="w-7 h-7" />
               </div>
               <h3 className="text-2xl font-bold mb-4">Our Vision</h3>
@@ -228,7 +228,7 @@ export default function AboutPage() {
             className="bg-card border border-border shadow-2xl rounded-3xl p-12 md:p-16 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-32 -mt-32" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -ml-32 -mb-32" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -ml-32 -mb-32" />
             
             <h2 className="text-3xl md:text-5xl font-bold mb-6 relative z-10">Ready to Transform Your Tailoring Business?</h2>
             <p className="text-xl text-muted-foreground mb-10 relative z-10 max-w-2xl mx-auto">

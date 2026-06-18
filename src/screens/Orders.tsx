@@ -368,121 +368,133 @@ export default function Orders() {
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           {selectedOrder && (
             <>
-              <DialogHeader>
-                <DialogTitle className="flex justify-between items-center text-xl">
-                  Order #{selectedOrder.id.slice(-6).toUpperCase()}
-                  <Badge variant={selectedOrder.status} className="capitalize ml-4 text-sm px-3 py-1">{selectedOrder.status}</Badge>
+              <DialogHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+                <DialogTitle className="flex justify-between items-center text-2xl font-black">
+                  <span>Order <span className="text-slate-400 dark:text-slate-500">#{selectedOrder.id.slice(-6).toUpperCase()}</span></span>
+                  <Badge variant={selectedOrder.status} className="capitalize ml-4 text-sm px-3 py-1 font-bold">{selectedOrder.status}</Badge>
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="space-y-6 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Customer</p>
-                    <p className="font-bold">{selectedOrder?.customerName || 'Unnamed'}</p>
-                    <p className="text-sm">{selectedOrder?.customerPhone || 'No phone'}</p>
+              <div className="space-y-8 py-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                       <User className="w-16 h-16" />
+                    </div>
+                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest relative z-10">Customer</p>
+                    <p className="font-bold text-lg text-slate-900 dark:text-white leading-tight relative z-10">{selectedOrder?.customerName || 'Unnamed'}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold relative z-10">{selectedOrder?.customerPhone || 'No phone'}</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Delivery</p>
-                    <p className="font-bold">{selectedOrder?.deliveryDate ? formatDate(selectedOrder.deliveryDate) : 'No date'}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                   <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Measurements</p>
-                   {Object.keys(selectedOrder.measurements).length > 0 ? (
-                      <div className="grid grid-cols-3 gap-2 bg-muted/50 p-4 rounded-xl border">
-                        {Object.entries(selectedOrder.measurements).map(([key, value]) => (
-                          <div key={key}>
-                            <p className="text-xs text-muted-foreground capitalize">{key}</p>
-                            <p className="font-semibold text-sm">{value || '-'}</p>
-                          </div>
-                        ))}
-                      </div>
-                   ) : (
-                      <p className="text-sm italic text-muted-foreground">No measurements provided.</p>
-                   )}
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Payment Info</p>
-                  <div className="bg-muted/50 p-4 rounded-xl border space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Total Price</span>
-                      <span className="font-medium">{formatCurrency(selectedOrder.price)}</span>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                       <Calendar className="w-16 h-16" />
                     </div>
-                    <div className="flex justify-between text-sm text-green-600">
-                      <span>Advance</span>
-                      <span>-{formatCurrency(selectedOrder.advancePayment)}</span>
-                    </div>
-                    <div className="w-full h-px bg-border my-2" />
-                    <div className="flex justify-between font-bold text-base">
-                      <span>Remaining Balance</span>
-                      <span className="text-orange-600">{formatCurrency(selectedOrder.remainingPayment)}</span>
-                    </div>
+                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest relative z-10">Delivery</p>
+                    <p className="font-bold text-lg text-slate-900 dark:text-white leading-tight relative z-10">{selectedOrder?.deliveryDate ? formatDate(selectedOrder.deliveryDate) : 'No date'}</p>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Images</p>
+                   <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Measurements</p>
+                   {Object.keys(selectedOrder.measurements).length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        {Object.entries(selectedOrder.measurements).map(([key, value]) => (
+                          <div key={key} className="space-y-1 block">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 capitalize font-medium">{key}</p>
+                            <p className="font-bold text-slate-900 dark:text-white text-base">{value || '-'}</p>
+                          </div>
+                        ))}
+                      </div>
+                   ) : (
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-center">
+                        <p className="text-sm italic text-slate-500 font-medium">No measurements provided.</p>
+                      </div>
+                   )}
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Payment Info</p>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
+                    <div className="flex justify-between items-center text-sm font-semibold text-slate-600 dark:text-slate-300">
+                      <span>Total Price</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(selectedOrder.price)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm font-semibold text-[#25D366]">
+                      <span>Advance</span>
+                      <span className="font-bold">-{formatCurrency(selectedOrder.advancePayment)}</span>
+                    </div>
+                    <div className="w-full h-px bg-slate-200 dark:bg-slate-700 my-2" />
+                    <div className="flex justify-between items-center font-black text-lg">
+                      <span className="text-slate-900 dark:text-white">Remaining Balance</span>
+                      <span className="text-rose-500">{formatCurrency(selectedOrder.remainingPayment)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Images & Design</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                       <p className="text-xs font-semibold text-muted-foreground">Reference Designs</p>
+                    <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                       <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reference Designs</p>
                        <div className="grid grid-cols-2 gap-2">
                          {selectedOrder.referenceImages && selectedOrder.referenceImages.length > 0 ? (
                            selectedOrder.referenceImages.map((img, i) => (
                              <div 
                                key={i} 
                                onClick={() => setPreviewImage({ url: typeof img === 'string' ? img : img.url, type: 'reference', index: i })}
-                               className="aspect-square rounded-lg overflow-hidden border cursor-pointer group relative"
+                               className="aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer group relative bg-white dark:bg-slate-900 shadow-sm"
                              >
                                <img 
                                  src={typeof img === 'string' ? img : img.url} 
-                                 className="w-full h-full object-cover transition-transform group-hover:scale-110" 
+                                 className="w-full h-full object-cover transition-transform group-hover:scale-105" 
                                  alt="ref" 
                                  loading="lazy"
                                  referrerPolicy="no-referrer"
                                />
-                               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                 <ImageIcon className="w-5 h-5 text-white" />
+                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                 <div className="bg-white/90 p-2 rounded-full text-slate-900 shadow-lg backdrop-blur-sm">
+                                   <ImageIcon className="w-4 h-4" />
+                                 </div>
                                </div>
                              </div>
                            ))
                          ) : (
-                           <div className="col-span-2 aspect-[2/1] bg-muted rounded-xl border flex flex-col items-center justify-center text-muted-foreground">
-                             <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
-                             <p className="text-xs">No reference images</p>
+                           <div className="col-span-2 aspect-[2/1] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 border-dashed">
+                             <ImageIcon className="w-6 h-6 mb-2 opacity-50" />
+                             <p className="text-xs font-medium">No references</p>
                            </div>
                          )}
                        </div>
                     </div>
                     
-                    <div className="space-y-2">
-                       <p className="text-xs font-semibold text-muted-foreground">Design Samples</p>
-                       <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                       <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Design Samples</p>
+                       <div className="grid grid-cols-2 gap-3">
                          {selectedOrder.designImages && selectedOrder.designImages.length > 0 ? (
                            selectedOrder.designImages.map((img, i) => (
                              <div 
                                key={i} 
                                onClick={() => setPreviewImage({ url: typeof img === 'string' ? img : img.url, type: 'design', index: i })}
-                               className="aspect-square rounded-lg overflow-hidden border cursor-pointer group relative"
+                               className="aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer group relative bg-white dark:bg-slate-900 shadow-sm"
                              >
                                <img 
                                  src={typeof img === 'string' ? img : img.url} 
-                                 className="w-full h-full object-cover transition-transform group-hover:scale-110" 
+                                 className="w-full h-full object-cover transition-transform group-hover:scale-105" 
                                  alt="design" 
                                  loading="lazy"
                                  referrerPolicy="no-referrer"
                                />
-                               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                 <ImageIcon className="w-5 h-5 text-white" />
+                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                 <div className="bg-white/90 p-2 rounded-full text-slate-900 shadow-lg backdrop-blur-sm">
+                                   <ImageIcon className="w-4 h-4" />
+                                 </div>
                                </div>
                              </div>
                            ))
                          ) : (
-                           <div className="col-span-2 aspect-[2/1] bg-muted rounded-xl border flex flex-col items-center justify-center text-muted-foreground">
-                             <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
-                             <p className="text-xs">No design samples</p>
+                           <div className="col-span-2 aspect-[2/1] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 border-dashed">
+                             <ImageIcon className="w-6 h-6 mb-2 opacity-50" />
+                             <p className="text-xs font-medium">No samples</p>
                            </div>
                          )}
                        </div>
@@ -490,22 +502,23 @@ export default function Orders() {
                   </div>
                   
                   {selectedOrder.invoiceImage && (
-                    <div className="space-y-2 pt-2">
-                       <p className="text-xs font-semibold text-muted-foreground">Invoice Preview</p>
+                    <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                       <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Invoice View</p>
                        <div 
                          onClick={() => setPreviewImage({ url: typeof selectedOrder.invoiceImage === 'string' ? selectedOrder.invoiceImage : (selectedOrder.invoiceImage as CloudinaryImage).url, type: 'invoice' })}
-                         className="block w-full aspect-[4/3] rounded-xl overflow-hidden border relative group cursor-pointer"
+                         className="block w-full aspect-[16/9] sm:aspect-[3/1] rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 relative group cursor-pointer bg-white dark:bg-slate-900 shadow-sm"
                        >
                          <img 
                            src={typeof selectedOrder.invoiceImage === 'string' ? selectedOrder.invoiceImage : (selectedOrder.invoiceImage as CloudinaryImage).url} 
-                           className="w-full h-full object-cover" 
+                           className="w-full h-full object-cover transition-transform group-hover:scale-105" 
                            alt="invoice" 
                            loading="lazy"
                            referrerPolicy="no-referrer"
                          />
-                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                           <div className="bg-white/90 p-2 rounded-full text-black shadow-lg">
-                             <ImageIcon className="w-5 h-5" />
+                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                           <div className="bg-white/90 p-3 rounded-full text-slate-900 shadow-xl backdrop-blur-sm font-semibold text-sm flex items-center gap-2">
+                             <ImageIcon className="w-4 h-4" />
+                             View Full Invoice
                            </div>
                          </div>
                        </div>
@@ -514,13 +527,12 @@ export default function Orders() {
                 </div>
 
                 {(ORDER_STATUS_TRANSITIONS[selectedOrder.status] || []).length > 0 && (
-                  <div className="space-y-3">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Update Order Status</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">Update Order Status</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {(ORDER_STATUS_TRANSITIONS[selectedOrder.status] || []).map((status) => (
                         <Button 
                           key={status} 
-                          size="sm" 
                           variant="outline"
                           onClick={async () => {
                             if (!isValidStatusTransition(selectedOrder.status, status)) {
@@ -536,8 +548,8 @@ export default function Orders() {
                             }
                           }}
                           className={cn(
-                            "capitalize h-10 font-semibold transition-all hover:border-primary/50",
-                            status === ORDER_STATUS.CANCELLED ? "text-red-600 hover:bg-red-50 hover:border-red-200" : ""
+                            "capitalize h-12 font-bold text-sm transition-all rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-400 shadow-sm",
+                            status === ORDER_STATUS.CANCELLED ? "text-rose-600 hover:bg-rose-50 hover:border-rose-200" : "text-slate-700 hover:text-slate-900"
                           )}
                         >
                           {status}
@@ -548,26 +560,26 @@ export default function Orders() {
                 )}
               </div>
 
-              <DialogFooter className="flex flex-row flex-wrap justify-between sm:justify-end gap-2 w-full pt-4 border-t">
+              <DialogFooter className="flex flex-row flex-wrap justify-between sm:justify-end gap-3 w-full pt-6 md:pt-4 border-t border-slate-100 dark:border-slate-800">
                 {userData?.permissions?.whatsapp !== false && (
-                  <Button variant="ghost" className="flex-1 sm:flex-none gap-2 bg-[#25D366] text-white hover:bg-[#128C7E] hover:text-white border-none transition-colors" onClick={handleWhatsAppShare}>
-                    <WhatsAppIcon className="h-4 w-4 fill-current text-white" />
+                  <Button variant="ghost" className="flex-1 sm:flex-none gap-2 bg-[#25D366] text-white hover:bg-[#128C7E] hover:text-white border-none transition-colors h-12 rounded-xl font-bold shadow-lg shadow-[#25D366]/20" onClick={handleWhatsAppShare}>
+                    <WhatsAppIcon className="h-5 w-5 fill-current text-white" />
                     <span className="hidden sm:inline">Status Update</span>
                   </Button>
                 )}
                 {userData?.permissions?.invoice !== false && (
                   <>
-                    <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={handlePreviewInvoice} disabled={isDownloading}>
+                    <Button variant="outline" className="flex-1 sm:flex-none gap-2 h-12 rounded-xl font-bold border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300" onClick={handlePreviewInvoice} disabled={isDownloading}>
                       <ExternalLink className="h-4 w-4" />
-                      Preview Invoice
+                      Preview
                     </Button>
-                    <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={handleShareInvoice} disabled={isSharing}>
+                    <Button variant="outline" className="flex-1 sm:flex-none gap-2 h-12 rounded-xl font-bold border-slate-200 text-slate-600 dark:border-slate-700 dark:text-slate-300" onClick={handleShareInvoice} disabled={isSharing}>
                       {isSharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
-                      Share Invoice
+                      Share
                     </Button>
-                    <Button className="flex-1 sm:flex-none gap-2" onClick={handleDownloadInvoice} disabled={isDownloading}>
+                    <Button className="flex-1 sm:flex-none gap-2 h-12 rounded-xl font-bold shadow-sm" onClick={handleDownloadInvoice} disabled={isDownloading}>
                       {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                      Download png
+                      Download
                     </Button>
                   </>
                 )}

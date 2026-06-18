@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Lock, X, Check, MessageCircle, AlertTriangle } from 'lucide-react';
+import { Lock, X, Check, AlertTriangle } from 'lucide-react';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
 import { FEATURE_LABELS, REQUIRED_PLAN, PLANS } from '../constants/plans';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
@@ -40,64 +41,66 @@ export default function FeatureLockModal({ feature, isOpen, onClose }: FeatureLo
           className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
         />
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border dark:border-slate-800 z-10"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-slate-100 dark:border-slate-800 z-10 text-center overflow-hidden"
         >
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-amber-50 dark:from-amber-500/5 to-transparent pointer-events-none" />
+
+          <div className="absolute top-4 right-4 z-20">
             <button
               onClick={onClose}
-              className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full text-slate-500 transition-colors"
+              className="p-2 bg-white/50 hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-800 rounded-full text-slate-500 transition-colors backdrop-blur-sm"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="bg-amber-100/50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-500 w-12 h-12 rounded-2xl flex items-center justify-center mb-5">
-            <Lock className="w-6 h-6" />
+          <div className="relative w-20 h-20 bg-amber-100/50 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-white dark:ring-slate-900 shadow-sm z-10">
+            <Lock className="w-8 h-8" />
+            <div className="absolute inset-0 rounded-full border border-amber-200 dark:border-amber-700/50 scale-110 blur-[2px]" />
           </div>
 
-          <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2 relative z-10">
             Feature Locked
           </h3>
-          <p className="text-sm text-slate-500 font-medium mb-6">
-            <strong className="text-slate-900 dark:text-slate-200">{FEATURE_LABELS[feature]}</strong> is available on{" "}
-            <strong className="text-slate-900 dark:text-slate-200">{requiredPlan.name}</strong> plan and above.
+          <p className="text-sm text-slate-500 font-medium mb-8 relative z-10">
+            <strong className="text-slate-900 dark:text-slate-200">{FEATURE_LABELS[feature]}</strong> requires <strong className="text-slate-900 dark:text-slate-200">{requiredPlan.name}</strong> plan.
           </p>
 
-          <div className="bg-slate-50 dark:bg-slate-850 border border-slate-100 dark:border-slate-800 rounded-xl p-4 mb-6">
-            <div className="flex justify-between items-center text-xs mb-2">
-              <span className="text-slate-500">Your Plan:</span>
-              <span className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">{currentPlan.name} (Rs.{currentPlan.price})</span>
+          <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-2xl p-5 mb-6 border border-slate-100 dark:border-slate-700/50 backdrop-blur-sm relative z-10 text-left">
+            <div className="flex justify-between items-center text-sm mb-4 pb-4 border-b border-slate-200/60 dark:border-slate-700/60">
+              <span className="text-slate-500 font-medium">Your Plan:</span>
+              <span className="font-bold text-slate-900 dark:text-white">{currentPlan.name} <span className="text-slate-400 font-normal">({currentPlan.price})</span></span>
             </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-slate-500">Required:</span>
-              <span className="font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">{requiredPlan.name} (Rs.{requiredPlan.price})</span>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-slate-500 font-medium">Required:</span>
+              <span className="font-bold text-amber-600 dark:text-amber-500">{requiredPlan.name} <span className="text-amber-600/60 dark:text-amber-500/60 font-normal">({requiredPlan.price})</span></span>
             </div>
           </div>
 
-          <div className="space-y-3 mb-6">
-            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Upgrade to unlock:</p>
+          <div className="space-y-3 mb-8 relative z-10 text-left bg-slate-50/50 dark:bg-slate-800/30 rounded-2xl p-4">
+            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Upgrade to unlock:</p>
             {requiredPlan.featureList.filter(f => f.included && !currentPlan.featureList.find(cf => cf.label === f.label && cf.included)).map((f, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 font-medium">
-                <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+              <div key={i} className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300 font-medium">
+                <Check className="w-4 h-4 text-[#25D366] flex-shrink-0" />
                 <span>{f.label}</span>
               </div>
             ))}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 relative z-10">
             <Button
-              className="w-full bg-[#25D366] hover:bg-[#1EBE5A] text-white font-bold h-12 rounded-xl flex items-center justify-center gap-2"
+              className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold h-14 rounded-2xl flex items-center justify-center gap-3 text-base shadow-lg shadow-[#25D366]/20 border-none transition-all"
               onClick={handleUpgrade}
             >
-              <MessageCircle className="w-5 h-5" />
+              <WhatsAppIcon className="w-6 h-6 fill-current text-white" />
               Upgrade via WhatsApp
             </Button>
             <Button
-              variant="outline"
-              className="w-full h-12 rounded-xl text-slate-500 font-bold"
+              variant="ghost"
+              className="w-full h-14 rounded-2xl text-slate-500 font-bold hover:bg-slate-100 dark:hover:bg-slate-800"
               onClick={onClose}
             >
               Maybe Later
