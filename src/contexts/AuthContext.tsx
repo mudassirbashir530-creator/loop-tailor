@@ -53,7 +53,7 @@ export const PLAN_DETAILS = {
     },
     features: {
       canDownloadInvoice: false,
-      canUploadImages: false,
+      canUploadImages: true,
       canUseWhatsApp: false,
       canUsePayroll: false,
       canViewAnalytics: false,
@@ -71,7 +71,7 @@ export const PLAN_DETAILS = {
     },
     features: {
       canDownloadInvoice: false,
-      canUploadImages: false,
+      canUploadImages: true,
       canUseWhatsApp: false,
       canUsePayroll: false,
       canViewAnalytics: false,
@@ -89,7 +89,7 @@ export const PLAN_DETAILS = {
     },
     features: {
       canDownloadInvoice: true,
-      canUploadImages: false,
+      canUploadImages: true,
       canUseWhatsApp: true,
       canUsePayroll: false,
       canViewAnalytics: false,

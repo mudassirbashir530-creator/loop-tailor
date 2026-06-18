@@ -6,6 +6,7 @@ import {
   UserPlus, Search, Phone, MapPin, ShoppingBag, Loader2, Edit, 
   Trash2, Check, Camera, Upload, X, MoreVertical, MessageCircle, AlertCircle, Plus 
 } from 'lucide-react';
+import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
 import { Button } from '../components/ui/button';
@@ -659,7 +660,7 @@ export default function Clients() {
                                     openWhatsApp(customer.phone);
                                   }}
                                 >
-                                  <MessageCircle className="w-4 h-4 text-emerald-500" />
+                                  <WhatsAppIcon className="w-4 h-4 fill-current text-emerald-500" />
                                   WhatsApp Chat
                                 </button>
                               )}
@@ -741,20 +742,6 @@ export default function Clients() {
                           Orders
                         </Button>
 
-                        {/* 2.5 In-App Chat button */}
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-[40px] px-3 text-slate-800 border-slate-500/15 hover:bg-slate-500/5 rounded-xl font-bold text-xs flex items-center gap-1 shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/app/chat/${customer.id}`);
-                          }}
-                        >
-                          <MessageCircle className="w-4 h-4 text-slate-600" />
-                          Chat
-                        </Button>
-
                         {/* 3. Send WhatsApp button (renders only if they have a phone) */}
                         {customer.phone && phoneValid && (
                           <Button 
@@ -766,7 +753,7 @@ export default function Clients() {
                               openWhatsApp(customer.phone);
                             }}
                           >
-                            <MessageCircle className="w-4 h-4 text-emerald-500 fill-emerald-500/10" />
+                            <WhatsAppIcon className="w-4 h-4 fill-current text-emerald-500" />
                             WhatsApp
                           </Button>
                         )}

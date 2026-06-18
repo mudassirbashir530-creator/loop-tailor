@@ -6,6 +6,7 @@ import {
   Send, Info, FileText, CheckCircle, ArrowLeft, RefreshCw, 
   MessageCircle, Copy, Check, Scissors, CreditCard
 } from 'lucide-react';
+import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 import { useAuth } from '../contexts/AuthContext';
 import { useCustomers } from '../hooks/useCustomers';
 import { useOrders } from '../hooks/useOrders';
@@ -287,9 +288,13 @@ export default function Chat() {
                   onClick={() => navigate(`/app/chat/${cust.id}`)}
                   className={`p-4 flex gap-3 cursor-pointer transition-all relative border-l-4 ${active ? 'bg-slate-50 border-emerald-600' : 'border-transparent hover:bg-slate-500/5'}`}
                 >
-                  <div className="h-10 w-10 rounded-full bg-slate-100 text-[#0D3D33] flex items-center justify-center shrink-0 font-bold font-sans uppercase border border-slate-500/10">
-                    {cust.name.charAt(0)}
-                  </div>
+                  {cust.profileImage ? (
+                    <img src={typeof cust.profileImage === 'string' ? cust.profileImage : cust.profileImage.url} alt={cust.name} className="h-10 w-10 rounded-full object-cover shrink-0 border border-slate-500/10" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-slate-100 text-[#0D3D33] flex items-center justify-center shrink-0 font-bold font-sans uppercase border border-slate-500/10">
+                      {cust.name.charAt(0)}
+                    </div>
+                  )}
                   <div className="flex-1 overflow-hidden">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-sm text-slate-800 truncate leading-tight">{cust.name}</span>
@@ -334,9 +339,13 @@ export default function Chat() {
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </button>
-                <div className="h-9 w-9 rounded-full bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 font-bold text-sm uppercase border border-emerald-100">
-                  {currentCustomerMeta.name.charAt(0)}
-                </div>
+                {currentCustomerMeta.profileImage ? (
+                  <img src={typeof currentCustomerMeta.profileImage === 'string' ? currentCustomerMeta.profileImage : currentCustomerMeta.profileImage.url} alt={currentCustomerMeta.name} className="h-9 w-9 rounded-full object-cover shrink-0 border border-emerald-100" />
+                ) : (
+                  <div className="h-9 w-9 rounded-full bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 font-bold text-sm uppercase border border-emerald-100">
+                    {currentCustomerMeta.name.charAt(0)}
+                  </div>
+                )}
                 <div className="overflow-hidden">
                   <h2 className="font-bold text-sm text-slate-800 leading-tight truncate">{currentCustomerMeta.name}</h2>
                   <div className="flex items-center gap-1.5 text-xs text-slate-400 truncate font-semibold">
@@ -354,7 +363,7 @@ export default function Chat() {
                   className="h-[36px] rounded-xl border-[#EBE9E2] bg-white text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-xs gap-1 px-3 cursor-pointer select-none"
                   onClick={() => openWhatsApp(currentCustomerMeta.whatsappPhone || currentCustomerMeta.phone, '', currentCustomerMeta.countryCode || '+92')}
                 >
-                  <MessageCircle className="w-4 h-4 fill-emerald-600/10 text-emerald-600" />
+                  <WhatsAppIcon className="w-5 h-5 fill-current text-[#25D366]" />
                   <span>Open WhatsApp Directly</span>
                 </Button>
               </div>
@@ -427,9 +436,9 @@ export default function Chat() {
                       <Button
                         onClick={handleSendMessage}
                         disabled={!draftMessage.trim()}
-                        className="w-full sm:w-auto px-5 py-4 h-[44px] bg-[#25D366] text-white hover:bg-[#128C7E] border-none rounded-xl font-bold font-sans text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-lg hover:shadow-xl active:scale-98 transition-all disabled:opacity-50"
+                        className="w-full sm:w-auto px-5 py-4 h-[44px] bg-[#25D366] text-white hover:bg-[#128C7E] border-none rounded-xl font-bold font-sans text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl active:scale-98 transition-all disabled:opacity-50"
                       >
-                        <MessageSquare className="w-4 h-4 fill-white text-[#25D366]" />
+                        <WhatsAppIcon className="w-5 h-5 fill-current text-white" />
                         Message Customer via WhatsApp
                       </Button>
                     </div>

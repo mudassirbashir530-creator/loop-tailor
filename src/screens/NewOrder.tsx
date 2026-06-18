@@ -540,15 +540,10 @@ export default function NewOrder() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                   <div className="space-y-3">
+                     <div className="space-y-3">
                      <label className="text-sm font-medium flex items-center gap-2 text-primary">
                        <Camera className="w-4 h-4" /> Reference Designs (Max 3)
                      </label>
-                     {userData?.permissions?.imageUpload === false ? (
-                       <div className="p-4 bg-muted/50 text-muted-foreground text-sm rounded-lg border text-center">
-                         Image upload disabled. Contact support.
-                       </div>
-                     ) : (
                        <div className="grid grid-cols-3 gap-2">
                          {referenceImages.map((file, idx) => (
                            <ImagePreview 
@@ -571,18 +566,12 @@ export default function NewOrder() {
                            </label>
                          )}
                        </div>
-                     )}
                    </div>
                    
                    <div className="space-y-3">
                      <label className="text-sm font-medium flex items-center gap-2 text-primary">
                        <UserSquare2 className="w-4 h-4" /> Design Samples / Body Reference (Max 3)
                      </label>
-                     {userData?.permissions?.imageUpload === false ? (
-                       <div className="p-4 bg-muted/50 text-muted-foreground text-sm rounded-lg border text-center">
-                         Image upload disabled. Contact support.
-                       </div>
-                     ) : (
                        <div className="grid grid-cols-3 gap-2">
                          {designImages.map((file, idx) => (
                            <ImagePreview 
@@ -605,7 +594,6 @@ export default function NewOrder() {
                            </label>
                          )}
                        </div>
-                     )}
                    </div>
                 </div>
                 

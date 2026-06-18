@@ -7,7 +7,7 @@ export function useFeatureAccess() {
   const { user, loading } = useAuth();
   const [features, setFeatures] = useState<any>({
     canDownloadInvoice: false,
-    canUploadImages: false,
+    canUploadImages: true,
     canUseWhatsApp: false,
     canUsePayroll: false,
     canViewAnalytics: false,
@@ -59,9 +59,16 @@ export function useFeatureAccess() {
     || currentPlan === 'standard'
     || currentPlan === 'premium';
 
+  const canUploadImages = 
+    features?.canUploadImages !== false 
+    || currentPlan === 'free'
+    || currentPlan === 'basic'
+    || currentPlan === 'standard'
+    || currentPlan === 'premium';
+
   return {
     canDownloadInvoice: !!features.canDownloadInvoice,
-    canUploadImages: !!features.canUploadImages,
+    canUploadImages,
     canUseWhatsApp: !!features.canUseWhatsApp,
     canUsePayroll: !!features.canUsePayroll,
     canViewAnalytics: !!features.canViewAnalytics,

@@ -12,7 +12,7 @@ export const PLANS = {
     },
     features: {
       canDownloadInvoice: false,
-      canUploadImages: false,
+      canUploadImages: true,
       canUseWhatsApp: false,
       canUsePayroll: false,
       canViewAnalytics: false,
@@ -27,7 +27,7 @@ export const PLANS = {
       { label: "Standard Support", included: true },
       { label: "Invoice Download", included: false },
       { label: "WhatsApp Integration", included: false },
-      { label: "Image Upload", included: false },
+      { label: "Image Upload", included: true },
       { label: "Worker Management", included: false },
       { label: "Payroll System", included: false },
       { label: "Analytics", included: false }
@@ -46,7 +46,7 @@ export const PLANS = {
     },
     features: {
       canDownloadInvoice: false,
-      canUploadImages: false,
+      canUploadImages: true,
       canUseWhatsApp: false,
       canUsePayroll: false,
       canViewAnalytics: false,
@@ -61,7 +61,7 @@ export const PLANS = {
       { label: "Standard Support", included: true },
       { label: "Invoice Download", included: false },
       { label: "WhatsApp Integration", included: false },
-      { label: "Image Upload", included: false },
+      { label: "Image Upload", included: true },
       { label: "Payroll System", included: false },
       { label: "Advanced Analytics", included: false },
       { label: "Custom Branding", included: false }
@@ -80,7 +80,7 @@ export const PLANS = {
     },
     features: {
       canDownloadInvoice: true,
-      canUploadImages: false,
+      canUploadImages: true,
       canUseWhatsApp: true,
       canUsePayroll: false,
       canViewAnalytics: false,
@@ -95,7 +95,7 @@ export const PLANS = {
       { label: "Invoice Download", included: true },
       { label: "WhatsApp Integration", included: true },
       { label: "Priority Support", included: true },
-      { label: "Image Upload", included: false },
+      { label: "Image Upload", included: true },
       { label: "Payroll System", included: false },
       { label: "Advanced Analytics", included: false },
       { label: "Custom Branding", included: false }
@@ -149,7 +149,7 @@ export const FEATURE_LABELS = {
 
 export const REQUIRED_PLAN = {
   canDownloadInvoice: "standard",
-  canUploadImages: "premium",
+  canUploadImages: "free",
   canUseWhatsApp: "standard",
   canUsePayroll: "premium",
   canViewAnalytics: "premium",

@@ -121,9 +121,13 @@ export default function AppLayout() {
         
         <div className="p-4 border-t">
           <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
-             <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-               {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
-             </div>
+             {userData?.profileImage ? (
+               <img src={userData.profileImage} alt="Profile" className="h-10 w-10 rounded-full border border-primary/20 shadow-sm object-cover" />
+             ) : (
+               <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+                 {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+               </div>
+             )}
              <div className="overflow-hidden">
                <p className="text-sm font-semibold truncate">{user?.displayName || 'User'}</p>
                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
@@ -156,9 +160,13 @@ export default function AppLayout() {
             className="p-1.5 rounded-full transition-colors hover:bg-muted"
             aria-label="Profile Settings"
           >
-             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm border border-primary/20 shadow-sm">
-               {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
-             </div>
+             {userData?.profileImage ? (
+               <img src={userData.profileImage} alt="Profile" className="w-8 h-8 rounded-full border border-primary/20 shadow-sm object-cover" />
+             ) : (
+               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm border border-primary/20 shadow-sm">
+                 {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+               </div>
+             )}
           </NavLink>
         </div>
       </div>

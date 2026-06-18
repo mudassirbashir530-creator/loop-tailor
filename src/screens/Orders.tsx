@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PageWrapper } from '../components/animations/PageWrapper';
 import { Calendar, DollarSign, User, Loader2, Download, MessageCircle, Ruler, Image as ImageIcon, ExternalLink, Share2 } from 'lucide-react';
+import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
 import { Badge } from '../components/ui/badge';
@@ -324,17 +325,6 @@ export default function Orders() {
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-foreground text-base leading-tight">{order?.customerName || 'Unnamed'}</p>
-                        {order.customerPhone && (
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openWhatsApp(order.customerPhone, '', '+92');
-                            }}
-                            className="text-[#25D366] hover:bg-[#25D366]/10 p-1 rounded-full transition-colors"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                          </button>
-                        )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{order?.clothingType || 'Tailoring'} • {order?.tokenId || `T-${order?.id?.slice(0, 6).toUpperCase()}`}</p>
                     </div>
@@ -561,7 +551,7 @@ export default function Orders() {
               <DialogFooter className="flex flex-row flex-wrap justify-between sm:justify-end gap-2 w-full pt-4 border-t">
                 {userData?.permissions?.whatsapp !== false && (
                   <Button variant="ghost" className="flex-1 sm:flex-none gap-2 bg-[#25D366] text-white hover:bg-[#128C7E] hover:text-white border-none transition-colors" onClick={handleWhatsAppShare}>
-                    <MessageCircle className="h-4 w-4 text-white" />
+                    <WhatsAppIcon className="h-4 w-4 fill-current text-white" />
                     <span className="hidden sm:inline">Status Update</span>
                   </Button>
                 )}
