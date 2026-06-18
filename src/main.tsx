@@ -4,9 +4,7 @@ import App from './App.tsx';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+  <App />
 );
 
 // Global Error Handlers previously here are now in index.html for earlier capture
