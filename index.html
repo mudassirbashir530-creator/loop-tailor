@@ -38,8 +38,9 @@
           const isNetworkError = reason.includes('Failed to fetch') || reason.includes('networkError') || reason.includes('Load failed') || reason.includes('Network Error') || reason.includes('network-request-failed') || reason.includes('aborted');
           const isFirebaseMessaging = reason.includes('messaging') || reason.includes('permission') || reason.includes('Notification') || reason.includes('FCM');
           const isNullOrUndefined = !reason || reason === 'null' || reason === 'undefined' || reason === '[object Object]' || reason === 'NaN' || reason.trim() === '';
+          const isScriptError = reason === 'Script error.' || reason === 'Script error' || reason.includes('Script error');
           
-          if (isChromeExtension || isFetchGetterIssue || isExtensionFile || isResizeObserver || isFirebaseConnection || isIndexDBBlocked || isServiceWorker || isNetworkError || isFirebaseMessaging || isNullOrUndefined) {
+          if (isChromeExtension || isFetchGetterIssue || isExtensionFile || isResizeObserver || isFirebaseConnection || isIndexDBBlocked || isServiceWorker || isNetworkError || isFirebaseMessaging || isNullOrUndefined || isScriptError) {
             console.warn('Ignored benign or sandbox/extension error/rejection:', reason);
             return;
           }

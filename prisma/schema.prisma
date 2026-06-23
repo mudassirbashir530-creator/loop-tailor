@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  firebaseUid        String    @unique
+  email              String    @unique
+  plan               String    @default("free")
+  planPrice          Int       @default(0)
+  limitCustomers     Int       @default(10)
+  limitOrders        Int       @default(15)
+  limitWorkers       Int       @default(1)
+  usageCustomers     Int       @default(0)
+  usageOrders        Int       @default(0)
+  usageWorkers       Int       @default(0)
+  lastResetDate      DateTime  @default(now())
+  canDownloadInvoice Boolean   @default(false)
+  canUploadImages    Boolean   @default(false)
+  canUseWhatsapp     Boolean   @default(false)
+  canUsePayroll      Boolean   @default(false)
+  canViewAnalytics   Boolean   @default(false)
+  canCustomBranding  Boolean   @default(false)
+  canManageWorkers   Boolean   @default(true)
+  isBlocked          Boolean   @default(false)
+  blockedReason      String?
+  blockedAt          DateTime?
+  blockedBy          String?
+  createdAt          DateTime  @default(now())
+  shop               Shop?
+  clients            Client[]
+  workers            Worker[]
+  orders             Order[]
+}
+
+model Shop {
+  id            String  @id @default(uuid())
+  userId        String  @unique
+  user          User    @relation(fields: [userId], references: [id])
+  shopName      String?
+  logoUrl       String?
+  phone         String?
+  address       String?
+  invoiceFooter String?
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  phone     String?
+  address   String?
+  photoUrl  String?
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model Worker {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  name         String
+  role         String
+  salaryType   String
+  salaryAmount Float
+  status       String    @default("available")
+  phone        String?
+  address      String?
+  photoUrl     String?
+  joinedAt     DateTime  @default(now())
+  orders       Order[]
+  payrolls     Payroll[]
+}
+
+model Order {
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  clientId     String
+  client       Client        @relation(fields: [clientId], references: [id])
+  tokenNumber  String        @unique
+  dressType    String?
+  status       String        @default("pending")
+  deliveryType String?
+  deliveryDate DateTime?
+  rackLocation String?
+  notes        String?
+  totalPrice   Float         @default(0)
+  totalPaid    Float         @default(0)
+  workerId     String?
+  worker       Worker?       @relation(fields: [workerId], references: [id])
+  createdAt    DateTime      @default(now())
+  payments     Payment[]
+  measurements Measurement[]
+}
+
+model Measurement {
+  id      String @id @default(uuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+  field   String
+  value   String
+}
+
+model Payment {
+  id      String   @id @default(uuid())
+  orderId String
+  order   Order    @relation(fields: [orderId], references: [id])
+  amount  Float
+  method  String
+  date    DateTime @default(now())
+}
+
+model Payroll {
+  id       String    @id @default(uuid())
+  workerId String
+  worker   Worker    @relation(fields: [workerId], references: [id])
+  month    String
+  amount   Float
+  status   String    @default("unpaid")
+  paidAt   DateTime?
+}
+
+model Admin {
+  id    String @id @default(uuid())
+  email String @unique
+}

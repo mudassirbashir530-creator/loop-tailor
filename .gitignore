@@ -23,3 +23,5 @@ firebase-applet-config.json
 credentials.json
 *.pem
 *.key
+
+/src/generated/prisma
