@@ -270,15 +270,15 @@ export default function NewOrder() {
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
   return (
-    <PageWrapper className="p-4 md:p-8 space-y-6 pb-32 max-w-4xl mx-auto">
+    <PageWrapper className="p-4 md:p-8 space-y-6 pb-32 flex flex-col min-h-screen bg-[#F7F5F0]">
       {/* Header */}
-      <div className="flex items-center gap-3 bg-card p-4 rounded-2xl shadow-sm border">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors" type="button">
-          <ArrowLeft className="h-5 w-5" />
+      <div className="flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-black/5 transition-colors" type="button">
+          <ArrowLeft className="h-6 w-6 text-[#0D3D33]" />
         </button>
         <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Create New Order</h1>
-          <p className="text-sm text-muted-foreground hidden sm:block">Complete the steps to place a new tailoring order</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#0D3D33]">Create New Order</h1>
+          <p className="text-sm font-medium text-[#4A5568] hidden sm:block">Complete the steps to place a new tailoring order</p>
         </div>
       </div>
 

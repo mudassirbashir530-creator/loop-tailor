@@ -229,19 +229,22 @@ export default function Workers() {
   };
 
   return (
-    <PageWrapper className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto pb-24">
+    <PageWrapper className="p-4 md:p-8 space-y-6 flex flex-col h-full bg-[#F7F5F0] min-h-screen">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Users className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold tracking-tight text-[#0D3D33] flex items-center gap-2">
+            <Users className="h-8 w-8 text-[#0D3D33]" />
             Worker Management
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">Manage your tailoring staff, track performance, and handle salaries.</p>
+          <p className="text-[#4A5568] mt-1 font-medium text-sm md:text-base">Manage your tailoring staff, track performance, and handle salaries.</p>
         </div>
-        <Button className="gap-2 w-full sm:w-auto shadow-lg shadow-primary/20" onClick={openAddModal}>
-          <Plus className="h-5 w-5" />
+        <Button 
+          onClick={openAddModal}
+          className="rounded-full shadow-sm hover:shadow-md transition-all duration-200 ease-in-out bg-[#0D3D33] text-white h-11 px-6 font-medium border-none"
+        >
+          <Plus className="h-5 w-5 mr-2" />
           Add New Worker
         </Button>
       </div>

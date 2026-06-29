@@ -15,8 +15,8 @@ export default function BottomNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 lg:hidden pb-safe rounded-t-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
-      <div className="flex items-center justify-around h-16 px-2">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#0D3D33]/10 z-50 lg:hidden pb-safe rounded-t-3xl shadow-[0_-8px_30px_rgba(13,61,51,0.08)]">
+      <div className="flex items-center justify-around h-20 px-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || 
             (item.path !== '/app' && location.pathname.startsWith(item.path));
@@ -26,12 +26,12 @@ export default function BottomNav() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="relative -mt-8 flex flex-col items-center justify-center pointer-events-auto"
+                className="relative -mt-10 flex flex-col items-center justify-center pointer-events-auto"
               >
-                <div className="bg-accent text-white h-14 w-14 rounded-full flex items-center justify-center shadow-lg border-4 border-background">
-                  <item.icon className="h-6 w-6" />
+                <div className="bg-[#0D3D33] text-white h-16 w-16 rounded-full flex items-center justify-center shadow-lg border-4 border-white hover:scale-105 transition-transform">
+                  <item.icon className="h-7 w-7" />
                 </div>
-                <span className="text-[10px] font-medium mt-1 text-muted-foreground">{item.label}</span>
+                <span className="text-[10px] font-bold mt-1 text-[#4A5568]">{item.label}</span>
               </NavLink>
             )
           }
@@ -42,10 +42,10 @@ export default function BottomNav() {
               to={item.path}
               className={cn(
                 "flex flex-col items-center justify-center w-16 h-full gap-1 transition-colors",
-                isActive ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
+                isActive ? "text-[#0D3D33] font-bold" : "text-[#4A5568]/60 hover:text-[#0D3D33]"
               )}
             >
-              <item.icon className={cn("h-5 w-5", isActive && "text-primary")} strokeWidth={isActive ? 2.5 : 2} />
+              <item.icon className={cn("h-6 w-6", isActive && "text-[#0D3D33]")} strokeWidth={isActive ? 2.5 : 2} />
               <span className="text-[10px]">{item.label}</span>
             </NavLink>
           );

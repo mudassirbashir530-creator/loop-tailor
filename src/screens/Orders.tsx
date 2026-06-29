@@ -255,12 +255,20 @@ export default function Orders() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <PageWrapper className="p-4 md:p-8 space-y-6 flex flex-col h-full">
+    <PageWrapper className="p-4 md:p-8 space-y-6 flex flex-col h-full bg-[#F7F5F0] min-h-screen">
       
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Orders</h1>
-        <p className="text-muted-foreground">Manage all your tailoring orders</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-[#0D3D33]">Orders</h1>
+          <p className="text-[#4A5568] mt-1 font-medium">Manage all your tailoring orders</p>
+        </div>
+        <Button 
+          onClick={() => navigate('/app/new-order')}
+          className="rounded-full shadow-sm hover:shadow-md transition-all duration-200 ease-in-out bg-[#0D3D33] text-white h-11 px-6 font-medium border-none"
+        >
+          New Order
+        </Button>
       </div>
 
       {/* Search */}
@@ -268,6 +276,7 @@ export default function Orders() {
         placeholder="Search by customer or order #..." 
         value={search}
         onChange={(e) => setSearch(e.target.value)}
+        className="h-14 rounded-2xl bg-white border-none ring-1 ring-[#0D3D33]/10 shadow-sm"
       />
 
       {/* Tabs */}
@@ -277,16 +286,16 @@ export default function Orders() {
             key={tab.value}
             onClick={() => setActiveTab(tab.value)}
             className={cn(
-              "flex items-center gap-1.5 whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors border",
+              "flex items-center gap-1.5 whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold transition-all",
               activeTab === tab.value 
-                ? "bg-primary text-primary-foreground border-primary" 
-                : "bg-background text-muted-foreground border-border hover:bg-muted"
+                ? "bg-[#0D3D33] text-white shadow-sm" 
+                : "bg-transparent text-[#4A5568] hover:bg-white hover:shadow-sm ring-1 ring-transparent hover:ring-[#0D3D33]/5"
             )}
           >
             {tab.label}
             <span className={cn(
-              "text-[10px] px-1.5 py-0.5 rounded-full ml-1",
-              activeTab === tab.value ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+              "text-[10px] px-2 py-0.5 rounded-full ml-1 font-bold",
+              activeTab === tab.value ? "bg-white/20 text-white" : "bg-[#0D3D33]/10 text-[#0D3D33]"
             )}>
               {getTabCount(tab.value)}
             </span>

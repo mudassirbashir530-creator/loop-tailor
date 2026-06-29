@@ -257,7 +257,7 @@ export default function Clients() {
   };
 
   return (
-    <PageWrapper className="p-4 md:p-8 space-y-6 max-w-6xl mx-auto pb-24 relative">
+    <PageWrapper className="p-4 md:p-8 space-y-6 flex flex-col h-full bg-[#F7F5F0] min-h-screen">
       
       {/* Translucent overlay to handle standard backdrop dismiss of our touch menu */}
       {activeMenuId && (
@@ -268,13 +268,16 @@ export default function Clients() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Clients</h1>
-          <p className="text-muted-foreground mt-1">Manage your {customers.length} total customers</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#0D3D33]">Clients</h1>
+          <p className="text-[#4A5568] mt-1 font-medium">Manage your {customers.length} total customers</p>
         </div>
-        <Button className="gap-2 w-full sm:w-auto h-11" onClick={openAddModal}>
-          <UserPlus className="h-4 w-4" />
+        <Button 
+          onClick={openAddModal}
+          className="rounded-full shadow-sm hover:shadow-md transition-all duration-200 ease-in-out bg-[#0D3D33] text-white h-11 px-6 font-medium border-none"
+        >
+          <UserPlus className="h-4 w-4 mr-2" />
           Add Client
         </Button>
       </div>
@@ -558,6 +561,7 @@ export default function Clients() {
         value={search} 
         onChange={(e: any) => setSearch(e?.target?.value || e)} 
         placeholder="Search clients by name or phone..." 
+        className="h-14 rounded-2xl bg-white border-none ring-1 ring-[#0D3D33]/10 shadow-sm"
       />
 
       {/* Customer List */}

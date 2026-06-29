@@ -86,14 +86,14 @@ export default function AppLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-background font-sans flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-[#F7F5F0] font-sans flex flex-col lg:flex-row">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card min-h-screen sticky top-0">
-        <div className="p-6 flex items-center gap-3 border-b">
-          <div className="bg-primary text-white p-2 rounded-lg">
+      <aside className="hidden lg:flex flex-col w-64 bg-[#0D3D33] min-h-screen sticky top-0">
+        <div className="p-6 flex items-center gap-3">
+          <div className="bg-white text-[#0D3D33] p-2 rounded-lg">
             <Scissors className="h-6 w-6" />
           </div>
-          <span className="font-bold text-xl tracking-tight text-foreground">Loop Tailor</span>
+          <span className="font-bold text-xl tracking-tight text-white">Loop Tailor</span>
         </div>
         
         <nav className="flex-1 p-4 space-y-2">
@@ -108,8 +108,8 @@ export default function AppLayout() {
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium",
                   isActive 
-                    ? "bg-primary/10 text-primary" 
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-[#2ECC71] text-white" 
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 )}
               >
                 <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
@@ -119,37 +119,37 @@ export default function AppLayout() {
           })}
         </nav>
         
-        <div className="p-4 border-t">
-          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
+        <div className="p-4">
+          <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl">
              {userData?.profileImage ? (
-               <img src={userData.profileImage} alt="Profile" className="h-10 w-10 rounded-full border border-primary/20 shadow-sm object-cover" />
+               <img src={userData.profileImage} alt="Profile" className="h-10 w-10 rounded-full border border-white/20 shadow-sm object-cover" />
              ) : (
-               <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">
                  {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                </div>
              )}
              <div className="overflow-hidden">
-               <p className="text-sm font-semibold truncate">{user?.displayName || 'User'}</p>
-               <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+               <p className="text-sm font-semibold truncate text-white">{user?.displayName || 'User'}</p>
+               <p className="text-xs text-white/60 truncate">{user?.email}</p>
              </div>
           </div>
         </div>
       </aside>
 
       {/* Mobile Top Header */}
-      <div className="lg:hidden sticky top-0 bg-card/95 backdrop-blur-md border-b border-border z-40 px-4 h-14 flex items-center justify-between">
+      <div className="lg:hidden sticky top-0 bg-[#F7F5F0]/95 backdrop-blur-md border-b border-[#0D3D33]/10 z-40 px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="bg-primary text-white p-1.5 rounded-lg">
+          <div className="bg-[#0D3D33] text-white p-2 rounded-lg">
             <Scissors className="h-5 w-5" />
           </div>
-          <span className="font-bold text-lg tracking-tight text-foreground">Loop Tailor</span>
+          <span className="font-bold text-xl tracking-tight text-[#0D3D33]">Loop Tailor</span>
         </div>
         <div className="flex items-center gap-1">
           <NavLink 
             to="/app/workers" 
             className={({ isActive }) => cn(
               "p-2 rounded-full transition-colors",
-              isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+              isActive ? "bg-[#2ECC71]/20 text-[#0D3D33]" : "text-[#4A5568] hover:bg-[#0D3D33]/10"
             )}
             aria-label="Worker Assign"
           >
@@ -157,13 +157,13 @@ export default function AppLayout() {
           </NavLink>
           <NavLink 
             to="/app/settings" 
-            className="p-1.5 rounded-full transition-colors hover:bg-muted"
+            className="p-1.5 rounded-full transition-colors hover:bg-[#0D3D33]/10"
             aria-label="Profile Settings"
           >
              {userData?.profileImage ? (
-               <img src={userData.profileImage} alt="Profile" className="w-8 h-8 rounded-full border border-primary/20 shadow-sm object-cover" />
+               <img src={userData.profileImage} alt="Profile" className="w-9 h-9 rounded-full border-2 border-[#0D3D33]/10 shadow-sm object-cover" />
              ) : (
-               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm border border-primary/20 shadow-sm">
+               <div className="w-9 h-9 rounded-full bg-[#0D3D33]/10 flex items-center justify-center text-[#0D3D33] font-bold text-sm border-2 border-[#0D3D33]/10 shadow-sm">
                  {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                </div>
              )}
