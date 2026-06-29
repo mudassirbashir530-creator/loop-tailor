@@ -50,45 +50,43 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect }) => {
 
     setUploading(true);
     try {
-      const fileId = Date.now().toString();
-      const storageRef = ref(storage, `media/${fileId}_${file.name}`);
-      
-      /* BETA: Image upload is disabled
-      // Upload to Firebase Storage
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      
-      const mediaData = {
-        url: downloadURL,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        createdAt: serverTimestamp(),
-        storagePath: storageRef.fullPath
-      };
+      const formData = new FormData();
+      formData.append('image', file);
 
-      await setDoc(doc(db, 'media_library', fileId), mediaData);
-      */
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to upload image');
+      }
+
+      const { url } = await response.json();
       
-      // Use local preview instead
-      const downloadURL = URL.createObjectURL(file);
+      const fileId = Date.now().toString();
       const mediaData = {
         id: fileId,
-        url: downloadURL,
+        url: url,
         name: file.name,
         size: file.size,
         type: file.type,
         createdAt: new Date(),
-        storagePath: `local/${fileId}_${file.name}`
+        storagePath: `cloudinary` // marking as cloudinary, though we might not delete it from there easily without backend
       };
       
-      setMedia(prev => [mediaData as any, ...prev]);
+      // Save to Firestore
+      await setDoc(doc(db, 'media_library', fileId), {
+        ...mediaData,
+        createdAt: serverTimestamp()
+      });
       
-      // Refresh media list
-      fetchMedia();
-    } catch (error) {
+      setMedia(prev => [mediaData as any, ...prev]);
+      toast.success("Image uploaded successfully!");
+    } catch (error: any) {
       console.error("Upload error:", error);
-      toast.error("Failed to upload image. Please check your Firebase Storage settings.");
+      toast.error(error.message || "Failed to upload image.");
     } finally {
       setUploading(false);
     }

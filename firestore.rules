@@ -47,6 +47,16 @@ service cloud.firestore {
       allow read: if isSignedIn() && request.auth.token.email == email;
       allow write: if isAdmin();
     }
+
+    match /articles/{articleId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /media_library/{mediaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
     
     match /adminLogs/{logId} {
       allow read, write: if isAdmin();

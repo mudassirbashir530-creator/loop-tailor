@@ -31,6 +31,10 @@ import SignupPage from './pages/auth/SignupPage';
 import { AdminLayout } from './layouts/AdminLayout';
 import AdminDashboard from './admin/AdminDashboard';
 import UsersList from './admin/AdminUsersList';
+import { SocialPosts } from './pages/admin/SocialPosts';
+import { Articles } from './pages/admin/Articles';
+import { ArticleEditor } from './pages/admin/ArticleEditor';
+import { MediaLibrary } from './pages/admin/MediaLibrary';
 import Home from './screens/Home';
 import Clients from './screens/Clients';
 import Workers from './screens/Workers';
@@ -85,6 +89,9 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 import { safeStorage } from './lib/safeStorage';
 
+import Blog from './pages/Blog';
+import ArticleView from './pages/ArticleView';
+
 function AppContent() {
   const location = useLocation();
 
@@ -102,7 +109,8 @@ function AppContent() {
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="/blog" element={<GenericPage title="Blog" />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<ArticleView />} />
             <Route path="/careers" element={<GenericPage title="Careers" />} />
             <Route path="/partners" element={<GenericPage title="Partners" />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
@@ -165,6 +173,11 @@ function AppContent() {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<Navigate to="/admin" replace />} />
             <Route path="users" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><UsersList /></div>} />
+            <Route path="social-posts" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><SocialPosts /></div>} />
+            <Route path="articles" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><Articles /></div>} />
+            <Route path="articles/new" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><ArticleEditor /></div>} />
+            <Route path="articles/edit/:id" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><ArticleEditor /></div>} />
+            <Route path="media-library" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><MediaLibrary /></div>} />
           </Route>
 
           {/* Fallback */}

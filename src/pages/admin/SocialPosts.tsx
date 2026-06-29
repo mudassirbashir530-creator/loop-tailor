@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import { collection, setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../lib/firebase';
 import { Share2, Copy, CheckCircle2, Loader2, Save } from 'lucide-react';
@@ -21,41 +20,24 @@ export const SocialPosts: React.FC = () => {
     if (!content.trim()) return;
     setGenerating(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const prompt = `
-        You are an expert social media manager. I will provide you with a base content or idea.
-        Generate 3 distinct, highly engaging social media posts optimized for:
-        1. Facebook (Engaging, conversational, uses emojis, encourages comments)
-        2. Instagram (Visual description, catchy caption, highly aesthetic tone)
-        3. LinkedIn (Professional, insightful, industry-focused, clean formatting)
-        
-        Also provide a list of 10-15 relevant hashtags.
-        
-        Return the response strictly in this JSON format:
-        {
-          "facebook": "post content here",
-          "instagram": "post content here",
-          "linkedin": "post content here",
-          "hashtags": "#tag1 #tag2 ..."
-        }
-        
-        Base Content:
-        ${content}
-      `;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-        }
+      const response = await fetch('/api/admin/generate-posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content })
       });
 
-      const result = JSON.parse(response.text);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server returned ${response.status}`);
+      }
+
+      const result = await response.json();
       setGeneratedPosts(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating posts:", error);
-      toast.error("Failed to generate posts. Please check your API key and try again.");
+      toast.error(error.message || "Failed to generate posts. Please try again.");
     } finally {
       setGenerating(false);
     }

@@ -130,6 +130,72 @@ async function startServer() {
   });
 
   /**
+   * Admin: Generate Social Posts using Gemini API
+   */
+  app.post("/api/admin/generate-posts", async (req, res) => {
+    try {
+      const { content } = req.body;
+      if (!content || typeof content !== 'string') {
+        return res.status(400).json({ error: "Content parameter is required." });
+      }
+
+      const geminiKey = process.env.GEMINI_API_KEY;
+      if (!geminiKey) {
+        return res.status(503).json({ error: "Gemini API key is not configured on this server." });
+      }
+
+      const { GoogleGenAI } = await import("@google/genai");
+      const ai = new GoogleGenAI({ 
+        apiKey: geminiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build'
+          }
+        }
+      });
+
+      const prompt = `
+        You are an expert social media manager. I will provide you with a base content or idea.
+        Generate 3 distinct, highly engaging social media posts optimized for:
+        1. Facebook (Engaging, conversational, uses emojis, encourages comments)
+        2. Instagram (Visual description, catchy caption, highly aesthetic tone)
+        3. LinkedIn (Professional, insightful, industry-focused, clean formatting)
+        
+        Also provide a list of 10-15 relevant hashtags.
+        
+        Return the response strictly in this JSON format:
+        {
+          "facebook": "post content here",
+          "instagram": "post content here",
+          "linkedin": "post content here",
+          "hashtags": "#tag1 #tag2 ..."
+        }
+        
+        Base Content:
+        ${content}
+      `;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+        }
+      });
+
+      if (!response.text) {
+        throw new Error("No response received from Gemini.");
+      }
+
+      const result = JSON.parse(response.text);
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error("Gemini generation error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate social posts." });
+    }
+  });
+
+  /**
    * Upload image to Cloudinary
    */
   app.post("/api/upload", upload.single("image"), async (req, res) => {
@@ -301,7 +367,7 @@ async function startServer() {
       });
 
       // Delete OTP after successful reset to prevent any reuse
-      await db.collection('password_resets').doc(email.toLowerCase()).delete();
+      await firestore.collection('password_resets').doc(email.toLowerCase()).delete();
 
       res.status(200).json({ message: "Password reset successfully", success: true });
 
