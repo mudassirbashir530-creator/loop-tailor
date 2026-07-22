@@ -1,0 +1,101 @@
+import { useState, useEffect } from 'react';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, orderBy, getDocs } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { useAuth } from '../contexts/AuthContext';
+import { Customer } from '../lib/types';
+import { toast } from 'sonner';
+
+export function useCustomers() {
+  const { user } = useAuth();
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const q = query(
+      collection(db, 'customers'),
+      where('userId', '==', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const customersData: Customer[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data) {
+          customersData.push({
+            id: doc.id,
+            name: data.name || 'Unnamed',
+            phone: data.phone || 'No phone',
+            whatsappPhone: data.whatsappPhone || '',
+            countryCode: data.countryCode || '+92',
+            gender: data.gender || 'male',
+            notes: data.notes || '',
+            address: data.address || '',
+            profileImage: data.profileImage || null,
+            totalOrders: data.totalOrders || 0,
+            createdBy: data.createdBy || data.userId || '',
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
+          });
+        }
+      });
+      customersData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setCustomers(customersData);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'customers');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const addCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'totalOrders' | 'createdBy'>) => {
+    if (!user) return null;
+    try {
+      const docRef = await addDoc(collection(db, 'customers'), {
+        ...data,
+        userId: user.uid,
+        createdBy: user.uid,
+        totalOrders: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      toast.success("Customer added successfully");
+      return docRef.id;
+    } catch (error) {
+      toast.error("Failed to add customer");
+      handleFirestoreError(error, OperationType.CREATE, 'customers');
+    }
+  };
+
+  const updateCustomer = async (id: string, updates: Partial<Customer>) => {
+    if (!user) return;
+    try {
+      await updateDoc(doc(db, 'customers', id), {
+        ...updates,
+        updatedAt: serverTimestamp()
+      });
+      toast.success("Customer updated");
+    } catch (error) {
+      toast.error("Failed to update customer");
+      handleFirestoreError(error, OperationType.UPDATE, `customers/${id}`);
+    }
+  };
+
+  const deleteCustomer = async (id: string) => {
+     if (!user) return;
+     try {
+        await deleteDoc(doc(db, 'customers', id));
+        toast.success("Customer deleted");
+     } catch (error) {
+        toast.error("Failed to delete customer");
+        handleFirestoreError(error, OperationType.DELETE, `customers/${id}`);
+     }
+  };
+
+  return { customers, loading, addCustomer, updateCustomer, deleteCustomer };
+}

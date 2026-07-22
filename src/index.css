@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-status-pending: #FFA726;
+  --color-status-stitching: #42A5F5;
+  --color-status-ready: #2ECC71;
+  --color-status-delivered: #66BB6A;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+}
+
+@layer base {
+  :root {
+    --background: #F7F5F0;
+    --foreground: #111111;
+    --card: #FFFFFF;
+    --card-foreground: #111111;
+    --popover: #FFFFFF;
+    --popover-foreground: #111111;
+    --primary: #0D3D33;
+    --primary-foreground: #FFFFFF;
+    --secondary: #0D3D33;
+    --secondary-foreground: #FFFFFF;
+    --muted: #EBE8E0;
+    --muted-foreground: #555555;
+    --accent: #2ECC71;
+    --accent-foreground: #FFFFFF;
+    --destructive: #E53935;
+    --destructive-foreground: #FFFFFF;
+    --border: #E2DDD6;
+    --input: #E2DDD6;
+    --ring: #0D3D33;
+    --radius: 0.75rem;
+  }
+  
+  .dark {
+    --background: #121212;
+    --foreground: #F7F5F0;
+    --card: #1E1E1E;
+    --card-foreground: #F7F5F0;
+    --popover: #1E1E1E;
+    --popover-foreground: #F7F5F0;
+    --primary: #0D3D33;
+    --primary-foreground: #FFFFFF;
+    --secondary: #198754;
+    --secondary-foreground: #FFFFFF;
+    --muted: #2A2A2A;
+    --muted-foreground: #A0A0A0;
+    --accent: #2ECC71;
+    --accent-foreground: #111111;
+    --destructive: #EF5350;
+    --destructive-foreground: #FFFFFF;
+    --border: #333333;
+    --input: #333333;
+    --ring: #0D3D33;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased transition-colors duration-300;
+  }
+}
+
+/* Hide scrollbar for filter tabs */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+

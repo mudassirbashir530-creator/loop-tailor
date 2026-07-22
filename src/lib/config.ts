@@ -1,0 +1,26 @@
+export const APP_CONFIG = {
+  defaultCurrency: 'PKR',
+};
+
+export const ORDER_STATUS = {
+  PENDING: 'pending',
+  STITCHING: 'stitching',
+  READY: 'ready',
+  DELIVERED: 'delivered',
+  CANCELLED: 'cancelled'
+} as const;
+
+export type OrderStatus = typeof ORDER_STATUS[keyof typeof ORDER_STATUS];
+
+export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  [ORDER_STATUS.PENDING]: [ORDER_STATUS.STITCHING, ORDER_STATUS.CANCELLED],
+  [ORDER_STATUS.STITCHING]: [ORDER_STATUS.READY, ORDER_STATUS.CANCELLED],
+  [ORDER_STATUS.READY]: [ORDER_STATUS.DELIVERED],
+  [ORDER_STATUS.DELIVERED]: [],
+  [ORDER_STATUS.CANCELLED]: []
+};
+
+export function isValidStatusTransition(currentStatus: OrderStatus, newStatus: OrderStatus): boolean {
+  if (currentStatus === newStatus) return true;
+  return ORDER_STATUS_TRANSITIONS[currentStatus]?.includes(newStatus) ?? false;
+}

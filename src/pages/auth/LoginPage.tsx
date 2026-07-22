@@ -1,0 +1,129 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Scissors, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'sonner';
+import { doc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../../lib/firebase';
+
+export default function LoginPage() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { signIn, logOut } = useAuth();
+  
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      await signIn(email, password);
+      
+      // Immediately verify block status before letting user enter the app
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const udata = userSnap.data();
+          if (udata && udata.isBlocked === true) {
+            await logOut();
+            setError('Your account has been suspended. Contact: looptailor@gmail.com');
+            toast.error('Your account has been suspended. Contact: looptailor@gmail.com');
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      
+      toast.success('Logged in successfully');
+      // Navigation is handled by PublicRoute in App.tsx
+    } catch (error: any) {
+      let errorMessage = 'Failed to login. Please check your credentials.';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password.';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Invalid email or password.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address format.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed login attempts. Please try again later.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      setError(errorMessage);
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-background to-muted">
+      <div className="w-full max-w-md">
+        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8">
+          <ArrowLeft className="h-4 w-4" />
+          Back to home
+        </Link>
+        
+        <Card className="w-full shadow-xl">
+          <CardHeader className="text-center space-y-4 pb-8">
+            <div className="mx-auto bg-primary text-white p-3 rounded-xl w-fit shadow-md">
+              <Scissors className="h-8 w-8" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-bold tracking-tight">Welcome Back!</CardTitle>
+              <CardDescription className="text-base mt-2">Sign in to your account to continue</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {error && (
+              <div className="mb-6 p-4 rounded-md bg-destructive/15 border border-destructive/30 text-destructive flex gap-3 text-sm items-start">
+                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                <p className="leading-tight">{error}</p>
+              </div>
+            )}
+            
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email Address</label>
+                <Input name="email" type="email" required placeholder="name@example.com" />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Password</label>
+                </div>
+                <Input name="password" type="password" required placeholder="••••••••" />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="remember" className="rounded text-primary border-border focus:ring-primary h-4 w-4" />
+                <label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">Remember me for 30 days</label>
+              </div>
+              
+              <Button type="submit" fullWidth size="lg" disabled={loading} className="mt-2 text-[#eddcdc]">
+                {loading ? 'Signing in...' : 'Sign In'}
+              </Button>
+            </form>
+            
+            <p className="text-center text-sm text-muted-foreground mt-8">
+              Don't have an account?{' '}
+              <Link to="/auth/signup" className="text-primary font-medium hover:underline">
+                Sign up for free
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

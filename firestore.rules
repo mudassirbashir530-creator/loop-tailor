@@ -1,0 +1,214 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net (default-deny catch-all)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable, hardened security helpers
+    function isSignedIn() { 
+      return request.auth != null; 
+    }
+    
+    function isAdmin() { 
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/admins/$(request.auth.token.email)); 
+    }
+
+    function isBlocked() {
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBlocked == true;
+    }
+
+    function isNotBlocked() {
+      return !isBlocked();
+    }
+
+    function canAccess(userId) {
+      return isSignedIn() && request.auth.uid == userId && isNotBlocked();
+    }
+
+    function ownsResource(rdata) {
+      return isSignedIn() && isNotBlocked() && (
+        rdata.userId == request.auth.uid || 
+        rdata.storeId == request.auth.uid
+      );
+    }
+
+    // Admin can read and write ALL collections globally, overriding user blocks if necessary
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /admins/{email} {
+      allow read: if isSignedIn() && request.auth.token.email == email;
+      allow write: if isAdmin();
+    }
+
+    match /articles/{articleId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /media_library/{mediaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /adminLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /subscriptions/{subId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read, write: if canAccess(userId);
+      allow write: if isAdmin();
+    }
+
+    match /googleChatConfig/{userId} {
+      allow read, write: if canAccess(userId);
+    }
+
+    match /settings/{settingsId} {
+      allow read, write: if isSignedIn() && isNotBlocked() && (
+        request.auth.uid == settingsId ||
+        (resource != null && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid))
+      );
+    }
+
+    match /shops/{shopId} {
+      allow read, write: if canAccess(shopId);
+      match /{document=**} {
+        allow read, write: if canAccess(shopId);
+      }
+    }
+
+    match /customers/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /clients/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /orders/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+      
+      // Structured subcollection read/write of payments under orders
+      match /payments/{paymentId} {
+        allow read, delete: if isSignedIn() && isNotBlocked() && (
+          (resource != null && 'userId' in resource.data && resource.data.userId == request.auth.uid) ||
+          (resource != null && 'storeId' in resource.data && resource.data.storeId == request.auth.uid) ||
+          (exists(/databases/$(database)/documents/orders/$(docId)) && (
+            get(/databases/$(database)/documents/orders/$(docId)).data.userId == request.auth.uid ||
+            get(/databases/$(database)/documents/orders/$(docId)).data.storeId == request.auth.uid
+          ))
+        );
+        allow update: if isSignedIn() && isNotBlocked() && request.resource.data.userId == request.auth.uid && (
+          (resource != null && 'userId' in resource.data && resource.data.userId == request.auth.uid) ||
+          (resource != null && 'storeId' in resource.data && resource.data.storeId == request.auth.uid) ||
+          (exists(/databases/$(database)/documents/orders/$(docId)) && (
+            get(/databases/$(database)/documents/orders/$(docId)).data.userId == request.auth.uid ||
+            get(/databases/$(database)/documents/orders/$(docId)).data.storeId == request.auth.uid
+          ))
+        );
+        allow create: if isSignedIn() && isNotBlocked() && (
+          (request.resource != null && 'userId' in request.resource.data && request.resource.data.userId == request.auth.uid) ||
+          (request.resource != null && 'storeId' in request.resource.data && request.resource.data.storeId == request.auth.uid) ||
+          (exists(/databases/$(database)/documents/orders/$(docId)) && (
+            get(/databases/$(database)/documents/orders/$(docId)).data.userId == request.auth.uid ||
+            get(/databases/$(database)/documents/orders/$(docId)).data.storeId == request.auth.uid
+          ))
+        );
+      }
+    }
+
+    match /invoices/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /workers/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /staff/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /measurementTemplates/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /orderTemplates/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /notifications/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /measurements/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /payments/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /payroll/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /fcmTokens/{docId} {
+      allow read, delete: if ownsResource(resource.data);
+      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow create: if ownsResource(request.resource.data);
+    }
+
+    match /chats/{channelId} {
+      allow read, delete: if isSignedIn() && isNotBlocked() && (resource == null || resource.data.shopId == request.auth.uid);
+      allow create: if isSignedIn() && isNotBlocked() && request.resource.data.shopId == request.auth.uid;
+      allow update: if isSignedIn() && isNotBlocked() && (
+        resource.data.shopId == request.auth.uid || 
+        request.resource.data.shopId == request.auth.uid
+      );
+
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn() && isNotBlocked() && (
+          exists(/databases/$(database)/documents/chats/$(channelId)) && 
+          get(/databases/$(database)/documents/chats/$(channelId)).data.shopId == request.auth.uid
+        );
+      }
+    }
+  }
+}
