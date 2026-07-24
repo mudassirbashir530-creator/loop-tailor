@@ -154,3 +154,16 @@ export async function signOut() {
   safeRemoveItem('loop_tailor_user');
   triggerAuthListeners();
 }
+
+export async function sendPasswordResetEmail(authInstance: any, email: string) {
+  const res = await fetch('/api/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  if (!res.ok) {
+    const err = await safeJson(res);
+    throw new Error(err.error || 'Failed to send password reset email');
+  }
+}
+

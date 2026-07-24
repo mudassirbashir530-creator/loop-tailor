@@ -2,7 +2,6 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import crypto from "crypto";
-import admin from "firebase-admin";
 import nodemailer from "nodemailer";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
@@ -10,10 +9,17 @@ import dotenv from "dotenv";
 import twilio from "twilio";
 import { MongoClient } from "mongodb";
 
+import dns from "dns";
+
 dotenv.config();
 
+// DNS fallback for Windows SRV queries
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {}
+
 // Configure MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://mudassirbashir530_db_user:fnODAZFgqx0fHuc8@looptailor.2z63upu.mongodb.net/looptailor?retryWrites=true&w=majority";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://mudassirbashir530_db_user:RP03VcEb2b8p3Q6e@looptailor.2z63upu.mongodb.net/looptailor?retryWrites=true&w=majority";
 let mongoClient: MongoClient | null = null;
 let mongoDb: any = null;
 
@@ -41,14 +47,11 @@ if (hasCloudinary) {
     api_key: cloudinaryApiKey,
     api_secret: cloudinaryApiSecret
   });
-} else {
-  console.error("Missing Cloudinary credentials. Check your .env file");
 }
 
 const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN)
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
   : null;
-
 
 // Configure Multer
 const storage = multer.memoryStorage();
@@ -66,42 +69,6 @@ const upload = multer({
     }
   }
 });
-
-// Initialize Firebase Admin (requires GOOGLE_APPLICATION_CREDENTIALS in production)
-let db: admin.firestore.Firestore | null = null;
-
-try {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-    db = admin.firestore();
-  } else {
-    // If no credentials, try to initialize but don't crash if it fails
-    if (admin.apps.length === 0) {
-      admin.initializeApp();
-    }
-    db = admin.firestore();
-  }
-} catch (error) {
-  console.warn("Firebase Admin initialization warning:", error);
-}
-
-// Utility to get Firestore instance securely
-const getDb = () => {
-  if (!db) {
-    // Attempt lazy init if not already done
-    try {
-      if (admin.apps.length > 0) {
-        db = admin.firestore();
-      }
-    } catch (e) {
-      console.error("Failed to get Firestore instance:", e);
-    }
-  }
-  return db;
-};
 
 let transporter: nodemailer.Transporter | null = null;
 
