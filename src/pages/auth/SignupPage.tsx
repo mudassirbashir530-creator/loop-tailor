@@ -39,19 +39,14 @@ export default function SignupPage() {
       toast.success('Account created successfully!');
       navigate('/app');
     } catch (error: any) {
-      let errorMessage = 'Failed to create account. Please try again.';
-      if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'This email is already in use. Please sign in instead.';
-      } else if (error.code === 'auth/weak-password') {
-        errorMessage = 'Password is too weak. Please use at least 6 characters.';
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = 'Invalid email address provided.';
-      } else if (error.code === 'auth/operation-not-allowed') {
-        errorMessage = 'Email/password accounts are not enabled. Please enable "Email/Password" provider in Firebase Console under Authentication -> Sign-in method.';
-      } else if (error.code === 'auth/network-request-failed') {
-        errorMessage = 'Network error. Please check your internet connection.';
-      } else if (error.message) {
-        errorMessage = error.message;
+      let errorMessage = error.message || 'Failed to create account. Please try again.';
+      try {
+        const parsed = typeof error.message === 'string' ? JSON.parse(error.message) : error;
+        if (parsed && parsed.error) errorMessage = parsed.error;
+      } catch (e) {}
+
+      if (error.code === 'auth/email-already-in-use' || errorMessage.includes('already exists')) {
+        errorMessage = 'An account with this email address already exists. Please sign in instead.';
       }
       setError(errorMessage);
       setLoading(false);
