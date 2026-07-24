@@ -177,17 +177,21 @@ async function startServer() {
         }
       };
       
-      await db.collection("users").insertOne(newUser);
+      await db.collection("users").replaceOne({ _id: userId }, newUser, { upsert: true });
       
       // Initialize settings for the shop too
-      await db.collection("settings").insertOne({
-        _id: userId,
-        name: shopName || name || 'My Tailor Shop',
-        phone: phone || '',
-        logoUrl: shopLogoUrl || '',
-        address: shopAddress || '',
-        createdAt: new Date().toISOString(),
-      });
+      await db.collection("settings").replaceOne(
+        { _id: userId },
+        {
+          _id: userId,
+          name: shopName || name || 'My Tailor Shop',
+          phone: phone || '',
+          logoUrl: shopLogoUrl || '',
+          address: shopAddress || '',
+          createdAt: new Date().toISOString(),
+        },
+        { upsert: true }
+      );
       
       res.status(201).json(newUser);
     } catch (err: any) {
@@ -239,12 +243,18 @@ async function startServer() {
       
       if (data.id) {
         data._id = data.id;
+      } else if (data._id) {
+        data.id = data._id;
       } else {
         data._id = crypto.randomUUID();
         data.id = data._id;
       }
       
-      await db.collection(collectionName).insertOne(data);
+      await db.collection(collectionName).replaceOne(
+        { _id: data._id },
+        data,
+        { upsert: true }
+      );
       res.json(data);
     } catch (err: any) {
       console.error(`Error inserting into ${req.params.collection}:`, err);
