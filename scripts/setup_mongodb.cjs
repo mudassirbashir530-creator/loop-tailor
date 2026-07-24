@@ -81,21 +81,23 @@ async function setupMongoDB() {
     await db.collection('admins').createIndex({ email: 1 }, { unique: true });
     console.log("  ✓ Indexes verified.");
 
-    console.log("\n👑 Seeded default Super Admin accounts...");
-    const defaultAdmins = ['looptailor@gmail.com', 'mudassirbashir530@gmail.com'];
-    for (const adminEmail of defaultAdmins) {
-      const exists = await db.collection('admins').findOne({ email: adminEmail });
-      if (!exists) {
-        await db.collection('admins').insertOne({
-          _id: "admin_" + adminEmail.replace(/[^a-zA-Z0-9]/g, '_'),
-          email: adminEmail,
-          role: 'admin',
-          createdAt: new Date().toISOString()
-        });
-        console.log(`  + Seeded admin: ${adminEmail}`);
-      } else {
-        console.log(`  ✓ Admin '${adminEmail}' present`);
-      }
+    console.log("\n👑 Setting single Super Admin account...");
+    const soleAdmin = 'looptailor@gmail.com';
+    
+    // Remove any non-primary admins
+    await db.collection('admins').deleteMany({ email: { $ne: soleAdmin } });
+
+    const exists = await db.collection('admins').findOne({ email: soleAdmin });
+    if (!exists) {
+      await db.collection('admins').insertOne({
+        _id: "admin_" + soleAdmin.replace(/[^a-zA-Z0-9]/g, '_'),
+        email: soleAdmin,
+        role: 'admin',
+        createdAt: new Date().toISOString()
+      });
+      console.log(`  + Seeded sole admin: ${soleAdmin}`);
+    } else {
+      console.log(`  ✓ Sole admin '${soleAdmin}' present`);
     }
 
     console.log("\n🎉 MongoDB setup complete! Database is 100% operational.");
