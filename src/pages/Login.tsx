@@ -60,7 +60,12 @@ export default function Login() {
       const from = location.state?.from?.pathname || '/app';
       navigate(from, { replace: true });
     } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please try again.');
+      let errorMsg = err.message || 'Authentication failed. Please try again.';
+      try {
+        const parsed = typeof err.message === 'string' ? JSON.parse(err.message) : err;
+        if (parsed && parsed.error) errorMsg = parsed.error;
+      } catch (e) {}
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }

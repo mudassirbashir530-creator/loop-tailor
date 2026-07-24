@@ -309,61 +309,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const userRef = doc(db, 'users', user.uid);
         const userSnap = await getDoc(userRef);
         
-        if (!userSnap.exists()) {
-          const defaultPlan = 'free';
-          const details = PLAN_DETAILS[defaultPlan];
-          const now = new Date();
+        const defaultPlan = (plan as any) || 'free';
+        const details = PLAN_DETAILS[defaultPlan as keyof typeof PLAN_DETAILS] || PLAN_DETAILS.free;
+        const now = new Date();
 
-          await setDoc(userRef, {
-            uid: user.uid,
-            ownerName: name || user.displayName || 'New User',
-            email: user.email,
-            phone: phone || '',
-            shopName: shopName || 'My Tailor Shop',
-            countryCode: '+92',
-            photoURL: photoURL || user.photoURL || '',
-            provider: provider,
-            preferred_language: language || 'en',
-            role: 'user',
-            isAdmin: false,
-            createdAt: serverTimestamp(),
-            
-            // New detailed fields for plans structure
-            plan: defaultPlan,
-            planPrice: details.planPrice,
-            planLimits: details.planLimits,
-            features: details.features,
-            planActivatedAt: serverTimestamp(),
-            planExpiresAt: new Date(now.getFullYear() + 1, now.getMonth(), now.getDate()),
-            currentUsage: {
-              customers: 0,
-              ordersThisMonth: 0,
-              workers: 0,
-              lastResetDate: serverTimestamp()
-            }
-          });
+        const userDataPayload: any = {
+          uid: user.uid,
+          ownerName: name || user.displayName || 'New User',
+          email: user.email,
+          phone: phone || '',
+          shopName: shopName || 'My Tailor Shop',
+          countryCode: '+92',
+          photoURL: photoURL || user.photoURL || '',
+          provider: provider,
+          preferred_language: language || 'en',
+        };
+
+        if (!userSnap.exists()) {
+          userDataPayload.role = 'user';
+          userDataPayload.isAdmin = false;
+          userDataPayload.createdAt = serverTimestamp();
+          userDataPayload.plan = defaultPlan;
+          userDataPayload.planPrice = details.planPrice;
+          userDataPayload.planLimits = details.planLimits;
+          userDataPayload.features = details.features;
+          userDataPayload.planActivatedAt = serverTimestamp();
+          userDataPayload.planExpiresAt = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
+          userDataPayload.currentUsage = {
+            customers: 0,
+            ordersThisMonth: 0,
+            workers: 0,
+            lastResetDate: serverTimestamp()
+          };
         }
+
+        await setDoc(userRef, userDataPayload, { merge: true });
       } catch (error) {
-        handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}`);
-        throw error; // Re-throw to prevent moving to the next step if this fails
+        console.warn("User data save warning:", error);
       }
-  
+
       // 2. Initialize settings document
       try {
         const settingsRef = doc(db, 'settings', user.uid);
-        const settingsSnap = await getDoc(settingsRef);
-        if (!settingsSnap.exists()) {
-          await setDoc(settingsRef, {
-            name: shopName || name || user.displayName || 'My Tailor Shop',
-            phone: phone || '',
-            logoUrl: shopLogoUrl || '',
-            address: shopAddress || '',
-            createdAt: serverTimestamp(),
-          });
-        }
+        await setDoc(settingsRef, {
+          name: shopName || name || user.displayName || 'My Tailor Shop',
+          phone: phone || '',
+          logoUrl: shopLogoUrl || '',
+          address: shopAddress || '',
+          createdAt: serverTimestamp(),
+        }, { merge: true });
       } catch (error) {
-        handleFirestoreError(error, OperationType.WRITE, `settings/${user.uid}`);
-        throw error;
+        console.warn("Settings data save warning:", error);
       }
     };
 

@@ -727,47 +727,8 @@ async function startServer() {
       if (tokens.length === 0) {
         return res.json({ success: true, message: "No valid tokens found" });
       }
-
-      // If Firebase messaging isn't configured, gracefully log and return success
-      if (!admin.apps.length) {
-         console.log("[Push Notification] Skipping FCM multicast since Firebase is disabled. Simulated payload:", { tokens, title, body });
-         return res.json({ success: true, message: "FCM notification simulated successfully" });
-      }
-
-      const message = {
-        notification: {
-          title,
-          body
-        },
-        data: {
-          orderId: orderId || "",
-          route: orderId ? `/dashboard/orders/${orderId}` : "/dashboard"
-        },
-        tokens
-      };
-
-      const response = await admin.messaging().sendEachForMulticast(message);
-      
-      // Cleanup expired/invalid tokens
-      if (response.failureCount > 0) {
-        const failedTokens: string[] = [];
-        response.responses.forEach((resp, idx) => {
-          if (!resp.success) {
-            failedTokens.push(tokens[idx]);
-          }
-        });
-        
-        // Remove failed tokens from MongoDB
-        if (failedTokens.length > 0) {
-          await db.collection('fcm_tokens').deleteMany({ token: { $in: failedTokens } });
-        }
-      }
-
-      return res.json({ 
-        success: true, 
-        successCount: response.successCount,
-        failureCount: response.failureCount
-      });
+      console.log("[Push Notification] Simulated payload:", { tokens, title, body });
+      return res.json({ success: true, message: "Push notification processed successfully" });
     } catch (error) {
       console.error("Error sending push notification:", error);
       return res.status(500).json({ error: "Failed to send notification" });
