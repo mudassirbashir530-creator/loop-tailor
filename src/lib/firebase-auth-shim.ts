@@ -62,6 +62,8 @@ function triggerAuthListeners() {
   authListeners.forEach(cb => cb(currentUser));
 }
 
+import { getApiUrl } from './apiHelpers';
+
 async function safeJson(res: Response, fallbackValue: any = {}) {
   const text = await res.text();
   if (!text) return fallbackValue;
@@ -70,14 +72,14 @@ async function safeJson(res: Response, fallbackValue: any = {}) {
   } catch (err) {
     console.error(`[JSON Parse Error] Failed parsing response from ${res.url}. Status: ${res.status}. Content:`, text);
     if (text.includes("<!DOCTYPE html>") || text.includes("<html")) {
-      throw new Error(`Server returned HTML error page. This usually indicates a 404/500 routing error on server-side. URL: ${res.url}`);
+      throw new Error(`Backend server is not connected. Please run 'npm run dev' to start local Express server or configure VITE_API_URL.`);
     }
     throw new Error(text.slice(0, 200));
   }
 }
 
 export async function signInWithEmailAndPassword(authInstance: any, email: string, password: string) {
-  const res = await fetch('/api/auth/login', {
+  const res = await fetch(getApiUrl('/api/auth/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
@@ -102,7 +104,7 @@ export async function signInWithEmailAndPassword(authInstance: any, email: strin
 }
 
 export async function createUserWithEmailAndPassword(authInstance: any, email: string, password: string) {
-  const res = await fetch('/api/auth/signup', {
+  const res = await fetch(getApiUrl('/api/auth/signup'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password })
@@ -137,7 +139,7 @@ export async function updateProfile(user: any, profileUpdates: { displayName?: s
   safeSetItem('loop_tailor_user', JSON.stringify(currentUser.toJSON()));
   
   // Update in MongoDB
-  await fetch(`/api/db/users/${currentUser.uid}?merge=true`, {
+  await fetch(getApiUrl(`/api/db/users/${currentUser.uid}?merge=true`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -156,7 +158,7 @@ export async function signOut() {
 }
 
 export async function sendPasswordResetEmail(authInstance: any, email: string) {
-  const res = await fetch('/api/auth/forgot-password', {
+  const res = await fetch(getApiUrl('/api/auth/forgot-password'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email })

@@ -1,5 +1,16 @@
 import { getAuth } from "firebase/auth";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
+export function getApiUrl(path: string): string {
+  if (API_BASE_URL) {
+    const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+    const rel = path.startsWith('/') ? path : '/' + path;
+    return base + rel;
+  }
+  return path;
+}
+
 /**
  * Safely fetches data from an API, preventing "Unexpected end of JSON input" errors.
  * Handles Firebase Auth tokens, empty responses, invalid JSON, and timeouts.

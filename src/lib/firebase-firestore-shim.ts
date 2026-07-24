@@ -85,10 +85,12 @@ async function safeJson(res: Response, fallbackValue: any = {}) {
   }
 }
 
+import { getApiUrl } from './apiHelpers';
+
 // Fetch document
 export async function getDoc(docRef: any) {
   try {
-    const res = await fetch(`/api/db/${docRef.collection}/${docRef.id}`);
+    const res = await fetch(getApiUrl(`/api/db/${docRef.collection}/${docRef.id}`));
     if (!res.ok) {
       if (res.status === 404) {
         return createDocSnapshot(docRef.id, null);
@@ -126,7 +128,7 @@ export async function getDocs(queryOrCollection: any) {
       url += `?${params.toString()}`;
     }
     
-    const res = await fetch(url);
+    const res = await fetch(getApiUrl(url));
     const data = await safeJson(res, []);
     
     const docs = Array.isArray(data) ? data.map((d: any) => createDocSnapshot(d.id || d._id, d)) : [];
@@ -143,7 +145,7 @@ export async function getDocs(queryOrCollection: any) {
 
 // Add doc
 export async function addDoc(collectionRef: any, data: any) {
-  const res = await fetch(`/api/db/${collectionRef.name}`, {
+  const res = await fetch(getApiUrl(`/api/db/${collectionRef.name}`), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -157,7 +159,7 @@ export async function addDoc(collectionRef: any, data: any) {
 // Set doc
 export async function setDoc(docRef: any, data: any, options?: { merge?: boolean }) {
   const merge = options?.merge !== false;
-  await fetch(`/api/db/${docRef.collection}/${docRef.id}?merge=${merge}`, {
+  await fetch(getApiUrl(`/api/db/${docRef.collection}/${docRef.id}?merge=${merge}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -167,7 +169,7 @@ export async function setDoc(docRef: any, data: any, options?: { merge?: boolean
 
 // Update doc
 export async function updateDoc(docRef: any, data: any) {
-  await fetch(`/api/db/${docRef.collection}/${docRef.id}?merge=true`, {
+  await fetch(getApiUrl(`/api/db/${docRef.collection}/${docRef.id}?merge=true`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -177,7 +179,7 @@ export async function updateDoc(docRef: any, data: any) {
 
 // Delete doc
 export async function deleteDoc(docRef: any) {
-  await fetch(`/api/db/${docRef.collection}/${docRef.id}`, {
+  await fetch(getApiUrl(`/api/db/${docRef.collection}/${docRef.id}`), {
     method: 'DELETE'
   });
   triggerListeners(docRef.collection);
