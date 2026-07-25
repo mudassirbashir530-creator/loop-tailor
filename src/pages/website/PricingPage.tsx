@@ -29,25 +29,49 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-24 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-24 items-stretch">
           
+          {/* Free Plan */}
+          <PricingCard 
+            title="Free"
+            price="0"
+            badge="Free Forever"
+            badgeColor="bg-gray-500"
+            includedFeatures={[
+              "10 Customers limit",
+              "15 Orders/month limit",
+              "1 Worker limit",
+              "Basic Tailor Invoice",
+              "Image Upload",
+              "Standard Support",
+            ]}
+            excludedFeatures={[
+              "Worker Management",
+              "Invoice PDF Download",
+              "WhatsApp Integration & Alerts",
+              "Worker Payroll System",
+              "Advanced Shop Analytics",
+            ]}
+            onCTA={() => handleWhatsAppCTA('Free')}
+          />
+
           {/* Basic Plan */}
           <PricingCard 
             title="Basic"
             price="500"
             badge="Ideal start"
-            badgeColor="bg-slate-500"
+            badgeColor="bg-slate-600"
             includedFeatures={[
               "50 Customers limit",
               "60 Orders/month limit",
               "3 Workers limit",
+              "Worker Management",
               "Basic Tailor Invoice",
               "Standard Support",
             ]}
             excludedFeatures={[
               "Professional Invoice & PDF Download",
               "WhatsApp Integration & Alerts",
-              "Image Upload & Photo Attachment",
               "Worker Payroll System",
               "Advanced Shop Analytics",
             ]}
@@ -65,14 +89,15 @@ export default function PricingPage() {
               "200 Customers limit",
               "200 Orders/month limit",
               "7 Workers limit",
+              "Worker Management",
               "Professional Invoice + PDF Download",
               "WhatsApp Integration & Instant Alerts",
               "Priority Customer Support",
             ]}
             excludedFeatures={[
-              "Image Upload & Photo Attachment",
               "Worker Payroll System",
               "Advanced Shop Analytics",
+              "Custom Branding",
             ]}
             onCTA={() => handleWhatsAppCTA('Standard')}
           />
@@ -82,14 +107,18 @@ export default function PricingPage() {
             title="Premium"
             price="2,000"
             badge="Best Value"
-            badgeColor="bg-emerald-650"
+            badgeColor="bg-emerald-600"
             includedFeatures={[
-              "Unlimited Everything",
-              "Image Upload & Photo Attachment",
+              "Unlimited Customers",
+              "Unlimited Orders",
+              "Unlimited Workers",
+              "Worker Management",
+              "Professional Invoice + PDF Download",
+              "WhatsApp Integration & Alerts",
               "Worker Payroll System",
               "Advanced Shop Analytics",
               "Custom Invoice & Brand Styling",
-              "WhatsApp Priority Support",
+              "WhatsApp Direct Priority Support",
             ]}
             onCTA={() => handleWhatsAppCTA('Premium')}
           />

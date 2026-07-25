@@ -182,11 +182,13 @@ export default function NewOrder() {
       toast.error('Please select a delivery date.');
       return;
     }
-    if (price <= 0) {
-      toast.error('Please enter a valid price.');
+    if (!canAddOrder) {
+      setLimitModalType('orders');
+      setIsLimitModalOpen(true);
+      toast.error(`Your current plan allows up to ${limits.ordersPerMonth} orders per month. Please upgrade your plan.`);
       return;
     }
-    
+
     setLoading(true);
     try {
       const uploadedReferenceImages: CloudinaryImage[] = [];

@@ -145,6 +145,11 @@ export default function Clients() {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canAddCustomer) {
+       setIsLimitModalOpen(true);
+       toast.error(`Your current plan allows up to ${limits.customers} customer(s). Please upgrade your plan.`);
+       return;
+    }
     if (!formData.name) {
        toast.error("Name is required.");
        return;

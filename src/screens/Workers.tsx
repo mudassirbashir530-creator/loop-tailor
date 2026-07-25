@@ -153,6 +153,11 @@ export default function Workers() {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canAddWorker) {
+       setIsLimitModalOpen(true);
+       toast.error(`Your current plan allows up to ${limits.workers} worker(s). Please upgrade your plan.`);
+       return;
+    }
     if (!formData.name || !formData.phone) {
        toast.error("Name and Phone are required.");
        return;
