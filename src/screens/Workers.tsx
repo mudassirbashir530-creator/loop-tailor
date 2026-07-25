@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { SearchBar } from '../components/ui/search-bar';
 import { Button } from '../components/ui/button';
 import { useWorkers } from '../hooks/useWorkers';
-import { formatDate, formatCurrency } from '../lib/utils';
+import { formatDate, formatCurrency, renderSafeNumber } from '../lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -400,11 +400,11 @@ export default function Workers() {
                   <div className="grid grid-cols-2 gap-3 mt-6">
                     <div className="bg-muted/40 rounded-xl p-3 text-center">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Active</p>
-                      <p className="text-lg font-bold text-foreground">{worker.activeOrders || 0}</p>
+                      <p className="text-lg font-bold text-foreground">{renderSafeNumber(worker.activeOrders)}</p>
                     </div>
                     <div className="bg-muted/40 rounded-xl p-3 text-center">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Completed</p>
-                      <p className="text-lg font-bold text-foreground">{worker.completedOrders || 0}</p>
+                      <p className="text-lg font-bold text-foreground">{renderSafeNumber(worker.completedOrders)}</p>
                     </div>
                   </div>
 

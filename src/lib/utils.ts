@@ -5,6 +5,28 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const CURRENCIES = [
+  { code: 'PKR', symbol: 'PKR', label: 'PKR — Pakistani Rupee' },
+  { code: 'USD', symbol: '$', label: 'USD — US Dollar' },
+  { code: 'AED', symbol: 'AED', label: 'AED — UAE Dirham' },
+  { code: 'SAR', symbol: 'SAR', label: 'SAR — Saudi Riyal' },
+  { code: 'INR', symbol: '₹', label: 'INR — Indian Rupee' },
+  { code: 'BDT', symbol: '৳', label: 'BDT — Bangladeshi Taka' },
+  { code: 'GBP', symbol: '£', label: 'GBP — British Pound' },
+  { code: 'EUR', symbol: '€', label: 'EUR — Euro' },
+];
+
+export function renderSafeNumber(val: any): number {
+  if (val === null || val === undefined) return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  if (typeof val === 'object') {
+    if ('value' in val && typeof val.value === 'number') return val.value;
+    if ('amount' in val && typeof val.amount === 'number') return val.amount;
+  }
+  const parsed = Number(val);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
 export function formatDate(dateValue: any) {
   if (!dateValue) return 'N/A';
   try {
@@ -34,12 +56,10 @@ export function formatDate(dateValue: any) {
   }
 }
 
-export function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-PK', {
-    style: 'currency',
-    currency: 'PKR',
-    maximumFractionDigits: 0
-  }).format(amount);
+export function formatCurrency(amount: any, currencyCode: string = 'PKR') {
+  const num = renderSafeNumber(amount);
+  const curr = CURRENCIES.find(c => c.code === currencyCode) || CURRENCIES[0];
+  return `${curr.symbol} ${num.toLocaleString('en-US')}`;
 }
 
 export function isOrderOverdue(deliveryDate: any, status?: string) {

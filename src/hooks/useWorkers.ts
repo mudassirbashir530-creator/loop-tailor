@@ -3,6 +3,7 @@ import { collection, query, where, onSnapshot, addDoc, doc, serverTimestamp, ord
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { Worker } from '../lib/types';
+import { renderSafeNumber } from '../lib/utils';
 import { toast } from 'sonner';
 
 export function useWorkers() {
@@ -38,16 +39,16 @@ export function useWorkers() {
               if (st === 'per-order' || st === 'per_order') return 'per_suit';
               return st;
             })(),
-            salaryAmount: data.salaryAmount || 0,
+            salaryAmount: renderSafeNumber(data.salaryAmount),
             speciality: data.speciality || '',
             address: data.address || '',
             notes: data.notes || '',
             joiningDate: data.joiningDate || new Date().toISOString(),
             profileImage: data.profileImage || null,
             status: data.status || 'available',
-            activeOrders: data.activeOrders || 0,
-            completedOrders: data.completedOrders || 0,
-            totalEarnings: data.totalEarnings || 0,
+            activeOrders: renderSafeNumber(data.activeOrders),
+            completedOrders: renderSafeNumber(data.completedOrders),
+            totalEarnings: renderSafeNumber(data.totalEarnings),
             userId: data.userId || '',
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
           });
