@@ -55,6 +55,7 @@ export interface Order {
   workerId?: string;
   workerName?: string;
   status: OrderStatus;
+  serviceCategory?: 'Bespoke' | 'Alteration' | 'Repair';
   clothingType: string;
   dressType?: string;
   measurements: Record<string, string>;

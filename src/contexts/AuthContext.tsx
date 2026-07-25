@@ -302,7 +302,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       shopName?: string,
       shopLogoUrl?: string,
       shopAddress?: string,
-      plan?: string
+      plan?: string,
+      currency: string = 'PKR',
+      servicesOffered: string[] = ['Alteration', 'Repair', 'Bespoke']
     ) => {
       // 1. Write to Users collection
       try {
@@ -319,6 +321,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: user.email,
           phone: phone || '',
           shopName: shopName || 'My Tailor Shop',
+          currency: currency || 'PKR',
+          servicesOffered: servicesOffered || ['Alteration', 'Repair', 'Bespoke'],
           countryCode: '+92',
           photoURL: photoURL || user.photoURL || '',
           provider: provider,
@@ -354,6 +358,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await setDoc(settingsRef, {
           name: shopName || name || user.displayName || 'My Tailor Shop',
           phone: phone || '',
+          currency: currency || 'PKR',
+          servicesOffered: servicesOffered || ['Alteration', 'Repair', 'Bespoke'],
           logoUrl: shopLogoUrl || '',
           address: shopAddress || '',
           createdAt: serverTimestamp(),
@@ -365,11 +371,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
-    // Removed saveUserData call to prevent unnecessary writes and permission errors (Bug 2 Fix)
   };
 
-  // NOTE: If you receive an 'auth/operation-not-allowed' error, you must enable 
-  // "Email/Password" sign-in method in your Firebase Console under Authentication. (Bug 4 Fix)
   const signUp = async (
     email: string, 
     password: string, 
@@ -380,7 +383,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     shopName?: string,
     shopLogoUrl?: string,
     shopAddress?: string,
-    plan?: string
+    plan?: string,
+    currency?: string,
+    servicesOffered?: string[]
   ) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
@@ -390,7 +395,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     await updateProfile(userCredential.user, profileUpdates);
     
-    await saveUserData(userCredential.user, 'password', name, phone, language, photoURL, shopName, shopLogoUrl, shopAddress, plan);
+    await saveUserData(userCredential.user, 'password', name, phone, language, photoURL, shopName, shopLogoUrl, shopAddress, plan, currency, servicesOffered);
   };
 
   const logOut = async () => {

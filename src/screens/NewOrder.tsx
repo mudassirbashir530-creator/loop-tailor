@@ -80,6 +80,7 @@ export default function NewOrder() {
   const [newCustomer, setNewCustomer] = useState({ name: '', phone: '', whatsappPhone: '', address: '', countryCode: '+92', gender: 'male', notes: '' });
   
   // Order State
+  const [serviceCategory, setServiceCategory] = useState<'Bespoke' | 'Alteration' | 'Repair'>('Bespoke');
   const [clothingType, setClothingType] = useState('Shalwar Kameez');
   const [customClothingType, setCustomClothingType] = useState('');
   const [workerId, setWorkerId] = useState('');
@@ -233,6 +234,7 @@ export default function NewOrder() {
         customerName: selectedCustomer.name || '',
         customerPhone: selectedCustomer.phone || '',
         status: 'pending' as OrderStatus,
+        serviceCategory: serviceCategory || 'Bespoke',
         clothingType: actualClothingType || '',
         dressType: actualClothingType || '',
         designNotes: designNotes || '',
@@ -456,6 +458,33 @@ export default function NewOrder() {
                <CardDescription>Select the clothing type to dynamically load relevant measurement fields.</CardDescription>
              </CardHeader>
              <CardContent className="space-y-6">
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-foreground">Service Type *</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: 'Bespoke', label: 'Bespoke (Stitching)', icon: '✨', activeClass: 'bg-emerald-500/10 border-emerald-500 text-emerald-700 font-black' },
+                      { id: 'Alteration', label: 'Alteration', icon: '✂️', activeClass: 'bg-amber-500/10 border-amber-500 text-amber-700 font-black' },
+                      { id: 'Repair', label: 'Repair', icon: '🔧', activeClass: 'bg-blue-500/10 border-blue-500 text-blue-700 font-black' }
+                    ].map(svc => (
+                      <button
+                        key={svc.id}
+                        type="button"
+                        onClick={() => setServiceCategory(svc.id as any)}
+                        className={cn(
+                          "py-3 px-2 rounded-xl border text-xs flex flex-col items-center justify-center gap-1.5 transition-all",
+                          serviceCategory === svc.id 
+                            ? `${svc.activeClass} ring-2 ring-primary shadow-xs` 
+                            : "bg-background border-input text-muted-foreground hover:bg-accent"
+                        )}
+                      >
+                        <span className="text-lg">{svc.icon}</span>
+                        <span>{svc.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-foreground">Clothing Type</label>
                   <select 

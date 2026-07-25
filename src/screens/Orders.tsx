@@ -321,7 +321,24 @@ export default function Orders() {
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-foreground text-base leading-tight">{order?.customerName || 'Unnamed'}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{order?.clothingType || 'Tailoring'} • {order?.tokenId || `T-${order?.id?.slice(0, 6).toUpperCase()}`}</p>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <p className="text-xs text-muted-foreground">{order?.clothingType || 'Tailoring'} • {order?.tokenId || `T-${order?.id?.slice(0, 6).toUpperCase()}`}</p>
+                        {order?.serviceCategory === 'Alteration' && (
+                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30 flex items-center gap-1">
+                            ✂️ Alteration
+                          </span>
+                        )}
+                        {order?.serviceCategory === 'Repair' && (
+                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/15 text-blue-600 border border-blue-500/30 flex items-center gap-1">
+                            🔧 Repair
+                          </span>
+                        )}
+                        {order?.serviceCategory === 'Bespoke' && (
+                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 flex items-center gap-1">
+                            ✨ Bespoke
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <Badge variant={order?.status || 'pending'} className="capitalize shrink-0 ml-2">{order?.status || 'pending'}</Badge>

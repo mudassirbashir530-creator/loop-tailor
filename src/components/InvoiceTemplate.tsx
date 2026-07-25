@@ -66,7 +66,24 @@ export const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
           <tbody>
             <tr className="border-b border-gray-100">
               <td className="py-4">
-                <p className="font-medium text-gray-800">{order.clothingType}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-gray-800">{order.clothingType}</p>
+                  {order.serviceCategory === 'Alteration' && (
+                    <span className="px-2 py-0.5 text-xs font-bold rounded bg-amber-100 text-amber-800 border border-amber-300">
+                      ✂️ Alteration
+                    </span>
+                  )}
+                  {order.serviceCategory === 'Repair' && (
+                    <span className="px-2 py-0.5 text-xs font-bold rounded bg-blue-100 text-blue-800 border border-blue-300">
+                      🔧 Repair
+                    </span>
+                  )}
+                  {order.serviceCategory === 'Bespoke' && (
+                    <span className="px-2 py-0.5 text-xs font-bold rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      ✨ Bespoke
+                    </span>
+                  )}
+                </div>
                 {order.designNotes && <p className="text-sm text-gray-500 mt-1">{order.designNotes}</p>}
               </td>
               <td className="py-4 text-right text-gray-700">{formatDate(order.deliveryDate)}</td>
