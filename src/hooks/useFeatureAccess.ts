@@ -6,7 +6,7 @@ import { db } from '../lib/firebase';
 export function useFeatureAccess() {
   const { user, loading } = useAuth();
   const [features, setFeatures] = useState<any>({
-    canDownloadInvoice: false,
+    canDownloadInvoice: true,
     canUploadImages: true,
     canUseWhatsApp: false,
     canUsePayroll: false,
@@ -14,7 +14,7 @@ export function useFeatureAccess() {
     canCustomBranding: false,
     canManageWorkers: true
   });
-  const [currentPlan, setCurrentPlan] = useState<string>('basic');
+  const [currentPlan, setCurrentPlan] = useState<string>('free');
   const [localLoading, setLocalLoading] = useState(true);
 
   useEffect(() => {
@@ -29,8 +29,8 @@ export function useFeatureAccess() {
         const data = snap.data();
         if (data?.features) {
           setFeatures({
-            canDownloadInvoice: !!data.features.canDownloadInvoice,
-            canUploadImages: !!data.features.canUploadImages,
+            canDownloadInvoice: data.features.canDownloadInvoice !== false,
+            canUploadImages: data.features.canUploadImages !== false,
             canUseWhatsApp: !!data.features.canUseWhatsApp,
             canUsePayroll: !!data.features.canUsePayroll,
             canViewAnalytics: !!data.features.canViewAnalytics,
@@ -53,29 +53,32 @@ export function useFeatureAccess() {
 
   const isLoading = loading || localLoading;
 
-  const canManageWorkers = 
-    features?.canManageWorkers !== false 
-    || currentPlan === 'basic'
-    || currentPlan === 'standard'
+  const canManageWorkers = true; // All plans (including Free 1-worker) can manage workers within quota limit
+  const canDownloadInvoice = true; // All plans can view & print invoices
+  const canUploadImages = true; // All plans can upload reference photos
+
+  const canUseWhatsApp = 
+    features?.canUseWhatsApp === true 
+    || currentPlan === 'standard' 
     || currentPlan === 'premium';
 
-  const canUploadImages = 
-    features?.canUploadImages !== false 
-    || currentPlan === 'free'
-    || currentPlan === 'basic'
-    || currentPlan === 'standard'
+  const canUsePayroll = 
+    features?.canUsePayroll === true 
+    || currentPlan === 'premium';
+
+  const canViewAnalytics = 
+    features?.canViewAnalytics === true 
     || currentPlan === 'premium';
 
   return {
-    canDownloadInvoice: !!features.canDownloadInvoice,
+    canDownloadInvoice,
     canUploadImages,
-    canUseWhatsApp: !!features.canUseWhatsApp,
-    canUsePayroll: !!features.canUsePayroll,
-    canViewAnalytics: !!features.canViewAnalytics,
-    canCustomBranding: !!features.canCustomBranding,
+    canUseWhatsApp,
+    canUsePayroll,
+    canViewAnalytics,
+    canCustomBranding: !!features.canCustomBranding || currentPlan === 'premium',
     canManageWorkers,
     isLoading,
     currentPlan
   };
 }
-
