@@ -161,13 +161,13 @@ async function startServer() {
           workers: 1
         },
         features: {
-          canDownloadInvoice: false,
+          canDownloadInvoice: true,
           canUploadImages: true,
           canUseWhatsApp: false,
           canUsePayroll: false,
           canViewAnalytics: false,
           canCustomBranding: false,
-          canManageWorkers: false
+          canManageWorkers: true
         },
         currentUsage: {
           customers: 0,

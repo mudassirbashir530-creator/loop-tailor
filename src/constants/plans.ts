@@ -11,26 +11,25 @@ export const PLANS = {
       workers: 1
     },
     features: {
-      canDownloadInvoice: false,
+      canDownloadInvoice: true,
       canUploadImages: true,
       canUseWhatsApp: false,
       canUsePayroll: false,
       canViewAnalytics: false,
       canCustomBranding: false,
-      canManageWorkers: false
+      canManageWorkers: true
     },
     featureList: [
       { label: "10 Customers", included: true },
       { label: "15 Orders/month", included: true },
       { label: "1 Worker", included: true },
-      { label: "Basic Invoice", included: true },
-      { label: "Standard Support", included: true },
-      { label: "Invoice Download", included: false },
-      { label: "WhatsApp Integration", included: false },
+      { label: "Basic Invoice & Download", included: true },
       { label: "Image Upload", included: true },
-      { label: "Worker Management", included: false },
+      { label: "Standard Support", included: true },
+      { label: "WhatsApp Integration", included: false },
+      { label: "Worker Management (Multi-worker)", included: false },
       { label: "Payroll System", included: false },
-      { label: "Analytics", included: false }
+      { label: "Advanced Analytics", included: false }
     ]
   },
   basic: {
@@ -45,7 +44,7 @@ export const PLANS = {
       workers: 3
     },
     features: {
-      canDownloadInvoice: false,
+      canDownloadInvoice: true,
       canUploadImages: true,
       canUseWhatsApp: false,
       canUsePayroll: false,
@@ -57,14 +56,13 @@ export const PLANS = {
       { label: "50 Customers", included: true },
       { label: "60 Orders/month", included: true },
       { label: "3 Workers", included: true },
-      { label: "Basic Invoice", included: true },
-      { label: "Standard Support", included: true },
-      { label: "Invoice Download", included: false },
-      { label: "WhatsApp Integration", included: false },
+      { label: "Invoice Download", included: true },
+      { label: "Worker Management", included: true },
       { label: "Image Upload", included: true },
+      { label: "Standard Support", included: true },
+      { label: "WhatsApp Integration", included: false },
       { label: "Payroll System", included: false },
-      { label: "Advanced Analytics", included: false },
-      { label: "Custom Branding", included: false }
+      { label: "Advanced Analytics", included: false }
     ]
   },
   standard: {
@@ -91,14 +89,13 @@ export const PLANS = {
       { label: "200 Customers", included: true },
       { label: "200 Orders/month", included: true },
       { label: "7 Workers", included: true },
-      { label: "Professional Invoice", included: true },
-      { label: "Invoice Download", included: true },
-      { label: "WhatsApp Integration", included: true },
+      { label: "Professional Invoice & PDF Download", included: true },
+      { label: "WhatsApp Integration & Alerts", included: true },
+      { label: "Worker Management", included: true },
       { label: "Priority Support", included: true },
       { label: "Image Upload", included: true },
       { label: "Payroll System", included: false },
-      { label: "Advanced Analytics", included: false },
-      { label: "Custom Branding", included: false }
+      { label: "Advanced Analytics", included: false }
     ]
   },
   premium: {
@@ -125,14 +122,13 @@ export const PLANS = {
       { label: "Unlimited Customers", included: true },
       { label: "Unlimited Orders", included: true },
       { label: "Unlimited Workers", included: true },
-      { label: "Professional Invoice", included: true },
-      { label: "Invoice Download", included: true },
+      { label: "Professional Invoice & PDF Download", included: true },
       { label: "WhatsApp Integration", included: true },
-      { label: "Image Upload", included: true },
+      { label: "Worker Management", included: true },
       { label: "Payroll System", included: true },
-      { label: "Advanced Analytics", included: true },
+      { label: "Advanced Shop Analytics", included: true },
       { label: "Custom Branding", included: true },
-      { label: "WhatsApp Direct Support", included: true }
+      { label: "WhatsApp Priority Support", included: true }
     ]
   }
 } as const;
@@ -148,11 +144,11 @@ export const FEATURE_LABELS = {
 } as const;
 
 export const REQUIRED_PLAN = {
-  canDownloadInvoice: "standard",
+  canDownloadInvoice: "free",
   canUploadImages: "free",
   canUseWhatsApp: "standard",
   canUsePayroll: "premium",
   canViewAnalytics: "premium",
   canCustomBranding: "premium",
-  canManageWorkers: "basic"
+  canManageWorkers: "free"
 } as const;

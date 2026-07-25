@@ -52,13 +52,13 @@ export const PLAN_DETAILS = {
       workers: 1
     },
     features: {
-      canDownloadInvoice: false,
+      canDownloadInvoice: true,
       canUploadImages: true,
       canUseWhatsApp: false,
       canUsePayroll: false,
       canViewAnalytics: false,
       canCustomBranding: false,
-      canManageWorkers: false
+      canManageWorkers: true
     }
   },
   basic: {
