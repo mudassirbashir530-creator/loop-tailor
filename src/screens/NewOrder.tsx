@@ -92,7 +92,8 @@ export default function NewOrder() {
   const [referenceImages, setReferenceImages] = useState<File[]>([]);
   const [designImages, setDesignImages] = useState<File[]>([]);
 
-  // Payment State
+  // Payment & Priority State
+  const [isVip, setIsVip] = useState(false);
   const [price, setPrice] = useState(0);
   const [advance, setAdvance] = useState(0);
   const [deliveryDate, setDeliveryDate] = useState('');
@@ -234,6 +235,7 @@ export default function NewOrder() {
         customerName: selectedCustomer.name || '',
         customerPhone: selectedCustomer.phone || '',
         status: 'pending' as OrderStatus,
+        isVip: isVip,
         serviceCategory: serviceCategory || 'Bespoke',
         clothingType: actualClothingType || '',
         dressType: actualClothingType || '',
@@ -411,6 +413,33 @@ export default function NewOrder() {
                         </Button>
                       </div>
                     )}
+
+                    {/* VIP Priority Toggle */}
+                    <div className="pt-4 border-t">
+                      <div 
+                        onClick={() => setIsVip(!isVip)}
+                        className={cn(
+                          "p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between",
+                          isVip 
+                            ? "bg-amber-500/10 border-amber-500 shadow-sm" 
+                            : "bg-muted/30 border-border hover:bg-accent"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">⭐</span>
+                          <div>
+                            <p className="font-bold text-sm text-foreground">Mark as VIP Customer / Urgent Order</p>
+                            <p className="text-xs text-muted-foreground">Highlights order card in gold and marks high speed priority for tailors</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={isVip}
+                          onChange={(e) => setIsVip(e.target.checked)}
+                          className="h-5 w-5 rounded text-amber-500 focus:ring-amber-400 border-amber-300 cursor-pointer"
+                        />
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">

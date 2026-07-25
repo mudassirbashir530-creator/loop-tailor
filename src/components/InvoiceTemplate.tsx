@@ -47,7 +47,14 @@ export const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
       <div className="mb-10">
         <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-3">Bill To</h3>
         <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="font-bold text-xl text-gray-800 mb-1">{order?.customerName || 'Unnamed Customer'}</p>
+          <div className="flex items-center justify-between">
+            <p className="font-bold text-xl text-gray-800 mb-1">{order?.customerName || 'Unnamed Customer'}</p>
+            {order?.isVip && (
+              <span className="px-3 py-1 text-xs font-black rounded-full bg-amber-400 text-slate-900 border border-amber-500">
+                ⭐ VIP CUSTOMER
+              </span>
+            )}
+          </div>
           <p className="text-gray-600">{order?.customerPhone || 'No contact info'}</p>
         </div>
       </div>

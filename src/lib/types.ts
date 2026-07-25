@@ -47,6 +47,15 @@ export interface Worker {
 
 export type OrderStatus = "pending" | "stitching" | "ready" | "delivered" | "cancelled";
 
+export interface OrderItem {
+  id: string;
+  clothingType: string;
+  serviceCategory: 'Bespoke' | 'Alteration' | 'Repair';
+  designNotes?: string;
+  price: number;
+  measurements?: Record<string, string>;
+}
+
 export interface Order {
   id: string;
   customerId: string;
@@ -55,7 +64,9 @@ export interface Order {
   workerId?: string;
   workerName?: string;
   status: OrderStatus;
+  isVip?: boolean;
   serviceCategory?: 'Bespoke' | 'Alteration' | 'Repair';
+  items?: OrderItem[];
   clothingType: string;
   dressType?: string;
   measurements: Record<string, string>;

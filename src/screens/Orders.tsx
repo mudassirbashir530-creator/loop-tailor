@@ -320,6 +320,11 @@ export default function Orders() {
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-foreground text-base leading-tight">{order?.customerName || 'Unnamed'}</p>
+                        {order?.isVip && (
+                          <span className="px-2.5 py-0.5 text-[10px] font-black rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs flex items-center gap-1">
+                            ⭐ VIP CUSTOMER
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <p className="text-xs text-muted-foreground">{order?.clothingType || 'Tailoring'} • {order?.tokenId || `T-${order?.id?.slice(0, 6).toUpperCase()}`}</p>
