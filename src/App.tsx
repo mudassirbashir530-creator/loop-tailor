@@ -9,6 +9,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { NotificationProvider } from './components/NotificationProvider';
 
 import OrderDetails from './pages/OrderDetails';
+import WorkerOrderView from './pages/WorkerOrderView';
 
 // Layouts
 import WebsiteLayout from './layouts/WebsiteLayout';
@@ -85,14 +86,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-import ErrorBoundary from './components/ErrorBoundary';
-
-import { safeStorage } from './lib/safeStorage';
-
-import Blog from './pages/Blog';
-import ArticleView from './pages/ArticleView';
-
-function AppContent() {
+function MainApp() {
   const location = useLocation();
 
   React.useEffect(() => {
@@ -109,13 +103,15 @@ function AppContent() {
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<ArticleView />} />
+            <Route path="/blog" element={<GenericPage title="Blog" />} />
             <Route path="/careers" element={<GenericPage title="Careers" />} />
             <Route path="/partners" element={<GenericPage title="Partners" />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
           </Route>
+
+          {/* Public Worker Worksheet Route */}
+          <Route path="/worker-order/:id" element={<WorkerOrderView />} />
 
           {/* Auth Routes */}
           <Route path="/auth/login" element={
@@ -158,6 +154,7 @@ function AppContent() {
             <Route path="orders" element={<Orders />} />
             <Route path="orders/:id" element={<OrderDetails />} />
             <Route path="invoice/:id" element={<Invoice />} />
+            <Route path="worker-order/:id" element={<WorkerOrderView />} />
             <Route path="new-order" element={<NewOrder />} />
             <Route path="settings" element={<Settings />} />
             <Route path="upgrade" element={<Upgrade />} />
@@ -178,10 +175,9 @@ function AppContent() {
             <Route path="articles" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><Articles /></div>} />
             <Route path="articles/new" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><ArticleEditor /></div>} />
             <Route path="articles/edit/:id" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><ArticleEditor /></div>} />
-            <Route path="media-library" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><MediaLibrary /></div>} />
+            <Route path="media" element={<div className="p-4 md:p-8 max-w-6xl mx-auto"><MediaLibrary /></div>} />
           </Route>
 
-          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>
@@ -190,40 +186,18 @@ function AppContent() {
 }
 
 export default function App() {
-  const [theme, setTheme] = React.useState('system');
-
-  React.useEffect(() => {
-    try {
-      const savedTheme = safeStorage.getItem('theme') || 'system';
-      setTheme(savedTheme);
-      if (savedTheme === 'dark' || (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    } catch (e) {
-      console.warn("Theme initial load error:", e);
-      // Apply light theme as safe fallback
-      document.documentElement.classList.remove('dark', 'system');
-      document.documentElement.classList.add('light');
-      setTheme('light');
-    }
-  }, []);
-
   return (
-    <ErrorBoundary>
+    <BrowserRouter>
       <AuthProvider>
         <ShopProvider>
           <LanguageProvider>
-            <BrowserRouter>
-              <NotificationProvider>
-                <AppContent />
-                <Toaster position="top-center" richColors />
-              </NotificationProvider>
-            </BrowserRouter>
+            <NotificationProvider>
+              <MainApp />
+              <Toaster position="top-right" richColors />
+            </NotificationProvider>
           </LanguageProvider>
         </ShopProvider>
       </AuthProvider>
-    </ErrorBoundary>
+    </BrowserRouter>
   );
 }
