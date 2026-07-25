@@ -107,6 +107,15 @@ export function cleanPhoneNumber(phone: string, countryCode: string = '+92'): st
   return cleaned;
 }
 
+export function formatWhatsAppNumber(phone: string): string {
+  if (!phone) return '';
+  let cleaned = phone.replace(/[^\d]/g, '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '92' + cleaned.substring(1);
+  }
+  return cleaned;
+}
+
 export function getWhatsAppLink(cleanedNumber: string): string {
   if (!cleanedNumber) return '';
   const finalNumber = cleanedNumber.replace(/\+/g, '');
