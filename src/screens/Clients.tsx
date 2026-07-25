@@ -590,7 +590,7 @@ export default function Clients() {
             {filteredCustomers.map((customer) => {
               const phoneValid = isValidPakistaniMobile(customer.phone);
               return (
-                <Card key={customer.id} className="relative bg-card hover:shadow-md hover:border-border/80 transition-all rounded-3xl overflow-hidden shadow-xs border flex flex-col justify-between">
+                <Card key={customer.id} className="relative bg-card hover:shadow-md hover:border-border/80 transition-all rounded-3xl overflow-hidden shadow-xs border flex flex-col justify-between min-w-0 w-full">
                   <span className="sr-only">{customer.name}</span>
                   <CardContent className="p-0 flex-1 flex flex-col justify-between">
                     <div className="p-5">

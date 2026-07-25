@@ -1,52 +1,21 @@
 import React, { useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import BottomNav from '../components/BottomNav';
-import { Home, Users, Plus, Package, Settings, Scissors, UserCircle, FileText, MessageSquare } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { Home, Users, Package, Settings, Plus, Scissors, UserCircle, MessageSquare, FileText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrders } from '../hooks/useOrders';
+import { cn } from '../lib/utils';
+import BottomNav from '../components/BottomNav';
 import { PWAPrompt } from '../components/PWAPrompt';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { toast } from 'sonner';
 
 export default function AppLayout() {
-  const location = useLocation();
-  const { user, userData, logOut } = useAuth();
+  const { user, userData } = useAuth();
   const { orders } = useOrders();
+  const location = useLocation();
 
-  // Handle Real-time user block listener
-  useEffect(() => {
-    if (!user?.uid) return;
-
-    const userDocRef = doc(db, 'users', user.uid);
-    const unsubscribe = onSnapshot(userDocRef, async (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        if (data && data.isBlocked === true) {
-          toast.error('Your account has been suspended. Contact: looptailor@gmail.com');
-          // Clear standard local storage/cache as requested
-          try {
-            localStorage.clear();
-          } catch (e) {}
-          try {
-            sessionStorage.clear();
-          } catch (e) {}
-          // Sign out immediately
-          await logOut();
-        }
-      }
-    }, (err) => {
-      console.warn("Real-time block listener error:", err);
-    });
-
-    return () => unsubscribe();
-  }, [user, logOut]);
-
-  // Handle App Badge
+  // App Badge Notification Sync
   useEffect(() => {
     if ('setAppBadge' in navigator) {
-      const pendingCount = orders.filter(o => o.status === 'pending').length;
+      const pendingCount = orders.filter(o => o.status === 'pending' || o.status === 'stitching').length;
       if (pendingCount > 0) {
         (navigator as any).setAppBadge(pendingCount).catch((e: any) => console.warn('Badge error:', e));
       } else {
@@ -90,17 +59,17 @@ export default function AppLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] font-sans flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-[#F7F5F0] font-sans flex flex-col lg:flex-row max-w-full overflow-x-hidden">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-[#0D3D33] min-h-screen sticky top-0">
+      <aside className="hidden lg:flex flex-col w-64 bg-[#0D3D33] min-h-screen sticky top-0 shrink-0">
         <div className="p-6 flex items-center gap-3">
-          <div className="bg-white text-[#0D3D33] p-2 rounded-lg">
+          <div className="bg-white text-[#0D3D33] p-2 rounded-lg shrink-0">
             <Scissors className="h-6 w-6" />
           </div>
-          <span className="font-bold text-xl tracking-tight text-white">Loop Tailor</span>
+          <span className="font-bold text-xl tracking-tight text-white truncate">Loop Tailor</span>
         </div>
         
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path || 
               (item.path !== '/app' && location.pathname.startsWith(item.path));
@@ -110,29 +79,29 @@ export default function AppLayout() {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium",
+                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium truncate",
                   isActive 
                     ? "bg-[#2ECC71] text-white" 
                     : "text-white/60 hover:bg-white/10 hover:text-white"
                 )}
               >
-                <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
-                {item.label}
+                <item.icon className="h-5 w-5 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
+                <span className="truncate">{item.label}</span>
               </NavLink>
             );
           })}
         </nav>
         
         <div className="p-4">
-          <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl">
+          <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl min-w-0">
              {userData?.profileImage ? (
-               <img src={userData.profileImage} alt="Profile" className="h-10 w-10 rounded-full border border-white/20 shadow-sm object-cover" />
+               <img src={userData.profileImage} alt="Profile" className="h-10 w-10 rounded-full border border-white/20 shadow-sm object-cover shrink-0" />
              ) : (
-               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">
+               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold shrink-0">
                  {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                </div>
              )}
-             <div className="overflow-hidden">
+             <div className="overflow-hidden min-w-0">
                <p className="text-sm font-semibold truncate text-white">{user?.displayName || 'User'}</p>
                <p className="text-xs text-white/60 truncate">{user?.email}</p>
              </div>
@@ -141,14 +110,14 @@ export default function AppLayout() {
       </aside>
 
       {/* Mobile Top Header */}
-      <div className="lg:hidden sticky top-0 bg-[#F7F5F0]/95 backdrop-blur-md border-b border-[#0D3D33]/10 z-40 px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="bg-[#0D3D33] text-white p-2 rounded-lg">
+      <div className="lg:hidden sticky top-0 bg-[#F7F5F0]/95 backdrop-blur-md border-b border-[#0D3D33]/10 z-40 px-4 h-16 flex items-center justify-between min-w-0 w-full">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="bg-[#0D3D33] text-white p-2 rounded-lg shrink-0">
             <Scissors className="h-5 w-5" />
           </div>
-          <span className="font-bold text-xl tracking-tight text-[#0D3D33]">Loop Tailor</span>
+          <span className="font-bold text-xl tracking-tight text-[#0D3D33] truncate">Loop Tailor</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <NavLink 
             to="/app/workers" 
             className={({ isActive }) => cn(
@@ -176,7 +145,7 @@ export default function AppLayout() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 pb-24 lg:pb-0 overflow-y-auto w-full lg:max-w-none max-w-screen-xl mx-auto">
+      <main className="flex-1 pb-24 lg:pb-0 overflow-y-auto w-full max-w-full min-w-0 mx-auto px-2 sm:px-4 md:px-6">
         <Outlet />
       </main>
 

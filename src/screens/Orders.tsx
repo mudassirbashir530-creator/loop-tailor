@@ -301,10 +301,10 @@ export default function Orders() {
           filteredOrders.map(order => {
             const customer = customers.find(c => c.id === order.customerId);
             return (
-            <Card key={order.id} className={cn("cursor-pointer hover:shadow-md transition-shadow", order.status === 'cancelled' && "opacity-75 bg-muted/30 grayscale-[50%]")} onClick={() => navigate(`/app/orders/${order.id}`)}>
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
+            <Card key={order.id} className={cn("cursor-pointer hover:shadow-md transition-shadow min-w-0 w-full overflow-hidden", order.status === 'cancelled' && "opacity-75 bg-muted/30 grayscale-[50%]")} onClick={() => navigate(`/app/orders/${order.id}`)}>
+              <CardContent className="p-3 sm:p-4 space-y-3 min-w-0">
+                <div className="flex flex-wrap items-start justify-between gap-2 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     {customer?.profileImage ? (
                       <img 
                         src={typeof customer.profileImage === 'string' ? customer.profileImage : customer.profileImage.url} 
@@ -317,36 +317,36 @@ export default function Orders() {
                         {order.customerName.charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-foreground text-base leading-tight">{order?.customerName || 'Unnamed'}</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <p className="font-bold text-foreground text-sm sm:text-base leading-tight truncate">{order?.customerName || 'Unnamed'}</p>
                         {order?.isVip && (
-                          <span className="px-2.5 py-0.5 text-[10px] font-black rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs flex items-center gap-1">
-                            ⭐ VIP CUSTOMER
+                          <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-black rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs shrink-0 flex items-center gap-1">
+                            ⭐ VIP
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        <p className="text-xs text-muted-foreground">{order?.clothingType || 'Tailoring'} • {order?.tokenId || `T-${order?.id?.slice(0, 6).toUpperCase()}`}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap min-w-0">
+                        <p className="text-xs text-muted-foreground truncate">{order?.clothingType || 'Tailoring'} • {order?.tokenId || `T-${order?.id?.slice(0, 6).toUpperCase()}`}</p>
                         {order?.serviceCategory === 'Alteration' && (
-                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30 flex items-center gap-1">
+                          <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30 shrink-0">
                             ✂️ Alteration
                           </span>
                         )}
                         {order?.serviceCategory === 'Repair' && (
-                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/15 text-blue-600 border border-blue-500/30 flex items-center gap-1">
+                          <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-blue-500/15 text-blue-600 border border-blue-500/30 shrink-0">
                             🔧 Repair
                           </span>
                         )}
                         {order?.serviceCategory === 'Bespoke' && (
-                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 flex items-center gap-1">
+                          <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 shrink-0">
                             ✨ Bespoke
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
-                  <Badge variant={order?.status || 'pending'} className="capitalize shrink-0 ml-2">{order?.status || 'pending'}</Badge>
+                  <Badge variant={order?.status || 'pending'} className="capitalize shrink-0">{order?.status || 'pending'}</Badge>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-y-2 mt-2">

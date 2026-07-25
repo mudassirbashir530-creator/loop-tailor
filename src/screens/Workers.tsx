@@ -357,7 +357,7 @@ export default function Workers() {
               transition={{ duration: 0.3 }}
             >
               <Card 
-                className="group border-none shadow-lg hover:shadow-xl transition-all cursor-pointer overflow-hidden bg-card"
+                className="group border-none shadow-lg hover:shadow-xl transition-all cursor-pointer overflow-hidden bg-card min-w-0 w-full"
                 onClick={() => openDetailsModal(worker)}
               >
                 <div className="relative h-2 bg-muted overflow-hidden">
