@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Home, Users, Package, Settings, Plus, Scissors, UserCircle, MessageSquare, FileText } from 'lucide-react';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Home, Users, Package, Settings, Plus, Scissors, UserCircle, MessageSquare, FileText, Eye, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrders } from '../hooks/useOrders';
 import { cn } from '../lib/utils';
 import BottomNav from '../components/BottomNav';
 import { PWAPrompt } from '../components/PWAPrompt';
+import { Button } from '../components/ui/button';
 
 export default function AppLayout() {
-  const { user, userData } = useAuth();
+  const { user, userData, impersonatedUser, stopImpersonation } = useAuth();
   const { orders } = useOrders();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // App Badge Notification Sync
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function AppLayout() {
     }
   }, []);
 
-  if (userData?.isBlocked) {
+  if (userData?.isBlocked && !impersonatedUser) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-sm border p-8 max-w-md text-center space-y-4 shadow-neu border-none">
@@ -57,6 +59,11 @@ export default function AppLayout() {
     { icon: Plus, label: 'New Order', path: '/app/new-order' },
     { icon: Settings, label: 'Settings', path: '/app/settings' },
   ];
+
+  const handleReturnToAdmin = () => {
+    stopImpersonation();
+    navigate('/admin/users');
+  };
 
   return (
     <div className="min-h-screen bg-[#F7F5F0] font-sans flex flex-col lg:flex-row max-w-full overflow-x-hidden">
@@ -146,6 +153,23 @@ export default function AppLayout() {
 
       {/* Main Content */}
       <main className="flex-1 pb-24 lg:pb-0 overflow-y-auto w-full max-w-full min-w-0 mx-auto px-2 sm:px-4 md:px-6">
+        {/* Impersonation Banner */}
+        {impersonatedUser && (
+          <div className="bg-amber-400 text-slate-950 px-4 py-3 border-b border-amber-500 shadow-md font-bold text-xs sm:text-sm flex flex-wrap items-center justify-between gap-2 mt-2 rounded-2xl">
+            <div className="flex items-center gap-2">
+              <Eye className="w-5 h-5 shrink-0" />
+              <span>Viewing Live Account: <strong>{impersonatedUser.email}</strong> {impersonatedUser.shopName ? `(${impersonatedUser.shopName})` : ''}</span>
+            </div>
+            <Button 
+              size="sm"
+              onClick={handleReturnToAdmin} 
+              className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold gap-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Return to Admin Panel
+            </Button>
+          </div>
+        )}
+
         <Outlet />
       </main>
 

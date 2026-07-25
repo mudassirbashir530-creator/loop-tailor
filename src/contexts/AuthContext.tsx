@@ -1,15 +1,17 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
-import { normalizePlanStatus } from '../lib/planUtils';
 
 interface AuthContextType {
-  user: User | null;
+  user: any | null;
   userData: any | null;
   isAdmin: boolean;
   loading: boolean;
   wasLoggedIn: boolean;
+  impersonatedUser: any | null;
+  impersonateUser: (targetUser: any | null) => void;
+  stopImpersonation: () => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (
     email: string, 
@@ -32,6 +34,9 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   loading: true,
   wasLoggedIn: false,
+  impersonatedUser: null,
+  impersonateUser: () => {},
+  stopImpersonation: () => {},
   signIn: async () => {},
   signUp: async () => {},
   logOut: async () => {},
@@ -41,7 +46,6 @@ export const useAuth = () => useContext(AuthContext);
 
 import { safeStorage } from '../lib/safeStorage';
 
-// Defined subscription plans details
 export const PLAN_DETAILS = {
   free: {
     plan: "free" as const,
@@ -70,7 +74,7 @@ export const PLAN_DETAILS = {
       workers: 3
     },
     features: {
-      canDownloadInvoice: false,
+      canDownloadInvoice: true,
       canUploadImages: true,
       canUseWhatsApp: false,
       canUsePayroll: false,
@@ -118,11 +122,12 @@ export const PLAN_DETAILS = {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [userData, setUserData] = useState<any | null>(null);
+  const [realUser, setRealUser] = useState<User | null>(null);
+  const [realUserData, setRealUserData] = useState<any | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [wasLoggedIn, setWasLoggedIn] = useState(() => safeStorage.getItem('wasLoggedIn') === 'true');
+  const [impersonatedUser, setImpersonatedUser] = useState<any | null>(null);
 
   const checkIfAdmin = async (email: string) => {
     try {
@@ -138,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setLoading(true);
-      setUser(currentUser);
+      setRealUser(currentUser);
       
       const setupAuth = async () => {
         try {
@@ -168,7 +173,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                     const isNewMonth = (lr: any) => {
                       if (!lr) return true;
-                      
                       let date: Date;
                       if (lr?.toDate) {
                         date = lr.toDate();
@@ -177,11 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                       } else {
                         date = new Date(lr);
                       }
-                      
-                      if (isNaN(date.getTime())) {
-                        return false; 
-                      }
-                      
+                      if (isNaN(date.getTime())) return false; 
                       const now = new Date();
                       return date.getMonth() !== now.getMonth() || date.getFullYear() !== now.getFullYear();
                     };
@@ -199,8 +199,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                       const updatedFields = {
                         plan: activePlan,
                         planPrice: details.planPrice,
-                        planLimits: details.planLimits,
-                        features: details.features,
+                        planLimits: userDataFetched?.planLimits || details.planLimits,
+                        features: {
+                          ...details.features,
+                          ...(userDataFetched?.features || {})
+                        },
                         planActivatedAt: userDataFetched?.planActivatedAt || serverTimestamp(),
                         planExpiresAt: userDataFetched?.planExpiresAt || new Date(now.getFullYear() + 1, now.getMonth(), now.getDate()),
                         currentUsage: {
@@ -212,12 +215,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                       };
 
                       await setDoc(doc(db, 'users', currentUser.uid), updatedFields, { merge: true });
-                      return; // Retries process via next onSnapshot emissions
+                      return;
                     }
 
-                    setUserData(userDataFetched);
+                    setRealUserData(userDataFetched);
                   } else {
-                    setUserData(null);
+                    setRealUserData(null);
                   }
                   
                   const isUserAdmin = currentUser.email ? await checkIfAdmin(currentUser.email) : false;
@@ -238,47 +241,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                           } catch (e) {
                             retries--;
                             if (retries === 0) {
-                              console.warn("Could not auto-upgrade admin, will retry later:", e);
-                            } else {
-                              await new Promise(resolve => setTimeout(resolve, 1000));
+                              console.warn("Could not set admin role after retries:", e);
                             }
+                            await new Promise(r => setTimeout(r, 500));
                           }
                         }
                       }
                     }
-                    setIsAdmin(true);
-                  } else if (userDoc.exists() && userDoc.data()?.role === 'admin') {
-                    setIsAdmin(true);
-                  } else {
-                    setIsAdmin(false);
                   }
-                } catch (error) {
-                  console.error("Error in snapshot processing:", error);
+                } catch (err) {
+                  console.error("Error in processSnapshot:", err);
                 } finally {
                   setLoading(false);
                 }
               };
+
               processSnapshot();
             }, (error) => {
-              console.error("Error fetching user role:", error);
-              setIsAdmin(false);
-              setUserData(null);
+              handleFirestoreError(error, OperationType.GET, `users/${currentUser.uid}`);
               setLoading(false);
             });
 
           } else {
-            if (userDataUnsub) {
-              userDataUnsub();
-              userDataUnsub = null;
-            }
-            safeStorage.removeItem('wasLoggedIn');
-            setWasLoggedIn(false);
+            setRealUserData(null);
             setIsAdmin(false);
-            setUserData(null);
             setLoading(false);
           }
-        } catch (setupError) {
-          console.error("Error in setupAuth:", setupError);
+        } catch (err) {
+          console.error("Error in setupAuth:", err);
           setLoading(false);
         }
       };
@@ -288,122 +278,153 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       unsubscribe();
-      if (userDataUnsub) userDataUnsub();
+      if (userDataUnsub) {
+        userDataUnsub();
+      }
     };
   }, []);
 
-    const saveUserData = async (
-      user: User, 
-      provider: string, 
-      name?: string, 
-      phone?: string, 
-      language?: string,
-      photoURL?: string,
-      shopName?: string,
-      shopLogoUrl?: string,
-      shopAddress?: string,
-      plan?: string,
-      currency: string = 'PKR',
-      servicesOffered: string[] = ['Alteration', 'Repair', 'Bespoke']
-    ) => {
-      // 1. Write to Users collection
-      try {
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        
-        const defaultPlan = (plan as any) || 'free';
-        const details = PLAN_DETAILS[defaultPlan as keyof typeof PLAN_DETAILS] || PLAN_DETAILS.free;
-        const now = new Date();
+  const impersonateUser = (targetUser: any | null) => {
+    setImpersonatedUser(targetUser);
+  };
 
-        const userDataPayload: any = {
-          uid: user.uid,
-          ownerName: name || user.displayName || 'New User',
-          email: user.email,
-          phone: phone || '',
-          shopName: shopName || 'My Tailor Shop',
-          currency: currency || 'PKR',
-          servicesOffered: servicesOffered || ['Alteration', 'Repair', 'Bespoke'],
-          countryCode: '+92',
-          photoURL: photoURL || user.photoURL || '',
-          provider: provider,
-          preferred_language: language || 'en',
-        };
+  const stopImpersonation = () => {
+    setImpersonatedUser(null);
+  };
 
-        if (!userSnap.exists()) {
-          userDataPayload.role = 'user';
-          userDataPayload.isAdmin = false;
-          userDataPayload.createdAt = serverTimestamp();
-          userDataPayload.plan = defaultPlan;
-          userDataPayload.planPrice = details.planPrice;
-          userDataPayload.planLimits = details.planLimits;
-          userDataPayload.features = details.features;
-          userDataPayload.planActivatedAt = serverTimestamp();
-          userDataPayload.planExpiresAt = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
-          userDataPayload.currentUsage = {
-            customers: 0,
-            ordersThisMonth: 0,
-            workers: 0,
-            lastResetDate: serverTimestamp()
-          };
-        }
+  // Effective user & userData (incorporating Impersonation)
+  const effectiveUser = impersonatedUser ? {
+    uid: impersonatedUser.id || impersonatedUser.uid,
+    email: impersonatedUser.email,
+    displayName: impersonatedUser.ownerName || impersonatedUser.shopName || impersonatedUser.email,
+    photoURL: impersonatedUser.photoURL || null
+  } : realUser;
 
-        await setDoc(userRef, userDataPayload, { merge: true });
-      } catch (error) {
-        console.warn("User data save warning:", error);
-      }
+  const effectiveUserData = impersonatedUser ? {
+    uid: impersonatedUser.id || impersonatedUser.uid,
+    email: impersonatedUser.email,
+    ownerName: impersonatedUser.ownerName || '',
+    phone: impersonatedUser.phone || '',
+    shopName: impersonatedUser.shopName || '',
+    plan: impersonatedUser.plan || 'free',
+    planLimits: impersonatedUser.planLimits || { customers: 10, ordersPerMonth: 15, workers: 1 },
+    features: impersonatedUser.features || PLAN_DETAILS.free.features,
+    currentUsage: impersonatedUser.currentUsage || { customers: 0, ordersThisMonth: 0, workers: 0 },
+    isBlocked: impersonatedUser.isBlocked || false,
+    isImpersonated: true
+  } : realUserData;
 
-      // 2. Initialize settings document
-      try {
-        const settingsRef = doc(db, 'settings', user.uid);
-        await setDoc(settingsRef, {
-          name: shopName || name || user.displayName || 'My Tailor Shop',
-          phone: phone || '',
-          currency: currency || 'PKR',
-          servicesOffered: servicesOffered || ['Alteration', 'Repair', 'Bespoke'],
-          logoUrl: shopLogoUrl || '',
-          address: shopAddress || '',
-          createdAt: serverTimestamp(),
-        }, { merge: true });
-      } catch (error) {
-        console.warn("Settings data save warning:", error);
-      }
-    };
-
-  const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+  const signIn = async (email: string, pass: string) => {
+    setLoading(true);
+    try {
+      setImpersonatedUser(null);
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (error: any) {
+      handleFirestoreError(error, OperationType.GET, 'auth/signin');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signUp = async (
     email: string, 
-    password: string, 
+    pass: string, 
     name: string, 
     phone: string, 
-    language: string = 'en',
+    language: string,
     photoURL?: string,
     shopName?: string,
     shopLogoUrl?: string,
     shopAddress?: string,
-    plan?: string,
-    currency?: string,
-    servicesOffered?: string[]
+    plan: string = 'free'
   ) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    
-    const profileUpdates: any = { displayName: name };
-    if (photoURL) {
-      profileUpdates.photoURL = photoURL;
+    setLoading(true);
+    try {
+      setImpersonatedUser(null);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+      const newAuthUser = userCredential.user;
+      
+      await updateProfile(newAuthUser, { 
+        displayName: name,
+        photoURL: photoURL || null
+      });
+
+      const selectedPlanKey = (plan && PLAN_DETAILS[plan as keyof typeof PLAN_DETAILS]) ? plan : 'free';
+      const details = PLAN_DETAILS[selectedPlanKey as keyof typeof PLAN_DETAILS] || PLAN_DETAILS.free;
+      const now = new Date();
+
+      const userPayload = {
+        uid: newAuthUser.uid,
+        email,
+        ownerName: name,
+        phone,
+        language,
+        photoURL: photoURL || null,
+        plan: selectedPlanKey,
+        planPrice: details.planPrice,
+        planLimits: details.planLimits,
+        features: details.features,
+        planActivatedAt: serverTimestamp(),
+        planExpiresAt: new Date(now.getFullYear() + 1, now.getMonth(), now.getDate()),
+        currentUsage: {
+          customers: 0,
+          ordersThisMonth: 0,
+          workers: 0,
+          lastResetDate: serverTimestamp()
+        },
+        createdAt: serverTimestamp(),
+      };
+
+      await setDoc(doc(db, 'users', newAuthUser.uid), userPayload);
+
+      const shopPayload = {
+        id: newAuthUser.uid,
+        ownerId: newAuthUser.uid,
+        name: shopName || `${name}'s Shop`,
+        phone: phone,
+        address: shopAddress || '',
+        logoUrl: shopLogoUrl || '',
+        createdAt: serverTimestamp()
+      };
+      await setDoc(doc(db, 'shops', newAuthUser.uid), shopPayload);
+    } catch (error: any) {
+      handleFirestoreError(error, OperationType.CREATE, 'auth/signup');
+      throw error;
+    } finally {
+      setLoading(false);
     }
-    await updateProfile(userCredential.user, profileUpdates);
-    
-    await saveUserData(userCredential.user, 'password', name, phone, language, photoURL, shopName, shopLogoUrl, shopAddress, plan, currency, servicesOffered);
   };
 
   const logOut = async () => {
-    await signOut(auth);
+    try {
+      setImpersonatedUser(null);
+      await signOut(auth);
+      safeStorage.removeItem('wasLoggedIn');
+      setWasLoggedIn(false);
+      setUser(null);
+      setUserData(null);
+      setIsAdmin(false);
+    } catch (error: any) {
+      handleFirestoreError(error, OperationType.GET, 'auth/logout');
+      throw error;
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, userData, isAdmin, loading, wasLoggedIn, signIn, signUp, logOut }}>
+    <AuthContext.Provider value={{ 
+      user: effectiveUser, 
+      userData: effectiveUserData, 
+      isAdmin, 
+      loading, 
+      wasLoggedIn,
+      impersonatedUser,
+      impersonateUser,
+      stopImpersonation,
+      signIn, 
+      signUp, 
+      logOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );

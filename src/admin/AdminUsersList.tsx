@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Search, X, Filter, Settings, Ban, ShieldCheck, UserCheck, Calendar, RefreshCcw } from 'lucide-react';
-import { useAdminUsers, AdminUser, UserFeatures } from '../hooks/useAdminUsers';
+import { Search, X, Filter, Settings, Ban, ShieldCheck, UserCheck, Calendar, RefreshCcw, Key } from 'lucide-react';
+import { useAdminUsers, AdminUser } from '../hooks/useAdminUsers';
 import UserManageModal from './UserManageModal';
 import BlockUserModal from '../components/BlockUserModal';
 import { Button } from '../components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'sonner';
 
 const isValidUrl = (url: string | undefined | null): boolean => {
   if (!url) return false;
@@ -20,29 +22,28 @@ export default function AdminUsersList() {
     changeUserPlan,
     toggleUserFeature,
     saveOrderLimit,
+    saveCustomerLimit,
+    saveWorkerLimit,
     resetUsageCounter,
     blockUser,
     unblockUser,
+    deleteUserAccount
   } = useAdminUsers();
 
+  const { impersonateUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Selected filters
   const [searchTerm, setSearchTerm] = useState('');
   const [planFilter, setPlanFilter] = useState<'all' | 'free' | 'basic' | 'standard' | 'premium'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'blocked'>('all');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
 
-  // Triggered modals
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [blockingUser, setBlockingUser] = useState<AdminUser | null>(null);
 
-  // Sync state with URL Search Params (Coming from Stat Cards in Dashboard)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    
-    // reset first
     setPlanFilter('all');
     setStatusFilter('all');
     setDateFilter('all');
@@ -63,7 +64,6 @@ export default function AdminUsersList() {
     }
   }, [location.search]);
 
-  // Handle clearing individual filters
   const clearFilter = (type: 'plan' | 'status' | 'date' | 'search') => {
     const params = new URLSearchParams(location.search);
     if (type === 'plan') {
@@ -99,289 +99,165 @@ export default function AdminUsersList() {
         return 'bg-violet-100 text-violet-800 dark:bg-violet-950/40 dark:text-violet-300 border-violet-200 dark:border-violet-800';
       case 'standard':
         return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
-      case 'free':
-        return 'bg-sky-50 text-sky-700 dark:bg-sky-950/20 dark:text-sky-300 border-sky-200 dark:border-sky-800';
       case 'basic':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-800';
       default:
-        return 'bg-slate-100 text-slate-800 dark:bg-slate-800/60 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+        return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
     }
   };
 
-  // Run list filtration
-  const filteredUsers = users.filter((u) => {
-    // 1. Search term (shop name, owner name, owner email)
-    const normalizedSearch = searchTerm.toLowerCase().trim();
-    if (normalizedSearch) {
-      const matches = 
-        u.shopName?.toLowerCase().includes(normalizedSearch) ||
-        u.ownerName?.toLowerCase().includes(normalizedSearch) ||
-        u.email?.toLowerCase().includes(normalizedSearch);
-      if (!matches) return false;
-    }
+  const filteredUsers = users.filter((user) => {
+    const term = searchTerm.toLowerCase();
+    const nameMatch = user.ownerName?.toLowerCase().includes(term);
+    const emailMatch = user.email?.toLowerCase().includes(term);
+    const shopMatch = user.shopName?.toLowerCase().includes(term);
+    const phoneMatch = user.phone?.includes(term);
+    const matchesSearch = !searchTerm || nameMatch || emailMatch || shopMatch || phoneMatch;
 
-    // 2. Plan filter
-    if (planFilter !== 'all') {
-      const activePlan = u.plan === 'enterprise' ? 'premium' : u.plan;
-      if (activePlan !== planFilter) return false;
-    }
+    const matchesPlan = planFilter === 'all' || user.plan === planFilter;
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'blocked' ? user.isBlocked : !user.isBlocked);
 
-    // 3. Status filter
-    if (statusFilter !== 'all') {
-      const userBlocked = u.isBlocked === true;
-      if (statusFilter === 'blocked' && !userBlocked) return false;
-      if (statusFilter === 'active' && userBlocked) return false;
-    }
-
-    // 4. Date filter (Join Date)
-    if (dateFilter !== 'all') {
-      if (!u.createdAt) return false;
-      const joinTime = typeof u.createdAt.toMillis === 'function' ? u.createdAt.toMillis() : new Date(u.createdAt).getTime();
+    let matchesDate = true;
+    if (dateFilter !== 'all' && user.createdAt) {
+      const created = typeof user.createdAt.toDate === 'function' ? user.createdAt.toDate() : new Date(user.createdAt);
       const now = new Date();
-      
-      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-      const oneWeekAgo = now.getTime() - (7 * 24 * 60 * 60 * 1000);
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-
-      if (dateFilter === 'today' && joinTime < startOfToday) return false;
-      if (dateFilter === 'week' && joinTime < oneWeekAgo) return false;
-      if (dateFilter === 'month' && joinTime < startOfMonth) return false;
+      if (dateFilter === 'today') {
+        matchesDate = created.toDateString() === now.toDateString();
+      } else if (dateFilter === 'week') {
+        const weekAgo = new Date(now.setDate(now.getDate() - 7));
+        matchesDate = created >= weekAgo;
+      } else if (dateFilter === 'month') {
+        const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
+        matchesDate = created >= monthAgo;
+      }
     }
 
-    return true;
+    return matchesSearch && matchesPlan && matchesStatus && matchesDate;
   });
 
+  const handleQuickImpersonate = (u: AdminUser) => {
+    impersonateUser(u);
+    toast.success(`Accessing ${u.email}'s account live!`);
+    navigate('/app');
+  };
+
   return (
-    <div className="space-y-6 font-sans">
-      
-      {/* Header Info */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-6">
+      {/* Top Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-            Users & Boutiques Directory
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white">
+            User & Shop Management
           </h1>
-          <p className="text-sm text-slate-500 font-medium">
-            Real-time shop configurations, subscriber limits, features permissions, and access logs.
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+            Super admin controls: live access, real-time feature permissions, rate limits & blocking
           </p>
         </div>
       </div>
 
-      {/* FILTER BUTTONS & CONTROLS BOX */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border dark:border-slate-800 space-y-4">
-        
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-          {/* Search bar */}
+      {/* Search & Filter Bar */}
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-450" />
+            <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by shop/owner name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-10 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl text-sm font-semibold text-foreground placeholder:text-muted-foreground outline-none ring-primary/30 focus:ring-2 focus:border-transparent transition-all"
+              placeholder="Search by name, email, shop or phone..."
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/60 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0D3D33]"
             />
             {searchTerm && (
-              <button 
-                onClick={() => clearFilter('search')} 
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-              >
-                <X className="h-4 w-4" />
+              <button onClick={() => clearFilter('search')} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Plan Filter */}
-            <div className="flex items-center gap-1.5 p-1 bg-slate-50 dark:bg-slate-850 rounded-xl border dark:border-slate-800">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 pl-2 pr-0.5">Plan:</span>
-              <select
-                value={planFilter}
-                onChange={(e) => {
-                  setPlanFilter(e.target.value as any);
-                  const params = new URLSearchParams(location.search);
-                  if (e.target.value === 'all') params.delete('plan');
-                  else params.set('plan', e.target.value);
-                  navigate({ search: params.toString() });
-                }}
-                className="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-300 px-2 py-1 outline-none border-none cursor-pointer"
-              >
-                <option value="all">All Plans</option>
-                <option value="free">Free (Rs. 0)</option>
-                <option value="basic">Basic (Rs. 500)</option>
-                <option value="standard">Standard (Rs. 1,000)</option>
-                <option value="premium">Premium (Rs. 2,000)</option>
-              </select>
-            </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={planFilter}
+              onChange={(e) => setPlanFilter(e.target.value as any)}
+              className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs font-bold focus:outline-none"
+            >
+              <option value="all">All Plans</option>
+              <option value="free">Free</option>
+              <option value="basic">Basic</option>
+              <option value="standard">Standard</option>
+              <option value="premium">Premium</option>
+            </select>
 
-            {/* Status Filter */}
-            <div className="flex items-center gap-1.5 p-1 bg-slate-50 dark:bg-slate-850 rounded-xl border dark:border-slate-800">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 pl-2 pr-0.5">Status:</span>
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value as any);
-                  const params = new URLSearchParams(location.search);
-                  if (e.target.value === 'all') params.delete('status');
-                  else params.set('status', e.target.value);
-                  navigate({ search: params.toString() });
-                }}
-                className="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-300 px-2 py-1 outline-none border-none cursor-pointer"
-              >
-                <option value="all">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="blocked">Blocked</option>
-              </select>
-            </div>
-
-            {/* Date Filter */}
-            <div className="flex items-center gap-1.5 p-1 bg-slate-50 dark:bg-slate-850 rounded-xl border dark:border-slate-800">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 pl-2 pr-0.5">Joined:</span>
-              <select
-                value={dateFilter}
-                onChange={(e) => {
-                  setDateFilter(e.target.value as any);
-                  const params = new URLSearchParams(location.search);
-                  if (e.target.value === 'all') params.delete('filter');
-                  else params.set('filter', e.target.value);
-                  navigate({ search: params.toString() });
-                }}
-                className="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-300 px-2 py-1 outline-none border-none cursor-pointer"
-              >
-                <option value="all">All Time</option>
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-              </select>
-            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs font-bold focus:outline-none"
+            >
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="blocked">Blocked</option>
+            </select>
           </div>
         </div>
-
-        {/* ACTIVE FILTER BADGES ROW */}
-        {(planFilter !== 'all' || statusFilter !== 'all' || dateFilter !== 'all' || searchTerm) && (
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t dark:border-slate-805">
-            <span className="text-[11px] font-black text-slate-400 dark:text-slate-550 uppercase tracking-wider">Active Filters:</span>
-            
-            {planFilter !== 'all' && (
-              <div className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-bold">
-                Showing: {planFilter.charAt(0).toUpperCase() + planFilter.slice(1)} Users
-                <button onClick={() => clearFilter('plan')} className="hover:text-primary-dark transition-colors">
-                  <X className="w-3.5 h-3.5 shrink-0" />
-                </button>
-              </div>
-            )}
-
-            {statusFilter !== 'all' && (
-              <div className="inline-flex items-center gap-1 px-3 py-1 bg-destructive/10 text-destructive border border-destructive/20 rounded-full text-xs font-bold">
-                Status: {statusFilter.toUpperCase()}
-                <button onClick={() => clearFilter('status')} className="hover:text-red-700 transition-colors">
-                  <X className="w-3.5 h-3.5 shrink-0" />
-                </button>
-              </div>
-            )}
-
-            {dateFilter !== 'all' && (
-              <div className="inline-flex items-center gap-1 px-3 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-full text-xs font-bold">
-                Date: {dateFilter.charAt(0).toUpperCase() + dateFilter.slice(1)}
-                <button onClick={() => clearFilter('date')} className="hover:text-amber-800 transition-colors">
-                  <X className="w-3.5 h-3.5 shrink-0" />
-                </button>
-              </div>
-            )}
-
-            {searchTerm && (
-              <div className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-500/10 text-indigo-700 dark:text-indigo-405 border border-indigo-500/20 rounded-full text-xs font-bold">
-                Keyword: "{searchTerm.length > 15 ? searchTerm.slice(0, 15) + '...' : searchTerm}"
-                <button onClick={() => clearFilter('search')} className="hover:text-indigo-900 transition-colors">
-                  <X className="w-3.5 h-3.5 shrink-0" />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* ERROR HANDLER */}
-      {error && (
-        <div className="p-4 bg-red-500/15 border border-red-500/30 text-destructive text-sm rounded-2xl flex items-center gap-3">
-          <span>⚠️</span>
-          <span>Error Syncing Users: {error}</span>
-        </div>
-      )}
-
-      {/* USERS DATA TABLE */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border dark:border-slate-800 overflow-hidden">
+      {/* Users Table */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border shadow-sm overflow-hidden">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 space-y-3">
-            <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full" />
-            <span className="text-sm font-semibold text-slate-500">Retrieving Firestore directories...</span>
-          </div>
+          <div className="p-12 text-center text-slate-400">Loading users...</div>
         ) : filteredUsers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="bg-slate-50 dark:bg-slate-850 text-slate-400 p-4 rounded-full mb-4">
-              <RefreshCcw className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight">No Users Match</h3>
-            <p className="text-slate-500 text-xs font-medium max-w-sm mt-1">
-              We couldn't find any registered subscriber records that fit your filter criteria. Try adjusting your categories.
-            </p>
-          </div>
+          <div className="p-12 text-center text-slate-400">No users match your criteria</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/50 dark:bg-slate-850/40 text-[11px] font-black text-slate-450 dark:text-slate-500 uppercase tracking-widest border-b dark:border-slate-800">
-                  <th className="py-4 px-6">Shop & Owner</th>
-                  <th className="py-4 px-6">Plan Info</th>
+                <tr className="bg-slate-50 dark:bg-slate-800/40 text-slate-500 text-xs font-bold uppercase tracking-wider border-b">
+                  <th className="py-4 px-6">User & Shop</th>
+                  <th className="py-4 px-6">Plan</th>
                   <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6">Quota Usage</th>
-                  <th className="py-4 px-6">Joined Date</th>
-                  <th className="py-4 px-6 text-right">Quick Actions</th>
+                  <th className="py-4 px-6">Usage</th>
+                  <th className="py-4 px-6">Joined</th>
+                  <th className="py-4 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y dark:divide-slate-800 text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredUsers.map((u) => {
-                  const isBlocked = u.isBlocked === true;
-                  const maxCust = u.planLimits?.customers ?? 50;
-                  const formattedCust = maxCust === 0 ? '∞' : maxCust.toString();
+                  const maxCust = u.planLimits?.customers ?? 10;
+                  const formattedCust = maxCust === 0 ? '∞' : maxCust;
+                  const isBlocked = u.isBlocked;
 
                   return (
-                    <tr 
-                      key={u.id} 
-                      className={`hover:bg-slate-50/40 dark:hover:bg-slate-850/25 transition-colors ${
-                        isBlocked ? 'bg-red-500/[0.01]' : ''
-                      }`}
-                    >
-                      {/* Shop Image and Details */}
+                    <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           {isValidUrl(u.logoUrl || u.photoURL) ? (
                             <img
-                              src={u.logoUrl || u.photoURL || undefined}
-                              alt={u.shopName}
+                              src={u.logoUrl || u.photoURL}
+                              alt={u.ownerName || 'User'}
+                              className="h-10 w-10 rounded-full object-cover border"
                               referrerPolicy="no-referrer"
-                              className="w-10 h-10 rounded-xl object-cover ring-2 ring-primary/5"
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs uppercase">
-                              {getInitials(u.shopName || u.ownerName)}
+                            <div className="h-10 w-10 rounded-full bg-[#0D3D33]/10 text-[#0D3D33] font-bold flex items-center justify-center text-sm">
+                              {getInitials(u.ownerName || u.email)}
                             </div>
                           )}
-                          <div className="space-y-0.5">
-                            <p className="font-extrabold text-slate-900 dark:text-white tracking-tight">
-                              {u.shopName || 'Bespoke Boutique'}
+                          <div>
+                            <p className="font-bold text-slate-900 dark:text-white text-sm">
+                              {u.ownerName || 'Unnamed User'}
                             </p>
-                            <p className="text-xs text-slate-500 font-semibold">{u.email}</p>
+                            <p className="text-xs text-slate-400 font-medium">{u.email}</p>
+                            {u.shopName && <p className="text-xs text-[#0D3D33] dark:text-[#2ECC71] font-bold mt-0.5">🏪 {u.shopName}</p>}
                           </div>
                         </div>
                       </td>
 
-                      {/* Plan subscription info */}
                       <td className="py-4 px-6">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${getPlanBadgeClass(u.plan)}`}>
+                        <span className={`inline-block px-3 py-1 text-xs font-black rounded-full border capitalize ${getPlanBadgeClass(u.plan)}`}>
                           {u.plan}
                         </span>
                       </td>
 
-                      {/* Current Status Badge */}
                       <td className="py-4 px-6">
                         {isBlocked ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-full text-xs font-bold">
@@ -394,32 +270,31 @@ export default function AdminUsersList() {
                         )}
                       </td>
 
-                      {/* Quota limit progress */}
                       <td className="py-4 px-6 font-mono text-xs">
                         <div className="space-y-1">
                           <p className="font-extrabold text-[#0D3D33] dark:text-[#2ECC71]">
                             {u.currentUsage?.customers ?? 0}/{formattedCust} <span className="text-[10px] text-slate-400 font-sans">clients</span>
                           </p>
-                          <div className="h-1.5 w-24 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-[#0D3D33] dark:bg-[#2ECC71] rounded-full" 
-                              style={{ width: `${maxCust === 0 ? 100 : Math.min(100, ((u.currentUsage?.customers ?? 0) / maxCust) * 100)}%` }}
-                            />
-                          </div>
                         </div>
                       </td>
 
-                      {/* Joined and activity timing */}
                       <td className="py-4 px-6 text-slate-500 font-semibold text-xs">
                         <p>{formatDate(u.createdAt)}</p>
-                        {u.lastActiveAt && (
-                          <p className="text-[10px] opacity-70">Active {formatDate(u.lastActiveAt)}</p>
-                        )}
                       </td>
 
-                      {/* Quick Actions Buttons */}
                       <td className="py-4 px-6 text-right">
                         <div className="inline-flex items-center gap-2">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="h-8 py-0 px-2.5 rounded-lg bg-[#0D3D33] hover:bg-[#092B24] text-white text-xs font-bold flex items-center gap-1"
+                            onClick={() => handleQuickImpersonate(u)}
+                            title="Directly access live user account"
+                          >
+                            <Key className="w-3.5 h-3.5" />
+                            Access
+                          </Button>
+
                           <Button
                             variant="outline"
                             size="sm"
@@ -429,31 +304,8 @@ export default function AdminUsersList() {
                             <Settings className="w-3.5 h-3.5" />
                             Manage
                           </Button>
-
-                          {isBlocked ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 py-0 px-2.5 rounded-lg border-emerald-500 hover:bg-emerald-50 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1"
-                              onClick={() => unblockUser(u.id)}
-                            >
-                              <UserCheck className="w-3.5 h-3.5" />
-                              Unblock
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              className="h-8 py-0 px-2.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold flex items-center gap-1"
-                              onClick={() => setBlockingUser(u)}
-                            >
-                              <Ban className="w-3.5 h-3.5" />
-                              Block
-                            </Button>
-                          )}
                         </div>
                       </td>
-
                     </tr>
                   );
                 })}
@@ -463,7 +315,6 @@ export default function AdminUsersList() {
         )}
       </div>
 
-      {/* CONDITIONAL MANAGE MODAL */}
       <AnimatePresence>
         {selectedUser && (
           <UserManageModal
@@ -472,6 +323,8 @@ export default function AdminUsersList() {
             onPlanChange={changeUserPlan}
             onFeatureToggle={toggleUserFeature}
             onSaveLimit={saveOrderLimit}
+            onSaveCustomerLimit={saveCustomerLimit}
+            onSaveWorkerLimit={saveWorkerLimit}
             onResetUsage={resetUsageCounter}
             onBlockUser={async (userId, reason, note) => {
               await blockUser(userId, reason, note);
@@ -481,11 +334,11 @@ export default function AdminUsersList() {
               await unblockUser(userId);
               setSelectedUser((prev) => prev ? { ...prev, isBlocked: false, blockedBy: '', blockedReason: '', blockedAt: null } : null);
             }}
+            onDeleteUserAccount={deleteUserAccount}
           />
         )}
       </AnimatePresence>
 
-      {/* QUICK BLOCK MODAL FROM ROW */}
       <BlockUserModal
         isOpen={blockingUser !== null}
         onClose={() => setBlockingUser(null)}

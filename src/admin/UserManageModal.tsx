@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ShieldAlert, Check, AlertTriangle, Play, RefreshCw, Layers, Sliders, BarChart3, AlertOctagon, User } from 'lucide-react';
+import { X, ShieldAlert, Check, AlertTriangle, RefreshCw, Key, Trash2, ShieldCheck, UserCheck, Sliders, AlertOctagon } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { AdminUser, UserFeatures } from '../hooks/useAdminUsers';
 import BlockUserModal from '../components/BlockUserModal';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-
-const isValidUrl = (url: string | undefined | null): boolean => {
-  if (!url) return false;
-  return url.startsWith('https://') || url.startsWith('http://');
-};
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface UserManageModalProps {
   user: AdminUser;
@@ -19,9 +16,12 @@ interface UserManageModalProps {
   onPlanChange: (userId: string, planName: 'free' | 'basic' | 'standard' | 'premium') => Promise<void>;
   onFeatureToggle: (userId: string, featureName: keyof UserFeatures, value: boolean) => Promise<void>;
   onSaveLimit: (userId: string, limit: number) => Promise<void>;
+  onSaveCustomerLimit?: (userId: string, limit: number) => Promise<void>;
+  onSaveWorkerLimit?: (userId: string, limit: number) => Promise<void>;
   onResetUsage: (userId: string) => Promise<void>;
   onBlockUser: (userId: string, reason: string, note?: string) => Promise<void>;
   onUnblockUser: (userId: string) => Promise<void>;
+  onDeleteUserAccount?: (userId: string) => Promise<void>;
 }
 
 export default function UserManageModal({
@@ -30,10 +30,15 @@ export default function UserManageModal({
   onPlanChange,
   onFeatureToggle,
   onSaveLimit,
+  onSaveCustomerLimit,
+  onSaveWorkerLimit,
   onResetUsage,
   onBlockUser,
   onUnblockUser,
+  onDeleteUserAccount
 }: UserManageModalProps) {
+  const { impersonateUser } = useAuth();
+  const navigate = useNavigate();
   const [userData, setUserData] = useState<AdminUser>(user);
   const [loadingFresh, setLoadingFresh] = useState(true);
 
@@ -41,12 +46,12 @@ export default function UserManageModal({
     user.plan === 'enterprise' ? 'premium' : (user.plan as any) || 'free'
   );
   
-  const [orderLimitInput, setOrderLimitInput] = useState<string>(
-    user.planLimits?.ordersPerMonth?.toString() ?? '60'
-  );
+  const [orderLimitInput, setOrderLimitInput] = useState<string>(user.planLimits?.ordersPerMonth?.toString() ?? '15');
+  const [customerLimitInput, setCustomerLimitInput] = useState<string>(user.planLimits?.customers?.toString() ?? '10');
+  const [workerLimitInput, setWorkerLimitInput] = useState<string>(user.planLimits?.workers?.toString() ?? '1');
 
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
-  const [isUnblockConfirmOpen, setIsUnblockConfirmOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const [localFeatures, setLocalFeatures] = useState<UserFeatures>({
     canDownloadInvoice: !!user.features?.canDownloadInvoice,
@@ -58,7 +63,6 @@ export default function UserManageModal({
     canManageWorkers: !!user.features?.canManageWorkers,
   });
 
-  // Always fetch fresh data on open (Problem 3)
   useEffect(() => {
     let active = true;
     const fetchFreshData = async () => {
@@ -69,7 +73,9 @@ export default function UserManageModal({
           const fresh = { id: userSnap.id, ...userSnap.data() } as AdminUser;
           setUserData(fresh);
           setSelectedPlan(fresh.plan === 'enterprise' ? 'premium' : (fresh.plan as any) || 'free');
-          setOrderLimitInput(fresh.planLimits?.ordersPerMonth?.toString() ?? '60');
+          setOrderLimitInput(fresh.planLimits?.ordersPerMonth?.toString() ?? '15');
+          setCustomerLimitInput(fresh.planLimits?.customers?.toString() ?? '10');
+          setWorkerLimitInput(fresh.planLimits?.workers?.toString() ?? '1');
           if (fresh.features) {
             setLocalFeatures({
               canDownloadInvoice: !!fresh.features.canDownloadInvoice,
@@ -89,505 +95,236 @@ export default function UserManageModal({
       }
     };
     fetchFreshData();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [user.id]);
 
-  // Keep state sync'd if user updates in background or prop changes
-  useEffect(() => {
-    setUserData(prev => ({
-      ...prev,
-      ...user
-    }));
-    setSelectedPlan(user.plan === 'enterprise' ? 'premium' : (user.plan as any) || 'free');
-    setOrderLimitInput(user.planLimits?.ordersPerMonth?.toString() ?? '60');
-    if (user.features) {
-      setLocalFeatures({
-        canDownloadInvoice: !!user.features.canDownloadInvoice,
-        canUploadImages: !!user.features.canUploadImages,
-        canUseWhatsApp: !!user.features.canUseWhatsApp,
-        canUsePayroll: !!user.features.canUsePayroll,
-        canViewAnalytics: !!user.features.canViewAnalytics,
-        canCustomBranding: !!user.features.canCustomBranding,
-        canManageWorkers: !!user.features.canManageWorkers,
-      });
-    }
-  }, [user]);
-
-  const formatDate = (dateValue: any) => {
-    if (!dateValue) return 'N/A';
-    const date = typeof dateValue.toDate === 'function' ? dateValue.toDate() : new Date(dateValue);
-    return date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  const handleToggle = async (featureName: keyof UserFeatures) => {
+    const val = !localFeatures[featureName];
+    setLocalFeatures(prev => ({ ...prev, [featureName]: val }));
+    await onFeatureToggle(userData.id, featureName, val);
   };
 
-  const getInitials = (name?: string) => {
-    if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const handleImpersonate = () => {
+    impersonateUser(userData);
+    toast.success(`Accessing ${userData.email}'s account live!`);
+    onClose();
+    navigate('/app');
   };
 
-  // Helper for text-only progress bars (e.g. "████░░")
-  const getBlockBarText = (current: number, max: number, totalSpots = 10) => {
-    if (max === 0) return '▓'.repeat(totalSpots) + ' (Unlimited)';
-    const filled = Math.min(totalSpots, Math.max(0, Math.round((current / max) * totalSpots)));
-    const empty = Math.max(0, totalSpots - filled);
-    return '█'.repeat(filled) + '░'.repeat(empty);
-  };
-
-  const handlePlanDropdownChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value as 'free' | 'basic' | 'standard' | 'premium';
-    setSelectedPlan(val);
-    await onPlanChange(user.id, val);
-  };
-
-  const handleSaveLimitClick = async () => {
-    const valObj = parseInt(orderLimitInput, 10);
-    if (isNaN(valObj) || valObj < 0) {
-      toast.error("Please enter a valid non-negative order limit");
-      return;
-    }
-    await onSaveLimit(user.id, valObj);
-  };
-
-  const handleResetCounterClick = async () => {
-    if (window.confirm(`Are you sure you want to reset current order usage for ${userData.shopName || userData.email}?`)) {
-      await onResetUsage(user.id);
+  const handleDelete = async () => {
+    if (onDeleteUserAccount) {
+      await onDeleteUserAccount(userData.id);
+      setIsDeleteConfirmOpen(false);
+      onClose();
     }
   };
-
-  const handleConfirmUnblock = async () => {
-    await onUnblockUser(user.id);
-    setIsUnblockConfirmOpen(false);
-  };
-
-  // Optimistic Toggle Handler (Problem 1, 4)
-  const handleToggle = async (feature: keyof UserFeatures, newValue: boolean) => {
-    // 1. Update UI immediately
-    setLocalFeatures(prev => ({
-      ...prev,
-      [feature]: newValue
-    }));
-    
-    try {
-      // 2. Save directly to Firestore using exact boolean value assignment (Problem 1)
-      const userRef = doc(db, 'users', user.id);
-      await updateDoc(userRef, {
-        [`features.${feature}`]: newValue
-      });
-      toast.success('Saved!');
-    } catch (error) {
-      // 3. Revert on failure
-      setLocalFeatures(prev => ({
-        ...prev,
-        [feature]: !newValue
-      }));
-      toast.error('Failed to save. Try again.');
-    }
-  };
-
-  const limits = userData.planLimits || { customers: 50, ordersPerMonth: 60, workers: 3 };
-  const usage = userData.currentUsage || { customers: 0, ordersThisMonth: 0, workers: 0, lastResetDate: null };
-  const features = localFeatures;
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div onClick={onClose} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" />
-
-      {/* Modal Container */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 15 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="relative bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl h-[90vh] md:h-[85vh] flex flex-col shadow-2xl border dark:border-slate-800 overflow-hidden z-10 font-sans"
-      >
-        {/* Header */}
-        <div className="p-6 border-b dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-850">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 text-primary p-2.5 rounded-2xl">
-              <Layers className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Manage Shop Profile</h2>
-              <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{user.shopName || 'Bespoke Studio'}</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all outline-none"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 divide-y dark:divide-slate-800">
-          
-          {/* SECTION A — USER INFO */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5" /> SECTION A — USER INFO
-            </h3>
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border dark:border-slate-800">
-              {isValidUrl(userData.logoUrl || userData.photoURL) ? (
-                <img
-                  src={userData.logoUrl || userData.photoURL || undefined}
-                  alt={userData.shopName}
-                  referrerPolicy="no-referrer"
-                  className="w-16 h-16 rounded-2xl object-cover ring-2 ring-primary/10"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-2xl bg-primary/15 text-primary flex items-center justify-center font-black text-xl tracking-tight uppercase">
-                  {getInitials(userData.shopName || userData.ownerName)}
-                </div>
-              )}
-              <div className="flex-1 text-center sm:text-left space-y-1">
-                <h4 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
-                  {userData.shopName || 'No Shop Registered'}
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs font-semibold text-slate-655 dark:text-slate-350">
-                  <p>Owner: <span className="text-foreground">{userData.ownerName || 'N/A'}</span></p>
-                  <p>Email: <span className="text-foreground">{userData.email}</span></p>
-                  <p>Phone: <span className="text-foreground">{userData.phone || 'N/A'}</span></p>
-                  <p>Status: <span className={userData.isBlocked ? 'text-destructive font-bold' : 'text-emerald-500 font-bold'}>{userData.isBlocked ? '🛡️ Blocked' : '● Active'}</span></p>
-                  <p>Joined: <span className="text-slate-500">{formatDate(userData.createdAt)}</span></p>
-                  <p>Last Active: <span className="text-slate-500">{formatDate(userData.lastActiveAt)}</span></p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION B — PLAN MANAGEMENT */}
-          <div className="pt-6 space-y-4">
-            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5" /> SECTION B — PLAN MANAGEMENT
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground font-semibold">Active Plan Subscription</p>
-                <div className="flex items-center gap-2">
-                  <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                    user.plan === 'premium' || user.plan === 'enterprise'
-                      ? 'bg-primary/20 text-primary'
-                      : user.plan === 'standard'
-                      ? 'bg-emerald-500/25 text-emerald-600 dark:text-emerald-450'
-                      : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}>
-                    {user.plan} plan
-                  </span>
-                  <span className="text-xs font-mono font-bold text-slate-500">
-                    Rs. {user.planPrice}/month
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                  Update Subscription Plan
-                </label>
-                <select
-                  value={selectedPlan}
-                  onChange={handlePlanDropdownChange}
-                  className="w-full text-foreground bg-slate-55 dark:bg-slate-850 border dark:border-slate-800 rounded-xl px-3 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
-                >
-                  <option value="free">Free — Rs. 0 (Forever) (10 customers, 15 orders, 1 worker)</option>
-                  <option value="basic">Basic — Rs. 500/month (50 customers, 60 orders, 3 workers)</option>
-                  <option value="standard">Standard — Rs. 1,000/month (200 customers, 200 orders, 7 workers)</option>
-                  <option value="premium">Premium — Rs. 2,000/month (Unlimited everything)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION C — USAGE STATS */}
-          <div className="pt-6 space-y-4">
-            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-              <BarChart3 className="w-3.5 h-3.5" /> SECTION C — USAGE STATS & METRICS
-            </h3>
-            <div className="space-y-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 text-xs font-mono">
-              {/* Customers Progress */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between font-bold text-slate-700 dark:text-slate-300">
-                  <span>Customers Allocation:</span>
-                  <span>{usage.customers}/{limits.customers === 0 ? 'Unlimited' : limits.customers}</span>
-                </div>
-                <div className="text-primary text-[10px] tracking-tight">{getBlockBarText(usage.customers, limits.customers)}</div>
-                <div className="h-2 w-full bg-slate-200 dark:bg-slate-850 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary rounded-full transition-all duration-500" 
-                    style={{ width: `${limits.customers === 0 ? 100 : Math.min(100, (usage.customers / limits.customers) * 100)}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Orders Progress */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between font-bold text-slate-700 dark:text-slate-300">
-                  <span>Monthly Orders Usage:</span>
-                  <span>{usage.ordersThisMonth}/{limits.ordersPerMonth === 0 ? 'Unlimited' : limits.ordersPerMonth}</span>
-                </div>
-                <div className="text-primary text-[10px] tracking-tight">{getBlockBarText(usage.ordersThisMonth, limits.ordersPerMonth)}</div>
-                <div className="h-2 w-full bg-slate-200 dark:bg-slate-850 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-indigo-500 rounded-full transition-all duration-500" 
-                    style={{ width: `${limits.ordersPerMonth === 0 ? 100 : Math.min(100, (usage.ordersThisMonth / limits.ordersPerMonth) * 100)}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Workers Progress */}
-              <div className="space-y-1.5">
-                <div className="flex justify-between font-bold text-slate-700 dark:text-slate-300">
-                  <span>Workers Roster:</span>
-                  <span>{usage.workers}/{limits.workers === 0 ? 'Unlimited' : limits.workers}</span>
-                </div>
-                <div className="text-primary text-[10px] tracking-tight">{getBlockBarText(usage.workers, limits.workers)}</div>
-                <div className="h-2 w-full bg-slate-200 dark:bg-slate-850 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
-                    style={{ width: `${limits.workers === 0 ? 100 : Math.min(100, (usage.workers / limits.workers) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION D — FEATURE CONTROLS */}
-          <div className="pt-6 space-y-4">
-            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5" /> SECTION D — CUSTOM FEATURE CONTROLS
-            </h3>
-            <p className="text-[11px] text-muted-foreground font-semibold">Toggling features overrides default plan configurations directly. Saved instantly.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
-              <div className="flex items-center justify-between p-3 rounded-xl border dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div>
-                  <p className="text-xs font-bold">WhatsApp Integration</p>
-                  <p className="text-[10px] text-muted-foreground">Alerts & messages</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={features.canUseWhatsApp}
-                  onChange={(e) => handleToggle('canUseWhatsApp', e.target.checked)}
-                  className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div>
-                  <p className="text-xs font-bold">Invoice Download</p>
-                  <p className="text-[10px] text-muted-foreground">PDF invoice download</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={features.canDownloadInvoice}
-                  onChange={(e) => handleToggle('canDownloadInvoice', e.target.checked)}
-                  className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div>
-                  <p className="text-xs font-bold">Image Upload</p>
-                  <p className="text-[10px] text-muted-foreground">Attach order reference designs</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={features.canUploadImages}
-                  onChange={(e) => handleToggle('canUploadImages', e.target.checked)}
-                  className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div>
-                  <p className="text-xs font-bold">Payroll Access</p>
-                  <p className="text-[10px] text-muted-foreground">Staff salary tracking</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={features.canUsePayroll}
-                  onChange={(e) => handleToggle('canUsePayroll', e.target.checked)}
-                  className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div>
-                  <p className="text-xs font-bold">Analytics Access</p>
-                  <p className="text-[10px] text-muted-foreground">Boutique dashboards & counters</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={features.canViewAnalytics}
-                  onChange={(e) => handleToggle('canViewAnalytics', e.target.checked)}
-                  className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div>
-                  <p className="text-xs font-bold">Custom Branding</p>
-                  <p className="text-[10px] text-muted-foreground">White label invoice logs</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={features.canCustomBranding}
-                  onChange={(e) => handleToggle('canCustomBranding', e.target.checked)}
-                  className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div>
-                  <p className="text-xs font-bold">Worker Management</p>
-                  <p className="text-[10px] text-muted-foreground">Assign tailored items & items</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={features.canManageWorkers}
-                  onChange={(e) => handleToggle('canManageWorkers', e.target.checked)}
-                  className="rounded text-primary focus:ring-primary h-5 w-5 cursor-pointer accent-primary"
-                />
-              </div>
-
-            </div>
-          </div>
-
-          {/* SECTION E — ORDER LIMIT */}
-          <div className="pt-6 space-y-4">
-            <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-              <RefreshCw className="w-3.5 h-3.5" /> SECTION E — MONTHLY ORDER LIMITS & RESETS
-            </h3>
-            <div className="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <p className="text-xs font-extrabold text-slate-800 dark:text-slate-300">Custom Monthly Order Limit</p>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Enter order limits below. Set to <strong className="text-foreground">0</strong> for unlimited order access. Current usage: <span className="text-indigo-600 dark:text-indigo-350 font-bold">{usage.ordersThisMonth}</span> used.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="number"
-                  value={orderLimitInput}
-                  onChange={(e) => setOrderLimitInput(e.target.value)}
-                  className="w-24 px-3 py-2 bg-white dark:bg-slate-900 border rounded-xl text-center text-sm font-mono font-bold outline-none ring-primary/40 focus:ring-2 focus:border-transparent transition-all"
-                  placeholder="60"
-                  min="0"
-                />
-                <Button 
-                  size="sm" 
-                  onClick={handleSaveLimitClick}
-                  className="text-xs font-extrabold text-[#eddcdc]"
-                >
-                  Save Limit
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={handleResetCounterClick}
-                  className="text-xs font-bold gap-1"
-                >
-                  <RefreshCw className="h-3 w-3 animate-spin duration-300" />
-                  Reset Counter
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION F — DANGER ZONE */}
-          <div className="pt-6 space-y-4">
-            <h3 className="text-xs font-bold text-red-500 dark:text-red-400 uppercase tracking-widest flex items-center gap-1.5">
-              <AlertOctagon className="w-3.5 h-3.5 text-destructive" /> SECTION F — DANGER ZONE
-            </h3>
-            <div className="p-4 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-300">Restrict / Release Shop Status</p>
-                {user.isBlocked ? (
-                  <p className="text-[10px] text-destructive font-black leading-snug uppercase tracking-wider bg-rose-500/10 px-2 py-0.5 rounded w-fit">
-                    Reason: {user.blockedReason}
-                  </p>
-                ) : (
-                  <p className="text-[11px] text-slate-500">
-                    Blocking immediately revokes shop access and kicks the operator out.
-                  </p>
-                )}
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-6 md:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-6 max-h-[90vh] overflow-y-auto"
+        >
+          {/* Top Bar Header */}
+          <div className="flex items-center justify-between border-b pb-4">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-[#0D3D33]/10 text-[#0D3D33] font-bold flex items-center justify-center text-lg">
+                {(userData.ownerName || userData.email || 'U').charAt(0).toUpperCase()}
               </div>
               <div>
-                {user.isBlocked ? (
-                  <Button
-                    variant="outline"
-                    className="border-emerald-500 hover:bg-emerald-50 text-emerald-600 dark:text-emerald-450 text-xs font-bold px-5"
-                    onClick={() => setIsUnblockConfirmOpen(true)}
-                  >
-                    🔓 Unblock User
-                  </Button>
-                ) : (
-                  <Button
-                    variant="destructive"
-                    className="bg-red-650 hover:bg-red-750 text-xs font-bold px-5"
-                    onClick={() => setIsBlockModalOpen(true)}
-                  >
-                    🔒 Block User
-                  </Button>
-                )}
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  {userData.ownerName || 'User Account'}
+                  {userData.isBlocked && (
+                    <span className="px-2 py-0.5 text-xs font-black bg-rose-500 text-white rounded-full">BLOCKED</span>
+                  )}
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{userData.email}</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Quick Super Admin Actions Bar */}
+          <div className="bg-emerald-50 dark:bg-emerald-950/30 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="font-bold text-emerald-900 dark:text-emerald-300 text-sm">🔑 Super Admin One-Click Access</p>
+              <p className="text-xs text-emerald-700 dark:text-emerald-400">View and manage live shop dashboard without email/password</p>
+            </div>
+            <Button 
+              onClick={handleImpersonate} 
+              className="bg-[#0D3D33] hover:bg-[#092B24] text-white rounded-xl font-bold gap-2"
+            >
+              <Key className="w-4 h-4" /> Direct Access Account
+            </Button>
+          </div>
+
+          {/* Plan Selector */}
+          <div className="space-y-3">
+            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Subscription Plan</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {(['free', 'basic', 'standard', 'premium'] as const).map((planKey) => (
+                <button
+                  key={planKey}
+                  type="button"
+                  onClick={async () => {
+                    setSelectedPlan(planKey);
+                    await onPlanChange(userData.id, planKey);
+                  }}
+                  className={`p-3 rounded-xl border text-center font-bold text-sm capitalize transition-all ${
+                    selectedPlan === planKey 
+                      ? 'bg-[#0D3D33] text-white border-[#0D3D33] shadow-md' 
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  }`}
+                >
+                  {planKey}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Instant Rate Limits / Quotas */}
+          <div className="space-y-3 border-t pt-4">
+            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-emerald-600" /> Custom Quotas & Limits (0 = Unlimited)
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-slate-50 p-3 rounded-xl border">
+                <span className="text-xs text-slate-500 font-bold block mb-1">Orders / Month</span>
+                <div className="flex gap-2">
+                  <input 
+                    type="number" 
+                    value={orderLimitInput} 
+                    onChange={e => setOrderLimitInput(e.target.value)} 
+                    className="w-full p-2 text-sm border rounded-lg bg-white font-bold" 
+                  />
+                  <Button size="sm" onClick={() => onSaveLimit(userData.id, Number(orderLimitInput))}>Save</Button>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border">
+                <span className="text-xs text-slate-500 font-bold block mb-1">Max Customers</span>
+                <div className="flex gap-2">
+                  <input 
+                    type="number" 
+                    value={customerLimitInput} 
+                    onChange={e => setCustomerLimitInput(e.target.value)} 
+                    className="w-full p-2 text-sm border rounded-lg bg-white font-bold" 
+                  />
+                  <Button size="sm" onClick={() => onSaveCustomerLimit && onSaveCustomerLimit(userData.id, Number(customerLimitInput))}>Save</Button>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border">
+                <span className="text-xs text-slate-500 font-bold block mb-1">Max Workers</span>
+                <div className="flex gap-2">
+                  <input 
+                    type="number" 
+                    value={workerLimitInput} 
+                    onChange={e => setWorkerLimitInput(e.target.value)} 
+                    className="w-full p-2 text-sm border rounded-lg bg-white font-bold" 
+                  />
+                  <Button size="sm" onClick={() => onSaveWorkerLimit && onSaveWorkerLimit(userData.id, Number(workerLimitInput))}>Save</Button>
+                </div>
               </div>
             </div>
           </div>
 
-        </div>
-      </motion.div>
+          {/* Feature Toggles */}
+          <div className="space-y-3 border-t pt-4">
+            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Feature Access Permissions</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { key: 'canManageWorkers', label: '👥 Manage Staff & Workers' },
+                { key: 'canDownloadInvoice', label: '📄 Printable Invoices' },
+                { key: 'canUseWhatsApp', label: '💬 WhatsApp Notifications' },
+                { key: 'canUsePayroll', label: '💰 Staff Payroll System' },
+                { key: 'canViewAnalytics', label: '📊 Business Analytics' },
+                { key: 'canCustomBranding', label: '✨ Custom Branding' },
+              ].map(item => (
+                <div 
+                  key={item.key} 
+                  onClick={() => handleToggle(item.key as any)}
+                  className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border cursor-pointer hover:bg-slate-100 transition-colors"
+                >
+                  <span className="text-sm font-medium text-slate-800">{item.label}</span>
+                  <input 
+                    type="checkbox" 
+                    checked={!!(localFeatures as any)[item.key]} 
+                    readOnly
+                    className="h-5 w-5 accent-[#0D3D33] cursor-pointer" 
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
-      {/* BLOCK CONFIRM DIALOG */}
-      <BlockUserModal
-        isOpen={isBlockModalOpen}
-        onClose={() => setIsBlockModalOpen(false)}
-        userName={user.shopName || user.ownerName || user.email}
-        onConfirm={(reason, note) => onBlockUser(user.id, reason, note)}
-      />
-
-      {/* UNBLOCK CONFIRM DIALOG */}
-      <AnimatePresence>
-        {isUnblockConfirmOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsUnblockConfirmOpen(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-sm border border-emerald-500/20 shadow-2xl z-10"
-            >
-              <div className="flex items-center gap-2 text-emerald-500 mb-3">
-                <ShieldAlert className="h-5 w-5" />
-                <h4 className="font-bold text-lg">Unblock User Account</h4>
-              </div>
-              <p className="text-xs text-slate-500 font-semibold mb-6">
-                Are you sure you want to unblock <strong className="text-foreground">{user.shopName || user.email}</strong>? They will be able to log back in immediately.
-              </p>
-              <div className="flex items-center gap-3">
+          {/* Danger Zone: Block / Delete */}
+          <div className="border-t pt-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              {userData.isBlocked ? (
                 <Button 
                   variant="outline" 
-                  className="flex-1 rounded-xl text-xs" 
-                  onClick={() => setIsUnblockConfirmOpen(false)}
+                  onClick={() => onUnblockUser(userData.id)}
+                  className="border-emerald-500 text-emerald-700 hover:bg-emerald-50 rounded-xl font-bold"
                 >
-                  Cancel
+                  <UserCheck className="w-4 h-4 mr-2" /> Unblock Account
                 </Button>
+              ) : (
                 <Button 
-                  className="flex-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold" 
-                  onClick={handleConfirmUnblock}
+                  variant="destructive" 
+                  onClick={() => setIsBlockModalOpen(true)}
+                  className="rounded-xl font-bold"
                 >
-                  Confirm Unblock
+                  <ShieldAlert className="w-4 h-4 mr-2" /> Block User Account
                 </Button>
-              </div>
-            </motion.div>
+              )}
+            </div>
+
+            <Button 
+              variant="outline"
+              onClick={() => setIsDeleteConfirmOpen(true)}
+              className="border-rose-300 text-rose-600 hover:bg-rose-50 rounded-xl font-bold"
+            >
+              <Trash2 className="w-4 h-4 mr-2" /> Delete User Permanently
+            </Button>
           </div>
-        )}
-      </AnimatePresence>
-    </div>
+        </motion.div>
+      </div>
+
+      {/* Block User Modal */}
+      {isBlockModalOpen && (
+        <BlockUserModal 
+          userName={userData.ownerName || userData.email}
+          isOpen={isBlockModalOpen}
+          onClose={() => setIsBlockModalOpen(false)}
+          onConfirm={(reason, note) => {
+            onBlockUser(userData.id, reason, note);
+            setIsBlockModalOpen(false);
+          }}
+        />
+      )}
+
+      {/* Delete User Confirmation */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-white p-6 rounded-2xl max-w-sm w-full space-y-4 text-center">
+            <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+              <AlertOctagon className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-lg text-slate-900">Delete Account Permanently?</h3>
+            <p className="text-xs text-slate-500">This will delete user <strong>{userData.email}</strong> and their shop data completely. This action cannot be undone.</p>
+            <div className="flex gap-2">
+              <Button variant="ghost" className="flex-1" onClick={() => setIsDeleteConfirmOpen(false)}>Cancel</Button>
+              <Button variant="destructive" className="flex-1" onClick={handleDelete}>Delete Account</Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
 import { PLANS } from '../constants/plans';
@@ -67,7 +67,6 @@ export function useAdminUsers() {
       });
       shopsCache = tempShops;
       
-      // Force trigger users remap if we already have users
       setUsers((prevUsers) =>
         prevUsers.map((user) => {
           const shop = shopsCache[user.id] || {};
@@ -98,13 +97,13 @@ export function useAdminUsers() {
           planLimits: udata.planLimits || { customers: 10, ordersPerMonth: 15, workers: 1 },
           currentUsage: udata.currentUsage || { customers: 0, ordersThisMonth: 0, workers: 0, lastResetDate: null },
           features: udata.features || {
-            canDownloadInvoice: false,
-            canUploadImages: false,
+            canDownloadInvoice: true,
+            canUploadImages: true,
             canUseWhatsApp: false,
             canUsePayroll: false,
             canViewAnalytics: false,
             canCustomBranding: false,
-            canManageWorkers: false,
+            canManageWorkers: true,
           },
           isBlocked: udata.isBlocked || false,
           blockedAt: udata.blockedAt || null,
@@ -145,7 +144,7 @@ export function useAdminUsers() {
         features: config.features,
         planActivatedAt: serverTimestamp(),
       });
-      toast.success('Plan updated!');
+      toast.success(`Plan updated to ${config.name}!`);
     } catch (err: any) {
       console.error('Error changing user plan:', err);
       toast.error('Failed to change plan: ' + err.message);
@@ -156,8 +155,9 @@ export function useAdminUsers() {
     try {
       await updateDoc(doc(db, 'users', userId), {
         [`features.${featureName}`]: value,
+        updatedAt: serverTimestamp()
       });
-      toast.success('Saved!');
+      toast.success('Feature setting updated instantly!');
     } catch (err: any) {
       console.error('Error toggling feature:', err);
       toast.error('Failed to save feature toggle');
@@ -168,11 +168,38 @@ export function useAdminUsers() {
     try {
       await updateDoc(doc(db, 'users', userId), {
         'planLimits.ordersPerMonth': newLimit,
+        updatedAt: serverTimestamp()
       });
-      toast.success('Limit updated!');
+      toast.success('Order limit updated instantly!');
     } catch (err: any) {
       console.error('Error updating order limit:', err);
       toast.error('Failed to save limit: ' + err.message);
+    }
+  };
+
+  const saveCustomerLimit = async (userId: string, newLimit: number) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        'planLimits.customers': newLimit,
+        updatedAt: serverTimestamp()
+      });
+      toast.success('Customer limit updated instantly!');
+    } catch (err: any) {
+      console.error('Error updating customer limit:', err);
+      toast.error('Failed to save customer limit');
+    }
+  };
+
+  const saveWorkerLimit = async (userId: string, newLimit: number) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        'planLimits.workers': newLimit,
+        updatedAt: serverTimestamp()
+      });
+      toast.success('Worker limit updated instantly!');
+    } catch (err: any) {
+      console.error('Error updating worker limit:', err);
+      toast.error('Failed to save worker limit');
     }
   };
 
@@ -219,6 +246,17 @@ export function useAdminUsers() {
     }
   };
 
+  const deleteUserAccount = async (userId: string) => {
+    try {
+      await deleteDoc(doc(db, 'users', userId));
+      await deleteDoc(doc(db, 'shops', userId)).catch(() => {});
+      toast.success('User account deleted successfully!');
+    } catch (err: any) {
+      console.error('Error deleting user account:', err);
+      toast.error('Failed to delete user account');
+    }
+  };
+
   return {
     users,
     loading,
@@ -226,8 +264,11 @@ export function useAdminUsers() {
     changeUserPlan,
     toggleUserFeature,
     saveOrderLimit,
+    saveCustomerLimit,
+    saveWorkerLimit,
     resetUsageCounter,
     blockUser,
     unblockUser,
+    deleteUserAccount,
   };
 }
