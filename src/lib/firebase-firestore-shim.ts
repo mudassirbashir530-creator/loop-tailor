@@ -144,6 +144,7 @@ export async function getDocs(queryOrCollection: any) {
       return {
         empty: docs.length === 0,
         docs,
+        size: docs.length,
         forEach: (cb: (doc: any) => void) => docs.forEach(cb)
       };
     }
@@ -167,6 +168,7 @@ export async function getDocs(queryOrCollection: any) {
   return {
     empty: docs.length === 0,
     docs,
+    size: docs.length,
     forEach: (cb: (doc: any) => void) => docs.forEach(cb)
   };
 }

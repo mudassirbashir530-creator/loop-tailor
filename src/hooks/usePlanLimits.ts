@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, onSnapshot, doc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { PLANS } from '../constants/plans';
 
 export interface PlanLimits {
   customers: number;
@@ -15,16 +16,6 @@ export interface PlanUsage {
   workers: number;
 }
 
-export interface PlanFeatures {
-  canDownloadInvoice: boolean;
-  canUploadImages: boolean;
-  canUseWhatsApp: boolean;
-  canUsePayroll: boolean;
-  canViewAnalytics: boolean;
-  canCustomBranding: boolean;
-  canManageWorkers: boolean;
-}
-
 export function usePlanLimits() {
   const { user, userData } = useAuth();
   
@@ -36,10 +27,11 @@ export function usePlanLimits() {
 
   const plan = userData?.plan || 'free';
   
-  const limits: PlanLimits = userData?.planLimits || {
-    customers: 10,
-    ordersPerMonth: 15,
-    workers: 1
+  const defaultPlanLimits = PLANS[plan as keyof typeof PLANS]?.limits || PLANS.free.limits;
+  const limits: PlanLimits = {
+    customers: userData?.planLimits?.customers ?? defaultPlanLimits.customers,
+    ordersPerMonth: userData?.planLimits?.ordersPerMonth ?? defaultPlanLimits.ordersPerMonth,
+    workers: userData?.planLimits?.workers ?? defaultPlanLimits.workers,
   };
 
   // Setup real-time listeners to dynamic collections to track usage accurately
@@ -52,7 +44,8 @@ export function usePlanLimits() {
       where('userId', '==', user.uid)
     );
     const unsubscribeCustomers = onSnapshot(customersQuery, (snap) => {
-      setUsage(prev => ({ ...prev, customers: snap.size }));
+      const count = snap?.size ?? (snap?.docs ? snap.docs.length : 0);
+      setUsage(prev => ({ ...prev, customers: count }));
     });
 
     // 2. Workers listener
@@ -61,7 +54,8 @@ export function usePlanLimits() {
       where('userId', '==', user.uid)
     );
     const unsubscribeWorkers = onSnapshot(workersQuery, (snap) => {
-      setUsage(prev => ({ ...prev, workers: snap.size }));
+      const count = snap?.size ?? (snap?.docs ? snap.docs.length : 0);
+      setUsage(prev => ({ ...prev, workers: count }));
     });
 
     // 3. Orders list to count monthly orders
@@ -74,25 +68,27 @@ export function usePlanLimits() {
     const now = new Date();
     const unsubscribeOrders = onSnapshot(ordersQuery, (snap) => {
       let monthlyCount = 0;
-      snap.forEach((doc) => {
-        const data = doc.data();
-        let orderDate: Date | null = null;
-        if (data.createdAt) {
-          if (typeof data.createdAt.toDate === 'function') {
-            orderDate = data.createdAt.toDate();
-          } else if (data.createdAt && typeof data.createdAt === 'object' && 'seconds' in data.createdAt) {
-            orderDate = new Date(data.createdAt.seconds * 1000);
-          } else {
-            orderDate = new Date(data.createdAt);
+      if (snap && typeof snap.forEach === 'function') {
+        snap.forEach((doc: any) => {
+          const data = typeof doc.data === 'function' ? doc.data() : doc;
+          let orderDate: Date | null = null;
+          if (data && data.createdAt) {
+            if (typeof data.createdAt.toDate === 'function') {
+              orderDate = data.createdAt.toDate();
+            } else if (typeof data.createdAt === 'object' && 'seconds' in data.createdAt) {
+              orderDate = new Date(data.createdAt.seconds * 1000);
+            } else {
+              orderDate = new Date(data.createdAt);
+            }
           }
-        }
-        if (orderDate && 
-            !isNaN(orderDate.getTime()) &&
-            orderDate.getMonth() === now.getMonth() && 
-            orderDate.getFullYear() === now.getFullYear()) {
-          monthlyCount++;
-        }
-      });
+          if (orderDate && 
+              !isNaN(orderDate.getTime()) &&
+              orderDate.getMonth() === now.getMonth() && 
+              orderDate.getFullYear() === now.getFullYear()) {
+            monthlyCount++;
+          }
+        });
+      }
       setUsage(prev => ({ ...prev, ordersThisMonth: monthlyCount }));
     });
 
@@ -111,7 +107,6 @@ export function usePlanLimits() {
     const dbOrders = userData.currentUsage?.ordersThisMonth ?? -1;
     const dbWorkers = userData.currentUsage?.workers ?? -1;
 
-    // Prevent endless state sync loops by updating only if there's a difference
     if (usage.customers !== dbCustomers || 
         usage.ordersThisMonth !== dbOrders || 
         usage.workers !== dbWorkers) {
@@ -132,13 +127,13 @@ export function usePlanLimits() {
         }
       };
 
-      // Slight timeout to debounce and allow collections to stabilize
       const timer = setTimeout(updateProfileUsage, 1500);
       return () => clearTimeout(timer);
     }
   }, [user, userData, usage]);
 
-  const canAddCustomer = limits.customers === 0 || usage.customers < limits.customers;
+  const currentCustomerCount = Number(usage.customers) || 0;
+  const canAddCustomer = limits.customers === 0 || currentCustomerCount < limits.customers;
   
   // Monthly reset failure safety
   const now = new Date();
@@ -163,13 +158,15 @@ export function usePlanLimits() {
     }
   }
 
-  const effectiveOrdersCount = hasMonthChanged ? 0 : usage.ordersThisMonth;
-  const canAddOrder = limits.ordersPerMonth === 0 || effectiveOrdersCount < limits.ordersPerMonth;
-  const canAddWorker = limits.workers === 0 || usage.workers < limits.workers;
+  const effectiveOrdersCount = hasMonthChanged ? 0 : (Number(usage.ordersThisMonth) || 0);
+  const currentWorkerCount = Number(usage.workers) || 0;
 
-  const customersRemaining = limits.customers === 0 ? Infinity : Math.max(0, limits.customers - usage.customers);
+  const canAddOrder = limits.ordersPerMonth === 0 || effectiveOrdersCount < limits.ordersPerMonth;
+  const canAddWorker = limits.workers === 0 || currentWorkerCount < limits.workers;
+
+  const customersRemaining = limits.customers === 0 ? Infinity : Math.max(0, limits.customers - currentCustomerCount);
   const ordersRemaining = limits.ordersPerMonth === 0 ? Infinity : Math.max(0, limits.ordersPerMonth - effectiveOrdersCount);
-  const workersRemaining = limits.workers === 0 ? Infinity : Math.max(0, limits.workers - usage.workers);
+  const workersRemaining = limits.workers === 0 ? Infinity : Math.max(0, limits.workers - currentWorkerCount);
 
   const isLimitReached = useCallback((type: 'customers' | 'orders' | 'workers') => {
     if (type === 'customers') return !canAddCustomer;
@@ -178,9 +175,7 @@ export function usePlanLimits() {
     return false;
   }, [canAddCustomer, canAddOrder, canAddWorker]);
 
-  const refreshUsage = useCallback(() => {
-    // Already synced using real-time onSnapshot listeners, but provides a placeholder method for interface compatibility
-  }, []);
+  const refreshUsage = useCallback(() => {}, []);
 
   const safePercent = (current: number, max: number) => {
     if (max === 0) return 0;
@@ -188,9 +183,9 @@ export function usePlanLimits() {
   };
 
   const usagePercent = {
-    customers: safePercent(usage.customers, limits.customers),
+    customers: safePercent(currentCustomerCount, limits.customers),
     orders: safePercent(effectiveOrdersCount, limits.ordersPerMonth),
-    workers: safePercent(usage.workers, limits.workers)
+    workers: safePercent(currentWorkerCount, limits.workers)
   };
 
   return {
@@ -198,7 +193,9 @@ export function usePlanLimits() {
     limits,
     usage: {
       ...usage,
-      ordersThisMonth: effectiveOrdersCount
+      customers: currentCustomerCount,
+      ordersThisMonth: effectiveOrdersCount,
+      workers: currentWorkerCount
     },
     usagePercent,
     canAddCustomer,
