@@ -6,6 +6,8 @@ import { FEATURE_LABELS, REQUIRED_PLAN, PLANS } from '../constants/plans';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 
+import { openAdminWhatsApp } from '../lib/whatsapp';
+
 export interface FeatureLockModalProps {
   feature: keyof typeof FEATURE_LABELS;
   isOpen: boolean;
@@ -21,10 +23,8 @@ export default function FeatureLockModal({ feature, isOpen, onClose }: FeatureLo
   const requiredPlan = PLANS[requiredPlanId as keyof typeof PLANS] || PLANS.basic;
 
   const handleUpgrade = () => {
-    const message = encodeURIComponent(`Hi, I want to upgrade my Loop Tailor plan to ${requiredPlan.name}. My account: ${userData?.email}`);
-    // Replace with actual admin number
-    const adminWhatsApp = '+923000000000';
-    window.open(`https://wa.me/${adminWhatsApp}?text=${message}`, '_blank');
+    const message = `Hi, I want to upgrade my Loop Tailor plan to ${requiredPlan.name}. My account: ${userData?.email || ''}`;
+    openAdminWhatsApp(message);
     onClose();
   };
 

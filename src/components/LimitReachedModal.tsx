@@ -5,6 +5,7 @@ import { WhatsAppIcon } from './icons/WhatsAppIcon';
 import { useAuth } from '../contexts/AuthContext';
 import { PLANS } from '../constants/plans';
 import { Button } from './ui/button';
+import { openAdminWhatsApp } from '../lib/whatsapp';
 
 export interface LimitReachedModalProps {
   limitType: 'customers' | 'orders' | 'workers';
@@ -33,10 +34,8 @@ export default function LimitReachedModal({ limitType, current, limit, isOpen, o
   }
 
   const handleUpgrade = () => {
-    const message = encodeURIComponent(`Hi, I want to upgrade my Loop Tailor plan to ${nextPlan.name}. My account: ${userData?.email}`);
-    // Replace with actual admin number
-    const adminWhatsApp = '+923000000000';
-    window.open(`https://wa.me/${adminWhatsApp}?text=${message}`, '_blank');
+    const message = `Hi, I want to upgrade my Loop Tailor plan to ${nextPlan.name}. My account: ${userData?.email || ''}`;
+    openAdminWhatsApp(message);
     onClose();
   };
 
