@@ -664,7 +664,23 @@ export default function OrderDetails() {
                         const workerPhone = assignedWorkerObj?.phone || '';
                         const formattedWorkerPhone = formatWhatsAppNumber(workerPhone);
                         const tokenNumber = order.tokenId || order.id?.substring(0, 8).toUpperCase();
-                        const worksheetUrl = `${window.location.origin}/worker-order/${order.id}`;
+                        
+                        const measurements = order.measurements || {};
+                        const deliveryStr = order.deliveryDate ? (typeof order.deliveryDate.toDate === 'function' ? order.deliveryDate.toDate().toLocaleDateString() : new Date(order.deliveryDate).toLocaleDateString()) : '';
+                        
+                        const params = new URLSearchParams({
+                          t: tokenNumber,
+                          c: order.customerName || 'Customer',
+                          d: order.clothingType || order.dressType || 'Custom Suit',
+                          del: deliveryStr,
+                          r: order.rackLocation || '',
+                          n: order.designNotes || order.notes || '',
+                          s: settings?.name || shopDoc?.shopName || 'Loop Tailor',
+                          sp: settings?.phone || shopDoc?.shopPhone || '',
+                          m: JSON.stringify(measurements)
+                        });
+
+                        const worksheetUrl = `${window.location.origin}/worker-order/${order.id}?${params.toString()}`;
 
                         const msg = `✂️ *TAILOR WORKSHEET — ${settings?.name || 'LOOP TAILOR'}* ✂️
 -----------------------------------

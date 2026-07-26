@@ -16,10 +16,48 @@ export default function WorkerOrderView() {
 
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
 
     let isMounted = true;
     let activeUnsubscribers: (() => void)[] = [];
+
+    // Instant query parameter decoding backup strategy
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenParam = urlParams.get('t');
+    const customerParam = urlParams.get('c');
+    const dressParam = urlParams.get('d');
+    const deliveryParam = urlParams.get('del');
+    const rackParam = urlParams.get('r');
+    const notesParam = urlParams.get('n');
+    const shopParam = urlParams.get('s');
+    const phoneParam = urlParams.get('sp');
+    const measParam = urlParams.get('m');
+
+    if (tokenParam || customerParam || dressParam || measParam) {
+      let parsedMeas = {};
+      try {
+        if (measParam) parsedMeas = JSON.parse(measParam);
+      } catch (e) {}
+
+      const fallbackOrder = {
+        id: id || 'order',
+        tokenId: tokenParam || (id ? id.substring(0, 8).toUpperCase() : 'TOKEN'),
+        customerName: customerParam || 'Valued Customer',
+        clothingType: dressParam || 'Custom Suit',
+        deliveryDate: deliveryParam || null,
+        rackLocation: rackParam || '',
+        designNotes: notesParam || '',
+        status: 'stitching',
+        measurements: parsedMeas
+      };
+
+      setOrder(fallbackOrder);
+      if (shopParam || phoneParam) {
+        setShop({ name: shopParam || 'Loop Tailor Shop', shopName: shopParam || 'Loop Tailor Shop', phone: phoneParam || '', shopPhone: phoneParam || '' });
+      }
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
 
     const cleanupListeners = () => {
       activeUnsubscribers.forEach(unsub => {
