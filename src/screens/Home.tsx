@@ -40,15 +40,15 @@ function StatCard({ title, value, icon, iconBg, linkTo }: StatCardProps) {
   return (
     <Card 
       onClick={() => linkTo && navigate(linkTo)}
-      className={`hover:shadow-lg transition-all duration-300 border border-slate-200/80 rounded-3xl ${linkTo ? 'cursor-pointer hover:border-[#0D3D33]/40 hover:-translate-y-0.5' : ''}`}
+      className={`hover:shadow-lg transition-all duration-300 border border-slate-200/80 rounded-2xl sm:rounded-3xl ${linkTo ? 'cursor-pointer hover:border-[#0D3D33]/40 hover:-translate-y-0.5' : ''}`}
     >
-      <CardContent className="p-5 flex items-center gap-4">
-        <div className={`p-3.5 rounded-2xl ${iconBg} shrink-0 shadow-xs`}>
+      <CardContent className="p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
+        <div className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl ${iconBg} shrink-0 shadow-xs`}>
           {icon}
         </div>
-        <div>
-          <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">{value}</p>
+        <div className="min-w-0">
+          <p className="text-[10px] sm:text-xs font-extrabold text-slate-400 uppercase tracking-wider truncate">{title}</p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">{value}</p>
         </div>
       </CardContent>
     </Card>
@@ -62,8 +62,8 @@ function CircularProgress({ percentage, label, sublabel }: { percentage: number;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="flex items-center gap-4 bg-[#0D3D33] text-white p-5 rounded-3xl shadow-xl border border-emerald-500/20 relative overflow-hidden">
-      <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+    <div className="flex items-center gap-3 sm:gap-4 bg-[#0D3D33] text-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-xl border border-emerald-500/20 relative overflow-hidden">
+      <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center shrink-0">
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
           <circle
             cx="50"
@@ -85,12 +85,12 @@ function CircularProgress({ percentage, label, sublabel }: { percentage: number;
             fill="transparent"
           />
         </svg>
-        <span className="absolute font-black text-lg text-white">{percentage}%</span>
+        <span className="absolute font-black text-base sm:text-lg text-white">{percentage}%</span>
       </div>
       <div>
-        <span className="text-[10px] font-black uppercase tracking-widest text-[#2ECC71] block">{label}</span>
-        <h4 className="text-base font-bold text-white mt-0.5">{sublabel}</h4>
-        <p className="text-xs text-white/70 mt-1 font-medium">Real-time shop capacity score</p>
+        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#2ECC71] block">{label}</span>
+        <h4 className="text-sm sm:text-base font-bold text-white mt-0.5">{sublabel}</h4>
+        <p className="text-[10px] sm:text-xs text-white/70 mt-1 font-medium">Real-time shop capacity score</p>
       </div>
     </div>
   );
@@ -188,19 +188,19 @@ export default function Home() {
       initial="hidden" 
       animate="visible" 
       variants={containerVariants} 
-      className="p-4 md:p-8 space-y-8 pb-24"
+      className="p-3 sm:p-4 md:p-8 space-y-5 sm:space-y-8 pb-8"
     >
       {/* Top Banner & Shop Capacity Gauge */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch">
         <div className="lg:col-span-2 space-y-1 justify-center flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-[#0D3D33]/10 text-[#0D3D33] font-black text-xs uppercase tracking-widest">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2.5 py-1 rounded-full bg-[#0D3D33]/10 text-[#0D3D33] font-black text-[10px] sm:text-xs uppercase tracking-widest">
               SMART TAILOR DASHBOARD
             </span>
-            <span className="text-xs text-slate-400 font-bold">• Real-time Sync Active</span>
+            <span className="text-[10px] sm:text-xs text-slate-400 font-bold">• Real-time Sync Active</span>
           </div>
-          <h1 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">Shop Overview</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Welcome back! Manage orders, clients, workers, and subscription limits.</p>
+          <h1 className="text-xl sm:text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">Shop Overview</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium">Welcome back! Manage orders, clients, workers, and subscription limits.</p>
         </div>
 
         <CircularProgress 
@@ -213,7 +213,7 @@ export default function Home() {
       {/* Stats Cards (Real-time Unlocked via Admin Permission or Plan) */}
       <motion.div variants={itemVariants}>
         {canViewAnalytics ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <StatCard 
               title="Total Orders"
               value={totalOrders.toString()}
@@ -243,7 +243,7 @@ export default function Home() {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 max-w-2xl">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-2xl">
             <StatCard 
               title="Total Orders"
               value={totalOrders.toString()}
@@ -297,7 +297,7 @@ export default function Home() {
       {/* Modern Neon Visual Progress Bars */}
       <motion.div variants={itemVariants}>
         <Card className="border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm">
-          <CardContent className="p-6 md:p-8 space-y-6">
+          <CardContent className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
             <div className="flex items-center justify-between border-b pb-4 flex-wrap gap-3">
               <div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">SUBSCRIPTION QUOTA PROGRESS</span>
@@ -312,7 +312,7 @@ export default function Home() {
             </div>
 
             {/* Visual Progress Cards with Click Navigation */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5 pt-2">
               {/* Customers Progress */}
               {(() => {
                 const max = limits.customers;

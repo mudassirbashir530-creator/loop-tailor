@@ -234,22 +234,22 @@ export default function Orders() {
   };
 
   return (
-    <div className={cn("w-full max-w-6xl mx-auto space-y-6", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={cn("w-full max-w-6xl mx-auto space-y-5 px-1", isRTL && "font-urdu")} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <motion.div 
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        className="flex flex-col gap-3"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
         <div>
-          <h1 className="text-2xl sm:text-3xl font-display font-medium tracking-tight text-on-surface">
+          <h1 className="text-xl sm:text-3xl font-black tracking-tight text-slate-900">
             {t('layout.orders')}
           </h1>
-          <p className="text-sm text-on-surface-variant mt-1">Manage and track your tailoring orders</p>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Manage all your tailoring orders</p>
         </div>
         <Button 
           onClick={() => navigate('/app/new-order')}
-          className="hidden sm:flex rounded-full shadow-soft hover:shadow-soft-hover transition-all bg-primary text-white h-11 px-6 font-medium w-full sm:w-auto"
+          className="rounded-2xl shadow-md hover:shadow-lg transition-all bg-[#0D3D33] hover:bg-[#092B24] text-white h-11 px-6 font-bold w-full sm:w-auto text-sm"
         >
           <Plus className="w-4 h-4 mr-2" />
           New Order
@@ -264,31 +264,38 @@ export default function Orders() {
         className="space-y-4"
       >
         <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-on-surface-variant transition-colors group-focus-within:text-primary" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400 transition-colors group-focus-within:text-[#0D3D33]" />
           <input
             type="text"
-            placeholder="Search Order ID or Name..."
+            placeholder="Search by customer or order #..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-14 pl-12 pr-4 rounded-2xl border border-outline-variant bg-surface text-on-surface text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none placeholder:text-on-surface-variant transition-all shadow-sm"
+            className="w-full h-11 sm:h-14 pl-10 sm:pl-12 pr-4 rounded-2xl border border-slate-200 bg-white text-slate-900 text-sm focus:border-[#0D3D33] focus:ring-4 focus:ring-[#0D3D33]/10 focus:outline-none placeholder:text-slate-400 transition-all shadow-sm"
           />
         </div>
         
-        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
-          {['All', ...Object.values(ORDER_STATUS)].map((statusValue) => (
-            <button
-              key={statusValue}
-              onClick={() => setFilter(statusValue)}
-              className={cn(
-                "px-5 py-2.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap uppercase tracking-wider",
-                filter === statusValue
-                  ? "bg-primary text-white shadow-soft"
-                  : "bg-surface text-on-surface border border-outline-variant hover:bg-surface-container hover:text-on-surface"
-              )}
-            >
-              {statusValue === 'All' ? 'All Orders' : statusValue}
-            </button>
-          ))}
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {['All', ...Object.values(ORDER_STATUS)].map((statusValue) => {
+            const count = statusValue === 'All' ? orders.length : orders.filter(o => o.status === statusValue).length;
+            return (
+              <button
+                key={statusValue}
+                onClick={() => setFilter(statusValue)}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap capitalize flex items-center gap-1.5 shrink-0",
+                  filter === statusValue
+                    ? "bg-[#0D3D33] text-white shadow-md"
+                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+                )}
+              >
+                {statusValue === 'All' ? 'All' : statusValue}
+                <span className={cn(
+                  "text-[10px] font-black min-w-[18px] h-[18px] rounded-full flex items-center justify-center",
+                  filter === statusValue ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+                )}>{count}</span>
+              </button>
+            );
+          })}
         </div>
       </motion.div>
 
