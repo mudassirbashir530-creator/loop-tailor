@@ -11,6 +11,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { useCustomers } from '../hooks/useCustomers';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { usePlanLimits } from '../hooks/usePlanLimits';
+import { PretextText, ShrinkWrapText, BalancedHeading } from '../components/ui/pretext';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -47,7 +48,7 @@ function StatCard({ title, value, icon, iconBg, linkTo }: StatCardProps) {
           {icon}
         </div>
         <div className="min-w-0">
-          <p className="text-[10px] sm:text-xs font-extrabold text-slate-400 uppercase tracking-wider truncate">{title}</p>
+          <ShrinkWrapText text={title} font="bold 10px Inter" className="text-[10px] sm:text-xs font-extrabold text-slate-400 uppercase tracking-wider truncate" />
           <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">{value}</p>
         </div>
       </CardContent>
@@ -199,8 +200,13 @@ export default function Home() {
             </span>
             <span className="text-[10px] sm:text-xs text-slate-400 font-bold">• Real-time Sync Active</span>
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">Shop Overview</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium">Welcome back! Manage orders, clients, workers, and subscription limits.</p>
+          <BalancedHeading text="Shop Overview" as="h1" className="text-xl sm:text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white" />
+          <PretextText
+            text="Welcome back! Manage orders, clients, workers, and subscription limits."
+            font="14px Inter"
+            lineHeight={20}
+            className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium"
+          />
         </div>
 
         <CircularProgress 

@@ -6,6 +6,7 @@ import { Users, ShieldAlert, Sparkles, UserX, Calendar, ArrowUpRight, ArrowDownR
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import ActivityLog from '../components/admin/ActivityLog';
 import PaymentsTab from '../components/admin/PaymentsTab';
+import { BalancedHeading, PretextText, ShrinkWrapText } from '../components/ui/pretext';
 
 interface StatsState {
   total: number;
@@ -198,15 +199,15 @@ export default function AdminDashboard() {
       value: stats.weekCount,
       description: 'Boutiques registered in 7d',
       icon: Calendar,
-      color: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950/20',
+      color: 'text-blue-600 bg-blue-50 dark:text-blue-350 dark:bg-blue-950/20',
       action: () => navigate('/admin/users?filter=week'),
     },
     {
       title: 'New This Month',
       value: stats.monthCount,
-      description: 'Joined since calendar start',
+      description: 'Boutiques registered 30d',
       icon: Calendar,
-      color: 'text-[#2ECC71] bg-[#2ECC71]/10 dark:text-[#2ECC71] dark:bg-[#2ECC71]/15',
+      color: 'text-blue-600 bg-blue-50 dark:text-blue-350 dark:bg-blue-950/20',
       action: () => navigate('/admin/users?filter=month'),
     },
   ];
@@ -217,12 +218,13 @@ export default function AdminDashboard() {
       {/* Greeting Segment */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Tailor Admin Dashboard
-          </h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">
-            Analyze licensing plans, registered owners and live shop performance directory.
-          </p>
+          <BalancedHeading text="Tailor Admin Dashboard" as="h1" className="text-3xl font-black text-slate-900 dark:text-white tracking-tight" />
+          <PretextText
+            text="Analyze licensing plans, registered owners and live shop performance directory."
+            font="14px Inter"
+            lineHeight={20}
+            className="text-sm text-slate-500 font-medium mt-1"
+          />
         </div>
       </div>
 
@@ -243,9 +245,7 @@ export default function AdminDashboard() {
               >
                 <CardContent className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest leading-none">
-                      {card.title}
-                    </span>
+                    <ShrinkWrapText text={card.title} font="bold 12px Inter" className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest leading-none" />
                     <div className={`p-2 rounded-2xl transition-colors ${card.color}`}>
                       <card.icon className="h-5 w-5" />
                     </div>
@@ -257,9 +257,7 @@ export default function AdminDashboard() {
                         {card.value}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">
-                      {card.description}
-                    </p>
+                    <PretextText text={card.description} font="11px Inter" lineHeight={16} className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider" />
                   </div>
 
                   {card.trend && (

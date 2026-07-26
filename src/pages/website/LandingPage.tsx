@@ -4,6 +4,7 @@ import { Sparkles, Package, Users, MessageSquare, FileText, BarChart3, Scissors,
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { useAuth } from '../../contexts/AuthContext';
+import { BalancedHeading, PretextText, ShrinkWrapText } from '../../components/ui/pretext';
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
@@ -23,14 +24,17 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary font-medium text-sm mb-6">
             <Sparkles className="h-4 w-4" />
-            Trusted by 500+ tailors in Pakistan
+            <ShrinkWrapText text="Trusted by 500+ tailors in Pakistan" font="14px Inter" />
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-foreground max-w-4xl mx-auto">
             Manage Your <span className="text-primary">Tailoring Business</span> Digitally
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto">
-            Say goodbye to diaries and WhatsApp chaos. Streamline your orders, measurements, and customer communication in one place.
-          </p>
+          <PretextText
+            text="Say goodbye to diaries and WhatsApp chaos. Streamline your orders, measurements, and customer communication in one place."
+            font="18px Inter"
+            lineHeight={28}
+            className="text-lg md:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto"
+          />
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 font-medium text-xs mb-10 border border-emerald-200/50 dark:border-emerald-800/20">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             WhatsApp Integration: Available on Standard & Premium plans
@@ -54,8 +58,13 @@ export default function LandingPage() {
       <section id="features" className="py-24 bg-card">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight mb-4">Everything you need to run your shop</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">Our platform provides all the tools you need to organize your tailoring business and delight your customers.</p>
+            <BalancedHeading text="Everything you need to run your shop" as="h2" className="text-3xl font-bold tracking-tight mb-4" />
+            <PretextText
+              text="Our platform provides all the tools you need to organize your tailoring business and delight your customers."
+              font="16px Inter"
+              lineHeight={24}
+              className="text-muted-foreground max-w-2xl mx-auto"
+            />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
