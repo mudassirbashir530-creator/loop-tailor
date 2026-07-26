@@ -24,7 +24,7 @@ export const useInvoice = (orderId: string | undefined) => {
           const orderData: any = { id: orderSnap.id, ...orderSnap.data() };
           setOrder(orderData);
 
-          // Fetch Customer if exists on clients collection
+          // Fetch Customer if exists on clients/customers collection
           if (orderData.customerId) {
             onSnapshot(doc(db, 'customers', orderData.customerId), (cSnap) => {
               if (cSnap.exists()) {
@@ -60,7 +60,6 @@ export const useInvoice = (orderId: string | undefined) => {
         const settingsData = settingsSnap.exists() ? settingsSnap.data() : {};
         const shopData = shopSnap.exists() ? shopSnap.data() : {};
 
-        // Merge: shops/{currentUserId} takes precedence as requested
         setShop({
           name: shopData.shopName || settingsData.name || 'Loop Tailor',
           phone: shopData.shopPhone || settingsData.phone || '',
@@ -101,16 +100,14 @@ export const useInvoice = (orderId: string | undefined) => {
     };
   }, [user, orderId]);
 
-  // Save/Update Footer to shops/{userId}.invoiceFooter in Firestore
+  // Save/Update Footer to shops/{userId}.invoiceFooter & settings/{userId}.invoiceFooter
   const updateFooter = async (newFooter: string) => {
     if (!user) return;
     try {
-      // 1. Write to shops/{currentUserId}.invoiceFooter
       await setDoc(doc(db, 'shops', user.uid), {
         invoiceFooter: newFooter
       }, { merge: true });
 
-      // 2. Also save to settings/{user.uid}.invoiceFooter for complete backward compatibility
       await setDoc(doc(db, 'settings', user.uid), {
         invoiceFooter: newFooter
       }, { merge: true });
@@ -122,12 +119,12 @@ export const useInvoice = (orderId: string | undefined) => {
     }
   };
 
-  // Update order fields (notes, deliveryDate, rackLocation) in Firestore
-  const updateOrderFields = async (fields: { notes?: string; deliveryDate?: any; rackLocation?: string }) => {
+  // Update order fields (notes, price, advancePayment, deliveryDate, rackLocation, etc.)
+  const updateOrderFields = async (fields: Record<string, any>) => {
     if (!user || !orderId) return;
     try {
       await updateDoc(doc(db, 'orders', orderId), fields);
-      toast.success('Order details updated successfully!');
+      toast.success('Invoice details updated & saved to database!');
     } catch (err: any) {
       console.error(err);
       toast.error('Failed to update order details');

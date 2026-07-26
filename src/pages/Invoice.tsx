@@ -18,7 +18,7 @@ export default function InvoicePage() {
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1a3a2a]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#0D3D33]" />
       </div>
     );
   }
@@ -35,35 +35,34 @@ export default function InvoicePage() {
   const currentFooter = shop?.invoiceFooter || `Thank you for choosing ${shop?.name || 'us'}!\nFor queries contact us on WhatsApp.`;
 
   return (
-    <div className="min-h-screen bg-slate-100 py-6 px-4 md:px-8">
+    <div className="min-h-screen bg-slate-100 py-6 px-2 sm:px-4 md:px-8">
       {/* Top Banner Navigation */}
-      <div className="max-w-[600px] mx-auto mb-6 flex items-center justify-start">
+      <div className="max-w-2xl mx-auto mb-4 flex items-center justify-start">
         <Button 
           variant="outline" 
           onClick={() => navigate(`/app/orders/${id}`)}
-          className="rounded-xl font-bold text-slate-600 bg-white shadow-sm border border-slate-200"
+          className="rounded-xl font-bold text-slate-600 bg-white shadow-sm border border-slate-200 text-xs sm:text-sm"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Order
         </Button>
       </div>
 
-      <div className="overflow-x-auto hide-scrollbar">
-        <div className="min-w-[400px]">
-          <Invoice 
-            ref={invoiceRef}
-            order={order} 
-            shop={shop} 
-            customer={customer} 
-            paymentsList={paymentsList} 
-          />
-        </div>
+      <div className="max-w-full overflow-x-hidden">
+        <Invoice 
+          ref={invoiceRef}
+          order={order} 
+          shop={shop} 
+          customer={customer} 
+          paymentsList={paymentsList} 
+        />
       </div>
 
       <InvoiceActions 
         invoiceRef={invoiceRef}
         orderId={order.id}
         order={order}
+        customer={customer}
         onSaveOrderFields={updateOrderFields}
         customerName={order.customerName}
         shopName={shop?.name || 'Loop Tailor'}
