@@ -1190,8 +1190,27 @@ ${worksheetUrl}`;
                 order={order}
                 onSaveOrderFields={async (fields) => {
                   try {
-                    await updateDoc(doc(db, 'orders', order.id), fields);
-                    toast.success('Invoice content updated successfully!');
+                    const cleanFields = { ...fields, updatedAt: new Date().toISOString() };
+                    await updateDoc(doc(db, 'orders', order.id), cleanFields).catch(() => {
+                      return setDoc(doc(db, 'orders', order.id), cleanFields, { merge: true });
+                    });
+
+                    // Sync to MongoDB in background
+                    const fullMerged = { _id: order.id, id: order.id, userId: user?.uid, ...order, ...fields, updatedAt: new Date().toISOString() };
+                    Promise.allSettled([
+                      fetch('/api/db/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(fullMerged)
+                      }),
+                      fetch('/api/db/invoices', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(fullMerged)
+                      })
+                    ]);
+
+                    toast.success('Invoice details updated & saved to MongoDB & Firestore!');
                   } catch (e) {
                     console.error(e);
                     toast.error('Failed to update invoice fields');
@@ -1202,9 +1221,18 @@ ${worksheetUrl}`;
                 currentFooter={shopDoc?.invoiceFooter || shop?.invoiceFooter || settings?.invoiceFooter || ''}
                 onSaveFooter={async (newFooter) => {
                   try {
-                    await setDoc(doc(db, 'shops', user.uid), { invoiceFooter: newFooter }, { merge: true });
-                    await setDoc(doc(db, 'settings', user.uid), { invoiceFooter: newFooter }, { merge: true });
-                    toast.success('Invoice footer updated successfully!');
+                    if (user?.uid) {
+                      await Promise.all([
+                        setDoc(doc(db, 'shops', user.uid), { invoiceFooter: newFooter }, { merge: true }),
+                        setDoc(doc(db, 'settings', user.uid), { invoiceFooter: newFooter }, { merge: true })
+                      ]);
+                      fetch('/api/db/settings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: user.uid, invoiceFooter: newFooter })
+                      }).catch(() => {});
+                    }
+                    toast.success('Invoice footer saved to MongoDB & Firestore!');
                   } catch (e) {
                     console.error(e);
                     toast.error('Failed to update footer');

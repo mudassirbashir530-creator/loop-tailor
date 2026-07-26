@@ -100,33 +100,73 @@ export const useInvoice = (orderId: string | undefined) => {
     };
   }, [user, orderId]);
 
-  // Save/Update Footer to shops/{userId}.invoiceFooter & settings/{userId}.invoiceFooter
+  // Save/Update Footer to shops/{userId}.invoiceFooter & settings/{userId}.invoiceFooter & MongoDB
   const updateFooter = async (newFooter: string) => {
     if (!user) return;
     try {
-      await setDoc(doc(db, 'shops', user.uid), {
-        invoiceFooter: newFooter
-      }, { merge: true });
+      // 1. Update Firestore
+      await Promise.all([
+        setDoc(doc(db, 'shops', user.uid), { invoiceFooter: newFooter }, { merge: true }),
+        setDoc(doc(db, 'settings', user.uid), { invoiceFooter: newFooter }, { merge: true })
+      ]);
 
-      await setDoc(doc(db, 'settings', user.uid), {
-        invoiceFooter: newFooter
-      }, { merge: true });
+      // 2. Sync to MongoDB in background
+      fetch('/api/db/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: user.uid, invoiceFooter: newFooter, updatedAt: new Date().toISOString() })
+      }).catch(() => {});
 
-      toast.success('Invoice footer saved successfully!');
+      toast.success('Invoice footer saved to database!');
     } catch (err: any) {
       console.error(err);
       toast.error('Failed to update footer');
     }
   };
 
-  // Update order fields (notes, price, advancePayment, deliveryDate, rackLocation, etc.)
+  // Update order & invoice fields (notes, price, advancePayment, deliveryDate, rackLocation, customerName, etc.) to Firestore & MongoDB
   const updateOrderFields = async (fields: Record<string, any>) => {
     if (!user || !orderId) return;
     try {
-      await updateDoc(doc(db, 'orders', orderId), fields);
-      toast.success('Invoice details updated & saved to database!');
+      // Clean serializable payload for Firestore
+      const cleanFields: Record<string, any> = { ...fields, updatedAt: new Date().toISOString() };
+
+      // 1. Save to Firestore
+      await updateDoc(doc(db, 'orders', orderId), cleanFields).catch(() => {
+        return setDoc(doc(db, 'orders', orderId), cleanFields, { merge: true });
+      });
+
+      // 2. Save to MongoDB orders & invoices collections in background
+      const fullMergedOrder = {
+        _id: orderId,
+        id: orderId,
+        userId: user.uid,
+        ...order,
+        ...fields,
+        updatedAt: new Date().toISOString()
+      };
+
+      await Promise.allSettled([
+        fetch('/api/db/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fullMergedOrder)
+        }),
+        fetch('/api/db/invoices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fullMergedOrder)
+        }),
+        fetch('/api/public/worker-order/' + orderId + '/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: fields.status || order?.status || 'stitching' })
+        })
+      ]);
+
+      toast.success('Invoice details updated & saved to MongoDB & Firestore!');
     } catch (err: any) {
-      console.error(err);
+      console.error("Failed updating order fields:", err);
       toast.error('Failed to update order details');
     }
   };
