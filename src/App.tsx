@@ -60,6 +60,12 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, isAdmin, impersonatedUser, loading } = useAuth();
   const location = useLocation();
   if (loading) return <LoadingFallback />;
+
+  // Allow public worker worksheet links to bypass auth checks seamlessly
+  if (location.pathname.includes('/worker-order/') || location.pathname.includes('/worksheet/')) {
+    return <>{children}</>;
+  }
+
   if (!user) return <Navigate to="/auth/login" state={{ from: location }} replace />;
   // Admin should only see the admin panel UNLESS actively impersonating a user
   if (isAdmin && !impersonatedUser) return <Navigate to="/admin" replace />;
@@ -110,8 +116,11 @@ function MainApp() {
             <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
           </Route>
 
-          {/* Public Worker Worksheet Route */}
+          {/* Universal Public Worker Worksheet Routes (No Auth / Login Required) */}
           <Route path="/worker-order/:id" element={<WorkerOrderView />} />
+          <Route path="/worksheet/:id" element={<WorkerOrderView />} />
+          <Route path="/order-worksheet/:id" element={<WorkerOrderView />} />
+          <Route path="/public/worker-order/:id" element={<WorkerOrderView />} />
 
           {/* Auth Routes */}
           <Route path="/auth/login" element={
