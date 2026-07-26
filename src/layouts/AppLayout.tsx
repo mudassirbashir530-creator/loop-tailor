@@ -71,43 +71,48 @@ export default function AppLayout() {
       {/* Desktop Floating Glassmorphism Capsule Sidebar */}
       <DesktopSidebar navItems={navItems} user={user} userData={userData} />
 
-      {/* Mobile Top Header */}
-      <div className="lg:hidden sticky top-0 bg-[#F7F5F0]/95 backdrop-blur-md border-b border-[#0D3D33]/10 z-40 px-4 h-16 flex items-center justify-between min-w-0 w-full">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="bg-[#0D3D33] text-white p-2 rounded-lg shrink-0">
-            <Scissors className="h-5 w-5" />
+      {/* Mobile Top Header — Premium Glassmorphism */}
+      <div className="lg:hidden sticky top-0 z-40 px-3 pt-2">
+        <div className="bg-[#0D3D33]/95 backdrop-blur-xl rounded-2xl shadow-lg border border-emerald-500/15 px-4 h-14 flex items-center justify-between min-w-0 w-full">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center shrink-0">
+              <Scissors className="h-4.5 w-4.5" />
+            </div>
+            <div className="min-w-0">
+              <span className="font-extrabold text-base tracking-tight text-white block truncate leading-tight">Loop Tailor</span>
+              <span className="text-[8px] font-black tracking-widest text-[#2ECC71] uppercase block">BOUTIQUE OS</span>
+            </div>
           </div>
-          <span className="font-bold text-xl tracking-tight text-[#0D3D33] truncate">Loop Tailor</span>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <NavLink 
-            to="/app/workers" 
-            className={({ isActive }) => cn(
-              "p-2 rounded-full transition-colors",
-              isActive ? "bg-[#2ECC71]/20 text-[#0D3D33]" : "text-[#4A5568] hover:bg-[#0D3D33]/10"
-            )}
-            aria-label="Worker Assign"
-          >
-             <UserCircle className="w-6 h-6" strokeWidth={1.8} />
-          </NavLink>
-          <NavLink 
-            to="/app/settings" 
-            className="p-1.5 rounded-full transition-colors hover:bg-[#0D3D33]/10"
-            aria-label="Profile Settings"
-          >
-             {userData?.profileImage ? (
-               <img src={userData.profileImage} alt="Profile" className="w-9 h-9 rounded-full border-2 border-[#0D3D33]/10 shadow-sm object-cover" />
-             ) : (
-               <div className="w-9 h-9 rounded-full bg-[#0D3D33]/10 flex items-center justify-center text-[#0D3D33] font-bold text-sm border-2 border-[#0D3D33]/10 shadow-sm">
-                 {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
-               </div>
-             )}
-          </NavLink>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <NavLink 
+              to="/app/workers" 
+              className={({ isActive }) => cn(
+                "p-2 rounded-xl transition-all duration-200",
+                isActive ? "bg-[#2ECC71]/20 text-[#2ECC71]" : "text-white/50 hover:bg-white/10 hover:text-white"
+              )}
+              aria-label="Worker Assign"
+            >
+               <UserCircle className="w-5 h-5" strokeWidth={1.8} />
+            </NavLink>
+            <NavLink 
+              to="/app/settings" 
+              className="p-0.5 rounded-xl transition-all duration-200 hover:bg-white/10"
+              aria-label="Profile Settings"
+            >
+               {userData?.profileImage ? (
+                 <img src={userData.profileImage} alt="Profile" className="w-8 h-8 rounded-xl border-2 border-[#2ECC71]/40 shadow-sm object-cover" />
+               ) : (
+                 <div className="w-8 h-8 rounded-xl bg-[#2ECC71] flex items-center justify-center text-slate-950 font-black text-xs shadow-sm">
+                   {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                 </div>
+               )}
+            </NavLink>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 pb-24 lg:pb-0 overflow-y-auto w-full max-w-full min-w-0 mx-auto px-2 sm:px-4 md:px-6">
+      <main className="flex-1 pb-28 lg:pb-0 overflow-y-auto w-full max-w-full min-w-0 mx-auto px-2 sm:px-4 md:px-6">
         {/* Impersonation Banner */}
         {impersonatedUser && (
           <div className="bg-amber-400 text-slate-950 px-4 py-3 border-b border-amber-500 shadow-md font-bold text-xs sm:text-sm flex flex-wrap items-center justify-between gap-2 mt-2 rounded-2xl">
