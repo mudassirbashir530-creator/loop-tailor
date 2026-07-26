@@ -25,22 +25,29 @@ export const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
       {/* Header */}
       <div className="flex justify-between items-start border-b border-slate-200 pb-8 mb-8 mt-2">
         <div className="flex items-center gap-5">
-          {settings.shopLogo ? (
-            <img 
-              src={typeof settings.shopLogo === 'string' ? settings.shopLogo : settings.shopLogo.url} 
-              className="h-20 w-20 rounded-2xl object-cover border-2 border-slate-100 shadow-md bg-slate-50" 
-              alt="Logo"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="bg-[#0D3D33] text-white p-3 rounded-2xl text-3xl font-black shadow-md flex items-center justify-center" style={{ width: '64px', height: '64px' }}>
-              ✂️
-            </div>
-          )}
+          {(() => {
+            const logoUrl = typeof settings?.shopLogo === 'string' ? settings.shopLogo : ((settings?.shopLogo as any)?.url || (settings?.shopLogo as any)?.secure_url || settings?.logoUrl || null);
+            if (logoUrl) {
+              return (
+                <img 
+                  src={logoUrl} 
+                  className="h-20 w-20 rounded-2xl object-cover border-2 border-slate-200 shadow-md bg-slate-50 p-0.5" 
+                  alt="Shop Logo"
+                  referrerPolicy="no-referrer"
+                  crossOrigin="anonymous"
+                />
+              );
+            }
+            return (
+              <div className="bg-[#0D3D33] text-white p-3 rounded-2xl text-3xl font-black shadow-md flex items-center justify-center" style={{ width: '72px', height: '72px' }}>
+                ✂️
+              </div>
+            );
+          })()}
           <div>
             <h1 className="font-extrabold text-2xl text-[#0D3D33] tracking-tight">{settings.name || 'Loop Tailor Shop'}</h1>
-            <p className="text-slate-500 text-sm mt-1 font-medium">📍 {settings.address || 'Smart Tailoring Studio'}</p>
-            <p className="text-slate-500 text-sm font-medium">📞 Phone: {settings.phone || '+92 300 0000000'}</p>
+            {settings.phone && <p className="text-slate-500 text-sm mt-1 font-medium">📞 Phone: {settings.phone}</p>}
+            {settings.address && <p className="text-slate-500 text-sm font-medium">📍 Address: {settings.address}</p>}
           </div>
         </div>
 
