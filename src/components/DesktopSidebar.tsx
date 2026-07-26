@@ -1,0 +1,208 @@
+import React, { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Home, 
+  Users, 
+  Package, 
+  Settings, 
+  Plus, 
+  Scissors, 
+  UserCircle, 
+  MessageSquare, 
+  FileText, 
+  ChevronLeft, 
+  ChevronRight,
+  LogOut,
+  Sparkles
+} from 'lucide-react';
+import { cn } from '../lib/utils';
+
+interface NavItem {
+  icon: any;
+  label: string;
+  path: string;
+  badge?: string | number;
+}
+
+interface DesktopSidebarProps {
+  navItems: NavItem[];
+  user: any;
+  userData: any;
+}
+
+export default function DesktopSidebar({ navItems, user, userData }: DesktopSidebarProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [hoveredPath, setHoveredPath] = useState<string | null>(null);
+  const location = useLocation();
+
+  const toggleCollapse = () => {
+    setIsCollapsed(prev => !prev);
+  };
+
+  return (
+    <aside className="hidden lg:block p-4 sticky top-0 h-screen shrink-0 z-30 select-none">
+      <motion.div
+        initial={false}
+        animate={{ width: isCollapsed ? 84 : 260 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+        className="h-[calc(100vh-32px)] bg-[#0D3D33] text-white rounded-[32px] p-4 flex flex-col justify-between shadow-2xl border border-emerald-500/20 relative overflow-hidden backdrop-blur-xl"
+      >
+        {/* Ambient Glow Background Element */}
+        <div className="absolute -top-16 -left-16 w-44 h-44 bg-[#2ECC71]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -right-16 w-44 h-44 bg-[#2ECC71]/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Top Header & Toggle Arrow */}
+        <div>
+          <div className={cn(
+            "flex items-center pb-6 border-b border-white/10 pt-1 transition-all",
+            isCollapsed ? "justify-center flex-col gap-3" : "justify-between px-2"
+          )}>
+            <div className="flex items-center gap-3 min-w-0">
+              <motion.div 
+                whileHover={{ scale: 1.08, rotate: 12 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-[#2ECC71] flex items-center justify-center font-black shadow-md shrink-0 cursor-pointer"
+                onClick={toggleCollapse}
+              >
+                <Scissors className="w-5 h-5 text-white fill-current" />
+              </motion.div>
+
+              <AnimatePresence mode="wait">
+                {!isCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="overflow-hidden min-w-0"
+                  >
+                    <span className="font-extrabold text-lg tracking-tight text-white block truncate">
+                      Loop Tailor
+                    </span>
+                    <span className="text-[10px] font-black tracking-widest text-[#2ECC71] uppercase block">
+                      BOUTIQUE OS
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Collapse Toggle Arrow Button */}
+            <motion.button
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={toggleCollapse}
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer shrink-0 shadow-sm"
+              title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            >
+              {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </motion.button>
+          </div>
+
+          {/* Navigation Items List */}
+          <nav className="mt-5 space-y-2">
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path || 
+                (item.path !== '/app' && location.pathname.startsWith(item.path));
+
+              return (
+                <div 
+                  key={item.path} 
+                  className="relative"
+                  onMouseEnter={() => setHoveredPath(item.path)}
+                  onMouseLeave={() => setHoveredPath(null)}
+                >
+                  <NavLink
+                    to={item.path}
+                    className={cn(
+                      "relative flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 font-bold text-sm min-w-0 group",
+                      isActive
+                        ? "bg-white text-[#0D3D33] shadow-lg shadow-black/10 font-extrabold"
+                        : "text-white/70 hover:text-white hover:bg-white/10"
+                    )}
+                  >
+                    <item.icon 
+                      className={cn(
+                        "w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-110",
+                        isActive ? "text-[#0D3D33]" : "text-white/80"
+                      )} 
+                    />
+
+                    <AnimatePresence mode="wait">
+                      {!isCollapsed && (
+                        <motion.span
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -8 }}
+                          transition={{ duration: 0.15 }}
+                          className="truncate flex-1"
+                        >
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Active Accent Indicator Bar */}
+                    {isActive && !isCollapsed && (
+                      <motion.div 
+                        layoutId="activeSidePill"
+                        className="w-1.5 h-5 bg-[#2ECC71] rounded-full shrink-0" 
+                      />
+                    )}
+                  </NavLink>
+
+                  {/* Pop-up Tooltip on Collapsed View */}
+                  {isCollapsed && hoveredPath === item.path && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      exit={{ opacity: 0, x: 10, scale: 0.95 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-black px-3.5 py-2 rounded-xl shadow-2xl z-50 whitespace-nowrap border border-slate-700 pointer-events-none flex items-center gap-1.5"
+                    >
+                      <span>{item.label}</span>
+                    </motion.div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* User Profile Bottom Footer */}
+        <div className="pt-4 border-t border-white/10">
+          <div className={cn(
+            "flex items-center gap-3 p-2.5 rounded-2xl bg-white/5 border border-white/10 transition-all",
+            isCollapsed ? "justify-center" : "justify-between"
+          )}>
+            <div className="flex items-center gap-3 min-w-0">
+              {userData?.profileImage ? (
+                <img 
+                  src={userData.profileImage} 
+                  alt="Profile" 
+                  className="w-9 h-9 rounded-full border-2 border-[#2ECC71] object-cover shrink-0 shadow-sm" 
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-[#2ECC71] text-slate-950 font-black flex items-center justify-center text-xs shrink-0 shadow-sm">
+                  {(user?.displayName || user?.email || 'U').charAt(0).toUpperCase()}
+                </div>
+              )}
+
+              {!isCollapsed && (
+                <div className="overflow-hidden min-w-0">
+                  <p className="text-xs font-extrabold text-white truncate leading-tight">
+                    {user?.displayName || 'Tailor Shop'}
+                  </p>
+                  <p className="text-[10px] text-[#2ECC71] font-bold truncate mt-0.5">
+                    {userData?.plan ? `${userData.plan.toUpperCase()} PLAN` : 'FREE PLAN'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </aside>
+  );
+}

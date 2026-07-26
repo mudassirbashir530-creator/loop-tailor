@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOrders } from '../hooks/useOrders';
 import { cn } from '../lib/utils';
 import BottomNav from '../components/BottomNav';
+import DesktopSidebar from '../components/DesktopSidebar';
 import { PWAPrompt } from '../components/PWAPrompt';
 import { Button } from '../components/ui/button';
 
@@ -67,54 +68,8 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-[#F7F5F0] font-sans flex flex-col lg:flex-row max-w-full overflow-x-hidden">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-[#0D3D33] min-h-screen sticky top-0 shrink-0">
-        <div className="p-6 flex items-center gap-3">
-          <div className="bg-white text-[#0D3D33] p-2 rounded-lg shrink-0">
-            <Scissors className="h-6 w-6" />
-          </div>
-          <span className="font-bold text-xl tracking-tight text-white truncate">Loop Tailor</span>
-        </div>
-        
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path || 
-              (item.path !== '/app' && location.pathname.startsWith(item.path));
-            
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium truncate",
-                  isActive 
-                    ? "bg-[#2ECC71] text-white" 
-                    : "text-white/60 hover:bg-white/10 hover:text-white"
-                )}
-              >
-                <item.icon className="h-5 w-5 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
-                <span className="truncate">{item.label}</span>
-              </NavLink>
-            );
-          })}
-        </nav>
-        
-        <div className="p-4">
-          <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl min-w-0">
-             {userData?.profileImage ? (
-               <img src={userData.profileImage} alt="Profile" className="h-10 w-10 rounded-full border border-white/20 shadow-sm object-cover shrink-0" />
-             ) : (
-               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold shrink-0">
-                 {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
-               </div>
-             )}
-             <div className="overflow-hidden min-w-0">
-               <p className="text-sm font-semibold truncate text-white">{user?.displayName || 'User'}</p>
-               <p className="text-xs text-white/60 truncate">{user?.email}</p>
-             </div>
-          </div>
-        </div>
-      </aside>
+      {/* Desktop Floating Glassmorphism Capsule Sidebar */}
+      <DesktopSidebar navItems={navItems} user={user} userData={userData} />
 
       {/* Mobile Top Header */}
       <div className="lg:hidden sticky top-0 bg-[#F7F5F0]/95 backdrop-blur-md border-b border-[#0D3D33]/10 z-40 px-4 h-16 flex items-center justify-between min-w-0 w-full">
