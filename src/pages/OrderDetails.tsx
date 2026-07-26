@@ -668,19 +668,9 @@ export default function OrderDetails() {
                         const measurements = order.measurements || {};
                         const deliveryStr = order.deliveryDate ? (typeof order.deliveryDate.toDate === 'function' ? order.deliveryDate.toDate().toLocaleDateString() : new Date(order.deliveryDate).toLocaleDateString()) : '';
                         
-                        const params = new URLSearchParams({
-                          t: tokenNumber,
-                          c: order.customerName || 'Customer',
-                          d: order.clothingType || order.dressType || 'Custom Suit',
-                          del: deliveryStr,
-                          r: order.rackLocation || '',
-                          n: order.designNotes || order.notes || '',
-                          s: settings?.name || shopDoc?.shopName || 'Loop Tailor',
-                          sp: settings?.phone || shopDoc?.shopPhone || '',
-                          m: JSON.stringify(measurements)
-                        });
-
-                        const worksheetUrl = `${window.location.origin}/worker-order/${order.id}?${params.toString()}`;
+                        const cleanCustomer = (order.customerName || 'Customer').replace(/[^a-zA-Z0-9]/g, '');
+                        const cleanDress = (order.clothingType || order.dressType || 'Suit').replace(/[^a-zA-Z0-9]/g, '');
+                        const worksheetUrl = `${window.location.origin}/w/${order.tokenId || order.id}?t=${tokenNumber}&c=${cleanCustomer}&d=${cleanDress}`;
 
                         const msg = `✂️ *TAILOR WORKSHEET — ${settings?.name || 'LOOP TAILOR'}* ✂️
 -----------------------------------

@@ -153,8 +153,10 @@ export default function WorkerOrderView() {
         }
       } catch (e) {}
 
-      // Strategy 4: Firestore Query orders by `id` or `tokenId` field
+      // Strategy 4: Firestore Query orders by `id` or `tokenId` field variations
       try {
+        const tokenFormatted = id.toUpperCase().startsWith('T-') ? id.toUpperCase() : `T-${id.toUpperCase()}`;
+        
         const qById = query(collection(db, 'orders'), where('id', '==', id));
         const snapById = await getDocs(qById);
         if (!snapById.empty && isMounted) {
@@ -163,7 +165,7 @@ export default function WorkerOrderView() {
           return;
         }
 
-        const qByToken = query(collection(db, 'orders'), where('tokenId', '==', id.toUpperCase()));
+        const qByToken = query(collection(db, 'orders'), where('tokenId', '==', tokenFormatted));
         const snapByToken = await getDocs(qByToken);
         if (!snapByToken.empty && isMounted) {
           const matchedDoc = snapByToken.docs[0];
@@ -172,8 +174,10 @@ export default function WorkerOrderView() {
         }
       } catch (e) {}
 
-      // Strategy 5: Firestore Query publicOrders by `id` or `tokenId` field
+      // Strategy 5: Firestore Query publicOrders by `id` or `tokenId` field variations
       try {
+        const tokenFormatted = id.toUpperCase().startsWith('T-') ? id.toUpperCase() : `T-${id.toUpperCase()}`;
+
         const qPubById = query(collection(db, 'publicOrders'), where('id', '==', id));
         const snapPubById = await getDocs(qPubById);
         if (!snapPubById.empty && isMounted) {
@@ -181,11 +185,19 @@ export default function WorkerOrderView() {
           handleFoundOrder(matchedDoc.id, matchedDoc.data(), 'publicOrders');
           return;
         }
+
+        const qPubByToken = query(collection(db, 'publicOrders'), where('tokenId', '==', tokenFormatted));
+        const snapPubByToken = await getDocs(qPubByToken);
+        if (!snapPubByToken.empty && isMounted) {
+          const matchedDoc = snapPubByToken.docs[0];
+          handleFoundOrder(matchedDoc.id, matchedDoc.data(), 'publicOrders');
+          return;
+        }
       } catch (e) {}
 
-      // Final Check: If no order matched after all 5 strategies
+      // Final Check: If no order matched from DB, preserve URL query fallback order if present!
       if (isMounted) {
-        setOrder(null);
+        setOrder(prev => prev || null);
         setLoading(false);
       }
     };

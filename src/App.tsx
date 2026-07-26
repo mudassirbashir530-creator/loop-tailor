@@ -62,7 +62,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   if (loading) return <LoadingFallback />;
 
   // Allow public worker worksheet links to bypass auth checks seamlessly
-  if (location.pathname.includes('/worker-order/') || location.pathname.includes('/worksheet/')) {
+  if (location.pathname.startsWith('/w/') || location.pathname.includes('/worker-order/') || location.pathname.includes('/worksheet/')) {
     return <>{children}</>;
   }
 
@@ -116,7 +116,8 @@ function MainApp() {
             <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
           </Route>
 
-          {/* Universal Public Worker Worksheet Routes (No Auth / Login Required) */}
+          {/* Short & Universal Public Worker Worksheet Routes (No Auth / Login Required) */}
+          <Route path="/w/:id" element={<WorkerOrderView />} />
           <Route path="/worker-order/:id" element={<WorkerOrderView />} />
           <Route path="/worksheet/:id" element={<WorkerOrderView />} />
           <Route path="/order-worksheet/:id" element={<WorkerOrderView />} />
