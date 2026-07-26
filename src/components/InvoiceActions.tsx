@@ -74,6 +74,40 @@ export const InvoiceActions: React.FC<InvoiceActionsProps> = ({
 
   const tokenNumber = order?.tokenId || order?.id?.substring(0, 8).toUpperCase() || 'N/A';
 
+  // Helper to convert images to base64 before html2canvas to prevent Tainted Canvas errors
+  const convertImagesToBase64 = async (element: HTMLElement) => {
+    const images = Array.from(element.getElementsByTagName('img'));
+    const originalSrcs: { img: HTMLImageElement; src: string }[] = [];
+
+    for (const img of images) {
+      if (img.src && !img.src.startsWith('data:')) {
+        originalSrcs.push({ img, src: img.src });
+        try {
+          const response = await fetch(img.src, { mode: 'cors' });
+          const blob = await response.blob();
+          await new Promise<void>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              if (typeof reader.result === 'string') {
+                img.src = reader.result;
+              }
+              resolve();
+            };
+            reader.onerror = () => resolve();
+            reader.readAsDataURL(blob);
+          });
+        } catch (e) {
+          console.warn("Base64 image conversion fallback:", e);
+        }
+      }
+    }
+    return () => {
+      originalSrcs.forEach(({ img, src }) => {
+        img.src = src;
+      });
+    };
+  };
+
   // 100% Fail-Proof PNG Export
   const handleSaveAsPNG = async () => {
     if (isDownloading || isSharing) return;
@@ -85,28 +119,18 @@ export const InvoiceActions: React.FC<InvoiceActionsProps> = ({
       return;
     }
 
+    let restoreImages: (() => void) | null = null;
     try {
+      restoreImages = await convertImagesToBase64(invoiceEl);
       await new Promise(resolve => setTimeout(resolve, 200));
 
-      let canvas: HTMLCanvasElement;
-      try {
-        canvas = await html2canvas(invoiceEl, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false
-        });
-      } catch {
-        // Fallback for CORS image restrictions
-        canvas = await html2canvas(invoiceEl, {
-          scale: 2,
-          useCORS: false,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false
-        });
-      }
+      const canvas = await html2canvas(invoiceEl, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false, // Must be false to allow canvas.toDataURL()
+        backgroundColor: '#ffffff',
+        logging: false
+      });
 
       const url = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
@@ -116,8 +140,9 @@ export const InvoiceActions: React.FC<InvoiceActionsProps> = ({
       toast.success('Invoice PNG exported successfully!');
     } catch (error) {
       console.error('PNG Download Error:', error);
-      toast.error('Export error. Taking a quick screenshot recommended.');
+      toast.error('PNG Export failed. Taking a quick screenshot recommended.');
     } finally {
+      if (restoreImages) restoreImages();
       setIsDownloading(false);
     }
   };
