@@ -30,7 +30,18 @@ export default function FeatureRoute({ feature, children }: FeatureRouteProps) {
   const currentPlanId = userData?.plan || 'free';
   const requiredPlanId = REQUIRED_PLAN[feature];
 
-  if (features[feature] || (requiredPlanId as string) === 'free' || currentPlanId === requiredPlanId) {
+  const PLAN_HIERARCHY: Record<string, number> = {
+    free: 0,
+    basic: 1,
+    standard: 2,
+    premium: 3,
+    enterprise: 4
+  };
+
+  const userTier = PLAN_HIERARCHY[currentPlanId.toLowerCase()] ?? 0;
+  const requiredTier = PLAN_HIERARCHY[requiredPlanId.toLowerCase()] ?? 0;
+
+  if (features[feature] === true || requiredTier === 0 || userTier >= requiredTier) {
     return <>{children}</>;
   }
   

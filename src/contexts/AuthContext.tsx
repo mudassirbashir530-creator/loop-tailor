@@ -286,6 +286,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // Live synchronization for impersonated user
+  useEffect(() => {
+    if (!impersonatedUser?.uid && !impersonatedUser?.id) return;
+    const targetUid = impersonatedUser.id || impersonatedUser.uid;
+
+    const unsubImpersonated = onSnapshot(doc(db, 'users', targetUid), (docSnap) => {
+      if (docSnap.exists()) {
+        const freshData = { id: docSnap.id, ...docSnap.data() };
+        setImpersonatedUser((prev: any) => ({
+          ...(prev || {}),
+          ...freshData
+        }));
+      }
+    }, (err) => {
+      console.warn("Live impersonation listener notice:", err);
+    });
+
+    return () => unsubImpersonated();
+  }, [impersonatedUser?.id, impersonatedUser?.uid]);
+
   const impersonateUser = (targetUser: any | null) => {
     setImpersonatedUser(targetUser);
   };
@@ -294,13 +314,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setImpersonatedUser(null);
   };
 
-  // Effective user & userData (incorporating Impersonation)
+  // Effective user & userData (incorporating Impersonation & Real-Time Feature Merging)
   const effectiveUser = impersonatedUser ? {
     uid: impersonatedUser.id || impersonatedUser.uid,
     email: impersonatedUser.email,
     displayName: impersonatedUser.ownerName || impersonatedUser.shopName || impersonatedUser.email,
     photoURL: impersonatedUser.photoURL || null
   } : realUser;
+
+  const targetPlanKey = (impersonatedUser?.plan || 'free') as keyof typeof PLAN_DETAILS;
+  const defaultPlanFeatures = PLAN_DETAILS[targetPlanKey]?.features || PLAN_DETAILS.free.features;
 
   const effectiveUserData = impersonatedUser ? {
     uid: impersonatedUser.id || impersonatedUser.uid,
@@ -309,8 +332,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     phone: impersonatedUser.phone || '',
     shopName: impersonatedUser.shopName || '',
     plan: impersonatedUser.plan || 'free',
-    planLimits: impersonatedUser.planLimits || { customers: 10, ordersPerMonth: 15, workers: 1 },
-    features: impersonatedUser.features || PLAN_DETAILS.free.features,
+    planLimits: impersonatedUser.planLimits || PLAN_DETAILS[targetPlanKey]?.planLimits || { customers: 10, ordersPerMonth: 15, workers: 1 },
+    features: {
+      ...defaultPlanFeatures,
+      ...(impersonatedUser.features || {})
+    },
     currentUsage: impersonatedUser.currentUsage || { customers: 0, ordersThisMonth: 0, workers: 0 },
     isBlocked: impersonatedUser.isBlocked || false,
     isImpersonated: true
