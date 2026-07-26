@@ -18,79 +18,84 @@ export default function WorkerOrderView() {
     if (!id) return;
     setLoading(true);
 
-    let unsubPublic: (() => void) | null = null;
-    let unsubOrder: (() => void) | null = null;
+    let isMounted = true;
+
+    // REST API Strategy for Universal Multi-Account & Cross-Browser Access
+    const fetchFromPublicApi = async () => {
+      try {
+        const res = await fetch(`/api/public/worker-order/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.order && isMounted) {
+            setOrder(data.order);
+            if (data.shop) setShop(data.shop);
+            setLoading(false);
+            return true;
+          }
+        }
+      } catch (err) {
+        console.warn("Public API fetch notice:", err);
+      }
+      return false;
+    };
 
     // Helper to fetch shop info
     const fetchShopInfo = (userId: string) => {
       if (!userId) return;
       onSnapshot(doc(db, 'shops', userId), (shopSnap) => {
-        if (shopSnap.exists()) {
+        if (shopSnap.exists() && isMounted) {
           setShop(shopSnap.data());
         } else {
           onSnapshot(doc(db, 'settings', userId), (settingsSnap) => {
-            if (settingsSnap.exists()) setShop(settingsSnap.data());
+            if (settingsSnap.exists() && isMounted) setShop(settingsSnap.data());
           });
         }
-      });
+      }, () => {});
     };
 
-    // 1. Try publicOrders first (Universal Access)
-    unsubPublic = onSnapshot(doc(db, 'publicOrders', id), (publicSnap) => {
-      if (publicSnap.exists()) {
+    let unsubPublic: (() => void) | null = null;
+    let unsubOrder: (() => void) | null = null;
+
+    // 1. Try Firestore publicOrders first
+    unsubPublic = onSnapshot(doc(db, 'publicOrders', id), async (publicSnap) => {
+      if (publicSnap.exists() && isMounted) {
         const pData = { id: publicSnap.id, ...publicSnap.data() };
         setOrder(pData);
         if ((pData as any).shop) setShop((pData as any).shop);
         else if ((pData as any).userId) fetchShopInfo((pData as any).userId);
         setLoading(false);
       } else {
-        // 2. Fallback to orders collection
-        unsubOrder = onSnapshot(doc(db, 'orders', id), (docSnap) => {
-          if (docSnap.exists()) {
-            const oData: any = { id: docSnap.id, ...docSnap.data() };
-            setOrder(oData);
-            if (oData.userId) fetchShopInfo(oData.userId);
-
-            // Auto sync to publicOrders so all browsers can access cleanly
-            setDoc(doc(db, 'publicOrders', id), oData, { merge: true }).catch(err => {
-              console.warn("Auto public sync:", err);
-            });
-          } else {
-            setOrder(null);
-          }
-          setLoading(false);
-        }, (err) => {
-          console.error("Orders collection fetch fallback error:", err);
-          // Try direct getDoc fallback
-          getDoc(doc(db, 'orders', id)).then(snap => {
-            if (snap.exists()) {
-              const oData = { id: snap.id, ...snap.data() };
+        // Fallback to public REST API first
+        const apiSuccess = await fetchFromPublicApi();
+        if (!apiSuccess && isMounted) {
+          // Fallback to orders collection
+          unsubOrder = onSnapshot(doc(db, 'orders', id), (docSnap) => {
+            if (docSnap.exists() && isMounted) {
+              const oData: any = { id: docSnap.id, ...docSnap.data() };
               setOrder(oData);
-              if ((oData as any).userId) fetchShopInfo((oData as any).userId);
-            } else {
+              if (oData.userId) fetchShopInfo(oData.userId);
+
+              // Auto sync to publicOrders
+              setDoc(doc(db, 'publicOrders', id), oData, { merge: true }).catch(() => {});
+            } else if (isMounted) {
               setOrder(null);
             }
-          }).catch(() => {
-            setOrder(null);
-          }).finally(() => setLoading(false));
-        });
-      }
-    }, (publicErr) => {
-      console.warn("Public orders fetch notice:", publicErr);
-      // Fallback directly to orders collection
-      unsubOrder = onSnapshot(doc(db, 'orders', id), (docSnap) => {
-        if (docSnap.exists()) {
-          const oData: any = { id: docSnap.id, ...docSnap.data() };
-          setOrder(oData);
-          if (oData.userId) fetchShopInfo(oData.userId);
-        } else {
-          setOrder(null);
+            if (isMounted) setLoading(false);
+          }, async () => {
+            // Firestore blocked by another user session, execute REST API fallback
+            await fetchFromPublicApi();
+            if (isMounted) setLoading(false);
+          });
         }
-        setLoading(false);
-      }, () => setLoading(false));
+      }
+    }, async () => {
+      // If publicOrders snapshot fails, fallback to REST API
+      await fetchFromPublicApi();
+      if (isMounted) setLoading(false);
     });
 
     return () => {
+      isMounted = false;
       if (unsubPublic) unsubPublic();
       if (unsubOrder) unsubOrder();
     };
@@ -100,7 +105,14 @@ export default function WorkerOrderView() {
     if (!id || !order) return;
     setUpdating(true);
     try {
-      // Update both orders and publicOrders
+      // Update via REST API
+      await fetch(`/api/public/worker-order/${id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      }).catch(() => {});
+
+      // Update Firestore in parallel
       await Promise.allSettled([
         updateDoc(doc(db, 'orders', id), {
           status: newStatus,

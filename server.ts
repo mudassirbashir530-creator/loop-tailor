@@ -281,6 +281,62 @@ async function startServer() {
     }
   });
 
+  // Public Worker Order Endpoint (Universal Access for all browsers/sessions)
+  app.get("/api/public/worker-order/:id", async (req, res) => {
+    try {
+      const db = await getMongoDb();
+      const id = req.params.id;
+      
+      const order = await db.collection("orders").findOne({
+        $or: [{ _id: id }, { id: id }, { tokenId: id }]
+      }) || await db.collection("publicOrders").findOne({
+        $or: [{ _id: id }, { id: id }, { tokenId: id }]
+      });
+      
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+      
+      let shop = null;
+      if (order.userId) {
+        shop = await db.collection("shops").findOne({
+          $or: [{ _id: order.userId }, { id: order.userId }, { userId: order.userId }]
+        }) || await db.collection("users").findOne({
+          $or: [{ _id: order.userId }, { uid: order.userId }]
+        });
+      }
+      
+      res.json({ order, shop });
+    } catch (err: any) {
+      console.error("Public worker order error:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/public/worker-order/:id/status", async (req, res) => {
+    try {
+      const db = await getMongoDb();
+      const id = req.params.id;
+      const { status } = req.body;
+      
+      await Promise.allSettled([
+        db.collection("orders").updateOne(
+          { $or: [{ _id: id }, { id: id }] },
+          { $set: { status, updatedAt: new Date().toISOString() } }
+        ),
+        db.collection("publicOrders").updateOne(
+          { $or: [{ _id: id }, { id: id }] },
+          { $set: { status, updatedAt: new Date().toISOString() } }
+        )
+      ]);
+      
+      res.json({ success: true, status });
+    } catch (err: any) {
+      console.error("Public status update error:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // Put / update single document
   app.put("/api/db/:collection/:id", async (req, res) => {
     try {
