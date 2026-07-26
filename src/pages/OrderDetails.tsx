@@ -68,12 +68,21 @@ export default function OrderDetails() {
     setLoading(true);
     
     const unsubOrder = onSnapshot(doc(db, 'orders', id), (docSnap) => {
-      if (docSnap.exists() && docSnap.data().userId === user.uid) {
-        const data = docSnap.data();
-        setOrder({ id: docSnap.id, ...data });
-        setEditData({ ...data });
+      if (docSnap.exists()) {
+        const oData: any = { id: docSnap.id, ...docSnap.data() };
+        setOrder(oData);
+        setEditData({ ...oData });
+
+        // Auto-sync full order payload & measurements map to publicOrders for universal worker access
+        const tokenNumber = oData.tokenId || oData.id?.substring(0, 8).toUpperCase();
+        const syncTargets = Array.from(new Set([oData.id, docSnap.id, tokenNumber, oData.tokenId].filter(Boolean)));
+        syncTargets.forEach(tId => {
+          if (typeof tId === 'string') {
+            setDoc(doc(db, 'publicOrders', tId), oData, { merge: true }).catch(() => {});
+          }
+        });
       } else {
-        navigate('/app/orders');
+        setOrder(null);
       }
       setLoading(false);
     }, (error) => {
@@ -670,7 +679,26 @@ export default function OrderDetails() {
                         
                         const cleanCustomer = (order.customerName || 'Customer').replace(/[^a-zA-Z0-9]/g, '');
                         const cleanDress = (order.clothingType || order.dressType || 'Suit').replace(/[^a-zA-Z0-9]/g, '');
-                        const worksheetUrl = `${window.location.origin}/w/${order.tokenId || order.id}?t=${tokenNumber}&c=${cleanCustomer}&d=${cleanDress}`;
+                        const encodedMeas = encodeURIComponent(JSON.stringify(measurements));
+                        const worksheetUrl = `${window.location.origin}/w/${order.tokenId || order.id}?t=${tokenNumber}&c=${cleanCustomer}&d=${cleanDress}&del=${encodeURIComponent(deliveryStr)}&r=${encodeURIComponent(order.rackLocation || '')}&n=${encodeURIComponent(order.designNotes || '')}&m=${encodedMeas}`;
+
+                        // Auto-sync full order payload to Firestore publicOrders & MongoDB for instant unauthenticated reading in any external browser
+                        const fullPayload = {
+                          ...order,
+                          measurements,
+                          shop: {
+                            name: settings?.name || shopDoc?.shopName || 'Loop Tailor',
+                            shopName: settings?.name || shopDoc?.shopName || 'Loop Tailor',
+                            phone: settings?.phone || shopDoc?.shopPhone || '',
+                            shopPhone: settings?.phone || shopDoc?.shopPhone || '',
+                          }
+                        };
+                        const syncTargets = Array.from(new Set([order.id, tokenNumber, order.tokenId].filter(Boolean)));
+                        syncTargets.forEach(targetId => {
+                          if (typeof targetId === 'string') {
+                            setDoc(doc(db, 'publicOrders', targetId), fullPayload, { merge: true }).catch(() => {});
+                          }
+                        });
 
                         const msg = `✂️ *TAILOR WORKSHEET — ${settings?.name || 'LOOP TAILOR'}* ✂️
 -----------------------------------
