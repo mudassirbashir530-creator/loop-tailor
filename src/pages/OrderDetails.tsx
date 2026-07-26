@@ -656,6 +656,37 @@ export default function OrderDetails() {
                       </div>
                     )}
                   </div>
+                  {order.workerId && (
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        const assignedWorkerObj = staff.find(w => w.id === order.workerId);
+                        const workerPhone = assignedWorkerObj?.phone || '';
+                        const formattedWorkerPhone = formatWhatsAppNumber(workerPhone);
+                        const tokenNumber = order.tokenId || order.id?.substring(0, 8).toUpperCase();
+                        const worksheetUrl = `${window.location.origin}/worker-order/${order.id}`;
+
+                        const msg = `✂️ *TAILOR WORKSHEET — ${settings?.name || 'LOOP TAILOR'}* ✂️
+-----------------------------------
+📋 *Order Token #*: #${tokenNumber}
+👤 *Customer*: ${order.customerName || 'Customer'}
+👗 *Dress*: ${order.clothingType || 'Custom Suit'}
+📅 *Delivery Date*: ${formatDate(order.deliveryDate)}
+
+👉 *Click to view measurements & stitching notes*:
+${worksheetUrl}`;
+
+                        const encoded = encodeURIComponent(msg);
+                        const waUrl = formattedWorkerPhone 
+                          ? `https://wa.me/${formattedWorkerPhone}?text=${encoded}`
+                          : `https://api.whatsapp.com/send?text=${encoded}`;
+                        window.open(waUrl, '_blank');
+                      }}
+                      className="mt-2.5 w-full bg-[#128C7E] hover:bg-[#0c6b60] text-white font-bold rounded-2xl h-10 text-xs flex items-center justify-center gap-2 shadow-xs border-none cursor-pointer"
+                    >
+                      <WhatsAppIcon className="h-4 w-4 fill-current" /> 📲 Send WhatsApp Worksheet to Worker
+                    </Button>
+                  )}
                 </div>
               </div>
 
