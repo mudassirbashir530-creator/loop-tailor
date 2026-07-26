@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { formatWhatsAppNumber, formatDate } from '../lib/utils';
 import { Button } from '../components/ui/button';
@@ -18,38 +18,101 @@ export default function WorkerOrderView() {
     if (!id) return;
     setLoading(true);
 
-    const unsubOrder = onSnapshot(doc(db, 'orders', id), (docSnap) => {
-      if (docSnap.exists()) {
-        const oData: any = { id: docSnap.id, ...docSnap.data() };
-        setOrder(oData);
+    let unsubPublic: (() => void) | null = null;
+    let unsubOrder: (() => void) | null = null;
 
-        if (oData.userId) {
-          onSnapshot(doc(db, 'shops', oData.userId), (shopSnap) => {
-            if (shopSnap.exists()) {
-              setShop(shopSnap.data());
-            }
+    // Helper to fetch shop info
+    const fetchShopInfo = (userId: string) => {
+      if (!userId) return;
+      onSnapshot(doc(db, 'shops', userId), (shopSnap) => {
+        if (shopSnap.exists()) {
+          setShop(shopSnap.data());
+        } else {
+          onSnapshot(doc(db, 'settings', userId), (settingsSnap) => {
+            if (settingsSnap.exists()) setShop(settingsSnap.data());
           });
         }
+      });
+    };
+
+    // 1. Try publicOrders first (Universal Access)
+    unsubPublic = onSnapshot(doc(db, 'publicOrders', id), (publicSnap) => {
+      if (publicSnap.exists()) {
+        const pData = { id: publicSnap.id, ...publicSnap.data() };
+        setOrder(pData);
+        if ((pData as any).shop) setShop((pData as any).shop);
+        else if ((pData as any).userId) fetchShopInfo((pData as any).userId);
+        setLoading(false);
       } else {
-        setOrder(null);
+        // 2. Fallback to orders collection
+        unsubOrder = onSnapshot(doc(db, 'orders', id), (docSnap) => {
+          if (docSnap.exists()) {
+            const oData: any = { id: docSnap.id, ...docSnap.data() };
+            setOrder(oData);
+            if (oData.userId) fetchShopInfo(oData.userId);
+
+            // Auto sync to publicOrders so all browsers can access cleanly
+            setDoc(doc(db, 'publicOrders', id), oData, { merge: true }).catch(err => {
+              console.warn("Auto public sync:", err);
+            });
+          } else {
+            setOrder(null);
+          }
+          setLoading(false);
+        }, (err) => {
+          console.error("Orders collection fetch fallback error:", err);
+          // Try direct getDoc fallback
+          getDoc(doc(db, 'orders', id)).then(snap => {
+            if (snap.exists()) {
+              const oData = { id: snap.id, ...snap.data() };
+              setOrder(oData);
+              if ((oData as any).userId) fetchShopInfo((oData as any).userId);
+            } else {
+              setOrder(null);
+            }
+          }).catch(() => {
+            setOrder(null);
+          }).finally(() => setLoading(false));
+        });
       }
-      setLoading(false);
-    }, (err) => {
-      console.error("Worker order fetch error:", err);
-      setLoading(false);
+    }, (publicErr) => {
+      console.warn("Public orders fetch notice:", publicErr);
+      // Fallback directly to orders collection
+      unsubOrder = onSnapshot(doc(db, 'orders', id), (docSnap) => {
+        if (docSnap.exists()) {
+          const oData: any = { id: docSnap.id, ...docSnap.data() };
+          setOrder(oData);
+          if (oData.userId) fetchShopInfo(oData.userId);
+        } else {
+          setOrder(null);
+        }
+        setLoading(false);
+      }, () => setLoading(false));
     });
 
-    return () => unsubOrder();
+    return () => {
+      if (unsubPublic) unsubPublic();
+      if (unsubOrder) unsubOrder();
+    };
   }, [id]);
 
   const handleUpdateStatus = async (newStatus: 'stitching' | 'ready') => {
     if (!id || !order) return;
     setUpdating(true);
     try {
-      await updateDoc(doc(db, 'orders', id), {
-        status: newStatus,
-        updatedAt: serverTimestamp()
-      });
+      // Update both orders and publicOrders
+      await Promise.allSettled([
+        updateDoc(doc(db, 'orders', id), {
+          status: newStatus,
+          updatedAt: serverTimestamp()
+        }),
+        setDoc(doc(db, 'publicOrders', id), {
+          status: newStatus,
+          updatedAt: serverTimestamp()
+        }, { merge: true })
+      ]);
+
+      setOrder((prev: any) => prev ? { ...prev, status: newStatus } : null);
       toast.success(newStatus === 'ready' ? '🎉 Suit stitching marked complete & ready!' : '✂️ Suit stitching started!');
     } catch (err: any) {
       console.error("Failed status update:", err);

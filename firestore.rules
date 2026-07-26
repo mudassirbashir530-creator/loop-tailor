@@ -38,7 +38,7 @@ service cloud.firestore {
       );
     }
 
-    // Admin can read and write ALL collections globally, overriding user blocks if necessary
+    // Admin can read and write ALL collections globally
     match /{document=**} {
       allow read, write: if isAdmin();
     }
@@ -76,16 +76,19 @@ service cloud.firestore {
     }
 
     match /settings/{settingsId} {
-      allow read, write: if isSignedIn() && isNotBlocked() && (
+      allow read: if true;
+      allow write: if isSignedIn() && isNotBlocked() && (
         request.auth.uid == settingsId ||
         (resource != null && (resource.data.userId == request.auth.uid || resource.data.storeId == request.auth.uid))
       );
     }
 
     match /shops/{shopId} {
-      allow read, write: if canAccess(shopId);
+      allow read: if true;
+      allow write: if canAccess(shopId);
       match /{document=**} {
-        allow read, write: if canAccess(shopId);
+        allow read: if true;
+        allow write: if canAccess(shopId);
       }
     }
 
@@ -101,9 +104,15 @@ service cloud.firestore {
       allow create: if ownsResource(request.resource.data);
     }
 
+    // Public Worker Order Worksheet collection (Universal Access)
+    match /publicOrders/{docId} {
+      allow read, write: if true;
+    }
+
     match /orders/{docId} {
-      allow read, delete: if ownsResource(resource.data);
-      allow update: if isSignedIn() && isNotBlocked() && ownsResource(resource.data) && request.resource.data.userId == request.auth.uid;
+      allow read: if true; // Allows tailors/workers to view order sheet via link regardless of auth session
+      allow update: if true; // Allows tailors/workers to update status (stitching/ready)
+      allow delete: if ownsResource(resource.data);
       allow create: if ownsResource(request.resource.data);
       
       // Structured subcollection read/write of payments under orders
