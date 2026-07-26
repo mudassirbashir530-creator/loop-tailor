@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
@@ -30,7 +30,7 @@
   --color-status-delivered: #66BB6A;
 
   --font-sans: "Inter", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-heading: "Outfit", "Inter", system-ui, sans-serif;
 
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
@@ -89,6 +89,7 @@
   }
   body {
     @apply bg-background text-foreground antialiased transition-colors duration-300;
+    font-family: var(--font-sans);
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
@@ -96,20 +97,44 @@
   }
 }
 
-/* Hide scrollbar for filter tabs */
+/* Hide scrollbars cleanly */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .hide-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Responsive & Pretext Text Container Utilities */
+/* Pretext Fluid Layout Utilities */
 .pretext-container {
   overflow-wrap: break-word;
   word-break: break-word;
   hyphens: auto;
+}
+
+.pretext-fluid-title {
+  font-family: var(--font-heading);
+  font-size: clamp(1.25rem, 2.5vw + 0.5rem, 2.25rem);
+  line-height: 1.15;
+}
+
+.pretext-fluid-subtitle {
+  font-size: clamp(0.75rem, 1vw + 0.4rem, 0.95rem);
+  line-height: 1.4;
+}
+
+.glass-card-luxury {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 221, 214, 0.8);
+  box-shadow: 0 4px 20px -2px rgba(13, 61, 51, 0.05);
+}
+
+.dark .glass-card-luxury {
+  background: rgba(30, 30, 30, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
