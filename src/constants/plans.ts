@@ -14,7 +14,7 @@ export const PLANS = {
       canDownloadInvoice: true,
       canUploadImages: true,
       canUseWhatsApp: false,
-      canUsePayroll: false,
+      canUsePayroll: true,
       canViewAnalytics: false,
       canCustomBranding: false,
       canManageWorkers: true
@@ -47,7 +47,7 @@ export const PLANS = {
       canDownloadInvoice: true,
       canUploadImages: true,
       canUseWhatsApp: false,
-      canUsePayroll: false,
+      canUsePayroll: true,
       canViewAnalytics: false,
       canCustomBranding: false,
       canManageWorkers: true
@@ -80,7 +80,7 @@ export const PLANS = {
       canDownloadInvoice: true,
       canUploadImages: true,
       canUseWhatsApp: true,
-      canUsePayroll: false,
+      canUsePayroll: true,
       canViewAnalytics: false,
       canCustomBranding: false,
       canManageWorkers: true

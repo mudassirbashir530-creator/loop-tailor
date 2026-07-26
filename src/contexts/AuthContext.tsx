@@ -342,7 +342,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       setImpersonatedUser(null);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+      let userCredential;
+      try {
+        userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+      } catch (authError: any) {
+        if (authError.code === 'auth/email-already-in-use') {
+          // Attempt automatic sign-in to sync existing account data across browsers/devices
+          try {
+            await signInWithEmailAndPassword(auth, email, pass);
+            return;
+          } catch (signInErr: any) {
+            throw new Error('An account with this email address already exists. Please sign in with your password.');
+          }
+        }
+        throw authError;
+      }
+
       const newAuthUser = userCredential.user;
       
       await updateProfile(newAuthUser, { 

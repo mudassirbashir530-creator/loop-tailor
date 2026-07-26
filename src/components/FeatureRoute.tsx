@@ -3,11 +3,11 @@ import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { FEATURE_LABELS, REQUIRED_PLAN, PLANS } from '../constants/plans';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
-import { Lock, ArrowLeft } from 'lucide-react';
+import { Lock, ArrowLeft, Sparkles, ShieldAlert } from 'lucide-react';
 import { WhatsAppIcon } from './icons/WhatsAppIcon';
 import { useAuth } from '../contexts/AuthContext';
-
 import { openAdminWhatsApp } from '../lib/whatsapp';
+import { motion } from 'motion/react';
 
 export interface FeatureRouteProps {
   feature: keyof typeof FEATURE_LABELS;
@@ -22,7 +22,7 @@ export default function FeatureRoute({ feature, children }: FeatureRouteProps) {
   if (features.isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center p-8">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-[#0D3D33] border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -43,51 +43,68 @@ export default function FeatureRoute({ feature, children }: FeatureRouteProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-300">
-      <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden">
-        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-amber-50 dark:from-amber-500/5 to-transparent pointer-events-none" />
-        
-        <div className="relative w-20 h-20 bg-amber-100/50 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-6 ring-4 ring-white dark:ring-slate-900 shadow-sm">
-          <Lock className="w-8 h-8" />
-          <div className="absolute inset-0 rounded-full border border-amber-200 dark:border-amber-700/50 scale-110 blur-[2px]" />
-        </div>
-        
-        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight relative z-10">
-          {FEATURE_LABELS[feature]}
-        </h2>
-        <p className="text-sm text-slate-500 font-medium mb-8 relative z-10">
-          This feature requires a plan upgrade.
-        </p>
+    <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 min-h-[80vh]">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="max-w-md w-full bg-[#0D3D33] text-white rounded-[32px] p-8 shadow-2xl border border-emerald-500/20 text-center relative overflow-hidden backdrop-blur-xl"
+      >
+        {/* Ambient glow */}
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-[#2ECC71]/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-[#2ECC71]/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="bg-slate-50/80 dark:bg-slate-800/50 rounded-2xl p-5 mb-8 border border-slate-100 dark:border-slate-700/50 backdrop-blur-sm">
-          <div className="flex justify-between items-center text-sm mb-4 pb-4 border-b border-slate-200/60 dark:border-slate-700/60">
-            <span className="text-slate-500 font-medium">Your Plan</span>
-            <span className="font-bold text-slate-900 dark:text-white">{currentPlan.name} <span className="text-slate-400 font-normal">({currentPlan.price})</span></span>
+        <div className="relative z-10 space-y-6">
+          {/* Lock Icon Badge */}
+          <div className="relative w-20 h-20 bg-white/10 border border-white/20 text-[#2ECC71] rounded-3xl flex items-center justify-center mx-auto shadow-xl">
+            <Lock className="w-9 h-9" />
           </div>
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-slate-500 font-medium">Required</span>
-            <span className="font-bold text-amber-600 dark:text-amber-500">{requiredPlan.name} <span className="text-amber-600/60 dark:text-amber-500/60 font-normal">({requiredPlan.price})</span></span>
-          </div>
-        </div>
 
-        <div className="space-y-4 relative z-10">
-          <Button
-            className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold h-14 rounded-2xl flex items-center justify-center gap-3 text-base transition-all shadow-lg shadow-[#25D366]/20 border-none"
-            onClick={handleUpgrade}
-          >
-            <WhatsAppIcon className="w-6 h-6 fill-current text-white" />
-            Upgrade via WhatsApp
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full h-14 rounded-2xl text-slate-500 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center gap-2"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Go Back
-          </Button>
+          <div>
+            <span className="px-3 py-1 rounded-full bg-[#2ECC71]/20 text-[#2ECC71] font-black text-[10px] uppercase tracking-widest inline-block mb-2">
+              PRO FEATURE LOCKED
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+              {FEATURE_LABELS[feature]}
+            </h2>
+            <p className="text-xs sm:text-sm text-white/70 font-semibold mt-1">
+              Unlock this feature by upgrading your plan
+            </p>
+          </div>
+
+          {/* Plan Comparison Box */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-left space-y-3 backdrop-blur-md">
+            <div className="flex justify-between items-center text-xs pb-3 border-b border-white/10">
+              <span className="text-white/60 font-bold">Your Active Plan:</span>
+              <span className="font-black text-white">{currentPlan.name} <span className="text-white/40">({currentPlan.priceLabel})</span></span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-white/60 font-bold">Required Plan:</span>
+              <span className="font-black text-[#2ECC71]">{requiredPlan.name} <span className="text-[#2ECC71]/70">({requiredPlan.priceLabel})</span></span>
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="space-y-3 pt-2">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              onClick={handleUpgrade}
+              className="w-full bg-[#2ECC71] hover:bg-[#27ae60] text-slate-950 font-black h-13 rounded-2xl flex items-center justify-center gap-2.5 text-sm shadow-xl shadow-[#2ECC71]/20 transition-all cursor-pointer"
+            >
+              <WhatsAppIcon className="w-5 h-5 fill-current text-slate-950" />
+              Upgrade via WhatsApp
+            </motion.button>
+            <button
+              onClick={() => navigate(-1)}
+              className="w-full h-11 rounded-xl text-white/60 font-bold text-xs hover:bg-white/10 hover:text-white flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Go Back
+            </button>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
