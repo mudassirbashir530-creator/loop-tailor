@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { TrendingUp, Clock, CheckCircle, Banknote, Loader2, Users, Package, Scissors, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { TrendingUp, Clock, CheckCircle, Banknote, Loader2, Users, Package, Scissors, ShieldAlert, Sparkles, BarChart2, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { useOrders } from '../hooks/useOrders';
 import { formatCurrency } from '../lib/utils';
 import { isToday, subDays, format } from 'date-fns';
 import { motion, Variants } from 'motion/react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 import { useCustomers } from '../hooks/useCustomers';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
@@ -15,12 +16,12 @@ const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1,
-    transition: { staggerChildren: 0.1 }
+    transition: { staggerChildren: 0.08 }
   }
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 15 },
   visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
 };
 
@@ -31,25 +32,72 @@ interface StatCardProps {
   value: string;
   icon: React.ReactNode;
   iconBg: string;
+  linkTo?: string;
 }
 
-function StatCard({ title, value, icon, iconBg }: StatCardProps) {
+function StatCard({ title, value, icon, iconBg, linkTo }: StatCardProps) {
+  const navigate = useNavigate();
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card 
+      onClick={() => linkTo && navigate(linkTo)}
+      className={`hover:shadow-lg transition-all duration-300 border border-slate-200/80 rounded-3xl ${linkTo ? 'cursor-pointer hover:border-[#0D3D33]/40 hover:-translate-y-0.5' : ''}`}
+    >
       <CardContent className="p-5 flex items-center gap-4">
-        <div className={`p-3 rounded-2xl ${iconBg} shrink-0`}>
+        <div className={`p-3.5 rounded-2xl ${iconBg} shrink-0 shadow-xs`}>
           {icon}
         </div>
         <div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">{value}</p>
+          <p className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight">{value}</p>
         </div>
       </CardContent>
     </Card>
   );
 }
 
+// Radial Circular Gauge Component
+function CircularProgress({ percentage, label, sublabel }: { percentage: number; label: string; sublabel: string }) {
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <div className="flex items-center gap-4 bg-[#0D3D33] text-white p-5 rounded-3xl shadow-xl border border-emerald-500/20 relative overflow-hidden">
+      <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            className="stroke-white/10"
+            strokeWidth="10"
+            fill="transparent"
+          />
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            className="stroke-[#2ECC71] transition-all duration-1000 ease-out"
+            strokeWidth="10"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            fill="transparent"
+          />
+        </svg>
+        <span className="absolute font-black text-lg text-white">{percentage}%</span>
+      </div>
+      <div>
+        <span className="text-[10px] font-black uppercase tracking-widest text-[#2ECC71] block">{label}</span>
+        <h4 className="text-base font-bold text-white mt-0.5">{sublabel}</h4>
+        <p className="text-xs text-white/70 mt-1 font-medium">Real-time shop capacity score</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
+  const navigate = useNavigate();
   const { orders, loading } = useOrders();
   const { customers } = useCustomers();
   const { canViewAnalytics } = useFeatureAccess();
@@ -99,8 +147,40 @@ export default function Home() {
     };
   }, [orders]);
 
+  const chartData = useMemo(() => {
+    if (!orders) return [];
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = subDays(new Date(), i);
+      const dateStr = format(d, 'MMM dd');
+      const dayOrders = orders.filter(o => {
+        if (!o || !o.createdAt) return false;
+        try {
+          const dateObj = typeof o.createdAt.toDate === 'function' ? o.createdAt.toDate() : new Date(o.createdAt);
+          return dateObj.toDateString() === d.toDateString();
+        } catch {
+          return false;
+        }
+      });
+      const dayRevenue = dayOrders.reduce((sum, order) => {
+        if (order.status !== 'delivered') return sum;
+        return sum + safeNum(order.price);
+      }, 0);
+      data.push({ name: dateStr, revenue: dayRevenue, orders: dayOrders.length });
+    }
+    return data;
+  }, [orders]);
+
+  // Capacity score calculation
+  const overallCapacityPct = useMemo(() => {
+    const custPct = limits.customers === 0 ? 10 : Math.min(100, (usage.customers / limits.customers) * 100);
+    const ordPct = limits.ordersPerMonth === 0 ? 10 : Math.min(100, (usage.ordersThisMonth / limits.ordersPerMonth) * 100);
+    const workPct = limits.workers === 0 ? 10 : Math.min(100, (usage.workers / limits.workers) * 100);
+    return Math.round((custPct + ordPct + workPct) / 3);
+  }, [limits, usage]);
+
   if (loading) {
-     return <div className="min-h-[50vh] flex items-center justify-center"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
+     return <div className="min-h-[50vh] flex items-center justify-center"><Loader2 className="animate-spin h-8 w-8 text-[#0D3D33]" /></div>;
   }
 
   return (
@@ -110,64 +190,117 @@ export default function Home() {
       variants={containerVariants} 
       className="p-4 md:p-8 space-y-8 pb-24"
     >
-      {/* Header */}
-      <motion.div variants={itemVariants}>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">Welcome back! Here's your shop overview</p>
+      {/* Top Banner & Shop Capacity Gauge */}
+      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="lg:col-span-2 space-y-1 justify-center flex flex-col">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-[#0D3D33]/10 text-[#0D3D33] font-black text-xs uppercase tracking-widest">
+              SMART TAILOR DASHBOARD
+            </span>
+            <span className="text-xs text-slate-400 font-bold">• Real-time Sync Active</span>
+          </div>
+          <h1 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">Shop Overview</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Welcome back! Manage orders, clients, workers, and subscription limits.</p>
+        </div>
+
+        <CircularProgress 
+          percentage={overallCapacityPct} 
+          label="CAPACITY HEALTH" 
+          sublabel={`${overallCapacityPct}% Quota Used`} 
+        />
       </motion.div>
 
-      {/* Stats Grid */}
-      {canViewAnalytics ? (
-        <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard 
-            title="Total Orders"
-            value={totalOrders.toString()}
-            icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
-            iconBg="bg-blue-100"
-          />
-          <StatCard 
-            title="Pending"
-            value={pendingOrders.toString()}
-            icon={<Clock className="h-5 w-5 text-orange-600" />}
-            iconBg="bg-orange-100"
-          />
-          <StatCard 
-            title="Completed Today"
-            value={completedToday.toString()}
-            icon={<CheckCircle className="h-5 w-5 text-green-600" />}
-            iconBg="bg-green-100"
-          />
-          <StatCard 
-            title="Total Revenue"
-            value={formatCurrency(revenue)}
-            icon={<Banknote className="h-5 w-5 text-emerald-600" />}
-            iconBg="bg-emerald-100"
-          />
-        </motion.div>
-      ) : (
-        <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4 max-w-2xl">
-          <StatCard 
-            title="Total Orders"
-            value={totalOrders.toString()}
-            icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
-            iconBg="bg-blue-100"
-          />
-          <StatCard 
-            title="Total Customers"
-            value={customers.length.toString()}
-            icon={<Users className="h-5 w-5 text-emerald-600" />}
-            iconBg="bg-emerald-100"
-          />
+      {/* Stats Cards (Real-time Unlocked via Admin Permission or Plan) */}
+      <motion.div variants={itemVariants}>
+        {canViewAnalytics ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard 
+              title="Total Orders"
+              value={totalOrders.toString()}
+              icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
+              iconBg="bg-blue-100"
+              linkTo="/app/orders"
+            />
+            <StatCard 
+              title="Pending"
+              value={pendingOrders.toString()}
+              icon={<Clock className="h-5 w-5 text-orange-600" />}
+              iconBg="bg-orange-100"
+              linkTo="/app/orders"
+            />
+            <StatCard 
+              title="Completed Today"
+              value={completedToday.toString()}
+              icon={<CheckCircle className="h-5 w-5 text-green-600" />}
+              iconBg="bg-green-100"
+              linkTo="/app/orders"
+            />
+            <StatCard 
+              title="Total Revenue"
+              value={formatCurrency(revenue)}
+              icon={<Banknote className="h-5 w-5 text-[#0D3D33]" />}
+              iconBg="bg-emerald-100"
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 max-w-2xl">
+            <StatCard 
+              title="Total Orders"
+              value={totalOrders.toString()}
+              icon={<TrendingUp className="h-5 w-5 text-blue-600" />}
+              iconBg="bg-blue-100"
+              linkTo="/app/orders"
+            />
+            <StatCard 
+              title="Total Customers"
+              value={customers.length.toString()}
+              icon={<Users className="h-5 w-5 text-emerald-600" />}
+              iconBg="bg-emerald-100"
+              linkTo="/app/clients"
+            />
+          </div>
+        )}
+      </motion.div>
+
+      {/* Interactive Revenue Chart (when Analytics enabled) */}
+      {canViewAnalytics && (
+        <motion.div variants={itemVariants}>
+          <Card className="border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm">
+            <CardContent className="p-6 md:p-8 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">REVENUE & PERFORMANCE</span>
+                  <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                    <BarChart2 className="w-5 h-5 text-[#0D3D33]" /> Weekly Revenue Analytics
+                  </h3>
+                </div>
+              </div>
+
+              <div className="h-64 w-full pt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData}>
+                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0D3D33', borderRadius: '16px', color: '#fff', border: 'none' }}
+                      formatter={(val: any) => [`PKR ${Number(val).toLocaleString()}`, 'Revenue']}
+                    />
+                    <Bar dataKey="revenue" fill="#0D3D33" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       )}
 
-      {/* Plan Usage Visual Progress Summary */}
+      {/* Modern Neon Visual Progress Bars */}
       <motion.div variants={itemVariants}>
-        <Card className="hover:shadow-md transition-shadow duration-300 border border-slate-200/80 rounded-3xl overflow-hidden">
+        <Card className="border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm">
           <CardContent className="p-6 md:p-8 space-y-6">
             <div className="flex items-center justify-between border-b pb-4 flex-wrap gap-3">
               <div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">ACCOUNT SUBSCRIPTION LIMITS</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">SUBSCRIPTION QUOTA PROGRESS</span>
                 <h3 className="text-xl font-black text-[#0D3D33] dark:text-emerald-400 capitalize">{plan} Plan Active</h3>
               </div>
               <Link 
@@ -178,7 +311,7 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Visual Progress Bars */}
+            {/* Visual Progress Cards with Click Navigation */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
               {/* Customers Progress */}
               {(() => {
@@ -190,31 +323,36 @@ export default function Home() {
                 const isNearFull = !isUnlimited && pct >= 80 && !isFull;
 
                 return (
-                  <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3">
+                  <div 
+                    onClick={() => navigate('/app/clients')}
+                    className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3 cursor-pointer hover:border-[#0D3D33]/40 hover:bg-slate-100/60 transition-all group"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600">
+                        <div className="p-2 rounded-xl bg-blue-100 text-blue-600 font-bold">
                           <Users className="w-4 h-4" />
                         </div>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Customers</span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-[#0D3D33]">Customers</span>
                       </div>
-                      <span className={`text-xs font-extrabold ${isFull ? 'text-rose-600' : isNearFull ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
+                      <span className={`text-xs font-black ${isFull ? 'text-rose-600' : isNearFull ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
                         {curr} / {isUnlimited ? '∞' : max}
                       </span>
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="h-2.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className="space-y-1.5">
+                      <div className="h-3 w-full bg-slate-200/80 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 shadow-inner">
                         <div 
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            isFull ? 'bg-rose-500' : isNearFull ? 'bg-amber-500' : 'bg-gradient-to-r from-[#0D3D33] to-[#2ECC71]'
+                          className={`h-full rounded-full transition-all duration-500 shadow-sm ${
+                            isFull ? 'bg-rose-500' : isNearFull ? 'bg-amber-500' : 'bg-gradient-to-r from-[#0D3D33] via-[#2ECC71] to-[#2ECC71]'
                           }`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <div className="flex justify-between text-[10px] font-bold text-slate-400 pt-0.5">
+                      <div className="flex justify-between text-[10px] font-extrabold text-slate-400 pt-0.5">
                         <span>{isUnlimited ? 'Unlimited' : `${pct}% used`}</span>
-                        {isFull && <span className="text-rose-600">Limit Full</span>}
+                        <span className="flex items-center gap-0.5 text-[#0D3D33] group-hover:underline">
+                          Manage <ArrowRight className="w-3 h-3" />
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -231,31 +369,36 @@ export default function Home() {
                 const isNearFull = !isUnlimited && pct >= 80 && !isFull;
 
                 return (
-                  <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3">
+                  <div 
+                    onClick={() => navigate('/app/orders')}
+                    className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3 cursor-pointer hover:border-[#0D3D33]/40 hover:bg-slate-100/60 transition-all group"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
+                        <div className="p-2 rounded-xl bg-emerald-100 text-emerald-600 font-bold">
                           <Package className="w-4 h-4" />
                         </div>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Orders (Monthly)</span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-[#0D3D33]">Orders (Monthly)</span>
                       </div>
-                      <span className={`text-xs font-extrabold ${isFull ? 'text-rose-600' : isNearFull ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
+                      <span className={`text-xs font-black ${isFull ? 'text-rose-600' : isNearFull ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
                         {curr} / {isUnlimited ? '∞' : max}
                       </span>
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="h-2.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className="space-y-1.5">
+                      <div className="h-3 w-full bg-slate-200/80 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 shadow-inner">
                         <div 
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            isFull ? 'bg-rose-500' : isNearFull ? 'bg-amber-500' : 'bg-gradient-to-r from-[#0D3D33] to-[#2ECC71]'
+                          className={`h-full rounded-full transition-all duration-500 shadow-sm ${
+                            isFull ? 'bg-rose-500' : isNearFull ? 'bg-amber-500' : 'bg-gradient-to-r from-[#0D3D33] via-[#2ECC71] to-[#2ECC71]'
                           }`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <div className="flex justify-between text-[10px] font-bold text-slate-400 pt-0.5">
+                      <div className="flex justify-between text-[10px] font-extrabold text-slate-400 pt-0.5">
                         <span>{isUnlimited ? 'Unlimited' : `${pct}% used`}</span>
-                        {isFull && <span className="text-rose-600">Limit Full</span>}
+                        <span className="flex items-center gap-0.5 text-[#0D3D33] group-hover:underline">
+                          View Orders <ArrowRight className="w-3 h-3" />
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -272,31 +415,36 @@ export default function Home() {
                 const isNearFull = !isUnlimited && pct >= 80 && !isFull;
 
                 return (
-                  <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3">
+                  <div 
+                    onClick={() => navigate('/app/workers')}
+                    className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3 cursor-pointer hover:border-[#0D3D33]/40 hover:bg-slate-100/60 transition-all group"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-600">
+                        <div className="p-2 rounded-xl bg-purple-100 text-purple-600 font-bold">
                           <Scissors className="w-4 h-4" />
                         </div>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Workers / Staff</span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-[#0D3D33]">Workers / Staff</span>
                       </div>
-                      <span className={`text-xs font-extrabold ${isFull ? 'text-rose-600' : isNearFull ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
+                      <span className={`text-xs font-black ${isFull ? 'text-rose-600' : isNearFull ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
                         {curr} / {isUnlimited ? '∞' : max}
                       </span>
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="h-2.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className="space-y-1.5">
+                      <div className="h-3 w-full bg-slate-200/80 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 shadow-inner">
                         <div 
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            isFull ? 'bg-rose-500' : isNearFull ? 'bg-amber-500' : 'bg-gradient-to-r from-[#0D3D33] to-[#2ECC71]'
+                          className={`h-full rounded-full transition-all duration-500 shadow-sm ${
+                            isFull ? 'bg-rose-500' : isNearFull ? 'bg-amber-500' : 'bg-gradient-to-r from-[#0D3D33] via-[#2ECC71] to-[#2ECC71]'
                           }`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <div className="flex justify-between text-[10px] font-bold text-slate-400 pt-0.5">
+                      <div className="flex justify-between text-[10px] font-extrabold text-slate-400 pt-0.5">
                         <span>{isUnlimited ? 'Unlimited' : `${pct}% used`}</span>
-                        {isFull && <span className="text-rose-600">Limit Full</span>}
+                        <span className="flex items-center gap-0.5 text-[#0D3D33] group-hover:underline">
+                          Staff List <ArrowRight className="w-3 h-3" />
+                        </span>
                       </div>
                     </div>
                   </div>
