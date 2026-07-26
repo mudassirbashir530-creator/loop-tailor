@@ -19,14 +19,20 @@ try {
 } catch (e) {}
 
 // Configure MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://mudassirbashir530_db_user:RP03VcEb2b8p3Q6e@looptailor.2z63upu.mongodb.net/looptailor?retryWrites=true&w=majority";
+const MONGODB_URI = process.env.MONGODB_URI || "";
 let mongoClient: MongoClient | null = null;
 let mongoDb: any = null;
 
 async function getMongoDb() {
   if (mongoDb) return mongoDb;
+  if (!MONGODB_URI) {
+    throw new Error("MONGODB_URI is not defined in environment variables");
+  }
   if (!mongoClient) {
-    mongoClient = new MongoClient(MONGODB_URI);
+    mongoClient = new MongoClient(MONGODB_URI, {
+      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 10000,
+    });
     await mongoClient.connect();
     console.log("Connected successfully to MongoDB");
   }

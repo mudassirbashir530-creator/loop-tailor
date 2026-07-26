@@ -23,7 +23,9 @@ interface AuthContextType {
     shopName?: string,
     shopLogoUrl?: string,
     shopAddress?: string,
-    plan?: string
+    plan?: string,
+    currency?: string,
+    servicesOffered?: string[]
   ) => Promise<void>;
   logOut: () => Promise<void>;
 }
@@ -337,7 +339,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     shopName?: string,
     shopLogoUrl?: string,
     shopAddress?: string,
-    plan: string = 'free'
+    plan: string = 'free',
+    currency: string = 'PKR',
+    servicesOffered: string[] = []
   ) => {
     setLoading(true);
     try {
@@ -400,6 +404,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone: phone,
         address: shopAddress || '',
         logoUrl: shopLogoUrl || '',
+        currency: currency || 'PKR',
+        servicesOffered: servicesOffered || [],
         createdAt: serverTimestamp()
       };
       await setDoc(doc(db, 'shops', newAuthUser.uid), shopPayload);
@@ -417,8 +423,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await signOut(auth);
       safeStorage.removeItem('wasLoggedIn');
       setWasLoggedIn(false);
-      setUser(null);
-      setUserData(null);
+      setRealUser(null);
+      setRealUserData(null);
       setIsAdmin(false);
     } catch (error: any) {
       handleFirestoreError(error, OperationType.GET, 'auth/logout');

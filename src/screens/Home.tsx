@@ -156,7 +156,7 @@ export default function Home() {
       const dayOrders = orders.filter(o => {
         if (!o || !o.createdAt) return false;
         try {
-          const dateObj = typeof o.createdAt.toDate === 'function' ? o.createdAt.toDate() : new Date(o.createdAt);
+          const dateObj = typeof (o.createdAt as any)?.toDate === 'function' ? (o.createdAt as any).toDate() : new Date(o.createdAt);
           return dateObj.toDateString() === d.toDateString();
         } catch {
           return false;
