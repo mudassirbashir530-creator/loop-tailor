@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { doc, onSnapshot, updateDoc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, setDoc, getDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { formatWhatsAppNumber, formatDate } from '../lib/utils';
 import { Button } from '../components/ui/button';
-import { Scissors, CheckCircle2, Clock, Shirt, MessageSquare, AlertCircle, Sparkles, Check, ChevronRight } from 'lucide-react';
+import { Scissors, CheckCircle2, Clock, Shirt, MessageSquare, AlertCircle, Sparkles, Check, ChevronRight, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function WorkerOrderView() {
@@ -19,85 +19,144 @@ export default function WorkerOrderView() {
     setLoading(true);
 
     let isMounted = true;
+    let activeUnsubscribers: (() => void)[] = [];
 
-    // REST API Strategy for Universal Multi-Account & Cross-Browser Access
-    const fetchFromPublicApi = async () => {
+    const cleanupListeners = () => {
+      activeUnsubscribers.forEach(unsub => {
+        try { unsub(); } catch (e) {}
+      });
+      activeUnsubscribers = [];
+    };
+
+    // Helper to fetch and subscribe to shop details
+    const fetchShopInfo = (userId: string) => {
+      if (!userId || !isMounted) return;
       try {
-        const res = await fetch(`/api/public/worker-order/${id}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.order && isMounted) {
-            setOrder(data.order);
-            if (data.shop) setShop(data.shop);
+        const unsubShop = onSnapshot(doc(db, 'shops', userId), (shopSnap) => {
+          if (shopSnap.exists() && isMounted) {
+            setShop(shopSnap.data());
+          } else if (isMounted) {
+            const unsubSettings = onSnapshot(doc(db, 'settings', userId), (settingsSnap) => {
+              if (settingsSnap.exists() && isMounted) setShop(settingsSnap.data());
+            }, () => {});
+            activeUnsubscribers.push(unsubSettings);
+          }
+        }, () => {});
+        activeUnsubscribers.push(unsubShop);
+      } catch (e) {}
+    };
+
+    // Helper to process matched order data
+    const handleFoundOrder = (docId: string, orderData: any, sourceCollection: 'publicOrders' | 'orders') => {
+      if (!isMounted) return;
+      const fullOrder = { id: docId, ...orderData };
+      setOrder(fullOrder);
+      setLoading(false);
+
+      if (orderData.shop) {
+        setShop(orderData.shop);
+      } else if (orderData.userId) {
+        fetchShopInfo(orderData.userId);
+      }
+
+      // Auto-sync document to publicOrders under docId and order.id and order.tokenId
+      const syncTargets = Array.from(new Set([docId, orderData.id, orderData.tokenId].filter(Boolean)));
+      syncTargets.forEach(targetId => {
+        if (typeof targetId === 'string') {
+          setDoc(doc(db, 'publicOrders', targetId), fullOrder, { merge: true }).catch(() => {});
+        }
+      });
+
+      // Subscribe to real-time updates on matched document
+      try {
+        const unsubRealtime = onSnapshot(doc(db, sourceCollection, docId), (snap) => {
+          if (snap.exists() && isMounted) {
+            const updated = { id: snap.id, ...snap.data() };
+            setOrder(updated);
+          }
+        }, () => {});
+        activeUnsubscribers.push(unsubRealtime);
+      } catch (e) {}
+    };
+
+    // 5-Layer Bulletproof Data Fetcher Strategy
+    const loadOrderData = async () => {
+      // Strategy 1: Public REST API (Fastest & Universal for All Browsers / Non-Auth Sessions)
+      try {
+        const apiRes = await fetch(`/api/public/worker-order/${id}`);
+        if (apiRes.ok) {
+          const apiData = await apiRes.json();
+          if (apiData?.order && isMounted) {
+            setOrder(apiData.order);
+            if (apiData.shop) setShop(apiData.shop);
             setLoading(false);
-            return true;
+            return;
           }
         }
-      } catch (err) {
-        console.warn("Public API fetch notice:", err);
+      } catch (e) {
+        console.warn("Public API fetch note:", e);
       }
-      return false;
-    };
 
-    // Helper to fetch shop info
-    const fetchShopInfo = (userId: string) => {
-      if (!userId) return;
-      onSnapshot(doc(db, 'shops', userId), (shopSnap) => {
-        if (shopSnap.exists() && isMounted) {
-          setShop(shopSnap.data());
-        } else {
-          onSnapshot(doc(db, 'settings', userId), (settingsSnap) => {
-            if (settingsSnap.exists() && isMounted) setShop(settingsSnap.data());
-          });
+      // Strategy 2: Firestore publicOrders Direct Doc Key
+      try {
+        const publicSnap = await getDoc(doc(db, 'publicOrders', id));
+        if (publicSnap.exists() && isMounted) {
+          handleFoundOrder(publicSnap.id, publicSnap.data(), 'publicOrders');
+          return;
         }
-      }, () => {});
-    };
+      } catch (e) {}
 
-    let unsubPublic: (() => void) | null = null;
-    let unsubOrder: (() => void) | null = null;
+      // Strategy 3: Firestore orders Direct Doc Key
+      try {
+        const orderSnap = await getDoc(doc(db, 'orders', id));
+        if (orderSnap.exists() && isMounted) {
+          handleFoundOrder(orderSnap.id, orderSnap.data(), 'orders');
+          return;
+        }
+      } catch (e) {}
 
-    // 1. Try Firestore publicOrders first
-    unsubPublic = onSnapshot(doc(db, 'publicOrders', id), async (publicSnap) => {
-      if (publicSnap.exists() && isMounted) {
-        const pData = { id: publicSnap.id, ...publicSnap.data() };
-        setOrder(pData);
-        if ((pData as any).shop) setShop((pData as any).shop);
-        else if ((pData as any).userId) fetchShopInfo((pData as any).userId);
+      // Strategy 4: Firestore Query orders by `id` or `tokenId` field
+      try {
+        const qById = query(collection(db, 'orders'), where('id', '==', id));
+        const snapById = await getDocs(qById);
+        if (!snapById.empty && isMounted) {
+          const matchedDoc = snapById.docs[0];
+          handleFoundOrder(matchedDoc.id, matchedDoc.data(), 'orders');
+          return;
+        }
+
+        const qByToken = query(collection(db, 'orders'), where('tokenId', '==', id.toUpperCase()));
+        const snapByToken = await getDocs(qByToken);
+        if (!snapByToken.empty && isMounted) {
+          const matchedDoc = snapByToken.docs[0];
+          handleFoundOrder(matchedDoc.id, matchedDoc.data(), 'orders');
+          return;
+        }
+      } catch (e) {}
+
+      // Strategy 5: Firestore Query publicOrders by `id` or `tokenId` field
+      try {
+        const qPubById = query(collection(db, 'publicOrders'), where('id', '==', id));
+        const snapPubById = await getDocs(qPubById);
+        if (!snapPubById.empty && isMounted) {
+          const matchedDoc = snapPubById.docs[0];
+          handleFoundOrder(matchedDoc.id, matchedDoc.data(), 'publicOrders');
+          return;
+        }
+      } catch (e) {}
+
+      // Final Check: If no order matched after all 5 strategies
+      if (isMounted) {
+        setOrder(null);
         setLoading(false);
-      } else {
-        // Fallback to public REST API first
-        const apiSuccess = await fetchFromPublicApi();
-        if (!apiSuccess && isMounted) {
-          // Fallback to orders collection
-          unsubOrder = onSnapshot(doc(db, 'orders', id), (docSnap) => {
-            if (docSnap.exists() && isMounted) {
-              const oData: any = { id: docSnap.id, ...docSnap.data() };
-              setOrder(oData);
-              if (oData.userId) fetchShopInfo(oData.userId);
-
-              // Auto sync to publicOrders
-              setDoc(doc(db, 'publicOrders', id), oData, { merge: true }).catch(() => {});
-            } else if (isMounted) {
-              setOrder(null);
-            }
-            if (isMounted) setLoading(false);
-          }, async () => {
-            // Firestore blocked by another user session, execute REST API fallback
-            await fetchFromPublicApi();
-            if (isMounted) setLoading(false);
-          });
-        }
       }
-    }, async () => {
-      // If publicOrders snapshot fails, fallback to REST API
-      await fetchFromPublicApi();
-      if (isMounted) setLoading(false);
-    });
+    };
+
+    loadOrderData();
 
     return () => {
       isMounted = false;
-      if (unsubPublic) unsubPublic();
-      if (unsubOrder) unsubOrder();
+      cleanupListeners();
     };
   }, [id]);
 
@@ -105,6 +164,8 @@ export default function WorkerOrderView() {
     if (!id || !order) return;
     setUpdating(true);
     try {
+      const orderDocId = order.id || id;
+
       // Update via REST API
       await fetch(`/api/public/worker-order/${id}/status`, {
         method: 'POST',
@@ -112,13 +173,17 @@ export default function WorkerOrderView() {
         body: JSON.stringify({ status: newStatus })
       }).catch(() => {});
 
-      // Update Firestore in parallel
+      // Update Firestore in parallel across all keys
       await Promise.allSettled([
-        updateDoc(doc(db, 'orders', id), {
+        updateDoc(doc(db, 'orders', orderDocId), {
           status: newStatus,
           updatedAt: serverTimestamp()
         }),
         setDoc(doc(db, 'publicOrders', id), {
+          status: newStatus,
+          updatedAt: serverTimestamp()
+        }, { merge: true }),
+        setDoc(doc(db, 'publicOrders', orderDocId), {
           status: newStatus,
           updatedAt: serverTimestamp()
         }, { merge: true })
@@ -139,7 +204,7 @@ export default function WorkerOrderView() {
     const formatted = formatWhatsAppNumber(phone);
     const token = order.tokenId || order.id?.substring(0, 8).toUpperCase();
 
-    const msg = `✂️ *WORKER STATUS UPDATE — ${shop?.name || 'LOOP TAILOR'}*
+    const msg = `✂️ *WORKER STATUS UPDATE — ${shop?.name || shop?.shopName || 'LOOP TAILOR'}*
 ----------------------------------------
 📋 *Order Token #*: #${token}
 👤 *Customer*: ${order.customerName || 'Customer'}
@@ -177,6 +242,13 @@ Assalam-o-Alaikum! Suit stitching for order #${token} is ${order.status === 'rea
           </div>
           <h2 className="text-xl font-bold text-slate-900">Worksheet Not Found</h2>
           <p className="text-xs text-slate-500">This order worksheet link may be invalid or deleted by the shop owner.</p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="rounded-xl font-bold border-slate-300 text-slate-700"
+          >
+            Retry Loading
+          </Button>
         </div>
       </div>
     );
@@ -222,10 +294,10 @@ Assalam-o-Alaikum! Suit stitching for order #${token} is ${order.status === 'rea
           </div>
         </div>
 
-        {shop?.name && (
+        {(shop?.name || shop?.shopName) && (
           <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-white/70">
-            <span className="font-semibold">🏪 {shop.name}</span>
-            {shop.phone && <span>📞 {shop.phone}</span>}
+            <span className="font-semibold">🏪 {shop.shopName || shop.name}</span>
+            {(shop.shopPhone || shop.phone) && <span>📞 {shop.shopPhone || shop.phone}</span>}
           </div>
         )}
       </div>
@@ -256,12 +328,12 @@ Assalam-o-Alaikum! Suit stitching for order #${token} is ${order.status === 'rea
         </div>
 
         {/* Special Instructions / Notes */}
-        {order.designNotes && (
+        {(order.designNotes || order.notes) && (
           <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-1">
             <span className="text-amber-900 font-black text-xs uppercase tracking-wider block flex items-center gap-1.5">
               ⚠️ STITCHING INSTRUCTIONS & NOTES
             </span>
-            <p className="text-slate-800 text-sm font-semibold leading-relaxed">{order.designNotes}</p>
+            <p className="text-slate-800 text-sm font-semibold leading-relaxed">{order.designNotes || order.notes}</p>
           </div>
         )}
       </div>
@@ -311,7 +383,7 @@ Assalam-o-Alaikum! Suit stitching for order #${token} is ${order.status === 'rea
                 : 'bg-[#0D3D33] hover:bg-[#092B24] text-white shadow-md active:scale-95'
             }`}
           >
-            <Scissors className="w-5 h-5" /> 
+            {updating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Scissors className="w-5 h-5" />}
             {isStitching ? '✂️ Stitching In Progress' : '✂️ Start Stitching'}
           </Button>
 
@@ -324,7 +396,7 @@ Assalam-o-Alaikum! Suit stitching for order #${token} is ${order.status === 'rea
                 : 'bg-[#2ECC71] hover:bg-[#27ae60] text-white shadow-md active:scale-95'
             }`}
           >
-            <CheckCircle2 className="w-5 h-5" /> 
+            {updating ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
             {isReady ? '✨ Stitching Complete' : '✨ Mark Complete (Ready)'}
           </Button>
         </div>

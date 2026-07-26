@@ -92,11 +92,31 @@ export function useOrders() {
 
       await setDoc(orderDocRef, payload);
 
-      // Also set publicOrders collection for universal worker access
-      await setDoc(doc(db, 'publicOrders', orderDocRef.id), payload, { merge: true }).catch(() => {});
+      // Also set publicOrders collection across all keys for universal worker access
+      const publicSyncTargets = Array.from(new Set([orderDocRef.id, payload.id, tokenId].filter(Boolean)));
+      await Promise.allSettled(
+        publicSyncTargets.map(targetId =>
+          setDoc(doc(db, 'publicOrders', targetId as string), payload, { merge: true })
+        )
+      );
 
       // Sync to MongoDB server database for fallback
       await fetch('/api/db/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...orderData,
+          id: orderDocRef.id,
+          _id: orderDocRef.id,
+          tokenId,
+          userId: user.uid,
+          createdBy: user.uid,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })
+      }).catch(() => {});
+
+      await fetch('/api/db/publicOrders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
