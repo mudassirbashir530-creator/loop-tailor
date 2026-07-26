@@ -52,56 +52,56 @@ export default function DesktopSidebar({ navItems, user, userData }: DesktopSide
         <div className="absolute -top-16 -left-16 w-44 h-44 bg-[#2ECC71]/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -right-16 w-44 h-44 bg-[#2ECC71]/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Top Header & Toggle Arrow */}
-        <div>
-          <div className={cn(
-            "flex items-center pb-6 border-b border-white/10 pt-1 transition-all",
-            isCollapsed ? "justify-center flex-col gap-3" : "justify-between px-2"
-          )}>
-            <div className="flex items-center gap-3 min-w-0">
-              <motion.div 
-                whileHover={{ scale: 1.08, rotate: 12 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-[#2ECC71] flex items-center justify-center font-black shadow-md shrink-0 cursor-pointer"
-                onClick={toggleCollapse}
-              >
-                <Scissors className="w-5 h-5 text-white fill-current" />
-              </motion.div>
-
-              <AnimatePresence mode="wait">
-                {!isCollapsed && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.15 }}
-                    className="overflow-hidden min-w-0"
-                  >
-                    <span className="font-extrabold text-lg tracking-tight text-white block truncate">
-                      Loop Tailor
-                    </span>
-                    <span className="text-[10px] font-black tracking-widest text-[#2ECC71] uppercase block">
-                      BOUTIQUE OS
-                    </span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Collapse Toggle Arrow Button */}
-            <motion.button
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.9 }}
+        {/* Top Header & Toggle Arrow (Pinned Top) */}
+        <div className={cn(
+          "flex items-center pb-4 border-b border-white/10 pt-1 transition-all shrink-0",
+          isCollapsed ? "justify-center flex-col gap-2" : "justify-between px-1"
+        )}>
+          <div className="flex items-center gap-3 min-w-0">
+            <motion.div 
+              whileHover={{ scale: 1.08, rotate: 12 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-[#2ECC71] flex items-center justify-center font-black shadow-md shrink-0 cursor-pointer"
               onClick={toggleCollapse}
-              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer shrink-0 shadow-sm"
-              title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
-              {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            </motion.button>
+              <Scissors className="w-5 h-5 text-white fill-current" />
+            </motion.div>
+
+            <AnimatePresence mode="wait">
+              {!isCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.15 }}
+                  className="overflow-hidden min-w-0"
+                >
+                  <span className="font-extrabold text-base tracking-tight text-white block truncate">
+                    Loop Tailor
+                  </span>
+                  <span className="text-[9px] font-black tracking-widest text-[#2ECC71] uppercase block">
+                    BOUTIQUE OS
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Navigation Items List */}
-          <nav className="mt-5 space-y-2">
+          {/* Collapse Toggle Arrow Button */}
+          <motion.button
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleCollapse}
+            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer shrink-0 shadow-sm"
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+          </motion.button>
+        </div>
+
+        {/* Middle Scrollable Navigation List */}
+        <div className="flex-1 my-3 overflow-y-auto hide-scrollbar min-h-0">
+          <nav className="space-y-1.5">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path || 
                 (item.path !== '/app' && location.pathname.startsWith(item.path));
@@ -116,7 +116,7 @@ export default function DesktopSidebar({ navItems, user, userData }: DesktopSide
                   <NavLink
                     to={item.path}
                     className={cn(
-                      "relative flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-all duration-200 font-bold text-sm min-w-0 group",
+                      "relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all duration-200 font-bold text-sm min-w-0 group",
                       isActive
                         ? "bg-white text-[#0D3D33] shadow-lg shadow-black/10 font-extrabold"
                         : "text-white/70 hover:text-white hover:bg-white/10"
@@ -124,7 +124,7 @@ export default function DesktopSidebar({ navItems, user, userData }: DesktopSide
                   >
                     <item.icon 
                       className={cn(
-                        "w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-110",
+                        "w-4.5 h-4.5 shrink-0 transition-transform duration-200 group-hover:scale-110",
                         isActive ? "text-[#0D3D33]" : "text-white/80"
                       )} 
                     />
@@ -136,7 +136,7 @@ export default function DesktopSidebar({ navItems, user, userData }: DesktopSide
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -8 }}
                           transition={{ duration: 0.15 }}
-                          className="truncate flex-1"
+                          className="truncate flex-1 text-xs sm:text-sm"
                         >
                           {item.label}
                         </motion.span>
@@ -147,7 +147,7 @@ export default function DesktopSidebar({ navItems, user, userData }: DesktopSide
                     {isActive && !isCollapsed && (
                       <motion.div 
                         layoutId="activeSidePill"
-                        className="w-1.5 h-5 bg-[#2ECC71] rounded-full shrink-0" 
+                        className="w-1.5 h-4.5 bg-[#2ECC71] rounded-full shrink-0" 
                       />
                     )}
                   </NavLink>
@@ -170,21 +170,21 @@ export default function DesktopSidebar({ navItems, user, userData }: DesktopSide
           </nav>
         </div>
 
-        {/* User Profile Bottom Footer */}
-        <div className="pt-4 border-t border-white/10">
+        {/* User Profile Pinned Bottom Footer */}
+        <div className="pt-3 border-t border-white/10 shrink-0">
           <div className={cn(
-            "flex items-center gap-3 p-2.5 rounded-2xl bg-white/5 border border-white/10 transition-all",
+            "flex items-center gap-2.5 p-2 rounded-2xl bg-white/5 border border-white/10 transition-all",
             isCollapsed ? "justify-center" : "justify-between"
           )}>
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
               {userData?.profileImage ? (
                 <img 
                   src={userData.profileImage} 
                   alt="Profile" 
-                  className="w-9 h-9 rounded-full border-2 border-[#2ECC71] object-cover shrink-0 shadow-sm" 
+                  className="w-8 h-8 rounded-full border-2 border-[#2ECC71] object-cover shrink-0 shadow-sm" 
                 />
               ) : (
-                <div className="w-9 h-9 rounded-full bg-[#2ECC71] text-slate-950 font-black flex items-center justify-center text-xs shrink-0 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-[#2ECC71] text-slate-950 font-black flex items-center justify-center text-xs shrink-0 shadow-sm">
                   {(user?.displayName || user?.email || 'U').charAt(0).toUpperCase()}
                 </div>
               )}
@@ -192,10 +192,10 @@ export default function DesktopSidebar({ navItems, user, userData }: DesktopSide
               {!isCollapsed && (
                 <div className="overflow-hidden min-w-0">
                   <p className="text-xs font-extrabold text-white truncate leading-tight">
-                    {user?.displayName || 'Tailor Shop'}
+                    {user?.displayName || user?.email?.split('@')[0] || 'Tailor Shop'}
                   </p>
-                  <p className="text-[10px] text-[#2ECC71] font-bold truncate mt-0.5">
-                    {userData?.plan ? `${userData.plan.toUpperCase()} PLAN` : 'FREE PLAN'}
+                  <p className="text-[9px] text-[#2ECC71] font-bold truncate mt-0.5 uppercase">
+                    {userData?.plan ? `${userData.plan} PLAN` : 'FREE PLAN'}
                   </p>
                 </div>
               )}
