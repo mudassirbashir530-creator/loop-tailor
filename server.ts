@@ -108,6 +108,84 @@ async function getTransporter() {
   return transporter;
 }
 
+/**
+ * Security Best Practices Implementation
+ */
+
+// 1. Password Hashing & Verification using Node.js crypto (scrypt)
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derivedKey = crypto.scryptSync(password, salt, 64);
+  return `${salt}:${derivedKey.toString('hex')}`;
+}
+
+function verifyPassword(password: string, storedPasswordHash?: string, legacyPlaintext?: string): boolean {
+  if (!storedPasswordHash && !legacyPlaintext) return false;
+  
+  if (storedPasswordHash && storedPasswordHash.includes(':')) {
+    const [salt, keyHex] = storedPasswordHash.split(':');
+    const keyBuffer = Buffer.from(keyHex, 'hex');
+    const derivedKey = crypto.scryptSync(password, salt, 64);
+    return crypto.timingSafeEqual(keyBuffer, derivedKey);
+  }
+  
+  // Legacy plain-text fallback (allows seamless migration to hashed passwords on successful login)
+  if (legacyPlaintext && legacyPlaintext === password) {
+    return true;
+  }
+  
+  return false;
+}
+
+// 2. Server-side Validation Helpers
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return typeof email === 'string' && emailRegex.test(email.trim());
+}
+
+function isValidPassword(password: string): boolean {
+  return typeof password === 'string' && password.length >= 6;
+}
+
+// 3. Rate Limiting & Account Lockout Tracker
+interface RateLimitRecord {
+  attempts: number;
+  lockoutUntil: number;
+  firstAttempt: number;
+}
+const rateLimitMap = new Map<string, RateLimitRecord>();
+
+function checkRateLimit(key: string, maxAttempts = 5, windowMs = 15 * 60 * 1000): { allowed: boolean; retryAfterSeconds: number } {
+  const now = Date.now();
+  const record = rateLimitMap.get(key);
+
+  if (!record) {
+    rateLimitMap.set(key, { attempts: 1, lockoutUntil: 0, firstAttempt: now });
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+
+  if (record.lockoutUntil > now) {
+    return { allowed: false, retryAfterSeconds: Math.ceil((record.lockoutUntil - now) / 1000) };
+  }
+
+  if (now - record.firstAttempt > windowMs) {
+    rateLimitMap.set(key, { attempts: 1, lockoutUntil: 0, firstAttempt: now });
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+
+  record.attempts += 1;
+  if (record.attempts > maxAttempts) {
+    record.lockoutUntil = now + windowMs;
+    return { allowed: false, retryAfterSeconds: Math.ceil(windowMs / 1000) };
+  }
+
+  return { allowed: true, retryAfterSeconds: 0 };
+}
+
+function resetRateLimit(key: string) {
+  rateLimitMap.delete(key);
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -120,7 +198,7 @@ async function startServer() {
   });
 
   /**
-   * MongoDB Database & Auth REST API
+   * MongoDB Database & Auth REST API (Secured)
    */
 
   // Sign up
@@ -129,27 +207,43 @@ async function startServer() {
       const db = await getMongoDb();
       const { email, password, name, phone, language, shopName, shopLogoUrl, shopAddress } = req.body;
       
-      if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required" });
+      // Server-side input validation
+      if (!isValidEmail(email)) {
+        return res.status(400).json({ error: "Please provide a valid email address." });
+      }
+      
+      if (!isValidPassword(password)) {
+        return res.status(400).json({ error: "Password must be at least 6 characters long." });
       }
       
       const normalizedEmail = email.toLowerCase().trim();
       
+      // Rate limiting check
+      const clientIp = req.ip || req.socket.remoteAddress || 'ip';
+      const rateCheck = checkRateLimit(`signup_${clientIp}`);
+      if (!rateCheck.allowed) {
+        return res.status(429).json({ error: `Too many signup requests. Please try again in ${rateCheck.retryAfterSeconds} seconds.` });
+      }
+      
       // Check if user already exists
       const existingUser = await db.collection("users").findOne({ email: normalizedEmail });
       if (existingUser) {
-        return res.status(400).json({ error: "An account with this email address already exists. Please login instead." });
+        // Generic response to prevent user enumeration
+        return res.status(400).json({ error: "An account with this email address already exists. Please log in instead." });
       }
       
       const userId = "user_" + crypto.randomUUID().replace(/-/g, "").slice(0, 20);
       const defaultPlan = 'free';
+      
+      // Store hashed password securely (never plaintext)
+      const hashedPassword = hashPassword(password);
       
       const newUser = {
         _id: userId,
         uid: userId,
         ownerName: name || 'New User',
         email: normalizedEmail,
-        password: password,
+        passwordHash: hashedPassword,
         phone: phone || '',
         shopName: shopName || 'My Tailor Shop',
         countryCode: '+92',
@@ -199,10 +293,12 @@ async function startServer() {
         { upsert: true }
       );
       
-      res.status(201).json(newUser);
+      // Exclude password hash from response
+      const { passwordHash, ...safeUserData } = newUser as any;
+      res.status(201).json(safeUserData);
     } catch (err: any) {
       console.error("Signup error:", err);
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: "An unexpected error occurred during signup." });
     }
   });
 
@@ -212,31 +308,55 @@ async function startServer() {
       const db = await getMongoDb();
       const { email, password } = req.body;
       
-      if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required" });
+      if (!isValidEmail(email) || !password) {
+        return res.status(400).json({ error: "Invalid email or password format." });
       }
       
       const normalizedEmail = email.toLowerCase().trim();
+      const clientIp = req.ip || req.socket.remoteAddress || 'ip';
+      const limitKey = `login_${clientIp}_${normalizedEmail}`;
+      
+      // Check Rate Limit & Account Lockout
+      const rateCheck = checkRateLimit(limitKey, 5, 15 * 60 * 1000);
+      if (!rateCheck.allowed) {
+        return res.status(429).json({ 
+          error: `Too many failed login attempts. Account temporarily locked. Please try again in ${Math.ceil(rateCheck.retryAfterSeconds / 60)} minutes.` 
+        });
+      }
+
       const user = await db.collection("users").findOne({ email: normalizedEmail });
       
-      if (!user) {
-        return res.status(401).json({ error: "No user found with this email" });
+      // Generic error message for both user non-existence & password mismatch (prevents email enumeration)
+      if (!user || !verifyPassword(password, user.passwordHash, user.password)) {
+        return res.status(401).json({ error: "Incorrect email or password." });
       }
       
-      if (user.password !== password) {
-        return res.status(401).json({ error: "Incorrect password" });
+      // Reset rate limit on successful authentication
+      resetRateLimit(limitKey);
+
+      // Auto-migrate legacy plaintext password to secure hash if needed
+      if (user.password && !user.passwordHash) {
+        await db.collection("users").updateOne(
+          { _id: user._id },
+          { 
+            $set: { passwordHash: hashPassword(password) },
+            $unset: { password: "" }
+          }
+        );
       }
+      
+      const { passwordHash: pHash, password: pPlain, ...safeUser } = user;
       
       res.json({
         id: user._id || user.uid,
         uid: user.uid || user._id,
         email: user.email,
         ownerName: user.ownerName || user.name,
-        ...user
+        ...safeUser
       });
     } catch (err: any) {
       console.error("Login error:", err);
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: "An unexpected authentication error occurred." });
     }
   });
 
