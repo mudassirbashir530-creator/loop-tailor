@@ -91,7 +91,9 @@ export default function Subscription({ isModal = false }: SubscriptionProps) {
             scrollSnapType: "x mandatory",
           }}
           className={cn(
-            "flex lg:grid lg:grid-cols-4 overflow-x-auto lg:overflow-x-visible pb-4 lg:pb-0 gap-4 max-w-full scrollbar-none items-stretch px-4 lg:px-0 [&::-webkit-scrollbar]:hidden"
+            isModal
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 max-h-[70vh] overflow-y-auto p-2"
+              : "flex lg:grid lg:grid-cols-4 overflow-x-auto lg:overflow-x-visible pb-4 lg:pb-0 gap-4 max-w-full scrollbar-none items-stretch px-2 lg:px-0 [&::-webkit-scrollbar]:hidden"
           )}
         >
           {Object.values(PLANS).map((plan, index) => {
@@ -107,7 +109,10 @@ export default function Subscription({ isModal = false }: SubscriptionProps) {
                 key={plan.id}
                 style={{ scrollSnapAlign: "center" }}
                 className={cn(
-                  "w-[calc(85vw-32px)] lg:w-full min-w-[calc(85vw-32px)] lg:min-w-0 flex-shrink-0 flex flex-col justify-between transition-all duration-300 bg-white dark:bg-slate-900 shadow-xs select-none snap-center h-full overflow-hidden border rounded-2xl p-4 md:p-5 break-words",
+                  isModal
+                    ? "w-full min-w-0"
+                    : "w-[calc(85vw-32px)] lg:w-full min-w-[calc(85vw-32px)] lg:min-w-0 flex-shrink-0",
+                  "flex flex-col justify-between transition-all duration-300 bg-white dark:bg-slate-900 shadow-xs select-none snap-center h-full overflow-hidden border rounded-2xl p-4 md:p-5 break-words",
                   isActive
                     ? "border-2 border-[#1a3a2a] dark:border-[#2ECC71] ring-4 ring-[#1a3a2a]/5 shadow-md scale-100 lg:scale-[1.02] z-10"
                     : "border-slate-200 dark:border-slate-800 opacity-95"
