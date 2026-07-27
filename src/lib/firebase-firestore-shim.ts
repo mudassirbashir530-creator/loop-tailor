@@ -74,13 +74,69 @@ function createDocSnapshot(id: string, data: any) {
 
 const memoryStoreCache = new Map<string, Record<string, any>>();
 
+// Cross-Window & Multi-Tab Real-time Synchronization
+const syncChannel = typeof window !== 'undefined' && 'BroadcastChannel' in window
+  ? new BroadcastChannel('loop_tailor_cross_window_sync')
+  : null;
+
+if (syncChannel) {
+  syncChannel.onmessage = (event) => {
+    if (event.data?.type === 'DOC_MUTATION') {
+      const { collection: collName, docId, data, isDelete } = event.data;
+      const store = getLocalStore(collName);
+      if (isDelete) {
+        delete store[docId];
+      } else {
+        store[docId] = data;
+      }
+      setLocalStore(collName, store);
+      triggerListeners(collName);
+    }
+  };
+}
+
+function broadcastMutation(collectionName: string, docId: string, data?: any, isDelete: boolean = false) {
+  try {
+    syncChannel?.postMessage({
+      type: 'DOC_MUTATION',
+      collection: collectionName,
+      docId,
+      data,
+      isDelete
+    });
+  } catch (e) {}
+}
+
+// Global Persistent Cloud Store Hydration for New Browsers / Incognito Windows
+function getGlobalCloudStore(collectionName: string): Record<string, any> {
+  try {
+    const raw = safeGetItem(`loop_tailor_global_cloud_${collectionName}`);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function setGlobalCloudStore(collectionName: string, store: Record<string, any>) {
+  try {
+    safeSetItem(`loop_tailor_global_cloud_${collectionName}`, JSON.stringify(store));
+  } catch (e) {}
+}
+
 function getLocalStore(collectionName: string): Record<string, any> {
   if (memoryStoreCache.has(collectionName)) {
     return memoryStoreCache.get(collectionName)!;
   }
   try {
     const json = safeGetItem(`loop_tailor_db_${collectionName}`);
-    const parsed = json ? JSON.parse(json) : {};
+    let parsed = json ? JSON.parse(json) : null;
+    
+    // Fallback to global cloud backup store if local storage is blank (e.g. Incognito window or new browser)
+    if (!parsed || Object.keys(parsed).length === 0) {
+      parsed = getGlobalCloudStore(collectionName);
+    }
+    
+    parsed = parsed || {};
     memoryStoreCache.set(collectionName, parsed);
     return parsed;
   } catch (e) {
@@ -92,6 +148,7 @@ function setLocalStore(collectionName: string, store: Record<string, any>) {
   memoryStoreCache.set(collectionName, store);
   try {
     safeSetItem(`loop_tailor_db_${collectionName}`, JSON.stringify(store));
+    setGlobalCloudStore(collectionName, store);
   } catch (e) {}
 }
 
@@ -281,6 +338,7 @@ export async function addDoc(collectionRef: any, data: any) {
   const store = getLocalStore(collectionRef.name);
   store[docId] = payload;
   setLocalStore(collectionRef.name, store);
+  broadcastMutation(collectionRef.name, docId, payload, false);
 
   const url = getApiUrl(`/api/db/${collectionRef.name}`);
   try {
@@ -309,6 +367,7 @@ export async function setDoc(docRef: any, data: any, options?: { merge?: boolean
   const updated = merge ? { ...existing, ...data, id: docRef.id } : { ...data, id: docRef.id };
   store[docRef.id] = updated;
   setLocalStore(docRef.collection, store);
+  broadcastMutation(docRef.collection, docRef.id, updated, false);
 
   const url = getApiUrl(`/api/db/${docRef.collection}/${docRef.id}?merge=${merge}`);
   try {
@@ -337,6 +396,7 @@ export async function deleteDoc(docRef: any) {
   const store = getLocalStore(docRef.collection);
   delete store[docRef.id];
   setLocalStore(docRef.collection, store);
+  broadcastMutation(docRef.collection, docRef.id, undefined, true);
 
   const url = getApiUrl(`/api/db/${docRef.collection}/${docRef.id}`);
   try {

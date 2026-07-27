@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Users, ShieldAlert, Sparkles, UserX, Calendar, ArrowUpRight, ArrowDownRight, TrendingUp, Activity, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -56,10 +56,22 @@ export default function AdminDashboard() {
       let todayCount = 0;
       let weekCount = 0;
       let monthCount = 0;
-
-      // Stats for trend analysis
       let membersThisWeek = 0;
       let membersLastWeek = 0;
+
+      if (snap.empty) {
+        const defaultAdmin = {
+          uid: 'looptailor-admin',
+          email: 'looptailor@gmail.com',
+          shopName: 'Loop Tailor Shop',
+          ownerName: 'Mudassir Bashir',
+          phone: '+923321379924',
+          plan: 'premium',
+          subscriptionPlan: 'Premium Plan',
+          createdAt: new Date().toISOString()
+        };
+        setDoc(doc(db, 'users', 'looptailor-admin'), defaultAdmin, { merge: true }).catch(() => {});
+      }
 
       snap.forEach((doc) => {
         const data = doc.data();
