@@ -72,16 +72,24 @@ function createDocSnapshot(id: string, data: any) {
   };
 }
 
+const memoryStoreCache = new Map<string, Record<string, any>>();
+
 function getLocalStore(collectionName: string): Record<string, any> {
+  if (memoryStoreCache.has(collectionName)) {
+    return memoryStoreCache.get(collectionName)!;
+  }
   try {
     const json = safeGetItem(`loop_tailor_db_${collectionName}`);
-    return json ? JSON.parse(json) : {};
+    const parsed = json ? JSON.parse(json) : {};
+    memoryStoreCache.set(collectionName, parsed);
+    return parsed;
   } catch (e) {
     return {};
   }
 }
 
 function setLocalStore(collectionName: string, store: Record<string, any>) {
+  memoryStoreCache.set(collectionName, store);
   try {
     safeSetItem(`loop_tailor_db_${collectionName}`, JSON.stringify(store));
   } catch (e) {}
