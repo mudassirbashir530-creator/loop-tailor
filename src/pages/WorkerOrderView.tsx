@@ -215,29 +215,26 @@ export default function WorkerOrderView() {
     setUpdating(true);
     try {
       const orderDocId = order.id || id;
+      const tokenNumber = order.tokenId || id;
 
-      // Update via REST API
+      // Update via REST API backend if available
       await fetch(`/api/public/worker-order/${id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       }).catch(() => {});
 
-      // Update Firestore in parallel across all keys
-      await Promise.allSettled([
-        updateDoc(doc(db, 'orders', orderDocId), {
-          status: newStatus,
-          updatedAt: serverTimestamp()
-        }),
-        setDoc(doc(db, 'publicOrders', id), {
-          status: newStatus,
-          updatedAt: serverTimestamp()
-        }, { merge: true }),
-        setDoc(doc(db, 'publicOrders', orderDocId), {
-          status: newStatus,
-          updatedAt: serverTimestamp()
-        }, { merge: true })
-      ]);
+      // Target all possible document keys across orders & publicOrders collections
+      const targetKeys = Array.from(new Set([orderDocId, id, tokenNumber, order.tokenId, order._id].filter(Boolean)));
+      
+      await Promise.allSettled(
+        targetKeys.map(key => 
+          Promise.allSettled([
+            setDoc(doc(db, 'orders', key as string), { status: newStatus, updatedAt: serverTimestamp() }, { merge: true }),
+            setDoc(doc(db, 'publicOrders', key as string), { status: newStatus, updatedAt: serverTimestamp() }, { merge: true })
+          ])
+        )
+      );
 
       setOrder((prev: any) => prev ? { ...prev, status: newStatus } : null);
       toast.success(newStatus === 'ready' ? '🎉 Suit stitching marked complete & ready!' : '✂️ Suit stitching started!');
