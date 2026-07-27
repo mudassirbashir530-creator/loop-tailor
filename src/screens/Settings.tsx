@@ -562,26 +562,88 @@ export default function Settings() {
       <Dialog open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Notifications</DialogTitle>
-            <DialogDescription>Manage your app notifications here.</DialogDescription>
+            <DialogTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-orange-500" /> Notifications & Alerts
+            </DialogTitle>
+            <DialogDescription>
+              Configure real-time browser push notifications, sound alerts, and customer receipts.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2 py-4">
+
+          <div className="space-y-4 py-2">
+            {/* Push Notifications Toggle */}
             <div 
-                className="p-3 hover:bg-muted cursor-pointer rounded-lg flex items-center justify-between"
-                onClick={() => {
-                  const newVal = !notificationsEnabled;
-                  setNotificationsEnabled(newVal);
-                  saveSettingsField('notificationsEnabled', newVal);
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <Bell className="h-5 w-5 text-orange-500" />
-                  <span className="font-medium">Enable Notifications</span>
-                </div>
-                <div className={`w-11 h-6 rounded-full transition-colors flex items-center px-1 ${notificationsEnabled ? 'bg-primary' : 'bg-muted-foreground/30'}`}>
-                  <div className={`w-4 h-4 bg-white rounded-full transition-transform ${notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
-                </div>
+              className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-850 transition-colors"
+              onClick={async () => {
+                if (typeof window === 'undefined' || !('Notification' in window)) {
+                  toast.error("Browser push notifications are not supported on this device.");
+                  return;
+                }
+
+                if (!notificationsEnabled) {
+                  try {
+                    const perm = await Notification.requestPermission();
+                    if (perm === 'granted') {
+                      setNotificationsEnabled(true);
+                      saveSettingsField('notificationsEnabled', true);
+                      saveSettingsField('enableWhatsappNotifications', true);
+                      if (user) {
+                        setDoc(doc(db, 'users', user.uid), { notificationsEnabled: true, enableWhatsappNotifications: true }, { merge: true }).catch(() => {});
+                      }
+                      toast.success("🔔 Browser Notifications Enabled!");
+                      try {
+                        new Notification("✂️ Loop Tailor Notifications Active", {
+                          body: "Real-time order updates and customer notifications are enabled!",
+                          icon: "/icon-192x192.svg"
+                        });
+                      } catch (e) {}
+                    } else {
+                      toast.error("Notification permission denied. Please allow notifications in your browser URL bar.");
+                    }
+                  } catch (e) {
+                    toast.error("Failed to request notification permission.");
+                  }
+                } else {
+                  setNotificationsEnabled(false);
+                  saveSettingsField('notificationsEnabled', false);
+                  saveSettingsField('enableWhatsappNotifications', false);
+                  if (user) {
+                    setDoc(doc(db, 'users', user.uid), { notificationsEnabled: false, enableWhatsappNotifications: false }, { merge: true }).catch(() => {});
+                  }
+                  toast.success("Notifications disabled.");
+                }
+              }}
+            >
+              <div className="space-y-0.5">
+                <span className="font-bold text-sm text-slate-900 dark:text-white block">Push Notifications</span>
+                <span className="text-xs text-slate-500 block">Get instant desktop & mobile alerts for new orders</span>
               </div>
+              <div className={`w-11 h-6 rounded-full transition-colors flex items-center px-1 shrink-0 ${notificationsEnabled ? 'bg-[#0D3D33]' : 'bg-slate-300 dark:bg-slate-700'}`}>
+                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
+              </div>
+            </div>
+
+            {/* Test Push Notification Button */}
+            {notificationsEnabled && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification("🔔 Test Notification", {
+                      body: "Loop Tailor notifications are working perfectly!",
+                      icon: "/icon-192x192.svg"
+                    });
+                    toast.success("Test notification sent!");
+                  } else {
+                    toast.error("Notification permission is not granted yet.");
+                  }
+                }}
+                className="w-full h-10 text-xs font-bold rounded-xl border-dashed border-slate-300 dark:border-slate-700"
+              >
+                <Sparkles className="w-4 h-4 mr-2 text-amber-500" /> Send Test Browser Notification
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>
