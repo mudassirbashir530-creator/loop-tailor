@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, doc, updateDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toast } from 'sonner';
 import { PLANS } from '../constants/plans';
@@ -137,13 +137,20 @@ export function useAdminUsers() {
       const config = PLANS[planName];
       if (!config) throw new Error(`Invalid plan: ${planName}`);
 
-      await updateDoc(doc(db, 'users', userId), {
+      const payload = {
         plan: planName,
+        subscriptionPlan: `${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan`,
         planPrice: config.price,
         planLimits: config.limits,
         features: config.features,
         planActivatedAt: serverTimestamp(),
-      });
+        updatedAt: serverTimestamp()
+      };
+
+      await Promise.allSettled([
+        setDoc(doc(db, 'users', userId), payload, { merge: true }),
+        setDoc(doc(db, 'settings', userId), payload, { merge: true })
+      ]);
       toast.success(`Plan updated to ${config.name}!`);
     } catch (err: any) {
       console.error('Error changing user plan:', err);
@@ -153,11 +160,32 @@ export function useAdminUsers() {
 
   const toggleUserFeature = async (userId: string, featureName: keyof UserFeatures, value: boolean) => {
     try {
-      await updateDoc(doc(db, 'users', userId), {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const existingData = userDoc.exists() ? userDoc.data() : {};
+      const existingFeatures = existingData.features || {
+        canDownloadInvoice: true,
+        canUploadImages: true,
+        canUseWhatsApp: false,
+        canUsePayroll: false,
+        canViewAnalytics: false,
+        canCustomBranding: false,
+        canManageWorkers: true,
+      };
+
+      const updatedFeatures = { ...existingFeatures, [featureName]: value };
+
+      const payload = {
+        features: updatedFeatures,
         [`features.${featureName}`]: value,
         updatedAt: serverTimestamp()
-      });
-      toast.success('Feature setting updated instantly!');
+      };
+
+      await Promise.allSettled([
+        setDoc(doc(db, 'users', userId), payload, { merge: true }),
+        setDoc(doc(db, 'settings', userId), payload, { merge: true })
+      ]);
+
+      toast.success(`Feature '${featureName}' ${value ? 'enabled' : 'disabled'}!`);
     } catch (err: any) {
       console.error('Error toggling feature:', err);
       toast.error('Failed to save feature toggle');
@@ -166,10 +194,20 @@ export function useAdminUsers() {
 
   const saveOrderLimit = async (userId: string, newLimit: number) => {
     try {
-      await updateDoc(doc(db, 'users', userId), {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const existingLimits = userDoc.exists() ? (userDoc.data().planLimits || {}) : {};
+      const updatedLimits = { ...existingLimits, ordersPerMonth: newLimit };
+
+      const payload = {
+        planLimits: updatedLimits,
         'planLimits.ordersPerMonth': newLimit,
         updatedAt: serverTimestamp()
-      });
+      };
+
+      await Promise.allSettled([
+        setDoc(doc(db, 'users', userId), payload, { merge: true }),
+        setDoc(doc(db, 'settings', userId), payload, { merge: true })
+      ]);
       toast.success('Order limit updated instantly!');
     } catch (err: any) {
       console.error('Error updating order limit:', err);
@@ -179,10 +217,20 @@ export function useAdminUsers() {
 
   const saveCustomerLimit = async (userId: string, newLimit: number) => {
     try {
-      await updateDoc(doc(db, 'users', userId), {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const existingLimits = userDoc.exists() ? (userDoc.data().planLimits || {}) : {};
+      const updatedLimits = { ...existingLimits, customers: newLimit };
+
+      const payload = {
+        planLimits: updatedLimits,
         'planLimits.customers': newLimit,
         updatedAt: serverTimestamp()
-      });
+      };
+
+      await Promise.allSettled([
+        setDoc(doc(db, 'users', userId), payload, { merge: true }),
+        setDoc(doc(db, 'settings', userId), payload, { merge: true })
+      ]);
       toast.success('Customer limit updated instantly!');
     } catch (err: any) {
       console.error('Error updating customer limit:', err);
@@ -192,10 +240,20 @@ export function useAdminUsers() {
 
   const saveWorkerLimit = async (userId: string, newLimit: number) => {
     try {
-      await updateDoc(doc(db, 'users', userId), {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const existingLimits = userDoc.exists() ? (userDoc.data().planLimits || {}) : {};
+      const updatedLimits = { ...existingLimits, workers: newLimit };
+
+      const payload = {
+        planLimits: updatedLimits,
         'planLimits.workers': newLimit,
         updatedAt: serverTimestamp()
-      });
+      };
+
+      await Promise.allSettled([
+        setDoc(doc(db, 'users', userId), payload, { merge: true }),
+        setDoc(doc(db, 'settings', userId), payload, { merge: true })
+      ]);
       toast.success('Worker limit updated instantly!');
     } catch (err: any) {
       console.error('Error updating worker limit:', err);

@@ -358,13 +358,38 @@ export async function addDoc(collectionRef: any, data: any) {
   return { id: docId };
 }
 
+function setDeepProperty(target: any, path: string, value: any) {
+  if (!path.includes('.')) {
+    target[path] = value;
+    return;
+  }
+  const parts = path.split('.');
+  let current = target;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const part = parts[i];
+    if (!current[part] || typeof current[part] !== 'object' || Array.isArray(current[part])) {
+      current[part] = {};
+    }
+    current = current[part];
+  }
+  current[parts[parts.length - 1]] = value;
+}
+
 // Set doc
 export async function setDoc(docRef: any, data: any, options?: { merge?: boolean }) {
   const store = getLocalStore(docRef.collection);
   const existing = store[docRef.id] || {};
   const merge = options?.merge !== false;
   
-  const updated = merge ? { ...existing, ...data, id: docRef.id } : { ...data, id: docRef.id };
+  const updated = merge ? JSON.parse(JSON.stringify(existing)) : {};
+  
+  if (data && typeof data === 'object') {
+    Object.entries(data).forEach(([key, val]) => {
+      setDeepProperty(updated, key, val);
+    });
+  }
+  updated.id = docRef.id;
+
   store[docRef.id] = updated;
   setLocalStore(docRef.collection, store);
   broadcastMutation(docRef.collection, docRef.id, updated, false);
