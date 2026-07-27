@@ -87,6 +87,82 @@ function setLocalStore(collectionName: string, store: Record<string, any>) {
   } catch (e) {}
 }
 
+interface PendingSyncItem {
+  id: string;
+  collection: string;
+  docId: string;
+  method: 'POST' | 'PUT' | 'DELETE';
+  url: string;
+  body?: any;
+  timestamp: string;
+}
+
+function getPendingSyncQueue(): PendingSyncItem[] {
+  try {
+    const raw = safeGetItem('loop_tailor_pending_sync');
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function savePendingSyncQueue(queue: PendingSyncItem[]) {
+  try {
+    safeSetItem('loop_tailor_pending_sync', JSON.stringify(queue));
+  } catch (e) {}
+}
+
+function enqueuePendingSync(item: Omit<PendingSyncItem, 'id' | 'timestamp'>) {
+  const queue = getPendingSyncQueue();
+  // Avoid duplicate queue entries for the same doc mutation
+  const existingIdx = queue.findIndex(q => q.collection === item.collection && q.docId === item.docId && q.method === item.method);
+  if (existingIdx >= 0) {
+    queue[existingIdx] = { ...item, id: queue[existingIdx].id, timestamp: new Date().toISOString() };
+  } else {
+    queue.push({ ...item, id: crypto.randomUUID(), timestamp: new Date().toISOString() });
+  }
+  savePendingSyncQueue(queue);
+}
+
+// Background auto-sync function whenever internet reconnects
+export async function syncPendingOfflineData() {
+  const queue = getPendingSyncQueue();
+  if (queue.length === 0) return;
+
+  const remaining: PendingSyncItem[] = [];
+  let syncedCount = 0;
+
+  for (const item of queue) {
+    try {
+      const res = await fetch(item.url, {
+        method: item.method,
+        headers: item.body ? { 'Content-Type': 'application/json' } : undefined,
+        body: item.body ? JSON.stringify(item.body) : undefined
+      });
+      if (res.ok) {
+        syncedCount++;
+      } else {
+        remaining.push(item);
+      }
+    } catch (err) {
+      remaining.push(item);
+    }
+  }
+
+  savePendingSyncQueue(remaining);
+
+  if (syncedCount > 0) {
+    console.log(`⚡ Auto-synced ${syncedCount} offline mutations to server.`);
+    listeners.forEach((_, coll) => triggerListeners(coll));
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    syncPendingOfflineData();
+  });
+}
+
 // Fetch document
 export async function getDoc(docRef: any) {
   // Super Admin bypass for promptness
@@ -101,6 +177,10 @@ export async function getDoc(docRef: any) {
     const isJson = res.headers.get("content-type")?.includes("application/json");
     if (res.ok && isJson) {
       const data = await res.json();
+      // Cache server response locally
+      const store = getLocalStore(docRef.collection);
+      store[docRef.id] = data;
+      setLocalStore(docRef.collection, store);
       return createDocSnapshot(docRef.id, data);
     }
   } catch (err) {}
@@ -141,6 +221,17 @@ export async function getDocs(queryOrCollection: any) {
     if (res.ok && isJson) {
       const data = await res.json();
       const docs = Array.isArray(data) ? data.map((d: any) => createDocSnapshot(d.id || d._id, d)) : [];
+
+      // Cache all server docs locally
+      if (Array.isArray(data)) {
+        const store = getLocalStore(collName);
+        data.forEach((d: any) => {
+          const docId = d.id || d._id;
+          if (docId) store[docId] = d;
+        });
+        setLocalStore(collName, store);
+      }
+
       return {
         empty: docs.length === 0,
         docs,
@@ -178,18 +269,24 @@ export async function addDoc(collectionRef: any, data: any) {
   const docId = data.id || data._id || crypto.randomUUID();
   const payload = { ...data, id: docId, _id: docId };
 
-  // Save locally first
+  // Save locally first for instant zero-latency UI update
   const store = getLocalStore(collectionRef.name);
   store[docId] = payload;
   setLocalStore(collectionRef.name, store);
 
+  const url = getApiUrl(`/api/db/${collectionRef.name}`);
   try {
-    await fetch(getApiUrl(`/api/db/${collectionRef.name}`), {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-  } catch (e) {}
+    if (!res.ok) {
+      enqueuePendingSync({ collection: collectionRef.name, docId, method: 'POST', url, body: payload });
+    }
+  } catch (e) {
+    enqueuePendingSync({ collection: collectionRef.name, docId, method: 'POST', url, body: payload });
+  }
 
   triggerListeners(collectionRef.name);
   return { id: docId };
@@ -205,13 +302,19 @@ export async function setDoc(docRef: any, data: any, options?: { merge?: boolean
   store[docRef.id] = updated;
   setLocalStore(docRef.collection, store);
 
+  const url = getApiUrl(`/api/db/${docRef.collection}/${docRef.id}?merge=${merge}`);
   try {
-    await fetch(getApiUrl(`/api/db/${docRef.collection}/${docRef.id}?merge=${merge}`), {
+    const res = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-  } catch (e) {}
+    if (!res.ok) {
+      enqueuePendingSync({ collection: docRef.collection, docId: docRef.id, method: 'PUT', url, body: data });
+    }
+  } catch (e) {
+    enqueuePendingSync({ collection: docRef.collection, docId: docRef.id, method: 'PUT', url, body: data });
+  }
 
   triggerListeners(docRef.collection);
 }
@@ -227,11 +330,17 @@ export async function deleteDoc(docRef: any) {
   delete store[docRef.id];
   setLocalStore(docRef.collection, store);
 
+  const url = getApiUrl(`/api/db/${docRef.collection}/${docRef.id}`);
   try {
-    await fetch(getApiUrl(`/api/db/${docRef.collection}/${docRef.id}`), {
+    const res = await fetch(url, {
       method: 'DELETE'
     });
-  } catch (e) {}
+    if (!res.ok) {
+      enqueuePendingSync({ collection: docRef.collection, docId: docRef.id, method: 'DELETE', url });
+    }
+  } catch (e) {
+    enqueuePendingSync({ collection: docRef.collection, docId: docRef.id, method: 'DELETE', url });
+  }
 
   triggerListeners(docRef.collection);
 }

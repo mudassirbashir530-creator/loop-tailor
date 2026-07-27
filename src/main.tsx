@@ -7,6 +7,13 @@ createRoot(document.getElementById('root')!).render(
   <App />
 );
 
+// Register PWA Service Worker for 100% offline access
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+  });
+}
+
 // Global Error Handlers previously here are now in index.html for earlier capture
 
 // Delegated event listener for sidebar toggling in SPA environment
