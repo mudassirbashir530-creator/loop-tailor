@@ -97,6 +97,103 @@ function CircularProgress({ percentage, label, sublabel }: { percentage: number;
   );
 }
 
+interface QuotaCardProps {
+  title: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor: string;
+  curr: number;
+  max: number;
+  actionText: string;
+  navPath: string;
+  navigate: (path: string) => void;
+}
+
+function QuotaCard({ title, icon, iconBg, iconColor, curr, max, actionText, navPath, navigate }: QuotaCardProps) {
+  const isUnlimited = max === 0;
+  const rawPct = isUnlimited ? 0 : Math.round((curr / max) * 100);
+  const visualPct = isUnlimited ? 100 : Math.min(100, rawPct);
+  const isOverLimit = !isUnlimited && curr > max;
+  const isLimitReached = !isUnlimited && curr === max;
+  const isNearLimit = !isUnlimited && rawPct >= 80 && !isLimitReached && !isOverLimit;
+
+  let statusText = `${rawPct}% used`;
+  let statusColor = 'text-slate-500 dark:text-slate-400 font-medium';
+
+  if (isUnlimited) {
+    statusText = 'Unlimited';
+    statusColor = 'text-emerald-600 dark:text-emerald-400 font-bold';
+  } else if (isOverLimit) {
+    statusText = `Limit Exceeded (${rawPct}%)`;
+    statusColor = 'text-rose-600 dark:text-rose-400 font-black';
+  } else if (isLimitReached) {
+    statusText = '100% used (Limit Reached)';
+    statusColor = 'text-rose-600 dark:text-rose-400 font-black';
+  } else if (isNearLimit) {
+    statusText = `${rawPct}% used (Near Limit)`;
+    statusColor = 'text-amber-600 dark:text-amber-400 font-bold';
+  }
+
+  let counterColor = 'text-slate-900 dark:text-white font-black';
+  if (isOverLimit || isLimitReached) {
+    counterColor = 'text-rose-600 dark:text-rose-400 font-black';
+  } else if (isNearLimit) {
+    counterColor = 'text-amber-600 dark:text-amber-400 font-bold';
+  }
+
+  let barBg = 'bg-gradient-to-r from-[#0D3D33] via-[#2ECC71] to-[#2ECC71]';
+  if (isOverLimit || isLimitReached) {
+    barBg = 'bg-rose-500';
+  } else if (isNearLimit) {
+    barBg = 'bg-amber-500';
+  }
+
+  let cardStyle = 'border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 hover:border-[#0D3D33]/40 hover:bg-slate-100/60 dark:hover:bg-slate-800/80';
+  if (isOverLimit) {
+    cardStyle = 'border-rose-300 dark:border-rose-800/80 bg-rose-50/50 dark:bg-rose-950/30 hover:border-rose-400 dark:hover:border-rose-700 hover:bg-rose-50/80 dark:hover:bg-rose-950/50';
+  } else if (isLimitReached) {
+    cardStyle = 'border-rose-200 dark:border-rose-900/60 bg-rose-50/30 dark:bg-rose-950/20 hover:border-rose-300 hover:bg-rose-50/50';
+  }
+
+  return (
+    <div
+      onClick={() => navigate(navPath)}
+      className={`border p-4 sm:p-5 rounded-2xl space-y-3 cursor-pointer transition-all duration-200 group relative ${cardStyle}`}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className={`p-2 rounded-xl ${iconBg} ${iconColor} font-bold shadow-xs`}>
+            {icon}
+          </div>
+          <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-[#0D3D33] dark:group-hover:text-emerald-400 transition-colors">
+            {title}
+          </span>
+        </div>
+        <span className={`text-xs sm:text-sm ${counterColor}`}>
+          {curr} / {isUnlimited ? '∞' : max}
+        </span>
+      </div>
+
+      <div className="space-y-1.5 pt-1">
+        <div className="h-3 w-full bg-slate-200/90 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 shadow-inner">
+          <div
+            className={`h-full rounded-full transition-all duration-500 shadow-xs ${barBg}`}
+            style={{ width: `${visualPct}%` }}
+          />
+        </div>
+        <div className="flex justify-between items-center text-[11px] pt-1">
+          <span className={statusColor}>
+            {statusText}
+          </span>
+          <span className="flex items-center gap-1 text-[#0D3D33] dark:text-emerald-400 font-extrabold group-hover:underline">
+            {actionText} <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const navigate = useNavigate();
   const { orders, loading } = useOrders();
@@ -174,10 +271,13 @@ export default function Home() {
 
   // Capacity score calculation
   const overallCapacityPct = useMemo(() => {
-    const custPct = limits.customers === 0 ? 10 : Math.min(100, (usage.customers / limits.customers) * 100);
-    const ordPct = limits.ordersPerMonth === 0 ? 10 : Math.min(100, (usage.ordersThisMonth / limits.ordersPerMonth) * 100);
-    const workPct = limits.workers === 0 ? 10 : Math.min(100, (usage.workers / limits.workers) * 100);
-    return Math.round((custPct + ordPct + workPct) / 3);
+    const custPct = limits.customers === 0 ? 0 : Math.min(100, Math.round((usage.customers / limits.customers) * 100));
+    const ordPct = limits.ordersPerMonth === 0 ? 0 : Math.min(100, Math.round((usage.ordersThisMonth / limits.ordersPerMonth) * 100));
+    const workPct = limits.workers === 0 ? 0 : Math.min(100, Math.round((usage.workers / limits.workers) * 100));
+    
+    const activeLimits = [limits.customers, limits.ordersPerMonth, limits.workers].filter(l => l > 0).length;
+    if (activeLimits === 0) return 0;
+    return Math.min(100, Math.round((custPct + ordPct + workPct) / activeLimits));
   }, [limits, usage]);
 
   if (loading) {
@@ -302,16 +402,16 @@ export default function Home() {
 
       {/* Modern Neon Visual Progress Bars */}
       <motion.div variants={itemVariants}>
-        <Card className="border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm">
+        <Card className="border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs bg-white dark:bg-slate-900">
           <CardContent className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
-            <div className="flex items-center justify-between border-b pb-4 flex-wrap gap-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 flex-wrap gap-3">
               <div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">SUBSCRIPTION QUOTA PROGRESS</span>
                 <h3 className="text-xl font-black text-[#0D3D33] dark:text-emerald-400 capitalize">{plan} Plan Active</h3>
               </div>
               <Link 
                 to="/app/upgrade" 
-                className="text-xs font-bold text-white bg-[#0D3D33] hover:bg-[#092B24] px-4 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-1 shrink-0"
+                className="text-xs font-bold text-white bg-[#0D3D33] hover:bg-[#092B24] dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-1.5 shrink-0"
               >
                 Upgrade Plan →
               </Link>
@@ -319,143 +419,39 @@ export default function Home() {
 
             {/* Visual Progress Cards with Click Navigation */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5 pt-2">
-              {/* Customers Progress */}
-              {(() => {
-                const max = limits.customers;
-                const curr = usage.customers;
-                const isUnlimited = max === 0;
-                const pct = isUnlimited ? 100 : Math.min(100, Math.round((curr / max) * 100));
-                const isFull = !isUnlimited && curr >= max;
-                const isNearFull = !isUnlimited && pct >= 80 && !isFull;
-
-                return (
-                  <div 
-                    onClick={() => navigate('/app/clients')}
-                    className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3 cursor-pointer hover:border-[#0D3D33]/40 hover:bg-slate-100/60 transition-all group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-xl bg-blue-100 text-blue-600 font-bold">
-                          <Users className="w-4 h-4" />
-                        </div>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-[#0D3D33]">Customers</span>
-                      </div>
-                      <span className={`text-xs font-black ${isFull ? 'text-rose-600' : isNearFull ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
-                        {curr} / {isUnlimited ? '∞' : max}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <div className="h-3 w-full bg-slate-200/80 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 shadow-inner">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-500 shadow-sm ${
-                            isFull ? 'bg-rose-500' : isNearFull ? 'bg-amber-500' : 'bg-gradient-to-r from-[#0D3D33] via-[#2ECC71] to-[#2ECC71]'
-                          }`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[10px] font-extrabold text-slate-400 pt-0.5">
-                        <span>{isUnlimited ? 'Unlimited' : `${pct}% used`}</span>
-                        <span className="flex items-center gap-0.5 text-[#0D3D33] group-hover:underline">
-                          Manage <ArrowRight className="w-3 h-3" />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Orders Progress */}
-              {(() => {
-                const max = limits.ordersPerMonth;
-                const curr = usage.ordersThisMonth;
-                const isUnlimited = max === 0;
-                const pct = isUnlimited ? 100 : Math.min(100, Math.round((curr / max) * 100));
-                const isFull = !isUnlimited && curr >= max;
-                const isNearFull = !isUnlimited && pct >= 80 && !isFull;
-
-                return (
-                  <div 
-                    onClick={() => navigate('/app/orders')}
-                    className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3 cursor-pointer hover:border-[#0D3D33]/40 hover:bg-slate-100/60 transition-all group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-xl bg-emerald-100 text-emerald-600 font-bold">
-                          <Package className="w-4 h-4" />
-                        </div>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-[#0D3D33]">Orders (Monthly)</span>
-                      </div>
-                      <span className={`text-xs font-black ${isFull ? 'text-rose-600' : isNearFull ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
-                        {curr} / {isUnlimited ? '∞' : max}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <div className="h-3 w-full bg-slate-200/80 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 shadow-inner">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-500 shadow-sm ${
-                            isFull ? 'bg-rose-500' : isNearFull ? 'bg-amber-500' : 'bg-gradient-to-r from-[#0D3D33] via-[#2ECC71] to-[#2ECC71]'
-                          }`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[10px] font-extrabold text-slate-400 pt-0.5">
-                        <span>{isUnlimited ? 'Unlimited' : `${pct}% used`}</span>
-                        <span className="flex items-center gap-0.5 text-[#0D3D33] group-hover:underline">
-                          View Orders <ArrowRight className="w-3 h-3" />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Workers Progress */}
-              {(() => {
-                const max = limits.workers;
-                const curr = usage.workers;
-                const isUnlimited = max === 0;
-                const pct = isUnlimited ? 100 : Math.min(100, Math.round((curr / max) * 100));
-                const isFull = !isUnlimited && curr >= max;
-                const isNearFull = !isUnlimited && pct >= 80 && !isFull;
-
-                return (
-                  <div 
-                    onClick={() => navigate('/app/workers')}
-                    className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3 cursor-pointer hover:border-[#0D3D33]/40 hover:bg-slate-100/60 transition-all group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-xl bg-purple-100 text-purple-600 font-bold">
-                          <Scissors className="w-4 h-4" />
-                        </div>
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-[#0D3D33]">Workers / Staff</span>
-                      </div>
-                      <span className={`text-xs font-black ${isFull ? 'text-rose-600' : isNearFull ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
-                        {curr} / {isUnlimited ? '∞' : max}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <div className="h-3 w-full bg-slate-200/80 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 shadow-inner">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-500 shadow-sm ${
-                            isFull ? 'bg-rose-500' : isNearFull ? 'bg-amber-500' : 'bg-gradient-to-r from-[#0D3D33] via-[#2ECC71] to-[#2ECC71]'
-                          }`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[10px] font-extrabold text-slate-400 pt-0.5">
-                        <span>{isUnlimited ? 'Unlimited' : `${pct}% used`}</span>
-                        <span className="flex items-center gap-0.5 text-[#0D3D33] group-hover:underline">
-                          Staff List <ArrowRight className="w-3 h-3" />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
+              <QuotaCard
+                title="Customers"
+                icon={<Users className="w-4 h-4" />}
+                iconBg="bg-blue-100 dark:bg-blue-950/60"
+                iconColor="text-blue-600 dark:text-blue-400"
+                curr={usage.customers}
+                max={limits.customers}
+                actionText="Manage"
+                navPath="/app/clients"
+                navigate={navigate}
+              />
+              <QuotaCard
+                title="Orders (Monthly)"
+                icon={<Package className="w-4 h-4" />}
+                iconBg="bg-emerald-100 dark:bg-emerald-950/60"
+                iconColor="text-emerald-600 dark:text-emerald-400"
+                curr={usage.ordersThisMonth}
+                max={limits.ordersPerMonth}
+                actionText="View Orders"
+                navPath="/app/orders"
+                navigate={navigate}
+              />
+              <QuotaCard
+                title="Workers / Staff"
+                icon={<Scissors className="w-4 h-4" />}
+                iconBg="bg-purple-100 dark:bg-purple-950/60"
+                iconColor="text-purple-600 dark:text-purple-400"
+                curr={usage.workers}
+                max={limits.workers}
+                actionText="Staff List"
+                navPath="/app/workers"
+                navigate={navigate}
+              />
             </div>
 
             {/* Limit Warning Banners */}
@@ -463,20 +459,26 @@ export default function Home() {
               const warnings: React.ReactNode[] = [];
               const checkLimit = (type: string, current: number, max: number) => {
                 if (max <= 0) return;
-                const ratio = current / max;
-                if (ratio >= 1) {
+                const isExceeded = current > max;
+                const isReached = current === max;
+                if (isExceeded || isReached) {
                   warnings.push(
-                    <div key={`${type}-max`} className="flex items-center justify-between p-4 bg-rose-50 border border-rose-200 rounded-2xl mt-3">
-                      <div>
-                        <p className="text-sm font-black text-rose-600 flex items-center gap-2 mb-0.5">
-                          <ShieldAlert className="w-4 h-4" /> Limit Reached
-                        </p>
-                        <p className="text-xs text-rose-700 font-bold capitalize">
-                          {type}: {current}/{max} — Upgrade your plan to add more.
-                        </p>
+                    <div key={`${type}-max`} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl gap-3">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-xl shrink-0 mt-0.5 sm:mt-0 shadow-xs">
+                          <ShieldAlert className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-rose-700 dark:text-rose-300 flex items-center gap-1.5 mb-0.5">
+                            {isExceeded ? 'Quota Exceeded' : 'Limit Reached'}
+                          </p>
+                          <p className="text-xs text-rose-600/90 dark:text-rose-300/80 font-medium">
+                            {type}: <strong>{current}/{max}</strong> — {isExceeded ? 'You have exceeded your plan capacity. Upgrade your plan to manage extra staff.' : 'You have reached your plan limit. Upgrade your plan to add more.'}
+                          </p>
+                        </div>
                       </div>
-                      <Link to="/app/upgrade" className="text-xs font-bold bg-rose-600 text-white px-3.5 py-2 rounded-xl shadow-xs shrink-0">
-                        Upgrade Plan
+                      <Link to="/app/upgrade" className="text-xs font-bold bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white px-4 py-2.5 rounded-xl shadow-xs shrink-0 self-start sm:self-center transition-all">
+                        Upgrade Plan →
                       </Link>
                     </div>
                   );
@@ -484,10 +486,10 @@ export default function Home() {
               };
 
               checkLimit('Customers', usage.customers, limits.customers);
-              checkLimit('Orders', usage.ordersThisMonth, limits.ordersPerMonth);
-              checkLimit('Workers', usage.workers, limits.workers);
+              checkLimit('Orders (Monthly)', usage.ordersThisMonth, limits.ordersPerMonth);
+              checkLimit('Workers / Staff', usage.workers, limits.workers);
 
-              return warnings.length > 0 ? <div className="pt-2">{warnings}</div> : null;
+              return warnings.length > 0 ? <div className="space-y-2.5 pt-2">{warnings}</div> : null;
             })()}
           </CardContent>
         </Card>
