@@ -114,12 +114,12 @@ export function SaveTemplateButton({ templateHook, currentOrderData, currentMeas
 
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-sm bg-gray-100 rounded-[2rem] shadow-neu overflow-hidden"
+              className="w-full max-w-sm bg-gray-100 rounded-[2rem] shadow-neu overflow-hidden max-h-[90vh] overflow-y-auto"
               dir={isRTL ? 'rtl' : 'ltr'}
             >
               <div className="p-6">

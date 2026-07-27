@@ -1105,24 +1105,22 @@ ${worksheetUrl}`;
               })()}
             </CardContent>
           </Card>
-        </div>
-      </div>
 
       <AnimatePresence>
         {isUpdateCustomerOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 16 }}
               transition={{ duration: 0.25 }}
-              className="bg-white text-slate-800 rounded-3xl p-6 md:p-8 max-w-[450px] w-full shadow-2xl relative border border-slate-100"
+              className="bg-white text-slate-800 rounded-3xl p-6 md:p-8 max-w-[450px] w-full shadow-2xl relative border border-slate-100 max-h-[90vh] overflow-y-auto"
             >
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => setIsUpdateCustomerOpen(false)}
-                className="absolute right-4 top-4 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-650 text-slate-600 p-2 z-10 cursor-pointer"
+                className="absolute right-4 top-4 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 p-2 z-10 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -1176,7 +1174,7 @@ ${worksheetUrl}`;
         )}
 
         {isInvoiceModalOpen && order && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1278,59 +1276,61 @@ ${worksheetUrl}`;
         )}
 
         {isPaymentModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-lg relative border border-outline-variant"
+              className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto"
             >
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => setIsPaymentModalOpen(false)}
-                className="absolute right-4 top-4 rounded-full bg-surface-variant hover:bg-surface-container-highest text-on-surface-variant p-2"
+                className="absolute right-4 top-4 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 p-2"
               >
                 <X className="h-5 w-5" />
               </Button>
 
-              <h2 className="text-[24px] font-display font-semibold text-on-surface mb-6">Record Payment</h2>
+              <h2 className="text-[24px] font-display font-semibold text-slate-900 dark:text-white mb-6">Record Payment</h2>
               
               <div className="space-y-5">
                 <div>
-                  <label className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest mb-2 block">Amount</label>
+                  <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 block">Amount</label>
                   <Input 
                     type="number" 
                     value={paymentForm.amount}
                     onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
-                    placeholder={`Max ${settings.currency} ${balanceDue}`}
-                    className="h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface focus:border-primary shadow-none"
+                    placeholder={`Max ${settings?.currency || 'PKR'} ${balanceDue}`}
+                    className="h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-slate-900 dark:text-white focus:border-[#0D3D33] shadow-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest mb-2 block">Payment Method</label>
+                  <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 block">Payment Method</label>
                   <select 
                     value={paymentForm.method}
                     onChange={(e) => setPaymentForm({...paymentForm, method: e.target.value})}
-                    className="w-full h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface px-4 focus:outline-none focus:border-primary transition-colors"
+                    className="w-full h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-slate-900 dark:text-white px-4 focus:outline-none focus:border-[#0D3D33] transition-colors"
                   >
                     <option value="Cash">Cash</option>
                     <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Easypaisa">Easypaisa</option>
+                    <option value="JazzCash">JazzCash</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-medium text-on-surface-variant uppercase tracking-widest mb-2 block">Date</label>
+                  <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 block">Date</label>
                   <Input 
                     type="date" 
                     value={paymentForm.date}
                     onChange={(e) => setPaymentForm({...paymentForm, date: e.target.value})}
-                    className="h-12 bg-surface-container-highest border border-outline-variant rounded-2xl font-semibold text-on-surface focus:border-primary shadow-none"
+                    className="h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-slate-900 dark:text-white focus:border-[#0D3D33] shadow-none"
                   />
                 </div>
 
                 <Button 
                   onClick={handleRecordPayment}
-                  className="w-full bg-primary hover:bg-on-surface text-primary-foreground font-medium rounded-full h-12 mt-6 shadow-sm transition-colors"
+                  className="w-full bg-[#0D3D33] hover:bg-[#092B24] text-white font-bold rounded-2xl h-12 mt-6 shadow-md transition-colors"
                 >
                   Confirm Payment
                 </Button>
@@ -1340,12 +1340,12 @@ ${worksheetUrl}`;
         )}
 
         {isCancellationModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-lg relative border border-outline-variant overflow-y-auto max-h-[90vh]"
+              className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative border border-slate-200 dark:border-slate-800 overflow-y-auto max-h-[90vh]"
             >
               <Button 
                 variant="ghost" 

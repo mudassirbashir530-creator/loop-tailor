@@ -30,7 +30,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/50 outline-none transition-opacity duration-200 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-[9999] bg-black/60 backdrop-blur-xs outline-none transition-opacity duration-200 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -52,7 +52,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-lg",
+          "fixed top-1/2 left-1/2 z-[9999] grid w-full max-w-[calc(100%-2rem)] max-h-[90vh] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-lg",
           className
         )}
         {...props}
@@ -61,7 +61,7 @@ function DialogContent({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="bg-popover text-popover-foreground p-6 rounded-2xl shadow-2xl ring-1 ring-border w-full h-full relative"
+          className="bg-popover text-popover-foreground p-6 rounded-2xl shadow-2xl ring-1 ring-border w-full max-h-[85vh] overflow-y-auto relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800"
         >
           {children}
           {showCloseButton && (
@@ -70,12 +70,12 @@ function DialogContent({
               render={
                 <Button
                   variant="ghost"
-                  className="absolute top-2 right-2"
+                  className="absolute top-3 right-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 z-10"
                   size="icon-sm"
                 />
               }
             >
-              <XIcon />
+              <XIcon className="w-5 h-5" />
               <span className="sr-only">Close</span>
             </DialogPrimitive.Close>
           )}
