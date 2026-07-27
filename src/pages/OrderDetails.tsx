@@ -1105,6 +1105,8 @@ ${worksheetUrl}`;
               })()}
             </CardContent>
           </Card>
+        </div>
+      </div>
 
       <AnimatePresence>
         {isUpdateCustomerOpen && (
