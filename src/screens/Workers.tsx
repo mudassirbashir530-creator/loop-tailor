@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PageWrapper } from '../components/animations/PageWrapper';
 import { 
   Users, Search, Phone, MapPin, Loader2, Edit, Trash2, Check, Camera, 
-  Upload, X, MessageSquare, Briefcase, DollarSign, Calendar, Star, 
-  ChevronRight, BadgeCheck, Clock, TrendingUp, Filter, Plus, UserCircle
+  Upload, X, Briefcase, DollarSign, Calendar, Star, 
+  ChevronRight, BadgeCheck, Clock, TrendingUp, Filter, Plus, UserCircle,
+  FileText
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { SearchBar } from '../components/ui/search-bar';
 import { Button } from '../components/ui/button';
 import { useWorkers } from '../hooks/useWorkers';
+import { useOrders } from '../hooks/useOrders';
 import { formatDate, formatCurrency, renderSafeNumber } from '../lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
@@ -21,6 +23,7 @@ import { cn } from '../lib/utils';
 import { openWhatsApp } from '../lib/whatsapp';
 import { usePlanLimits } from '../hooks/usePlanLimits';
 import LimitReachedModal from '../components/LimitReachedModal';
+import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 
 const ROLE_OPTIONS: { value: WorkerRole; label: string }[] = [
   { value: 'tailor', label: 'Tailor' },
@@ -31,17 +34,18 @@ const ROLE_OPTIONS: { value: WorkerRole; label: string }[] = [
   { value: 'other', label: 'Other' },
 ];
 
-const STATUS_OPTIONS: { value: WorkerStatus; label: string; color: string }[] = [
-  { value: 'available', label: 'Available', color: 'bg-green-500' },
-  { value: 'busy', label: 'Busy', color: 'bg-amber-500' },
-  { value: 'on_leave', label: 'On Leave', color: 'bg-red-500' },
-  { value: 'offline', label: 'Offline', color: 'bg-slate-500' },
+const STATUS_OPTIONS: { value: WorkerStatus; label: string; color: string; badgeBg: string }[] = [
+  { value: 'available', label: 'Available', color: 'bg-emerald-500', badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+  { value: 'busy', label: 'Busy', color: 'bg-amber-500', badgeBg: 'bg-amber-100 text-amber-800 border-amber-300' },
+  { value: 'on_leave', label: 'On Leave', color: 'bg-rose-500', badgeBg: 'bg-rose-100 text-rose-800 border-rose-300' },
+  { value: 'offline', label: 'Offline', color: 'bg-slate-400', badgeBg: 'bg-slate-100 text-slate-700 border-slate-300' },
 ];
 
 export default function Workers() {
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState<WorkerRole | 'all'>('all');
   const { workers, loading, addWorker, updateWorker, deleteWorker } = useWorkers();
+  const { orders } = useOrders();
   const { canAddWorker, limits, usage } = usePlanLimits();
   
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -86,8 +90,50 @@ export default function Workers() {
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Calculate live 100% accurate order statistics per worker
+  const workerStats = useMemo(() => {
+    const statsMap: Record<string, { active: number; completed: number; estimatedEarnings: number }> = {};
+    
+    workers.forEach(w => {
+      statsMap[w.id] = { active: 0, completed: 0, estimatedEarnings: 0 };
+    });
+
+    orders.forEach(o => {
+      if (o.status === 'cancelled') return;
+      const matched = workers.find(w => w.id === o.workerId || (o.workerName && w.name.toLowerCase() === o.workerName.toLowerCase()));
+      if (!matched) return;
+
+      if (!statsMap[matched.id]) {
+        statsMap[matched.id] = { active: 0, completed: 0, estimatedEarnings: 0 };
+      }
+
+      if (o.status === 'delivered') {
+        statsMap[matched.id].completed++;
+      } else {
+        statsMap[matched.id].active++;
+      }
+
+      if (matched.salaryType === 'per_suit' || matched.salaryType === 'per_order') {
+        statsMap[matched.id].estimatedEarnings += Number(matched.salaryAmount || 0);
+      }
+    });
+
+    // Add monthly salaries to total earnings
+    workers.forEach(w => {
+      if (w.salaryType === 'monthly') {
+        if (statsMap[w.id]) {
+          statsMap[w.id].estimatedEarnings = Number(w.salaryAmount || 0);
+        }
+      }
+    });
+
+    return statsMap;
+  }, [workers, orders]);
+
   const filteredWorkers = workers.filter(w => {
-    const matchesSearch = w.name.toLowerCase().includes(search.toLowerCase()) || w.phone.includes(search);
+    const matchesSearch = w.name.toLowerCase().includes(search.toLowerCase()) || 
+                          w.phone.includes(search) || 
+                          (w.speciality && w.speciality.toLowerCase().includes(search.toLowerCase()));
     const matchesRole = filterRole === 'all' || w.role === filterRole;
     return matchesSearch && matchesRole;
   });
@@ -225,228 +271,291 @@ export default function Workers() {
     }
   };
 
-  const handleQuickStatusChange = async (id: string, status: WorkerStatus) => {
-     try {
-       await updateWorker(id, { status });
-     } catch (e) {
-       console.error("Quick status change error:", e);
-     }
-  };
+  const totalActiveWorkload = useMemo(() => {
+    return Object.values(workerStats).reduce((acc, curr) => acc + curr.active, 0);
+  }, [workerStats]);
+
+  const totalEstimatedEarnings = useMemo(() => {
+    return Object.values(workerStats).reduce((acc, curr) => acc + curr.estimatedEarnings, 0);
+  }, [workerStats]);
 
   return (
-    <PageWrapper className="p-4 md:p-8 space-y-6 flex flex-col h-full bg-[#F7F5F0] min-h-screen">
+    <PageWrapper className="p-3 sm:p-5 md:p-8 space-y-6 flex flex-col h-full bg-[#F7F5F0] min-h-screen">
       
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#0D3D33] flex items-center gap-2">
-            <Users className="h-8 w-8 text-[#0D3D33]" />
-            Worker Management
-          </h1>
-          <p className="text-[#4A5568] mt-1 font-medium text-sm md:text-base">Manage your tailoring staff, track performance, and handle salaries.</p>
+      {/* Header Banner — Signature Emerald Theme */}
+      <div className="bg-[#0D3D33] text-white rounded-[28px] p-5 sm:p-7 relative overflow-hidden shadow-2xl border border-emerald-500/20">
+        <div className="absolute -top-8 -right-8 w-40 h-40 bg-[#2ECC71]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-[#2ECC71]/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+          <div>
+            <div className="flex items-center gap-2.5 mb-1">
+              <span className="px-3 py-1 rounded-full bg-white/15 text-white font-extrabold text-[10px] uppercase tracking-widest border border-white/20">
+                STAFF DIRECTORY
+              </span>
+              <span className="text-xs font-bold text-[#2ECC71]">
+                {usage.workers} / {limits.workers === 0 ? '∞' : limits.workers} Active Workers
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+              <UserCircle className="h-8 w-8 text-[#2ECC71]" />
+              Tailoring Staff & Workers
+            </h1>
+            <p className="text-white/70 mt-1 font-medium text-xs sm:text-sm max-w-xl">
+              Manage your shop's tailors, masters, and cutters. Track active workloads and handle payroll payouts seamlessly.
+            </p>
+          </div>
+
+          <Button 
+            onClick={openAddModal}
+            className="rounded-2xl shadow-lg bg-[#2ECC71] hover:bg-[#27ae60] text-[#0D3D33] h-12 px-6 font-extrabold border-none transition-all active:scale-95 shrink-0 self-start md:self-center"
+          >
+            <Plus className="h-5 w-5 mr-2 stroke-[3]" />
+            Add New Worker
+          </Button>
         </div>
-        <Button 
-          onClick={openAddModal}
-          className="rounded-full shadow-sm hover:shadow-md transition-all duration-200 ease-in-out bg-[#0D3D33] text-white h-11 px-6 font-medium border-none"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Add New Worker
-        </Button>
       </div>
 
-      {/* Analytics Cards */}
+      {/* Analytics Live Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-none shadow-md bg-gradient-to-br from-primary/10 to-transparent">
-          <CardContent className="p-6">
+        <Card className="border border-slate-200/80 rounded-2xl shadow-sm bg-white overflow-hidden">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Staff</p>
-                <h3 className="text-2xl font-bold mt-1">{workers.length}</h3>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Staff</p>
+                <h3 className="text-2xl font-black text-slate-900 mt-1">{workers.length}</h3>
               </div>
-              <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                 <Users className="w-5 h-5" />
+              <div className="h-11 w-11 rounded-2xl bg-emerald-50 text-[#0D3D33] flex items-center justify-center font-bold shadow-xs">
+                <Users className="w-5 h-5" />
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-md">
-          <CardContent className="p-6">
+
+        <Card className="border border-slate-200/80 rounded-2xl shadow-sm bg-white overflow-hidden">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Workload</p>
-                <h3 className="text-2xl font-bold mt-1">{workers.reduce((acc, w) => acc + (w.activeOrders || 0), 0)}</h3>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Workload</p>
+                <h3 className="text-2xl font-black text-amber-600 mt-1">{totalActiveWorkload} Orders</h3>
               </div>
-              <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
-                 <Briefcase className="w-5 h-5" />
+              <div className="h-11 w-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold shadow-xs">
+                <Briefcase className="w-5 h-5" />
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-md">
-          <CardContent className="p-6">
+
+        <Card className="border border-slate-200/80 rounded-2xl shadow-sm bg-white overflow-hidden">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Available Now</p>
-                <h3 className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">{workers.filter(w => w.status === 'available').length}</h3>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Available Now</p>
+                <h3 className="text-2xl font-black text-emerald-600 mt-1">{workers.filter(w => w.status === 'available').length} Staff</h3>
               </div>
-              <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
-                 <Check className="w-5 h-5" />
+              <div className="h-11 w-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shadow-xs">
+                <Check className="w-5 h-5" />
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-md">
-          <CardContent className="p-6">
+
+        <Card className="border border-slate-200/80 rounded-2xl shadow-sm bg-white overflow-hidden">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Payouts</p>
-                <h3 className="text-2xl font-bold mt-1">{formatCurrency(workers.reduce((acc, w) => acc + (w.totalEarnings || 0), 0))}</h3>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Payouts Due</p>
+                <h3 className="text-2xl font-black text-[#0D3D33] mt-1">{formatCurrency(totalEstimatedEarnings)}</h3>
               </div>
-              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                 <DollarSign className="w-5 h-5" />
+              <div className="h-11 w-11 rounded-2xl bg-[#0D3D33]/10 text-[#0D3D33] flex items-center justify-center font-bold shadow-xs">
+                <DollarSign className="w-5 h-5" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters & Search */}
-      <div className="flex flex-col md:flex-row gap-4 items-center">
+      {/* Filters & Search Bar */}
+      <div className="flex flex-col md:flex-row gap-3 items-center">
         <div className="flex-1 w-full">
           <SearchBar 
             value={search} 
             onChange={(e: any) => setSearch(e?.target?.value || e)} 
-            placeholder="Search workers by name, phone or skill..." 
+            placeholder="Search workers by name, phone, or specialty skill..." 
+            className="h-12 rounded-2xl bg-white border-none ring-1 ring-slate-200 shadow-xs"
           />
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          {['all', ...ROLE_OPTIONS.map(r => r.value)].map((role) => (
+        <div className="flex gap-1.5 overflow-x-auto w-full md:w-auto pb-1 hide-scrollbar">
+          <Button 
+            variant={filterRole === 'all' ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setFilterRole('all')}
+            className={`rounded-xl text-xs font-bold h-10 ${filterRole === 'all' ? 'bg-[#0D3D33] text-white' : 'bg-white text-slate-600 border-slate-200'}`}
+          >
+             All Staff
+          </Button>
+          {ROLE_OPTIONS.map((r) => (
             <Button 
-              key={role} 
-              variant={filterRole === role ? "default" : "outline"} 
+              key={r.value} 
+              variant={filterRole === r.value ? "default" : "outline"} 
               size="sm"
-              onClick={() => setFilterRole(role as any)}
-              className="capitalize"
+              onClick={() => setFilterRole(r.value)}
+              className={`rounded-xl text-xs font-bold h-10 capitalize shrink-0 ${filterRole === r.value ? 'bg-[#0D3D33] text-white' : 'bg-white text-slate-600 border-slate-200'}`}
             >
-               {role}
+               {r.label}
             </Button>
           ))}
         </div>
       </div>
 
       {/* Workers Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {loading ? (
           [...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse h-[200px] bg-muted/20 border-none shadow-sm" />
+            <Card key={i} className="animate-pulse h-[220px] bg-slate-100/60 border-none rounded-3xl" />
           ))
         ) : filteredWorkers.length === 0 ? (
-          <div className="col-span-full text-center py-24 bg-card rounded-3xl border border-dashed border-muted-foreground/20 text-muted-foreground shadow-sm">
-            <Users className="h-16 w-16 mx-auto mb-4 opacity-50 text-primary" />
-            <p className="text-xl font-semibold text-foreground">No workers found</p>
-            <p className="mt-2 text-sm">Add your staff members to manage their work and payouts.</p>
-            <Button variant="outline" className="mt-6" onClick={openAddModal}>Add First Worker</Button>
+          <div className="col-span-full text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300 text-slate-500 shadow-sm p-6">
+            <UserCircle className="h-16 w-16 mx-auto mb-4 opacity-40 text-[#0D3D33]" />
+            <p className="text-xl font-extrabold text-slate-800">No staff members found</p>
+            <p className="mt-1 text-sm text-slate-500">Add your tailoring staff members to assign orders and manage payouts.</p>
+            <Button className="mt-6 bg-[#0D3D33] hover:bg-[#092B24] text-white rounded-2xl font-bold h-11 px-6" onClick={openAddModal}>
+              <Plus className="w-4 h-4 mr-2" /> Add First Worker
+            </Button>
           </div>
         ) : (
-          filteredWorkers.map((worker) => (
-            <motion.div
-              key={worker.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card 
-                className="group border-none shadow-lg hover:shadow-xl transition-all cursor-pointer overflow-hidden bg-card min-w-0 w-full"
-                onClick={() => openDetailsModal(worker)}
+          filteredWorkers.map((worker) => {
+            const stats = workerStats[worker.id] || { active: 0, completed: 0, estimatedEarnings: 0 };
+            const statusConfig = STATUS_OPTIONS.find(s => s.value === worker.status) || STATUS_OPTIONS[0];
+
+            return (
+              <motion.div
+                key={worker.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -3 }}
+                transition={{ duration: 0.2 }}
               >
-                <div className="relative h-2 bg-muted overflow-hidden">
-                   <div 
-                     className={cn("h-full transition-all duration-1000", STATUS_OPTIONS.find(s => s.value === worker.status)?.color)}
-                    />
-                </div>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex gap-4">
-                      <div className="relative">
+                <Card 
+                  className="group border border-slate-200/90 hover:border-[#2ECC71]/50 shadow-sm hover:shadow-xl transition-all cursor-pointer overflow-hidden bg-white rounded-3xl relative flex flex-col justify-between"
+                  onClick={() => openDetailsModal(worker)}
+                >
+                  <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                      {/* Top Header Row: Status Badge */}
+                      <div className="flex items-center justify-between gap-2 mb-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${statusConfig.badgeBg}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.color} mr-1.5`} />
+                          {statusConfig.label}
+                        </span>
+
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-mono">
+                          {worker.role}
+                        </span>
+                      </div>
+
+                      {/* Info Section */}
+                      <div className="flex gap-3.5 items-start">
                         {worker.profileImage ? (
                           <img 
                             src={typeof worker.profileImage === 'string' ? worker.profileImage : worker.profileImage.url} 
-                            className="h-16 w-16 rounded-2xl object-cover border-2 border-background shadow-md bg-muted" 
+                            className="h-14 w-14 rounded-2xl object-cover border-2 border-slate-100 shadow-sm bg-slate-50 shrink-0" 
                             alt={worker.name} 
                             referrerPolicy="no-referrer"
                             loading="lazy"
                           />
                         ) : (
-                          <div className="h-16 w-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-2xl shadow-md border-2 border-background">
+                          <div className="h-14 w-14 rounded-2xl bg-[#0D3D33]/10 text-[#0D3D33] flex items-center justify-center font-black text-2xl shadow-sm border border-emerald-500/20 shrink-0">
                             {worker.name.charAt(0).toUpperCase()}
                           </div>
                         )}
-                        <div className={cn(
-                          "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card shadow-sm",
-                          STATUS_OPTIONS.find(s => s.value === worker.status)?.color
-                        )} />
+
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-extrabold text-base text-slate-900 truncate leading-tight group-hover:text-[#0D3D33] transition-colors">
+                            {worker.name}
+                          </h3>
+                          <p className="text-xs text-slate-500 font-medium mt-1 truncate">
+                            📞 {worker.phone || 'No phone'}
+                          </p>
+                          {worker.speciality && (
+                            <p className="text-[11px] text-emerald-700 font-bold mt-0.5 truncate">
+                              ✨ {worker.speciality}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <h3 className="font-bold text-lg truncate group-hover:text-primary transition-colors">{worker.name}</h3>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground capitalize">
-                          <Briefcase className="h-3 w-3" />
-                          {worker.role} {worker.speciality && `• ${worker.speciality}`}
+
+                      {/* Workload Stats Box */}
+                      <div className="grid grid-cols-2 gap-2 mt-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
+                        <div>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Active Stitching</span>
+                          <span className="text-sm font-black text-amber-600">{stats.active} Suits</span>
+                        </div>
+                        <div className="border-l border-slate-200">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Delivered</span>
+                          <span className="text-sm font-black text-emerald-600">{stats.completed} Suits</span>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-3 mt-6">
-                    <div className="bg-muted/40 rounded-xl p-3 text-center">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Active</p>
-                      <p className="text-lg font-bold text-foreground">{renderSafeNumber(worker.activeOrders)}</p>
-                    </div>
-                    <div className="bg-muted/40 rounded-xl p-3 text-center">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Completed</p>
-                      <p className="text-lg font-bold text-foreground">{renderSafeNumber(worker.completedOrders)}</p>
-                    </div>
-                  </div>
+                    {/* Footer Actions */}
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+                      <div className="text-xs font-bold text-slate-700">
+                        <span className="text-slate-400 font-medium text-[10px] block uppercase">Pay Structure</span>
+                        <span className="text-[#0D3D33] font-extrabold text-xs">
+                          {worker.salaryType === 'monthly' ? `${formatCurrency(worker.salaryAmount)}/mo` : `${formatCurrency(worker.salaryAmount)}/suit`}
+                        </span>
+                      </div>
 
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/50">
-                    <div className="text-sm font-medium">
-                       <span className="text-muted-foreground">Payout: </span>
-                       <span className="text-primary font-bold">
-                         {worker.salaryType === 'monthly' ? `${formatCurrency(worker.salaryAmount)}/mo` : `${formatCurrency(worker.salaryAmount)}/order`}
-                       </span>
+                      <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-9 px-2.5 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10 rounded-xl font-bold text-xs flex items-center gap-1 shrink-0"
+                          onClick={() => openWhatsApp(worker.whatsappPhone || worker.phone)}
+                        >
+                          <WhatsAppIcon className="w-3.5 h-3.5 fill-current text-emerald-500" />
+                          Chat
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-9 px-2.5 text-slate-700 rounded-xl font-bold text-xs"
+                          onClick={() => openEditModal(worker)}
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-9 px-2.5 text-rose-600 border-rose-200 hover:bg-rose-50 rounded-xl font-bold text-xs"
+                          onClick={() => openDeleteModal(worker)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                       <Button variant="ghost" className="h-11 w-11 p-2 flex items-center justify-center rounded-full" onClick={() => openWhatsApp(worker.phone)}>
-                          <MessageSquare className="h-4 w-4" />
-                       </Button>
-                       <Button variant="ghost" className="h-11 w-11 p-2 flex items-center justify-center rounded-full" onClick={() => openEditModal(worker)}>
-                          <Edit className="h-4 w-4" />
-                       </Button>
-                       <Button variant="ghost" className="h-11 w-11 p-2 flex items-center justify-center rounded-full text-destructive hover:bg-destructive/10" onClick={() => openDeleteModal(worker)}>
-                          <Trash2 className="h-4 w-4" />
-                       </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })
         )}
       </div>
 
       {/* Add Worker Dialog */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Add New Worker</DialogTitle>
-            <DialogDescription>Create a new profile for your tailoring staff. Enter their role, contact info and salary details.</DialogDescription>
+            <DialogTitle className="text-2xl font-extrabold text-[#0D3D33]">Add New Staff Worker</DialogTitle>
+            <DialogDescription>Create a profile for your tailor, master, or cutter to assign orders and track payouts.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddSubmit} className="space-y-6 mt-4">
             <div className="space-y-6">
-              {/* Profile Image Section */}
+              {/* Profile Image Upload */}
               <div className="flex items-center gap-6 py-4 border-b">
                  <div className="relative group shrink-0">
-                    <label className="relative flex w-24 h-24 rounded-3xl bg-muted border-2 border-dashed border-primary/30 items-center justify-center overflow-hidden shadow-inner cursor-pointer hover:bg-primary/5 transition-colors">
+                    <label className="relative flex w-24 h-24 rounded-3xl bg-slate-50 border-2 border-dashed border-[#0D3D33]/30 items-center justify-center overflow-hidden shadow-inner cursor-pointer hover:bg-emerald-500/5 transition-colors">
                        {profileImageFile || formData.profileImage ? (
                          <img 
                            src={profileImageFile ? URL.createObjectURL(profileImageFile) : (typeof formData.profileImage === 'string' ? formData.profileImage : formData.profileImage?.url)} 
@@ -456,8 +565,8 @@ export default function Workers() {
                          />
                        ) : (
                          <div className="flex flex-col items-center gap-1">
-                           <Camera className="w-8 h-8 text-muted-foreground group-hover:scale-110 transition-transform" />
-                           <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Upload</span>
+                           <Camera className="w-8 h-8 text-slate-400 group-hover:scale-110 transition-transform" />
+                           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Photo</span>
                          </div>
                        )}
                        <input 
@@ -474,21 +583,21 @@ export default function Workers() {
                           setProfileImageFile(null);
                           setFormData(prev => ({ ...prev, profileImage: null }));
                         }}
-                        className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full p-1.5 shadow-lg"
                       >
                         <X className="w-3 h-3" />
                       </button>
                     )}
                  </div>
-                 <div className="flex-1 space-y-2">
-                    <h4 className="font-bold text-sm">Worker Profile Picture</h4>
-                    <p className="text-xs text-muted-foreground">Select a clear profile picture for this worker. This will be shown during order assignment.</p>
+                 <div className="flex-1 space-y-1">
+                    <h4 className="font-extrabold text-sm text-slate-900">Worker Profile Picture</h4>
+                    <p className="text-xs text-slate-500">Upload a clear photo. This appears when assigning orders and viewing staff rosters.</p>
                     {uploadProgress > 0 && (
-                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden mt-2">
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mt-2">
                         <motion.div 
                           initial={{ width: 0 }}
                           animate={{ width: `${uploadProgress}%` }}
-                          className="h-full bg-primary"
+                          className="h-full bg-[#2ECC71]"
                         />
                       </div>
                     )}
@@ -496,57 +605,49 @@ export default function Workers() {
               </div>
 
               {/* Personal Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Full Name <span className="text-red-500">*</span></label>
-                  <Input required placeholder="Enter worker's full name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-11 rounded-xl" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Full Name <span className="text-rose-500">*</span></label>
+                  <Input required placeholder="e.g. Master Ustad Ahmed" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-12 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Phone Number <span className="text-red-500">*</span></label>
-                  <div className="flex gap-2">
-                    <select className="w-24 h-11 rounded-xl border border-input bg-card px-3 text-sm focus:ring-2 focus:ring-primary outline-none">
-                       <option value="+92">+92 (PK)</option>
-                       <option value="+91">+91 (IN)</option>
-                       <option value="+44">+44 (UK)</option>
-                       <option value="+1">+1 (US)</option>
-                    </select>
-                    <Input required placeholder="0300 1234567" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="flex-1 h-11 rounded-xl" />
-                  </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Phone Number <span className="text-rose-500">*</span></label>
+                  <Input required placeholder="0300 1234567" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="h-12 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">WhatsApp Number</label>
-                  <Input placeholder="Leave empty if same as phone" value={formData.whatsappPhone} onChange={e => setFormData({...formData, whatsappPhone: e.target.value})} className="h-11 rounded-xl" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">WhatsApp Number</label>
+                  <Input placeholder="Leave empty if same as primary phone" value={formData.whatsappPhone} onChange={e => setFormData({...formData, whatsappPhone: e.target.value})} className="h-12 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Address</label>
-                  <Input placeholder="Home address or area" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="h-11 rounded-xl" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Address / City</label>
+                  <Input placeholder="Home address or shop branch" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="h-12 rounded-xl" />
                 </div>
               </div>
 
               {/* Job Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Worker Role</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Worker Role</label>
                   <select 
-                    className="w-full h-11 rounded-xl border border-input bg-card px-4 text-sm focus:ring-2 focus:ring-primary outline-none capitalize"
+                    className="w-full h-12 rounded-xl border border-input bg-card px-4 text-sm font-semibold focus:ring-2 focus:ring-[#0D3D33] outline-none capitalize"
                     value={formData.role}
                     onChange={e => setFormData({...formData, role: e.target.value as WorkerRole})}
                   >
                     {ROLE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Speciality / Skill</label>
-                  <Input placeholder="e.g. Kurta Specialist, Sherwani" value={formData.speciality} onChange={e => setFormData({...formData, speciality: e.target.value})} className="h-11 rounded-xl" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Speciality / Skill</label>
+                  <Input placeholder="e.g. Kurta Specialist, Sherwani Master" value={formData.speciality} onChange={e => setFormData({...formData, speciality: e.target.value})} className="h-12 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Joining Date</label>
-                  <Input type="date" value={formData.joiningDate} onChange={e => setFormData({...formData, joiningDate: e.target.value})} className="h-11 rounded-xl h-auto py-2" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Joining Date</label>
+                  <Input type="date" value={formData.joiningDate} onChange={e => setFormData({...formData, joiningDate: e.target.value})} className="h-12 rounded-xl py-2" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Current Status</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Current Status</label>
                   <select 
-                    className="w-full h-11 rounded-xl border border-input bg-card px-4 text-sm focus:ring-2 focus:ring-primary outline-none capitalize"
+                    className="w-full h-12 rounded-xl border border-input bg-card px-4 text-sm font-semibold focus:ring-2 focus:ring-[#0D3D33] outline-none capitalize"
                     value={formData.status}
                     onChange={e => setFormData({...formData, status: e.target.value as WorkerStatus})}
                   >
@@ -556,34 +657,34 @@ export default function Workers() {
               </div>
 
               {/* Salary Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
-                 <div className="space-y-2">
-                    <label className="text-sm font-semibold">Salary Type</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                 <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-600 uppercase">Salary Structure</label>
                     <div className="flex gap-2">
                        <Button 
                         type="button" 
                         variant={formData.salaryType === 'monthly' ? 'default' : 'outline'} 
-                        className="flex-1 rounded-xl"
+                        className={`flex-1 rounded-xl h-11 font-bold ${formData.salaryType === 'monthly' ? 'bg-[#0D3D33] text-white' : ''}`}
                         onClick={() => setFormData({...formData, salaryType: 'monthly'})}
-                       >Monthly</Button>
+                       >Monthly Salary</Button>
                        <Button 
                         type="button" 
                         variant={formData.salaryType === 'per_order' ? 'default' : 'outline'} 
-                        className="flex-1 rounded-xl"
+                        className={`flex-1 rounded-xl h-11 font-bold ${formData.salaryType === 'per_order' ? 'bg-[#0D3D33] text-white' : ''}`}
                         onClick={() => setFormData({...formData, salaryType: 'per_order'})}
-                       >Per Order</Button>
+                       >Per Suit Rate</Button>
                     </div>
                  </div>
-                 <div className="space-y-2">
-                    <label className="text-sm font-semibold">
-                      {formData.salaryType === 'monthly' ? 'Monthly Salary Amount' : 'Amount Per Order'}
+                 <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-600 uppercase">
+                      {formData.salaryType === 'monthly' ? 'Monthly Salary (PKR)' : 'Rate Per Suit (PKR)'}
                     </label>
                     <div className="relative">
-                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                        <Input 
                         type="number" 
-                        placeholder="0.00" 
-                        className="pl-9 h-11 rounded-xl" 
+                        placeholder="e.g. 35000" 
+                        className="pl-9 h-12 rounded-xl font-bold" 
                         value={formData.salaryAmount || ''}
                         onChange={e => setFormData({...formData, salaryAmount: Number(e.target.value)})}
                        />
@@ -591,17 +692,17 @@ export default function Workers() {
                  </div>
               </div>
 
-              <div className="space-y-2 pt-4 border-t">
-                <label className="text-sm font-semibold">Notes</label>
-                <Textarea placeholder="Additional information about worker..." className="rounded-xl" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} />
+              <div className="space-y-1.5 pt-4 border-t">
+                <label className="text-xs font-bold text-slate-600 uppercase">Notes & Remarks</label>
+                <Textarea placeholder="Additional notes regarding salary, shifts, or tailoring expertise..." className="rounded-xl p-3" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} />
               </div>
             </div>
 
             <DialogFooter className="gap-2 sm:gap-0 mt-8">
-              <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-xl h-11 px-8">Cancel</Button>
-              <Button type="submit" disabled={isSubmitting} className="rounded-xl h-11 px-10 shadow-lg shadow-primary/20">
+              <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-xl h-12 px-8 font-bold">Cancel</Button>
+              <Button type="submit" disabled={isSubmitting} className="rounded-xl h-12 px-10 font-bold bg-[#0D3D33] hover:bg-[#092B24] text-white shadow-lg">
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Check className="w-5 h-5 mr-2" />}
-                Add Worker Profile
+                Save Worker Profile
               </Button>
             </DialogFooter>
           </form>
@@ -610,9 +711,9 @@ export default function Workers() {
 
       {/* Edit Worker Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Edit Worker Profile</DialogTitle>
+            <DialogTitle className="text-2xl font-extrabold text-[#0D3D33]">Edit Worker Profile</DialogTitle>
             <DialogDescription>Update {selectedWorker?.name}'s information, role, or salary details.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEditSubmit} className="space-y-6 mt-4">
@@ -620,13 +721,13 @@ export default function Workers() {
               {/* Profile Image Section */}
               <div className="flex flex-col items-center gap-4 py-4 border-b text-center">
                  <div className="relative group mx-auto">
-                    <div className="w-24 h-24 rounded-3xl bg-muted border-2 border-dashed border-primary/30 flex items-center justify-center overflow-hidden shadow-inner">
+                    <div className="w-24 h-24 rounded-3xl bg-slate-50 border-2 border-dashed border-[#0D3D33]/30 flex items-center justify-center overflow-hidden shadow-inner">
                        {profileImageFile ? (
                          <img src={URL.createObjectURL(profileImageFile)} className="w-full h-full object-cover" alt="preview" />
                        ) : formData.profileImage ? (
                          <img src={typeof formData.profileImage === 'string' ? formData.profileImage : formData.profileImage.url} className="w-full h-full object-cover" referrerPolicy="no-referrer" alt="current" />
                        ) : (
-                         <Camera className="w-8 h-8 text-muted-foreground group-hover:scale-110 transition-transform" />
+                         <Camera className="w-8 h-8 text-slate-400 group-hover:scale-110 transition-transform" />
                        )}
                        <input 
                         type="file" 
@@ -635,110 +736,110 @@ export default function Workers() {
                         onChange={e => e.target.files?.[0] && setProfileImageFile(e.target.files[0])}
                        />
                     </div>
-                    { (profileImageFile || formData.profileImage) && (
+                    {(profileImageFile || formData.profileImage) && (
                       <button 
                         type="button" 
                         onClick={() => {
                            setProfileImageFile(null);
                            setFormData(prev => ({...prev, profileImage: null}));
                         }}
-                        className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1.5 shadow-lg"
+                        className="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full p-1.5 shadow-lg"
                       >
                         <X className="w-3 h-3" />
                       </button>
                     )}
                  </div>
                  <div>
-                    <Button variant="outline" size="sm" className="mt-2 text-xs rounded-xl h-8">Change Photo</Button>
+                    <Button type="button" variant="outline" size="sm" className="mt-2 text-xs rounded-xl h-8 font-bold">Change Photo</Button>
                     {uploadProgress > 0 && (
-                      <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden mt-3 mx-auto">
-                        <div className="bg-primary h-full transition-all" style={{ width: `${uploadProgress}%` }} />
+                      <div className="w-48 h-1.5 bg-slate-100 rounded-full overflow-hidden mt-3 mx-auto">
+                        <div className="bg-[#2ECC71] h-full transition-all" style={{ width: `${uploadProgress}%` }} />
                       </div>
                     )}
                  </div>
               </div>
 
               {/* Personal Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Full Name <span className="text-red-500">*</span></label>
-                  <Input required placeholder="Enter worker's full name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-11 rounded-xl" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Full Name <span className="text-rose-500">*</span></label>
+                  <Input required placeholder="Enter worker's full name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-12 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Phone Number <span className="text-red-500">*</span></label>
-                  <Input required placeholder="0300 1234567" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="h-11 rounded-xl" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Phone Number <span className="text-rose-500">*</span></label>
+                  <Input required placeholder="0300 1234567" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="h-12 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">WhatsApp Number</label>
-                  <Input placeholder="Leave empty if same as phone" value={formData.whatsappPhone} onChange={e => setFormData({...formData, whatsappPhone: e.target.value})} className="h-11 rounded-xl" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">WhatsApp Number</label>
+                  <Input placeholder="Leave empty if same as phone" value={formData.whatsappPhone} onChange={e => setFormData({...formData, whatsappPhone: e.target.value})} className="h-12 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Address</label>
-                  <Input placeholder="Home address or area" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="h-11 rounded-xl" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Address / City</label>
+                  <Input placeholder="Home address or branch" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="h-12 rounded-xl" />
                 </div>
               </div>
 
               {/* Job Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Worker Role</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Worker Role</label>
                   <select 
-                    className="w-full h-11 rounded-xl border border-input bg-card px-4 text-sm focus:ring-2 focus:ring-primary outline-none capitalize"
+                    className="w-full h-12 rounded-xl border border-input bg-card px-4 text-sm font-semibold focus:ring-2 focus:ring-[#0D3D33] outline-none capitalize"
                     value={formData.role}
                     onChange={e => setFormData({...formData, role: e.target.value as WorkerRole})}
                   >
                     {ROLE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Speciality / Skill</label>
-                  <Input placeholder="e.g. Kurta Specialist, Sherwani" value={formData.speciality} onChange={e => setFormData({...formData, speciality: e.target.value})} className="h-11 rounded-xl" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Speciality / Skill</label>
+                  <Input placeholder="e.g. Kurta Specialist, Sherwani Master" value={formData.speciality} onChange={e => setFormData({...formData, speciality: e.target.value})} className="h-12 rounded-xl" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Current Status</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Current Status</label>
                   <select 
-                    className="w-full h-11 rounded-xl border border-input bg-card px-4 text-sm focus:ring-2 focus:ring-primary outline-none capitalize"
+                    className="w-full h-12 rounded-xl border border-input bg-card px-4 text-sm font-semibold focus:ring-2 focus:ring-[#0D3D33] outline-none capitalize"
                     value={formData.status}
                     onChange={e => setFormData({...formData, status: e.target.value as WorkerStatus})}
                   >
                     {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
                 </div>
-                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Joining Date</label>
-                  <Input type="date" value={formData.joiningDate} onChange={e => setFormData({...formData, joiningDate: e.target.value})} className="h-11 rounded-xl h-auto py-2" />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-600 uppercase">Joining Date</label>
+                  <Input type="date" value={formData.joiningDate} onChange={e => setFormData({...formData, joiningDate: e.target.value})} className="h-12 rounded-xl py-2" />
                 </div>
               </div>
 
               {/* Salary Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
-                 <div className="space-y-2">
-                    <label className="text-sm font-semibold">Salary Type</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                 <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-600 uppercase">Salary Structure</label>
                     <div className="flex gap-2">
                        <Button 
                         type="button" 
                         variant={formData.salaryType === 'monthly' ? 'default' : 'outline'} 
-                        className="flex-1 rounded-xl"
+                        className={`flex-1 rounded-xl h-11 font-bold ${formData.salaryType === 'monthly' ? 'bg-[#0D3D33] text-white' : ''}`}
                         onClick={() => setFormData({...formData, salaryType: 'monthly'})}
-                       >Monthly</Button>
+                       >Monthly Salary</Button>
                        <Button 
                         type="button" 
                         variant={formData.salaryType === 'per_order' ? 'default' : 'outline'} 
-                        className="flex-1 rounded-xl"
+                        className={`flex-1 rounded-xl h-11 font-bold ${formData.salaryType === 'per_order' ? 'bg-[#0D3D33] text-white' : ''}`}
                         onClick={() => setFormData({...formData, salaryType: 'per_order'})}
-                       >Per Order</Button>
+                       >Per Suit Rate</Button>
                     </div>
                  </div>
-                 <div className="space-y-2">
-                    <label className="text-sm font-semibold">
-                      {formData.salaryType === 'monthly' ? 'Monthly Salary Amount' : 'Amount Per Order'}
+                 <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-600 uppercase">
+                      {formData.salaryType === 'monthly' ? 'Monthly Salary (PKR)' : 'Rate Per Suit (PKR)'}
                     </label>
                     <div className="relative">
-                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                        <Input 
                         type="number" 
                         placeholder="0.00" 
-                        className="pl-9 h-11 rounded-xl" 
+                        className="pl-9 h-12 rounded-xl font-bold" 
                         value={formData.salaryAmount || ''}
                         onChange={e => setFormData({...formData, salaryAmount: Number(e.target.value)})}
                        />
@@ -746,230 +847,42 @@ export default function Workers() {
                  </div>
               </div>
 
-              <div className="space-y-2 pt-4 border-t">
-                <label className="text-sm font-semibold">Notes</label>
-                <Textarea placeholder="Additional information..." className="rounded-xl" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} />
+              <div className="space-y-1.5 pt-4 border-t">
+                <label className="text-xs font-bold text-slate-600 uppercase">Notes & Remarks</label>
+                <Textarea placeholder="Additional information..." className="rounded-xl p-3" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} />
               </div>
             </div>
 
             <DialogFooter className="gap-2 sm:gap-0 mt-8">
-              <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-xl h-11 px-8">Cancel</Button>
-              <Button type="submit" disabled={isSubmitting} className="rounded-xl h-11 px-10 shadow-lg shadow-primary/20">
+              <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-xl h-12 px-8 font-bold">Cancel</Button>
+              <Button type="submit" disabled={isSubmitting} className="rounded-xl h-12 px-10 font-bold bg-[#0D3D33] hover:bg-[#092B24] text-white shadow-lg">
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Check className="w-5 h-5 mr-2" />}
-                Update Profile
+                Update Worker Profile
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent className="rounded-3xl max-w-sm">
+        <DialogContent className="rounded-3xl max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl">Delete Worker Profile?</DialogTitle>
+            <DialogTitle className="text-xl font-extrabold text-slate-900">Delete Staff Profile</DialogTitle>
           </DialogHeader>
-          <div className="py-6 text-center">
-             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-8 h-8" />
-             </div>
-             <p className="text-foreground font-medium">This will permanently remove <strong>{selectedWorker?.name}</strong> from your records.</p>
-             <p className="text-sm text-muted-foreground mt-2">Active orders assigned to this worker will remain, but the name might be lost. This cannot be undone.</p>
+          <div className="py-2 space-y-2">
+             <p className="text-sm text-slate-700">Are you sure you want to remove <strong>{selectedWorker?.name}</strong> from your active staff directory?</p>
+             <p className="text-xs text-rose-600 font-semibold bg-rose-50 p-3 rounded-xl border border-rose-200">
+               This will unassign their profile from future orders. Historical completed orders remain intact.
+             </p>
           </div>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-             <Button type="button" variant="ghost" className="flex-1 rounded-xl" onClick={() => setIsDeleteOpen(false)}>No, Keep Worker</Button>
-             <Button variant="destructive" className="flex-1 rounded-xl" onClick={handleDeleteSubmit} disabled={isSubmitting}>
+          <DialogFooter className="mt-4">
+             <Button type="button" variant="ghost" className="h-11 rounded-xl font-bold" onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
+             <Button variant="destructive" className="h-11 rounded-xl font-bold bg-rose-600 hover:bg-rose-700" onClick={handleDeleteSubmit} disabled={isSubmitting}>
                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
-               Yes, Delete
+               Confirm Delete
              </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Worker Details View */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-[480px] w-[95vw] rounded-3xl p-0 overflow-hidden outline-none bg-background border border-border/80">
-          {selectedWorker && (
-            <div className="flex flex-col max-h-[85vh] overflow-y-auto">
-               {/* Hero Header Custom */}
-               <div className="relative p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b border-border/40">
-                  <div className="flex items-center gap-4">
-                     {/* Avatar Left */}
-                     <div className="relative shrink-0">
-                       {selectedWorker.profileImage ? (
-                         <img 
-                           src={typeof selectedWorker.profileImage === 'string' ? selectedWorker.profileImage : selectedWorker.profileImage.url} 
-                           className="h-20 w-20 rounded-[1.25rem] object-cover border-2 border-background shadow-md bg-muted" 
-                           alt={selectedWorker.name} 
-                           referrerPolicy="no-referrer"
-                         />
-                       ) : (
-                         <div className="h-20 w-20 rounded-[1.25rem] bg-card border-2 border-background shadow-md text-primary flex items-center justify-center font-black text-3xl select-none">
-                           {selectedWorker.name.charAt(0).toUpperCase()}
-                         </div>
-                       )}
-                       <div className={cn(
-                         "absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-background shadow-sm",
-                         STATUS_OPTIONS.find(s => s.value === selectedWorker.status)?.color
-                       )} />
-                     </div>
-
-                     {/* Name & Role Right */}
-                     <div className="flex-1 min-w-0 pr-6">
-                        <h2 className="text-xl font-black text-foreground drop-shadow-sm leading-tight truncate">{selectedWorker.name}</h2>
-                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                           <span className="bg-primary/15 text-primary px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider shrink-0">{selectedWorker.role}</span>
-                           {selectedWorker.speciality && (
-                             <span className="text-[11px] text-muted-foreground font-semibold truncate">
-                               • {selectedWorker.speciality}
-                             </span>
-                           )}
-                        </div>
-                     </div>
-                  </div>
-
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="absolute top-4 right-4 rounded-full bg-muted/40 hover:bg-muted/80 text-foreground h-8 w-8 p-0 border-none transition-colors"
-                    onClick={() => setIsDetailsOpen(false)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-               </div>
-
-               {/* Content */}
-               <div className="p-6 space-y-6">
-                  {/* Stats Row */}
-                  <div className="grid grid-cols-3 gap-2 bg-muted/25 p-1 rounded-[1.25rem] border border-border/30">
-                     <div className="bg-background dark:bg-card/40 rounded-xl p-2.5 text-center flex flex-col justify-center min-w-0 shadow-sm border border-border/10">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight truncate">Active Load</p>
-                        <p className="text-lg font-black text-primary mt-0.5 leading-none truncate">{selectedWorker.activeOrders}</p>
-                        <p className="text-[9px] text-muted-foreground/80 tracking-normal uppercase font-semibold mt-1 truncate">Orders</p>
-                     </div>
-                     <div className="bg-background dark:bg-card/40 rounded-xl p-2.5 text-center flex flex-col justify-center min-w-0 shadow-sm border border-border/10">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight truncate">Completed</p>
-                        <p className="text-lg font-black text-primary mt-0.5 leading-none truncate">{selectedWorker.completedOrders}</p>
-                        <p className="text-[9px] text-muted-foreground/80 tracking-normal uppercase font-semibold mt-1 truncate">Orders</p>
-                     </div>
-                     <div className="bg-background dark:bg-card/40 rounded-xl p-2.5 text-center flex flex-col justify-center min-w-0 shadow-sm border border-border/10">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight truncate">Earnings</p>
-                        <p className="text-lg font-black text-primary mt-0.5 leading-none truncate">{formatCurrency(selectedWorker.totalEarnings || 0)}</p>
-                        <p className="text-[9px] text-muted-foreground/80 tracking-normal uppercase font-semibold mt-1 truncate">To Date</p>
-                     </div>
-                  </div>
-
-                  {/* Contact Info List */}
-                  <div className="space-y-3">
-                     <h4 className="text-[11px] uppercase tracking-wider text-muted-foreground font-black">Contact Info</h4>
-                     <div className="space-y-2.5">
-                        <div className="flex items-center gap-3 bg-muted/30 p-2.5 rounded-2xl border border-border/20">
-                           <div className="w-8 h-8 rounded-xl bg-background flex items-center justify-center shrink-0 border border-border/50 shadow-sm">
-                              <Phone className="w-4 h-4 text-muted-foreground" />
-                           </div>
-                           <div className="min-w-0 flex-1">
-                              <p className="text-[9px] text-muted-foreground uppercase font-semibold">Mobile</p>
-                              <p className="text-sm font-bold text-foreground truncate">{selectedWorker.phone}</p>
-                           </div>
-                        </div>
-                        <div className="flex items-center gap-3 bg-muted/30 p-2.5 rounded-2xl border border-border/20">
-                           <div className="w-8 h-8 rounded-xl bg-background flex items-center justify-center shrink-0 border border-border/50 shadow-sm">
-                              <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                           </div>
-                           <div className="min-w-0 flex-1">
-                              <p className="text-[9px] text-muted-foreground uppercase font-semibold">WhatsApp</p>
-                              <p className="text-sm font-bold text-foreground truncate">{selectedWorker.whatsappPhone || selectedWorker.phone}</p>
-                           </div>
-                           <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full text-green-600 hover:bg-green-50 shrink-0 border border-border/20" onClick={() => openWhatsApp(selectedWorker.phone)}>
-                              <TrendingUp className="w-4 h-4 rotate-45" />
-                           </Button>
-                        </div>
-                        {selectedWorker.address && (
-                           <div className="flex items-start gap-3 bg-muted/30 p-2.5 rounded-2xl border border-border/20">
-                              <div className="w-8 h-8 rounded-xl bg-background flex items-center justify-center shrink-0 border border-border/50 shadow-sm mt-0.5">
-                                 <MapPin className="w-4 h-4 text-muted-foreground" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                 <p className="text-[9px] text-muted-foreground uppercase font-semibold">Address</p>
-                                 <p className="text-xs font-bold text-foreground leading-snug break-words pr-1">{selectedWorker.address}</p>
-                              </div>
-                           </div>
-                        )}
-                     </div>
-                  </div>
-
-                  {/* Status Grid */}
-                  <div className="space-y-3">
-                     <h4 className="text-[11px] uppercase tracking-wider text-muted-foreground font-black">Quick Status</h4>
-                     <div className="grid grid-cols-2 gap-2">
-                        {STATUS_OPTIONS.map(opt => (
-                          <button
-                            key={opt.value}
-                            onClick={() => handleQuickStatusChange(selectedWorker.id, opt.value)}
-                            className={cn(
-                              "px-3 py-2.5 rounded-xl text-xs font-semibold transition-all border-2 flex items-center justify-center gap-2",
-                              selectedWorker.status === opt.value 
-                                ? "bg-primary/10 border-primary text-primary shadow-sm" 
-                                : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted/80"
-                            )}
-                          >
-                            <span className={cn("w-2 h-2 rounded-full shrink-0", opt.color)} />
-                            <span className="truncate">{opt.label}</span>
-                          </button>
-                        ))}
-                     </div>
-                  </div>
-
-                  {/* Salary Card */}
-                  <div className="bg-primary/5 dark:bg-primary/10 border border-primary/10 rounded-2xl p-4 shadow-sm flex flex-col gap-1.5">
-                     <div className="flex items-center justify-between">
-                        <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Salary Configuration</h4>
-                        <p className="text-[10px] font-black px-2 py-0.5 bg-primary/15 text-primary rounded-md uppercase tracking-wider shrink-0">
-                          {selectedWorker.salaryType.replace('_', ' ')}
-                        </p>
-                     </div>
-                     <div className="flex items-baseline gap-1.5 mt-1">
-                        <p className="text-2xl font-black text-foreground">{formatCurrency(selectedWorker.salaryAmount)}</p>
-                        <p className="text-xs text-muted-foreground font-semibold opacity-85">
-                          {selectedWorker.salaryType === 'monthly' ? '/ month' : '/ per order'}
-                        </p>
-                     </div>
-                  </div>
-
-                  {/* Joining Details & Notes */}
-                  <div className="flex items-center gap-3 bg-muted/20 px-3 py-2.5 rounded-2xl border border-border/10">
-                     <div className="w-8 h-8 rounded-xl bg-background flex items-center justify-center shrink-0 border border-border/50">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                     </div>
-                     <div className="min-w-0 flex-1">
-                        <p className="text-[9px] text-muted-foreground uppercase font-semibold">Joined Store</p>
-                        <p className="text-xs font-bold text-foreground truncate">{formatDate(selectedWorker.joiningDate)}</p>
-                     </div>
-                  </div>
-
-                  {selectedWorker.notes && (
-                  <div className="space-y-1.5">
-                     <h4 className="text-[11px] uppercase tracking-wider text-muted-foreground font-black">Worker Notes</h4>
-                     <p className="text-xs text-foreground bg-muted/30 p-3.5 rounded-2xl border-l-4 border-primary/70 italic leading-relaxed break-words">
-                       "{selectedWorker.notes}"
-                     </p>
-                  </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-3 pt-2 w-full">
-                     <Button className="flex-1 rounded-2xl h-11 font-bold shadow-sm" onClick={() => openEditModal(selectedWorker)}>
-                        <Edit className="w-4 h-4 mr-1.5" />
-                        Edit Profile
-                     </Button>
-                     <Button variant="outline" className="flex-1 rounded-2xl h-11 font-bold border-border bg-background hover:bg-muted/30" onClick={() => openWhatsApp(selectedWorker.phone)}>
-                        <MessageSquare className="w-4 h-4 mr-1.5 text-green-600" />
-                        Chat Worker
-                     </Button>
-                  </div>
-               </div>
-            </div>
-          )}
         </DialogContent>
       </Dialog>
 

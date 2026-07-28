@@ -161,9 +161,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsAdmin(adminStatus);
 
             userDataUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (userDoc) => {
-              if (userDoc.metadata.hasPendingWrites) {
-                return;
-              }
               const processSnapshot = async () => {
                 try {
                   if (userDoc.exists()) {
@@ -216,6 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         }
                       };
 
+                      setRealUserData({ ...userDataFetched, ...updatedFields });
                       await setDoc(doc(db, 'users', currentUser.uid), updatedFields, { merge: true });
                       return;
                     }

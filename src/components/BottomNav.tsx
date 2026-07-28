@@ -1,7 +1,8 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Home, Users, Plus, Package, MessageSquare } from 'lucide-react';
+import { Home, Users, Plus, Package } from 'lucide-react';
+import { WhatsAppIcon } from './icons/WhatsAppIcon';
 import { cn } from '../lib/utils';
 
 export default function BottomNav() {
@@ -11,7 +12,7 @@ export default function BottomNav() {
     { icon: Home, label: 'Home', path: '/app' },
     { icon: Users, label: 'Clients', path: '/app/clients' },
     { icon: Plus, label: 'New Order', path: '/app/new-order', isCenter: true },
-    { icon: MessageSquare, label: 'Chats', path: '/app/chat' },
+    { icon: WhatsAppIcon, label: 'Chats', path: '/app/chat' },
     { icon: Package, label: 'Orders', path: '/app/orders' },
   ];
 

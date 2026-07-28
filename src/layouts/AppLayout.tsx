@@ -7,13 +7,31 @@ import { cn } from '../lib/utils';
 import BottomNav from '../components/BottomNav';
 import DesktopSidebar from '../components/DesktopSidebar';
 import { PWAPrompt } from '../components/PWAPrompt';
-import { Button } from '../components/ui/button';
+import { useShop } from '../contexts/ShopContext';
+
+const getValidLogoUrl = (logo: any): string | null => {
+  if (!logo) return null;
+  if (typeof logo === 'string' && logo.trim().length > 0) return logo.trim();
+  if (typeof logo === 'object') {
+    if (logo.url && typeof logo.url === 'string') return logo.url.trim();
+    if (logo.secure_url && typeof logo.secure_url === 'string') return logo.secure_url.trim();
+  }
+  return null;
+};
 
 export default function AppLayout() {
   const { user, userData, impersonatedUser, stopImpersonation } = useAuth();
+  const { settings } = useShop();
   const { orders } = useOrders();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const shopLogoUrl = getValidLogoUrl(userData?.shopLogo) || 
+                      getValidLogoUrl(userData?.logoUrl) || 
+                      getValidLogoUrl(settings?.shopLogo) || 
+                      getValidLogoUrl(settings?.logoUrl);
+
+  const shopDisplayName = settings?.name || userData?.shopName || userData?.shopDetails?.name || 'Loop Tailor';
 
   // App Badge Notification Sync
   useEffect(() => {
@@ -75,11 +93,20 @@ export default function AppLayout() {
       <div className="lg:hidden sticky top-0 z-40 px-3 pt-2">
         <div className="bg-[#0D3D33]/95 backdrop-blur-xl rounded-2xl shadow-lg border border-emerald-500/15 px-4 h-14 flex items-center justify-between min-w-0 w-full">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center shrink-0">
-              <Scissors className="h-4.5 w-4.5" />
-            </div>
+            {shopLogoUrl ? (
+              <img 
+                src={shopLogoUrl} 
+                alt="Shop Logo" 
+                className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 object-contain p-0.5 shrink-0 shadow-sm"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 text-[#2ECC71] flex items-center justify-center shrink-0 shadow-sm">
+                <Scissors className="h-4.5 w-4.5 text-[#2ECC71]" strokeWidth={2} />
+              </div>
+            )}
             <div className="min-w-0">
-              <span className="font-extrabold text-base tracking-tight text-white block truncate leading-tight">Loop Tailor</span>
+              <span className="font-extrabold text-base tracking-tight text-white block truncate leading-tight">{shopDisplayName}</span>
               <span className="text-[8px] font-black tracking-widest text-[#2ECC71] uppercase block">BOUTIQUE OS</span>
             </div>
           </div>

@@ -11,22 +11,19 @@ import {
   Lock, 
   Search, 
   Wallet, 
-  ArrowUpRight, 
   Coins, 
   Clock, 
   CheckCircle, 
-  LockKeyhole,
-  Info,
-  Scissors,
   Banknote,
   Users,
-  TrendingUp,
-  Calendar,
-  Star,
-  Sparkles
+  Sparkles,
+  DollarSign,
+  Edit2,
+  RotateCcw
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
 import { toast } from 'sonner';
 
 const containerVariants: Variants = {
@@ -46,30 +43,6 @@ const itemVariants: Variants = {
   }
 };
 
-const cardVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
-    scale: 1, 
-    transition: { type: 'spring', stiffness: 280, damping: 22 }
-  }
-};
-
-const workerRowVariants: Variants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: { 
-      type: 'spring', 
-      stiffness: 300, 
-      damping: 26,
-      delay: i * 0.06 
-    }
-  }),
-  exit: { opacity: 0, x: 20, transition: { duration: 0.2 } }
-};
-
 export function Payroll() {
   const [currentMonth, setCurrentMonth] = useState<Date>(startOfMonth(new Date()));
   const monthStr = format(currentMonth, 'yyyy-MM');
@@ -78,6 +51,12 @@ export function Payroll() {
   const { orders, loading: ordersLoading } = useOrders();
   const { payroll, loading: payrollLoading, initOrUpdatePayroll, lockPayroll } = usePayroll(monthStr);
   const [search, setSearch] = useState('');
+
+  // Custom payment modal states
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedWorkerForPay, setSelectedWorkerForPay] = useState<any | null>(null);
+  const [payInputAmount, setPayInputAmount] = useState<number | string>('');
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -88,7 +67,11 @@ export function Payroll() {
   const workersPayrollData = useMemo(() => {
     return workers.map(worker => {
       const workerOrdersInMonth = orders.filter(order => {
-        if (!order.workerId || order.workerId !== worker.id) return false;
+        if (order.status === 'cancelled') return false;
+        const matchesWorker = (order.workerId && order.workerId === worker.id) || 
+                              (order.workerName && order.workerName.toLowerCase() === worker.name.toLowerCase());
+        if (!matchesWorker) return false;
+
         try {
           let date: Date;
           const createdAtVal = order.createdAt as any;
@@ -108,21 +91,26 @@ export function Payroll() {
         }
       });
 
-      const countedOrders = workerOrdersInMonth.filter(order => order.status !== 'cancelled');
-      const orderCount = countedOrders.length;
+      const orderCount = workerOrdersInMonth.length;
       const amountDue = worker.salaryType === 'monthly' 
         ? (worker.salaryAmount || 0) 
         : (orderCount * (worker.salaryAmount || 0));
+
       const paymentInfo = existingPayments.find(p => p.workerId === worker.id);
-      const isPaid = !!paymentInfo;
+      const amountPaid = Number(paymentInfo?.amountPaid) || 0;
+      const remainingDue = Math.max(0, amountDue - amountPaid);
+      const isPaid = amountDue > 0 ? amountPaid >= amountDue : amountPaid > 0;
+      const isPartial = amountPaid > 0 && amountPaid < amountDue;
 
       return {
         ...worker,
         orderCount,
         amountDue,
+        amountPaid,
+        remainingDue,
         isPaid,
-        paymentDate: paymentInfo?.paymentDate || null,
-        amountPaid: paymentInfo?.amountPaid || 0
+        isPartial,
+        paymentDate: paymentInfo?.paymentDate || null
       };
     });
   }, [workers, orders, monthStr, existingPayments]);
@@ -137,15 +125,52 @@ export function Payroll() {
   const paidWorkersCount = useMemo(() => workersPayrollData.filter(w => w.isPaid).length, [workersPayrollData]);
   const payrollProgress = workersPayrollData.length > 0 ? Math.round((paidWorkersCount / workersPayrollData.length) * 100) : 0;
 
-  const handleRecordPayment = async (workerId: string, fullAmount: number) => {
+  const openPayModal = (w: any) => {
     if (isLocked) { toast.error("Payroll is closed for this month."); return; }
-    const isAlreadyPaid = existingPayments.some(p => p.workerId === workerId);
-    if (isAlreadyPaid) { toast.error("Payment already recorded for this worker."); return; }
-    const newPayment: WorkerPayment = { workerId, amountPaid: fullAmount, paymentDate: new Date().toISOString() };
+    setSelectedWorkerForPay(w);
+    setPayInputAmount(w.remainingDue > 0 ? w.remainingDue : w.amountDue);
+    setPaymentModalOpen(true);
+  };
+
+  const handleSavePayment = async () => {
+    if (!selectedWorkerForPay || isLocked) return;
+    const amountToSet = Number(payInputAmount);
+    if (isNaN(amountToSet) || amountToSet < 0) {
+      toast.error("Please enter a valid payment amount.");
+      return;
+    }
+
+    setIsSubmittingPayment(true);
     try {
-      await initOrUpdatePayroll([...existingPayments, newPayment], payroll?.status || 'open');
-      toast.success('Payment recorded!');
-    } catch { toast.error('Failed to record payment'); }
+      const otherPayments = existingPayments.filter(p => p.workerId !== selectedWorkerForPay.id);
+      const updatedPayment: WorkerPayment = {
+        workerId: selectedWorkerForPay.id,
+        amountPaid: amountToSet,
+        paymentDate: new Date().toISOString()
+      };
+
+      await initOrUpdatePayroll([...otherPayments, updatedPayment], payroll?.status || 'open');
+      toast.success(`Payment of PKR ${amountToSet.toLocaleString()} recorded for ${selectedWorkerForPay.name}!`);
+      setPaymentModalOpen(false);
+      setSelectedWorkerForPay(null);
+    } catch {
+      toast.error('Failed to record payment');
+    } finally {
+      setIsSubmittingPayment(false);
+    }
+  };
+
+  const handleResetPayment = async (workerId: string, workerName: string) => {
+    if (isLocked) { toast.error("Payroll is closed for this month."); return; }
+    if (!window.confirm(`Reset payment record for ${workerName}?`)) return;
+
+    try {
+      const otherPayments = existingPayments.filter(p => p.workerId !== workerId);
+      await initOrUpdatePayroll(otherPayments, payroll?.status || 'open');
+      toast.success(`Payment reset for ${workerName}`);
+    } catch {
+      toast.error('Failed to reset payment');
+    }
   };
 
   const handleLockPayroll = async () => {
@@ -172,14 +197,6 @@ export function Payroll() {
         </motion.div>
         <div className="text-center space-y-2">
           <p className="text-xs font-black text-slate-500 tracking-widest uppercase">Loading Payroll...</p>
-          <div className="h-1 w-24 bg-slate-100 rounded-full overflow-hidden mx-auto">
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: '100%' }}
-              transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
-              className="h-full w-1/2 bg-[#2ECC71] rounded-full"
-            />
-          </div>
         </div>
       </div>
     );
@@ -194,59 +211,61 @@ export function Payroll() {
     >
       {/* ===== HEADER ===== */}
       <motion.div variants={itemVariants} className="relative bg-[#0D3D33] text-white rounded-[28px] p-5 sm:p-7 overflow-hidden shadow-2xl border border-emerald-500/20">
-        {/* Ambient glow blobs */}
         <div className="absolute -top-8 -right-8 w-40 h-40 bg-[#2ECC71]/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-[#2ECC71]/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-5">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#2ECC71] flex items-center justify-center shrink-0">
-                <Banknote className="w-4 h-4 text-slate-950" />
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#2ECC71]">ACCOUNTING DESK</span>
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-[#2ECC71] border border-white/10">
+                Staff Payroll Hub
+              </span>
               {isLocked && (
-                <span className="text-[9px] font-black uppercase tracking-widest text-amber-400 bg-amber-400/15 px-2 py-0.5 rounded-full">LOCKED</span>
+                <span className="bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                  <Lock className="w-3 h-3" /> Locked
+                </span>
               )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Team Payroll</h1>
-            <p className="text-white/60 text-xs sm:text-sm font-semibold">Manage monthly salaries and per-suit tailor payouts</p>
+            <p className="text-xs sm:text-sm text-white/70 font-medium mt-0.5">
+              Track monthly salaries, per-suit piece rates, and record worker payouts.
+            </p>
           </div>
 
           {/* Month Selector */}
-          <div className="flex items-center bg-white/10 border border-white/15 rounded-2xl p-1 gap-1 shrink-0 self-start">
-            <motion.button
-              whileTap={{ scale: 0.9 }}
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md p-1.5 rounded-2xl border border-white/15 self-start sm:self-center shrink-0">
+            <button
               onClick={handlePrevMonth}
-              className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="p-2 hover:bg-white/15 rounded-xl transition-all active:scale-90 text-white"
+              title="Previous Month"
             >
-              <ChevronLeft className="w-4 h-4 text-white" />
-            </motion.button>
-            <div className="w-32 text-center font-black text-xs text-white uppercase tracking-tight select-none">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs font-black px-2 min-w-[90px] text-center uppercase tracking-wider">
               {format(currentMonth, 'MMM yyyy')}
-            </div>
-            <motion.button
-              whileTap={{ scale: 0.9 }}
+            </span>
+            <button
               onClick={handleNextMonth}
-              className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="p-2 hover:bg-white/15 rounded-xl transition-all active:scale-90 text-white"
+              title="Next Month"
             >
-              <ChevronRight className="w-4 h-4 text-white" />
-            </motion.button>
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
         {/* Progress Bar */}
         {workersPayrollData.length > 0 && (
-          <div className="relative z-10 mt-5 space-y-1.5">
-            <div className="flex justify-between items-center text-[10px] font-black text-white/60 uppercase tracking-wider">
-              <span>Payroll Progress</span>
-              <span className="text-[#2ECC71]">{paidWorkersCount}/{workersPayrollData.length} Paid</span>
+          <div className="mt-5 pt-4 border-t border-white/10 relative z-10">
+            <div className="flex justify-between items-center text-xs font-bold mb-2">
+              <span className="text-white/80">Payroll Payout Progress</span>
+              <span className="text-[#2ECC71]">{paidWorkersCount}/{workersPayrollData.length} Paid ({payrollProgress}%)</span>
             </div>
             <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${payrollProgress}%` }}
-                transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
                 className="h-full bg-gradient-to-r from-[#2ECC71] to-emerald-400 rounded-full"
               />
             </div>
@@ -254,106 +273,88 @@ export function Payroll() {
         )}
       </motion.div>
 
-      {/* ===== STATS ROW ===== */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {[
-          { label: 'Total Due', value: `PKR ${totalPayrollAmount.toLocaleString()}`, icon: Wallet, color: 'bg-[#0D3D33]/10 text-[#0D3D33]', textColor: 'text-[#0D3D33]', sub: 'Total payroll this month' },
-          { label: 'Disbursed', value: `PKR ${totalPaidAmount.toLocaleString()}`, icon: CheckCircle, color: 'bg-emerald-100 text-emerald-700', textColor: 'text-emerald-700', sub: `${paidWorkersCount} workers paid` },
-          { label: 'Outstanding', value: `PKR ${totalRemainingAmount.toLocaleString()}`, icon: Clock, color: 'bg-amber-100 text-amber-700', textColor: 'text-amber-700', sub: 'Pending settlements', hidden: false },
-        ].map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            variants={cardVariants}
-            custom={i}
-            className={`bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-5 space-y-2.5 shadow-sm hover:shadow-md transition-shadow ${stat.hidden ? 'col-span-2 sm:col-span-1' : ''}`}
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-              <div className={`w-8 h-8 rounded-xl ${stat.color} flex items-center justify-center shrink-0`}>
-                <stat.icon className="w-4 h-4" />
-              </div>
-            </div>
-            <p className={`text-lg sm:text-2xl font-black ${stat.textColor} leading-tight`}>{stat.value}</p>
-            <p className="text-[10px] text-slate-400 font-bold border-t border-slate-100 pt-2">{stat.sub}</p>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* ===== WORKER LEDGER PANEL ===== */}
-      <motion.div variants={itemVariants} className="bg-white rounded-[24px] border border-slate-200/80 shadow-sm overflow-hidden">
-        {/* Panel Header */}
-        <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="flex-1">
-            <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#0D3D33]" />
-              Worker Ledger
-            </h2>
-            <p className="text-xs text-slate-400 font-semibold mt-0.5">Record salary disbursements for {format(currentMonth, 'MMMM yyyy')}</p>
+      {/* ===== METRIC CARDS ===== */}
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Payroll Due</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1">PKR {totalPayrollAmount.toLocaleString()}</p>
           </div>
-          
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            {/* Search */}
-            <div className="relative flex-1 sm:w-56">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-              <input
-                placeholder="Search workers..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 focus:border-[#0D3D33] focus:ring-2 focus:ring-[#0D3D33]/10 rounded-xl text-xs font-semibold text-slate-800 w-full outline-none transition-all"
-              />
-            </div>
+          <div className="p-3 rounded-2xl bg-[#0D3D33]/10 text-[#0D3D33] shrink-0">
+            <Wallet className="w-5 h-5" />
+          </div>
+        </div>
 
-            {/* Lock Button */}
-            {!isLocked ? (
-              <motion.button
-                whileTap={{ scale: 0.95 }}
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Total Paid Out</p>
+            <p className="text-xl sm:text-2xl font-black text-emerald-600 mt-1">PKR {totalPaidAmount.toLocaleString()}</p>
+          </div>
+          <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 shrink-0">
+            <Coins className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Remaining Payout Due</p>
+            <p className="text-xl sm:text-2xl font-black text-amber-600 mt-1">PKR {totalRemainingAmount.toLocaleString()}</p>
+          </div>
+          <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ===== WORKER ROSTER ===== */}
+      <motion.div variants={itemVariants} className="bg-white rounded-[24px] border border-slate-200/80 shadow-xs overflow-hidden">
+        {/* Roster Header Toolbar */}
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search staff by name..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0D3D33]"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            {!isLocked && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 text-xs font-bold rounded-xl border-slate-200 text-slate-600 hover:bg-slate-100"
                 onClick={handleLockPayroll}
-                className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-3 py-2 text-xs font-black transition-colors shadow-md shrink-0"
               >
-                <Lock className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Lock Month</span>
-              </motion.button>
-            ) : (
-              <div className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 text-amber-700 font-black rounded-xl text-xs uppercase tracking-wider border border-amber-200 shrink-0">
-                <LockKeyhole className="w-3.5 h-3.5 text-amber-600" />
-                <span className="hidden sm:inline">Locked</span>
-              </div>
+                <Lock className="w-3.5 h-3.5 mr-1.5 text-slate-500" /> Lock Month
+              </Button>
             )}
           </div>
         </div>
 
-        {/* Worker List */}
-        <div className="p-3 sm:p-4 space-y-2">
+        {/* Worker Cards List */}
+        <div className="p-4 sm:p-5 space-y-3">
           {filteredWorkersData.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="py-12 text-center space-y-3"
-            >
-              <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto">
-                <Scissors className="w-7 h-7 text-slate-400" />
-              </div>
-              <p className="text-slate-400 font-bold text-sm">No workers found</p>
-              <p className="text-slate-300 font-semibold text-xs">Add workers from the Workers section</p>
-            </motion.div>
+            <div className="py-16 text-center text-slate-400 space-y-2">
+              <Users className="w-12 h-12 mx-auto text-slate-300" />
+              <p className="text-sm font-bold text-slate-600">No staff members found for {format(currentMonth, 'MMMM yyyy')}</p>
+              <p className="text-xs text-slate-400">Add workers in the Staff directory to track monthly payrolls.</p>
+            </div>
           ) : (
-            <AnimatePresence mode="popLayout">
-              {filteredWorkersData.map((w, i) => (
+            <AnimatePresence>
+              {filteredWorkersData.map((w, index) => (
                 <motion.div
                   key={w.id}
-                  variants={workerRowVariants}
-                  custom={i}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  layout
-                  className="group relative bg-slate-50 hover:bg-white rounded-2xl border border-slate-200/60 hover:border-[#0D3D33]/20 hover:shadow-md transition-all duration-200 overflow-hidden"
+                  variants={itemVariants}
+                  className="group relative bg-slate-50/70 hover:bg-white rounded-2xl border border-slate-200/70 hover:border-[#0D3D33]/30 hover:shadow-md transition-all duration-200 overflow-hidden"
                 >
-                  {/* Left accent */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl transition-all ${w.isPaid ? 'bg-emerald-500' : 'bg-slate-200 group-hover:bg-[#2ECC71]'}`} />
+                  <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl transition-all ${w.isPaid ? 'bg-emerald-500' : w.isPartial ? 'bg-amber-500' : 'bg-slate-300'}`} />
 
                   <div className="pl-4 pr-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                    {/* Avatar + Name */}
+                    {/* Avatar + Info */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       {w.profileImage ? (
                         <img
@@ -370,61 +371,74 @@ export function Payroll() {
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-black text-slate-900 text-sm">{w.name}</span>
+                          <span className="font-extrabold text-slate-900 text-sm">{w.name}</span>
                           <span className="bg-[#0D3D33]/10 text-[#0D3D33] font-bold px-2 py-0.5 rounded-lg text-[9px] uppercase tracking-wider shrink-0">
                             {w.role}
                           </span>
                         </div>
-                        <div className="text-[11px] font-semibold text-slate-400 mt-0.5">
+                        <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
                           {w.salaryType === 'monthly' 
-                            ? `PKR ${Number(w.salaryAmount || 0).toLocaleString()}/month`
-                            : `PKR ${Number(w.salaryAmount || 0).toLocaleString()}/suit · ${w.orderCount} suits this month`
+                            ? `Fixed PKR ${Number(w.salaryAmount || 0).toLocaleString()}/month`
+                            : `PKR ${Number(w.salaryAmount || 0).toLocaleString()}/suit · ${w.orderCount} suits assigned this month`
                           }
                         </div>
                       </div>
                     </div>
 
-                    {/* Amount + Payment Button */}
-                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-14 sm:pl-0 border-t sm:border-t-0 border-slate-100 pt-2.5 sm:pt-0">
+                    {/* Amount + Payment Status / Action */}
+                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-14 sm:pl-0 border-t sm:border-t-0 border-slate-200/60 pt-2.5 sm:pt-0">
                       <div className="text-right shrink-0">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Due</p>
-                        <p className="text-base font-black text-slate-900">PKR {w.amountDue.toLocaleString()}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Due / Paid</p>
+                        <p className="text-sm font-black text-slate-900">
+                          <span className="text-emerald-700">PKR {w.amountPaid.toLocaleString()}</span> / <span className="text-slate-700">PKR {w.amountDue.toLocaleString()}</span>
+                        </p>
+                        {w.remainingDue > 0 && w.amountPaid > 0 && (
+                          <p className="text-[10px] font-bold text-amber-600">PKR {w.remainingDue.toLocaleString()} Remaining</p>
+                        )}
                       </div>
 
-                      {w.isPaid ? (
-                        <motion.div
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className="flex items-center gap-2 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 shrink-0"
-                        >
-                          <div>
-                            <p className="text-[10px] font-black text-emerald-700 uppercase leading-none">PAID</p>
-                            {w.paymentDate && (
-                              <p className="text-[9px] text-slate-400 font-semibold mt-0.5">
-                                {(() => {
-                                  try {
-                                    const pDate = w.paymentDate as any;
-                                    const d = pDate?.seconds ? new Date(pDate.seconds * 1000) :
-                                              typeof pDate === 'string' && pDate.includes('T') ? parseISO(pDate) : new Date(pDate);
-                                    return isNaN(d.getTime()) ? '' : format(d, 'MMM d');
-                                  } catch { return ''; }
-                                })()}
-                              </p>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {w.isPaid ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-2.5 py-1 rounded-xl flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> PAID
+                            </span>
+                            {!isLocked && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 rounded-xl text-slate-400 hover:text-slate-700"
+                                onClick={() => openPayModal(w)}
+                                title="Edit Payment"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </Button>
                             )}
                           </div>
-                          <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                        </motion.div>
-                      ) : (
-                        <motion.button
-                          whileTap={{ scale: 0.95 }}
-                          whileHover={{ scale: 1.02 }}
-                          onClick={() => handleRecordPayment(w.id, w.amountDue)}
-                          disabled={isLocked || w.amountDue <= 0}
-                          className="px-4 py-2.5 bg-[#0D3D33] hover:bg-[#092B24] disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl text-xs font-black shadow-md hover:shadow-lg transition-all duration-200 shrink-0"
-                        >
-                          Pay Now
-                        </motion.button>
-                      )}
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm"
+                              onClick={() => openPayModal(w)}
+                              disabled={isLocked}
+                              className="px-3.5 py-2 bg-[#0D3D33] hover:bg-[#092B24] text-white rounded-xl text-xs font-bold shadow-xs transition-all shrink-0"
+                            >
+                              {w.isPartial ? 'Pay Balance' : 'Record Pay'}
+                            </Button>
+                            {w.amountPaid > 0 && !isLocked && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 rounded-xl text-slate-400 hover:text-rose-600"
+                                onClick={() => handleResetPayment(w.id, w.name)}
+                                title="Reset Payment"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -444,7 +458,7 @@ export function Payroll() {
               {format(currentMonth, 'MMMM yyyy')} Summary
             </div>
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="text-center px-3 py-1.5 bg-white rounded-xl border border-slate-200 shadow-sm">
+              <div className="text-center px-3 py-1.5 bg-white rounded-xl border border-slate-200 shadow-xs">
                 <p className="text-[9px] font-black text-slate-400 uppercase">Workers</p>
                 <p className="text-base font-black text-slate-900">{workersPayrollData.length}</p>
               </div>
@@ -460,6 +474,60 @@ export function Payroll() {
           </motion.div>
         )}
       </motion.div>
+
+      {/* Record Payout Dialog */}
+      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+        <DialogContent className="rounded-3xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-extrabold text-[#0D3D33]">
+              Record Payment for {selectedWorkerForPay?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Enter the amount paid to this worker for {format(currentMonth, 'MMMM yyyy')}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedWorkerForPay && (
+            <div className="space-y-4 py-2">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1.5 text-xs">
+                <div className="flex justify-between font-medium text-slate-600">
+                  <span>Worker Role:</span>
+                  <span className="font-bold text-slate-900 capitalize">{selectedWorkerForPay.role}</span>
+                </div>
+                <div className="flex justify-between font-medium text-slate-600">
+                  <span>Total Amount Due:</span>
+                  <span className="font-bold text-slate-900">PKR {selectedWorkerForPay.amountDue.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between font-medium text-slate-600">
+                  <span>Already Paid:</span>
+                  <span className="font-bold text-emerald-700">PKR {selectedWorkerForPay.amountPaid.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-600 uppercase">Amount Paid (PKR)</label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input 
+                    type="number" 
+                    value={payInputAmount} 
+                    onChange={e => setPayInputAmount(e.target.value)} 
+                    placeholder="Enter payout amount" 
+                    className="pl-9 h-12 rounded-xl font-extrabold text-base" 
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="mt-4">
+            <Button type="button" variant="ghost" className="h-11 rounded-xl font-bold" onClick={() => setPaymentModalOpen(false)}>Cancel</Button>
+            <Button className="h-11 rounded-xl font-bold bg-[#0D3D33] hover:bg-[#092B24] text-white" onClick={handleSavePayment} disabled={isSubmittingPayment}>
+              Save Payment Record
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
