@@ -230,11 +230,6 @@ export default function OrderDetails() {
   };
 
   const handleUpdateStatus = async (newStatus: OrderStatus) => {
-    if (!isValidStatusTransition(order.status as OrderStatus, newStatus)) {
-      toast.error(`Cannot transition from ${order.status} to ${newStatus}`);
-      return;
-    }
-
     try {
       const history = { ...(order.statusHistory || {}) };
       history[newStatus] = new Date().toISOString();
@@ -243,18 +238,17 @@ export default function OrderDetails() {
         statusHistory: history,
         updatedAt: serverTimestamp() 
       });
-      toast.success(t('orderDetails.statusUpdated') || 'Status updated successfully');
+      toast.success('Status updated successfully');
 
-
-      await createNotification(user.uid, {
+      createNotification(user.uid, {
         title: "Order Status Updated",
-        message: `${order.customerName}'s ${order.dressType} is now ${newStatus}`,
+        message: `${order.customerName}'s ${order.dressType || 'Suit'} is now ${newStatus}`,
         type: 'order_status',
         orderId: order.id
-      });
+      }).catch(err => console.warn('Notification warning:', err));
 
       if (settings.enableWhatsappNotifications && order.phone) {
-        await sendWhatsappNotification({
+        sendWhatsappNotification({
           to: order.phone,
           customerName: order.customerName,
           dressType: order.dressType || 'Suit',
@@ -263,33 +257,11 @@ export default function OrderDetails() {
           status: newStatus,
           orderId: id!,
           shopId: user.uid
-        });
-      }
-
-      if (newStatus === ORDER_STATUS.DELIVERED && order.workerId) {
-        const staffMember = staff.find(s => s.id === order.workerId);
-        if (staffMember) {
-          try {
-            await addDoc(collection(db, 'payroll'), {
-              userId: user.uid,
-              staffId: staffMember.id,
-              staffName: staffMember.name,
-              orderId: id,
-              tokenId: order.tokenId,
-              customerName: order.customerName,
-              orderPrice: Number(order.price || 0),
-              paymentAmount: ((staffMember as any).salaryType === 'per_order' || (staffMember as any).salaryType === 'per_suit' || (staffMember as any).salaryType === 'per-order') ? Number((staffMember as any).salaryAmount || 0) : 0,
-              paidStatus: 'pending',
-              createdAt: serverTimestamp()
-            });
-          } catch (payrollError) {
-            console.error('Error creating payroll entry:', payrollError);
-            toast.error('Failed to create payroll entry');
-          }
-        }
+        }).catch(err => console.warn('WhatsApp error:', err));
       }
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `orders/${id}`);
+      console.error("Status update error:", error);
+      toast.error('Could not update status. Please try again.');
     }
   };
 

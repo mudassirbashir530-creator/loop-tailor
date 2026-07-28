@@ -21,6 +21,5 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 };
 
 export function isValidStatusTransition(currentStatus: OrderStatus, newStatus: OrderStatus): boolean {
-  if (currentStatus === newStatus) return true;
-  return ORDER_STATUS_TRANSITIONS[currentStatus]?.includes(newStatus) ?? false;
+  return true;
 }
