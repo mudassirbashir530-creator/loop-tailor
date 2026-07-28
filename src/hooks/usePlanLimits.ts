@@ -31,7 +31,9 @@ export function usePlanLimits() {
   const limits: PlanLimits = {
     customers: userData?.planLimits?.customers ?? defaultPlanLimits.customers,
     ordersPerMonth: userData?.planLimits?.ordersPerMonth ?? defaultPlanLimits.ordersPerMonth,
-    workers: userData?.planLimits?.workers ?? defaultPlanLimits.workers,
+    workers: defaultPlanLimits.workers === 0 
+      ? 0 
+      : Math.max(userData?.planLimits?.workers ?? 0, defaultPlanLimits.workers),
   };
 
   // Setup real-time listeners to dynamic collections to track usage accurately

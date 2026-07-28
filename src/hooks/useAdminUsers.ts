@@ -94,7 +94,7 @@ export function useAdminUsers() {
           plan: udata.plan || 'free',
           planPrice: udata.planPrice !== undefined ? udata.planPrice : 0,
           planActivatedAt: udata.planActivatedAt || null,
-          planLimits: udata.planLimits || { customers: 10, ordersPerMonth: 15, workers: 1 },
+          planLimits: udata.planLimits || { customers: 10, ordersPerMonth: 15, workers: 3 },
           currentUsage: udata.currentUsage || { customers: 0, ordersThisMonth: 0, workers: 0, lastResetDate: null },
           features: udata.features || {
             canDownloadInvoice: true,

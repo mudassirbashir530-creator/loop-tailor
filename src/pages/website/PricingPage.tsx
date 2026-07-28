@@ -40,7 +40,7 @@ export default function PricingPage() {
             includedFeatures={[
               "10 Customers limit",
               "15 Orders/month limit",
-              "1 Worker limit",
+              "3 Workers limit",
               "Basic Tailor Invoice",
               "Image Upload",
               "Standard Support",

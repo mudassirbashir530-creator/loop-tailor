@@ -718,16 +718,16 @@ export default function Clients() {
                     </div>
 
                     {/* Footer Actions block: ALWAYS visible and sized for high touchscreen ergonomics (min 44px) */}
-                    <div className="bg-muted/30 px-4 py-3 border-t flex items-center justify-between gap-2">
-                      <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+                    <div className="bg-muted/30 px-3.5 py-3 border-t flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider shrink-0">
                         Added: {formatDate(customer.createdAt)}
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap shrink-0 max-w-full">
                         {/* 1. Edit Profile button */}
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-[40px] px-3.5 rounded-xl font-semibold text-xs flex items-center gap-1.5" 
+                          className="h-[36px] px-2.5 rounded-xl font-semibold text-xs flex items-center gap-1 shrink-0" 
                           onClick={(e) => {
                             e.stopPropagation();
                             openEditModal(customer);
@@ -741,7 +741,7 @@ export default function Clients() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-[40px] px-3.5 rounded-xl font-semibold text-xs flex items-center gap-1.5"
+                          className="h-[36px] px-2.5 rounded-xl font-semibold text-xs flex items-center gap-1 shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/app/orders`, { state: { search: customer.name } });
@@ -756,13 +756,13 @@ export default function Clients() {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="h-[40px] px-3 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10 rounded-xl font-bold text-xs flex items-center gap-1 shrink-0"
+                            className="h-[36px] px-2.5 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10 rounded-xl font-bold text-xs flex items-center gap-1 shrink-0"
                             onClick={(e) => {
                               e.stopPropagation();
                               openWhatsApp(customer.phone);
                             }}
                           >
-                            <WhatsAppIcon className="w-4 h-4 fill-current text-emerald-500" />
+                            <WhatsAppIcon className="w-3.5 h-3.5 fill-current text-emerald-500" />
                             WhatsApp
                           </Button>
                         )}

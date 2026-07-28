@@ -55,7 +55,7 @@ export const PLAN_DETAILS = {
     planLimits: {
       customers: 10,
       ordersPerMonth: 15,
-      workers: 1
+      workers: 3
     },
     features: {
       canDownloadInvoice: true,
@@ -332,7 +332,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     phone: impersonatedUser.phone || '',
     shopName: impersonatedUser.shopName || '',
     plan: impersonatedUser.plan || 'free',
-    planLimits: impersonatedUser.planLimits || PLAN_DETAILS[targetPlanKey]?.planLimits || { customers: 10, ordersPerMonth: 15, workers: 1 },
+    planLimits: impersonatedUser.planLimits || PLAN_DETAILS[targetPlanKey]?.planLimits || { customers: 10, ordersPerMonth: 15, workers: 3 },
     features: {
       ...defaultPlanFeatures,
       ...(impersonatedUser.features || {})

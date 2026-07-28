@@ -8,7 +8,7 @@ export const PLANS = {
     limits: {
       customers: 10,
       ordersPerMonth: 15,
-      workers: 1
+      workers: 3
     },
     features: {
       canDownloadInvoice: true,
@@ -22,7 +22,7 @@ export const PLANS = {
     featureList: [
       { label: "10 Customers", included: true },
       { label: "15 Orders/month", included: true },
-      { label: "1 Worker", included: true },
+      { label: "3 Workers", included: true },
       { label: "Basic Invoice & Download", included: true },
       { label: "Image Upload", included: true },
       { label: "Standard Support", included: true },
