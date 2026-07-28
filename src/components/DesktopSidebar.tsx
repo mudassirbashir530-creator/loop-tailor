@@ -17,6 +17,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useShop } from '../contexts/ShopContext';
 
 interface NavItem {
   icon: any;
@@ -31,10 +32,28 @@ interface DesktopSidebarProps {
   userData: any;
 }
 
+const getValidLogoUrl = (logo: any): string | null => {
+  if (!logo) return null;
+  if (typeof logo === 'string' && logo.trim().length > 0) return logo.trim();
+  if (typeof logo === 'object') {
+    if (logo.url && typeof logo.url === 'string') return logo.url.trim();
+    if (logo.secure_url && typeof logo.secure_url === 'string') return logo.secure_url.trim();
+  }
+  return null;
+};
+
 export default function DesktopSidebar({ navItems, user, userData }: DesktopSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
   const location = useLocation();
+  const { settings } = useShop();
+
+  const shopLogoUrl = getValidLogoUrl(userData?.shopLogo) || 
+                      getValidLogoUrl(userData?.logoUrl) || 
+                      getValidLogoUrl(settings?.shopLogo) || 
+                      getValidLogoUrl(settings?.logoUrl);
+
+  const shopDisplayName = settings?.name || userData?.shopName || userData?.shopDetails?.name || 'Loop Tailor';
 
   const toggleCollapse = () => {
     setIsCollapsed(prev => !prev);
@@ -59,12 +78,21 @@ export default function DesktopSidebar({ navItems, user, userData }: DesktopSide
         )}>
           <div className="flex items-center gap-3 min-w-0">
             <motion.div 
-              whileHover={{ scale: 1.08, rotate: 12 }}
+              whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
-              className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-[#2ECC71] flex items-center justify-center font-black shadow-md shrink-0 cursor-pointer"
+              className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-[#2ECC71] flex items-center justify-center font-black shadow-md shrink-0 cursor-pointer overflow-hidden p-0.5"
               onClick={toggleCollapse}
             >
-              <Scissors className="w-5 h-5 text-white fill-current" />
+              {shopLogoUrl ? (
+                <img 
+                  src={shopLogoUrl} 
+                  alt="Shop Logo" 
+                  className="w-full h-full object-contain rounded-xl"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <Scissors className="w-5 h-5 text-[#2ECC71]" strokeWidth={2} />
+              )}
             </motion.div>
 
             <AnimatePresence mode="wait">
@@ -77,7 +105,7 @@ export default function DesktopSidebar({ navItems, user, userData }: DesktopSide
                   className="overflow-hidden min-w-0"
                 >
                   <span className="font-extrabold text-base tracking-tight text-white block truncate">
-                    Loop Tailor
+                    {shopDisplayName}
                   </span>
                   <span className="text-[9px] font-black tracking-widest text-[#2ECC71] uppercase block">
                     BOUTIQUE OS

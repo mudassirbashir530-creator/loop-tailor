@@ -8,6 +8,7 @@ import BottomNav from '../components/BottomNav';
 import DesktopSidebar from '../components/DesktopSidebar';
 import { PWAPrompt } from '../components/PWAPrompt';
 import { useShop } from '../contexts/ShopContext';
+import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
 
 const getValidLogoUrl = (logo: any): string | null => {
   if (!logo) return null;
@@ -71,7 +72,7 @@ export default function AppLayout() {
   const navItems = [
     { icon: Home, label: 'Dashboard', path: '/app' },
     { icon: Users, label: 'Clients', path: '/app/clients' },
-    { icon: MessageSquare, label: 'Chats', path: '/app/chat' },
+    { icon: WhatsAppIcon, label: 'Chats', path: '/app/chat' },
     { icon: UserCircle, label: 'Workers', path: '/app/workers' },
     { icon: FileText, label: 'Payroll', path: '/app/payroll' },
     { icon: Package, label: 'Orders', path: '/app/orders' },

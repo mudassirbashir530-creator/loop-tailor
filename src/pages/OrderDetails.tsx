@@ -601,7 +601,6 @@ export default function OrderDetails() {
                 <div className="space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Current Status</span>
                   <select
-                     disabled={order.status === ORDER_STATUS.CANCELLED || order.status === ORDER_STATUS.DELIVERED || isEditing}
                      value={order.status}
                      onChange={(e) => {
                        const nextStatus = e.target.value;
@@ -611,12 +610,13 @@ export default function OrderDetails() {
                          handleUpdateStatus(nextStatus as OrderStatus);
                        }
                      }}
-                     className="h-12 w-full rounded-2xl bg-gray-50/50 border border-gray-200/80 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0D3D33]/20 focus:border-[#0D3D33] cursor-pointer disabled:opacity-100 disabled:bg-gray-100/50 disabled:cursor-not-allowed transition-all"
+                     className="h-12 w-full rounded-2xl bg-gray-50/50 border border-gray-200/80 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0D3D33]/20 focus:border-[#0D3D33] cursor-pointer transition-all"
                   >
-                    <option value={order.status}>{order.status}</option>
-                    {(ORDER_STATUS_TRANSITIONS[order.status as OrderStatus] || []).map(st => (
-                      <option key={st} value={st}>{st}</option>
-                    ))}
+                    <option value={ORDER_STATUS.PENDING}>⏳ Pending</option>
+                    <option value={ORDER_STATUS.STITCHING}>✂️ In Stitching</option>
+                    <option value={ORDER_STATUS.READY}>✨ Ready for Delivery</option>
+                    <option value={ORDER_STATUS.DELIVERED}>✅ Delivered</option>
+                    <option value={ORDER_STATUS.CANCELLED}>🚫 Cancelled</option>
                   </select>
                 </div>
 
@@ -624,10 +624,13 @@ export default function OrderDetails() {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Delivery Type</span>
                   <div>
                     <select 
-                      disabled={!isEditing || order.status !== ORDER_STATUS.PENDING}
                       value={isEditing ? (editData.deliveryType || 'Self Pickup') : (order.deliveryType || 'Self Pickup')}
-                      onChange={(e) => setEditData({...editData, deliveryType: e.target.value})}
-                      className="h-12 w-full rounded-2xl bg-gray-50/50 border border-gray-200/80 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0D3D33]/20 focus:border-[#0D3D33] cursor-pointer disabled:opacity-100 disabled:bg-gray-100/50 disabled:cursor-not-allowed transition-all"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (isEditing) setEditData({...editData, deliveryType: val});
+                        else updateDoc(doc(db, 'orders', id!), { deliveryType: val, updatedAt: serverTimestamp() }).catch(() => {});
+                      }}
+                      className="h-12 w-full rounded-2xl bg-gray-50/50 border border-gray-200/80 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0D3D33]/20 focus:border-[#0D3D33] cursor-pointer transition-all"
                     >
                       <option value="Self Pickup">🏪 Self Pickup</option>
                       <option value="Home Delivery">🏠 Home Delivery</option>

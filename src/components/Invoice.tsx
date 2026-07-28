@@ -94,22 +94,22 @@ export const Invoice = forwardRef<HTMLDivElement, InvoiceProps>(({
   const tokenNumber = order?.tokenId || order?.id?.substring(0, 8).toUpperCase() || 'ORDER';
 
   return (
-    <div className="w-full flex justify-center py-2 sm:py-4 px-2 sm:px-4 bg-slate-100/80 max-w-full overflow-x-hidden">
+    <div className="w-full flex justify-center py-1 sm:py-3 px-1 sm:px-3 bg-slate-100/80 max-w-full overflow-x-hidden">
       <div 
         ref={ref} 
         id="invoice-to-share"
-        className="bg-white text-slate-800 w-full max-w-[650px] mx-auto shadow-xl font-sans text-left overflow-hidden border border-slate-200/90 rounded-2xl sm:rounded-3xl relative box-border"
+        className="bg-white text-slate-800 w-full max-w-[600px] mx-auto shadow-xl font-sans text-left overflow-hidden border border-slate-200/90 rounded-2xl relative box-border"
         style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}
       >
         {/* Top Decorative Gold/Emerald Accent Line */}
-        <div className="h-2.5 bg-gradient-to-r from-[#0D3D33] via-[#2ECC71] to-[#0D3D33]" />
+        <div className="h-2 bg-gradient-to-r from-[#0D3D33] via-[#2ECC71] to-[#0D3D33]" />
 
         {/* Center Shop Logo Watermark Background */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] z-0 overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] z-0 overflow-hidden">
           {shopLogoUrl ? (
-            <img src={shopLogoUrl} alt="Watermark" className="w-64 h-64 sm:w-96 sm:h-96 object-contain grayscale" />
+            <img src={shopLogoUrl} alt="Watermark" className="w-56 h-56 sm:w-80 sm:h-80 object-contain grayscale" />
           ) : (
-            <span className="text-8xl sm:text-[180px] font-black text-[#0D3D33]">✂️</span>
+            <span className="text-7xl sm:text-[140px] font-black text-[#0D3D33]">✂️</span>
           )}
         </div>
 
@@ -117,59 +117,58 @@ export const Invoice = forwardRef<HTMLDivElement, InvoiceProps>(({
         <div className="relative z-10">
           
           {/* Header Banner */}
-          <div className="bg-[#0D3D33] text-white p-5 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-6 border-b border-white/10">
-            <div className="flex items-center gap-4 min-w-0 w-full sm:w-auto">
+          <div className="bg-[#0D3D33] text-white p-4 sm:p-6 flex flex-row items-center justify-between gap-4 border-b border-white/10">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               {shopLogoUrl ? (
                 <img 
                   src={shopLogoUrl} 
                   alt={shopName} 
-                  className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl object-cover bg-white shrink-0 border-2 border-[#2ECC71]/40 shadow-lg p-0.5" 
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl object-cover bg-white shrink-0 border border-[#2ECC71]/40 shadow-md p-0.5" 
                   crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl bg-white/10 flex items-center justify-center font-black text-xl sm:text-2xl text-[#2ECC71] uppercase shrink-0 border border-white/20 shadow-lg">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-white/10 flex items-center justify-center font-black text-lg sm:text-xl text-[#2ECC71] uppercase shrink-0 border border-white/20 shadow-md">
                   {shopName.substring(0, 2).toUpperCase()}
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white truncate">{shopName}</h1>
-                <div className="text-xs text-white/80 mt-1 space-y-0.5 font-medium">
+                <h1 className="text-lg sm:text-xl font-black tracking-tight text-white truncate">{shopName}</h1>
+                <div className="text-[11px] text-white/80 mt-0.5 space-y-0.5 font-medium">
                   {shopPhone && <p className="truncate">📞 {shopPhone}</p>}
-                  {shopAddress && <p className="line-clamp-2">📍 {shopAddress}</p>}
-                  {shopEmail && <p className="truncate">✉️ {shopEmail}</p>}
+                  {shopAddress && <p className="truncate">📍 {shopAddress}</p>}
                 </div>
               </div>
             </div>
 
-            <div className="text-left sm:text-right shrink-0 w-full sm:w-auto border-t border-white/15 sm:border-none pt-3 sm:pt-0">
-              <span className="inline-block px-3 py-1 rounded-full bg-white/15 text-white font-extrabold text-[10px] uppercase tracking-widest mb-1.5 border border-white/20">
-                OFFICIAL INVOICE
+            <div className="text-right shrink-0">
+              <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/15 text-white font-extrabold text-[9px] uppercase tracking-widest mb-1 border border-white/20">
+                INVOICE
               </span>
-              <p className="text-xl sm:text-2xl font-mono font-black text-white tracking-tight">
+              <p className="text-lg sm:text-xl font-mono font-black text-white tracking-tight">
                 #{tokenNumber}
               </p>
-              <div className="text-xs text-white/70 font-semibold mt-1 space-y-0.5">
+              <div className="text-[10px] text-white/70 font-semibold mt-0.5">
                 <p>Date: {invoiceDateStr}</p>
-                {deliveryDateStr !== 'N/A' && <p className="text-white/90">Delivery: {deliveryDateStr}</p>}
+                {deliveryDateStr !== 'N/A' && <p className="text-white/90">Deliv: {deliveryDateStr}</p>}
               </div>
             </div>
           </div>
 
           {/* Customer & Status Bar */}
-          <div className="p-4 sm:p-6 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between flex-wrap gap-4">
-            <div className="space-y-1 min-w-0">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">BILL TO (CUSTOMER)</span>
+          <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between gap-3">
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">BILL TO</span>
               <div className="flex items-center gap-2">
-                <p className="font-extrabold text-base sm:text-lg text-slate-900 truncate">{order.customerName || 'Valued Customer'}</p>
+                <p className="font-extrabold text-sm sm:text-base text-slate-900 truncate">{order.customerName || 'Valued Customer'}</p>
                 {order?.isVip && (
-                  <span className="px-2 py-0.5 text-[9px] font-black rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs shrink-0">
+                  <span className="px-1.5 py-0.2 text-[8px] font-black rounded-full bg-amber-400 text-slate-950 border border-amber-500 shadow-xs shrink-0">
                     ⭐ VIP
                   </span>
                 )}
               </div>
               {orderPhone && (
-                <p className="text-xs text-slate-600 font-bold">📞 {orderPhone}</p>
+                <p className="text-[11px] text-slate-600 font-bold">📞 {orderPhone}</p>
               )}
             </div>
 
@@ -179,41 +178,41 @@ export const Invoice = forwardRef<HTMLDivElement, InvoiceProps>(({
           </div>
 
           {/* Order Details & Stitching Specs */}
-          <div className="p-4 sm:p-6 border-b border-slate-100 space-y-4">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">ORDER & SUIT SPECIFICATIONS</span>
+          <div className="p-3.5 sm:p-4 border-b border-slate-100 space-y-3">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">SPECIFICATIONS</span>
             
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200/70">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200/70">
               <div>
-                <span className="text-slate-400 font-bold uppercase text-[9px] block">Garment Type</span>
-                <p className="font-extrabold text-slate-900 text-xs sm:text-sm mt-0.5 truncate">{order.clothingType || order.dressType || 'Custom Suit'}</p>
+                <span className="text-slate-400 font-bold uppercase text-[8px] block">Garment Type</span>
+                <p className="font-extrabold text-slate-900 text-xs mt-0.5 truncate">{order.clothingType || order.dressType || 'Custom Suit'}</p>
               </div>
               <div>
-                <span className="text-slate-400 font-bold uppercase text-[9px] block">Service Category</span>
-                <p className="font-extrabold text-slate-900 text-xs sm:text-sm mt-0.5 truncate">{order.serviceCategory || 'Bespoke Stitching'}</p>
+                <span className="text-slate-400 font-bold uppercase text-[8px] block">Category</span>
+                <p className="font-extrabold text-slate-900 text-xs mt-0.5 truncate">{order.serviceCategory || 'Bespoke'}</p>
               </div>
               <div>
-                <span className="text-slate-400 font-bold uppercase text-[9px] block">Delivery Date</span>
-                <p className="font-extrabold text-slate-900 text-xs sm:text-sm mt-0.5">{deliveryDateStr}</p>
+                <span className="text-slate-400 font-bold uppercase text-[8px] block">Delivery</span>
+                <p className="font-extrabold text-slate-900 text-xs mt-0.5">{deliveryDateStr}</p>
               </div>
               <div>
-                <span className="text-slate-400 font-bold uppercase text-[9px] block">Rack / Storage</span>
-                <p className="font-extrabold text-slate-900 text-xs sm:text-sm mt-0.5">{order.rackLocation || 'Assigned'}</p>
+                <span className="text-slate-400 font-bold uppercase text-[8px] block">Rack Slot</span>
+                <p className="font-extrabold text-slate-900 text-xs mt-0.5">{order.rackLocation || 'Assigned'}</p>
               </div>
             </div>
 
             {(order.designNotes || order.notes) && (
-              <div className="bg-amber-50/80 p-3.5 rounded-xl border border-amber-200/80 text-xs">
-                <span className="text-amber-800 font-bold uppercase text-[10px] block mb-1">Special Stitching Instructions & Design Notes</span>
-                <p className="text-slate-800 font-semibold leading-relaxed">{order.designNotes || order.notes}</p>
+              <div className="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/80 text-xs">
+                <span className="text-amber-800 font-bold uppercase text-[9px] block mb-0.5">Instructions & Notes</span>
+                <p className="text-slate-800 font-semibold text-[11px] leading-snug">{order.designNotes || order.notes}</p>
               </div>
             )}
           </div>
 
           {/* Measurements Profile Section */}
           {hasMeasurements && (
-            <div className="p-4 sm:p-6 border-b border-slate-100">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3">CUSTOM MEASUREMENTS PROFILE</span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+            <div className="p-3.5 sm:p-4 border-b border-slate-100">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">MEASUREMENTS PROFILE</span>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-xs">
                 {Object.entries(measurements).map(([key, value]) => {
                   if (value === null || value === undefined || value === '') return null;
                   const friendlyLabel = key
@@ -221,9 +220,9 @@ export const Invoice = forwardRef<HTMLDivElement, InvoiceProps>(({
                     .replace(/^./, str => str.toUpperCase())
                     .trim();
                   return (
-                    <div key={key} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 text-center">
-                      <span className="text-slate-400 font-bold text-[9px] block uppercase truncate">{friendlyLabel}</span>
-                      <span className="font-black text-slate-900 text-xs sm:text-sm block mt-0.5">{value as string}</span>
+                    <div key={key} className="bg-slate-50 p-2 rounded-lg border border-slate-200/60 text-center">
+                      <span className="text-slate-400 font-bold text-[8px] block uppercase truncate">{friendlyLabel}</span>
+                      <span className="font-black text-slate-900 text-xs block mt-0.5">{value as string}</span>
                     </div>
                   );
                 })}
