@@ -98,7 +98,7 @@ export const Invoice = forwardRef<HTMLDivElement, InvoiceProps>(({
       <div 
         ref={ref} 
         id="invoice-to-share"
-        className="bg-white text-slate-800 w-full max-w-full sm:max-w-2xl mx-auto shadow-2xl font-sans text-left overflow-hidden border border-slate-200/90 rounded-2xl sm:rounded-3xl relative"
+        className="bg-white text-slate-800 w-full max-w-[650px] mx-auto shadow-xl font-sans text-left overflow-hidden border border-slate-200/90 rounded-2xl sm:rounded-3xl relative box-border"
         style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}
       >
         {/* Top Decorative Gold/Emerald Accent Line */}

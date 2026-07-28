@@ -37,7 +37,7 @@ export default function InvoicePage() {
   return (
     <div className="min-h-screen bg-slate-100 py-6 px-2 sm:px-4 md:px-8">
       {/* Top Banner Navigation */}
-      <div className="max-w-2xl mx-auto mb-4 flex items-center justify-start">
+      <div className="max-w-[650px] mx-auto mb-4 flex items-center justify-start">
         <Button 
           variant="outline" 
           onClick={() => navigate(`/app/orders/${id}`)}

@@ -322,15 +322,15 @@ export const InvoiceActions: React.FC<InvoiceActionsProps> = ({
   const isAnyProcessing = isDownloading || isSharing || isSavingDetails || isSavingFooter;
 
   return (
-    <div className="w-full max-w-full sm:max-w-2xl mx-auto mt-4 sm:mt-6 space-y-4 sm:space-y-6 px-2">
+    <div className="w-full max-w-[650px] mx-auto mt-4 sm:mt-6 space-y-4 sm:space-y-6 px-2">
       
       {/* Primary Action Toolbar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 shadow-md">
+      <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 shadow-md">
         <Button 
           variant="outline"
           onClick={handleExportPNG}
           disabled={isAnyProcessing}
-          className="flex-1 min-w-[130px] rounded-xl font-bold border-slate-300 text-slate-700 bg-white hover:bg-slate-50 transition-all h-11 sm:h-12 text-xs sm:text-sm active:scale-95"
+          className="w-full rounded-xl font-bold border-slate-300 text-slate-700 bg-white hover:bg-slate-50 transition-all h-11 sm:h-12 text-xs sm:text-sm active:scale-95"
         >
           {isDownloading ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin text-[#0D3D33]" />
@@ -343,7 +343,7 @@ export const InvoiceActions: React.FC<InvoiceActionsProps> = ({
         <Button 
           onClick={handleShareWhatsAppPNG}
           disabled={isAnyProcessing}
-          className="flex-1 min-w-[170px] rounded-xl font-bold bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md active:scale-95 transition-all h-11 sm:h-12 text-xs sm:text-sm"
+          className="w-full rounded-xl font-bold bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md active:scale-95 transition-all h-11 sm:h-12 text-xs sm:text-sm"
         >
           {isSharing ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
@@ -357,7 +357,7 @@ export const InvoiceActions: React.FC<InvoiceActionsProps> = ({
           variant="outline"
           onClick={() => setIsEditing(!isEditing)}
           disabled={isAnyProcessing}
-          className={`flex-1 min-w-[120px] rounded-xl font-bold transition-all h-11 sm:h-12 text-xs sm:text-sm ${
+          className={`w-full rounded-xl font-bold transition-all h-11 sm:h-12 text-xs sm:text-sm ${
             isEditing 
               ? "bg-slate-900 text-white border-slate-900 hover:bg-slate-800" 
               : "border-slate-300 text-slate-700 bg-white hover:bg-slate-50"

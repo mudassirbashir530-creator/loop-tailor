@@ -214,10 +214,10 @@ export default function Chat() {
   };
 
   return (
-    <div className="h-[calc(100vh-72px)] lg:h-screen flex bg-[#F8F7F4] overflow-hidden">
+    <div className="h-auto min-h-[calc(100vh-100px)] lg:h-[calc(100vh-2rem)] flex bg-[#F8F7F4] overflow-hidden rounded-2xl border border-slate-200/80 shadow-xs max-w-full my-1">
       
       {/* 1. SIDEBAR: CUSTOMER SELECTION DIRECTORY (Hidden on mobile if a workspace is active) */}
-      <div className={`w-full lg:w-[380px] border-r border-[#EBE9E2] flex flex-col bg-white shrink-0 ${activeCustomerId ? 'hidden lg:flex' : 'flex'}`}>
+      <div className={`w-full lg:w-[320px] xl:w-[350px] border-r border-[#EBE9E2] flex flex-col bg-white shrink-0 ${activeCustomerId ? 'hidden lg:flex' : 'flex'}`}>
         <div className="p-4 border-b border-[#EBE9E2] space-y-3">
           <div>
             <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
@@ -295,13 +295,13 @@ export default function Chat() {
                       {cust.name.charAt(0)}
                     </div>
                   )}
-                  <div className="flex-1 overflow-hidden">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-sm text-slate-800 truncate leading-tight">{cust.name}</span>
-                      <span className="text-[10px] text-slate-400 font-bold">{cust.countryCode} {cust.phone}</span>
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="flex items-center justify-between gap-1.5 min-w-0">
+                      <span className="font-semibold text-sm text-slate-800 truncate leading-tight flex-1">{cust.name}</span>
+                      <span className="text-[10px] text-slate-400 font-bold font-mono shrink-0">{cust.countryCode} {cust.phone}</span>
                     </div>
                     
-                    <div className="flex gap-1.5 items-center mt-2.5">
+                    <div className="flex gap-1.5 items-center mt-2 flex-wrap min-w-0">
                       {clientOrders.length > 0 ? (
                         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-600 border border-amber-200 uppercase font-mono">
                           {clientOrders.length} Pending
@@ -370,11 +370,11 @@ export default function Chat() {
             </div>
 
             {/* Workplace Content (two-column dashboard format on desktop) */}
-            <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6">
-              <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6 min-w-0">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-w-0">
                 
                 {/* Outreaching column (Left 7-grids) */}
-                <div className="xl:col-span-7 space-y-6">
+                <div className="lg:col-span-7 space-y-6 min-w-0">
                   
                   {/* Outreach Alerts Templates Grid */}
                   <div className="bg-white border border-[#EBE9E2] rounded-2xl p-5 shadow-sm space-y-4">
@@ -447,7 +447,7 @@ export default function Chat() {
                 </div>
 
                 {/* Right Context column containing Client active measurements and orders references (Right 5-grids) */}
-                <div className="xl:col-span-5 space-y-6">
+                <div className="lg:col-span-5 space-y-6 min-w-0">
                   
                   {/* Multi active orders selector card */}
                   <div className="bg-white border border-[#EBE9E2] rounded-2xl p-5 shadow-sm space-y-4">
