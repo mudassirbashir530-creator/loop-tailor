@@ -9,6 +9,7 @@ import DesktopSidebar from '../components/DesktopSidebar';
 import { PWAPrompt } from '../components/PWAPrompt';
 import { useShop } from '../contexts/ShopContext';
 import { WhatsAppIcon } from '../components/icons/WhatsAppIcon';
+import { Button } from '../components/ui/button';
 
 const getValidLogoUrl = (logo: any): string | null => {
   if (!logo) return null;

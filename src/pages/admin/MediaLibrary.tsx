@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, setDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType } from '../../lib/firebase';
+import { uploadToCloudinary } from '../../lib/cloudinary';
 import { Upload, Trash2, Copy, Image as ImageIcon, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -50,33 +51,40 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({ onSelect }) => {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('image', file);
+      let imageUrl = '';
+      try {
+        const cloudinaryImg = await uploadToCloudinary(file);
+        imageUrl = cloudinaryImg.url;
+      } catch (cErr) {
+        // Fallback to /api/upload
+        const formData = new FormData();
+        formData.append('image', file);
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to upload image');
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to upload image');
+        const resData = await response.json();
+        imageUrl = resData.url;
       }
 
-      const { url } = await response.json();
-      
       const fileId = Date.now().toString();
       const mediaData = {
         id: fileId,
-        url: url,
+        url: imageUrl,
         name: file.name,
         size: file.size,
         type: file.type,
         createdAt: new Date(),
-        storagePath: `cloudinary` // marking as cloudinary, though we might not delete it from there easily without backend
+        storagePath: `cloudinary`
       };
       
-      // Save to Firestore
+      // Save to MongoDB via Firestore Shim
       await setDoc(doc(db, 'media_library', fileId), {
         ...mediaData,
         createdAt: serverTimestamp()

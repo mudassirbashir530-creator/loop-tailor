@@ -131,16 +131,17 @@ export async function signInWithEmailAndPassword(authInstance: any, email: strin
   return { user: currentUser };
 }
 
-export async function createUserWithEmailAndPassword(authInstance: any, email: string, password: string) {
+export async function createUserWithEmailAndPassword(authInstance: any, email: string, password: string, additionalData?: any) {
   const normalizedEmail = (email || '').toLowerCase().trim();
   const isAdminEmail = normalizedEmail === 'looptailor@gmail.com' || normalizedEmail === 'mudassirbashir530@gmail.com';
 
   // 1. Try Express Backend API first
+  let serverError: string | null = null;
   try {
     const res = await fetch(getApiUrl('/api/auth/signup'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail, password })
+      body: JSON.stringify({ email: normalizedEmail, password, ...(additionalData || {}) })
     });
     
     const isJson = res.headers.get("content-type")?.includes("application/json");
@@ -158,10 +159,24 @@ export async function createUserWithEmailAndPassword(authInstance: any, email: s
       safeSetItem('loop_tailor_user', JSON.stringify(currentUser.toJSON()));
       triggerAuthListeners();
       return { user: currentUser };
+    } else {
+      const errText = isJson ? await res.json() : { error: `Server HTTP ${res.status}` };
+      serverError = errText.error || `Server HTTP ${res.status}`;
+      console.error('[Auth API Error]', serverError);
     }
-  } catch (apiErr) {}
+  } catch (apiErr: any) {
+    serverError = apiErr?.message || "Server unreachable";
+    console.error('[Auth API Exception]', apiErr);
+  }
 
-  // 2. Ultra-resilient Client-side Fallback for Cloudflare Pages (Instant Seamless Login/Signup)
+  // If server responded with explicit error message (e.g. duplicate email, validation fail), throw it
+  if (serverError && !serverError.includes("Failed to fetch") && !serverError.includes("unreachable")) {
+    const err: any = new Error(serverError);
+    err.code = serverError.includes("already exists") ? 'auth/email-already-in-use' : 'auth/server-error';
+    throw err;
+  }
+
+  // 2. Client-side Fallback for offline / static hosting
   let localUsers: any[] = [];
   try {
     const savedUsers = safeGetItem('loop_tailor_users_db');
@@ -175,7 +190,7 @@ export async function createUserWithEmailAndPassword(authInstance: any, email: s
       uid: userId,
       _id: userId,
       email: normalizedEmail,
-      displayName: isAdminEmail ? 'Super Admin' : normalizedEmail.split('@')[0],
+      displayName: additionalData?.name || (isAdminEmail ? 'Super Admin' : normalizedEmail.split('@')[0]),
       emailVerified: true,
       password: password,
       isAdmin: isAdminEmail,

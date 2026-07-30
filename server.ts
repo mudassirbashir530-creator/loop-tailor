@@ -197,6 +197,37 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  // Upload image to Cloudinary or base64 fallback
+  app.post("/api/upload", upload.single("image"), async (req: any, res: any) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided." });
+      }
+
+      if (hasCloudinary) {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "looptailor" },
+          (error, result) => {
+            if (error || !result) {
+              console.error("Cloudinary server upload error:", error);
+              return res.status(500).json({ error: error?.message || "Cloudinary upload failed." });
+            }
+            return res.json({ url: result.secure_url, publicId: result.public_id });
+          }
+        );
+        uploadStream.end(req.file.buffer);
+      } else {
+        const b64 = req.file.buffer.toString("base64");
+        const mime = req.file.mimetype || "image/jpeg";
+        const dataUrl = `data:${mime};base64,${b64}`;
+        return res.json({ url: dataUrl, publicId: `local_${Date.now()}` });
+      }
+    } catch (err: any) {
+      console.error("Upload handler error:", err);
+      res.status(500).json({ error: err.message || "Failed to process image upload." });
+    }
+  });
+
   /**
    * MongoDB Database & Auth REST API (Secured)
    */
@@ -205,7 +236,7 @@ async function startServer() {
   app.post("/api/auth/signup", async (req, res) => {
     try {
       const db = await getMongoDb();
-      const { email, password, name, phone, language, shopName, shopLogoUrl, shopAddress } = req.body;
+      const { email, password, name, phone, language, shopName, shopLogoUrl, shopAddress, plan, currency, servicesOffered } = req.body;
       
       // Server-side input validation
       if (!isValidEmail(email)) {
@@ -228,14 +259,11 @@ async function startServer() {
       // Check if user already exists
       const existingUser = await db.collection("users").findOne({ email: normalizedEmail });
       if (existingUser) {
-        // Generic response to prevent user enumeration
         return res.status(400).json({ error: "An account with this email address already exists. Please log in instead." });
       }
       
       const userId = "user_" + crypto.randomUUID().replace(/-/g, "").slice(0, 20);
-      const defaultPlan = 'free';
-      
-      // Store hashed password securely (never plaintext)
+      const selectedPlan = plan || 'free';
       const hashedPassword = hashPassword(password);
       
       const newUser = {
@@ -247,18 +275,18 @@ async function startServer() {
         phone: phone || '',
         shopName: shopName || 'My Tailor Shop',
         countryCode: '+92',
-        photoURL: '',
+        photoURL: shopLogoUrl || '',
         provider: 'password',
         preferred_language: language || 'en',
         role: 'user',
         isAdmin: false,
         createdAt: new Date().toISOString(),
-        plan: defaultPlan,
+        plan: selectedPlan,
         planPrice: 0,
         planLimits: {
           customers: 10,
           ordersPerMonth: 15,
-          workers: 1
+          workers: 3
         },
         features: {
           canDownloadInvoice: true,
@@ -279,6 +307,24 @@ async function startServer() {
       
       await db.collection("users").replaceOne({ _id: userId }, newUser, { upsert: true });
       
+      // Initialize shop document in 'shops' collection
+      await db.collection("shops").replaceOne(
+        { _id: userId },
+        {
+          _id: userId,
+          id: userId,
+          ownerId: userId,
+          name: shopName || `${name || 'My'}'s Shop`,
+          phone: phone || '',
+          address: shopAddress || '',
+          logoUrl: shopLogoUrl || '',
+          currency: currency || 'PKR',
+          servicesOffered: servicesOffered || [],
+          createdAt: new Date().toISOString()
+        },
+        { upsert: true }
+      );
+      
       // Initialize settings for the shop too
       await db.collection("settings").replaceOne(
         { _id: userId },
@@ -298,7 +344,7 @@ async function startServer() {
       res.status(201).json(safeUserData);
     } catch (err: any) {
       console.error("Signup error:", err);
-      res.status(500).json({ error: "An unexpected error occurred during signup." });
+      res.status(500).json({ error: err.message || "An unexpected error occurred during signup." });
     }
   });
 

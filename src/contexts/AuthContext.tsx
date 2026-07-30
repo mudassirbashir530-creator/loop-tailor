@@ -372,7 +372,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setImpersonatedUser(null);
       let userCredential;
       try {
-        userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+        userCredential = await (createUserWithEmailAndPassword as any)(auth, email, pass, {
+          name,
+          phone,
+          language,
+          shopName,
+          shopLogoUrl,
+          shopAddress,
+          plan,
+          currency,
+          servicesOffered
+        });
       } catch (authError: any) {
         if (authError.code === 'auth/email-already-in-use') {
           // Attempt automatic sign-in to sync existing account data across browsers/devices
